@@ -1,0 +1,13 @@
+Name        : erydb                      Relocations: (not relocatable)
+Version     : @@VERSION@@                               Vendor: EryDB, Inc.
+Release     : @@RELEASE@@                             Build Date: @@BUILDDATE@@
+Install Date: @@INSTALLDATE@@      Build Host: @@BUILDMACHINE@@.erydb.com
+Group       : Applications
+Size        : 750449506                        License: Copyright (c) 2014 EryDB, Inc., all rights reserved
+Signature   : (none)
+Packager    : @@PACKAGER@@
+URL         : http://www.erydb.co/
+Summary     : EryDB software for Windows
+
+EryDB binary files
+

@@ -1,0 +1,400 @@
+#
+# $Id$
+#
+Summary: EryDB software
+Name: erydb
+@@VERSION@@
+@@RELEASE@@
+Vendor: EryDB, Inc.
+URL: http://www.erydb.com/
+@@PACKAGER@@
+Group: Applications
+License: Copyright (c) 2016 EryDB, Inc., all rights reserved; redistributable under the terms of the GPL, see the file COPYING for details.
+BuildRoot: %{_tmppath}/%{name}-%{release}-buildroot
+
+%description
+EryDB software meta-package
+
+%package platform
+Summary: EryDB software binaries
+Group: Applications
+Obsoletes: erydb
+Requires: expect, erydb-libs
+
+%description platform
+EryDB binary files
+@@BUILDINFO@@
+
+%package libs
+Summary: EryDB software libraries
+Group: Applications
+Obsoletes: erydb
+
+%description libs
+EryDB libraries
+
+%package enterprise
+Summary: EryDB Enterprise software binaries
+Group: Applications
+Obsoletes: erydb
+Requires: erydb-libs, erydb-platform
+License: Proprietary; Copyright (c) 2016 EryDB, Inc., all rights reserved
+
+%description enterprise
+EryDB Enterprise binary files
+
+%package storage-engine
+Summary: EryDB software MariaDB connector
+Group: Applications
+Obsoletes: erydb-mysql
+Requires: erydb-libs
+
+%description storage-engine
+EryDB connector binary files
+
+%prep
+%define _use_internal_dependency_generator 0
+%define __find_requires %{nil}
+%define __os_install_post %{nil}
+%define debug_package %{nil}
+
+%build
+
+%install
+mkdir -p %{buildroot}/usr/local
+tar -C $RPM_BUILD_DIR/%{name}-%{version}-%{release} -cf - . | tar -C %{buildroot}/usr/local -xf -
+
+%clean
+rm -rf $RPM_BUILD_ROOT $RPM_BUILD_DIR/%{name}-%{version}-%{release}
+
+%changelog
+
+%files platform
+%defattr(-, root, root)
+
+/usr/local/erydb/bin/DDLProc
+/usr/local/erydb/bin/ExeMgr
+/usr/local/erydb/bin/ProcMgr
+/usr/local/erydb/bin/ProcMon
+/usr/local/erydb/bin/DMLProc
+/usr/local/erydb/bin/WriteEngineServer
+/usr/local/erydb/bin/cpimport
+/usr/local/erydb/bin/post-install
+/usr/local/erydb/bin/post-mysql-install
+/usr/local/erydb/bin/post-mysqld-install
+/usr/local/erydb/bin/pre-uninstall
+/usr/local/erydb/bin/PrimProc
+/usr/local/erydb/bin/DecomSvr
+/usr/local/erydb/bin/upgrade-erydb.sh
+/usr/local/erydb/bin/run.sh
+/usr/local/erydb/bin/erydb
+/usr/local/erydb/bin/erydbSyslog 
+/usr/local/erydb/bin/erydbSyslog7
+/usr/local/erydb/bin/erydbSyslog-ng 
+/usr/local/erydb/bin/syslogSetup.sh
+/usr/local/erydb/bin/cplogger
+/usr/local/erydb/bin/erydb.def
+/usr/local/erydb/bin/dbbuilder
+/usr/local/erydb/bin/cpimport.bin
+/usr/local/erydb/bin/load_brm
+/usr/local/erydb/bin/save_brm
+/usr/local/erydb/bin/dbrmctl
+/usr/local/erydb/bin/controllernode
+/usr/local/erydb/bin/reset_locks
+/usr/local/erydb/bin/workernode
+/usr/local/erydb/bin/colxml
+/usr/local/erydb/bin/clearShm
+/usr/local/erydb/bin/viewtablelock
+/usr/local/erydb/bin/cleartablelock
+/usr/local/erydb/bin/eryadmin
+#/usr/local/erydb/bin/trapHandler
+/usr/local/erydb/bin/remote_command.sh
+/usr/local/erydb/bin/postConfigure
+/usr/local/erydb/bin/erydbLogRotate
+/usr/local/erydb/bin/transactionLog
+/usr/local/erydb/bin/erydbDBWrite
+/usr/local/erydb/bin/transactionLogArchiver.sh
+#/usr/local/erydb/bin/system_installer.sh
+/usr/local/erydb/bin/installer
+/usr/local/erydb/bin/module_installer.sh
+#/usr/local/erydb/bin/patchInstaller
+#/usr/local/erydb/bin/patch_installer.sh
+#/usr/local/erydb/bin/xm_installer.sh
+/usr/local/erydb/bin/erydbUninstall.sh
+#/usr/local/erydb/bin/director_installer.sh
+/usr/local/erydb/bin/user_installer.sh
+/usr/local/erydb/bin/performance_installer.sh
+/usr/local/erydb/bin/startupTests.sh
+/usr/local/erydb/bin/os_check.sh
+#/usr/local/erydb/bin/sendtrap
+/usr/local/erydb/bin/remote_scp_put.sh
+/usr/local/erydb/bin/remotessh.exp
+/usr/local/erydb/bin/ServerMonitor
+/usr/local/erydb/bin/master-rep-erydb.sh 
+/usr/local/erydb/bin/slave-rep-erydb.sh
+/usr/local/erydb/bin/rsync.sh
+/usr/local/erydb/bin/erydbSupport
+/usr/local/erydb/bin/hardwareReport.sh
+/usr/local/erydb/bin/softwareReport.sh
+/usr/local/erydb/bin/configReport.sh
+/usr/local/erydb/bin/logReport.sh
+/usr/local/erydb/bin/bulklogReport.sh
+/usr/local/erydb/bin/resourceReport.sh
+/usr/local/erydb/bin/hadoopReport.sh
+/usr/local/erydb/bin/alarmReport.sh
+/usr/local/erydb/bin/amazonInstaller
+/usr/local/erydb/bin/remote_command_verify.sh
+/usr/local/erydb/bin/disable-rep-erydb.sh
+
+
+#
+%config /usr/local/erydb/etc/erydb.xml
+%config /usr/local/erydb/etc/ConsoleCmds.xml
+%config /usr/local/erydb/etc/ProcessConfig.xml
+%config /usr/local/erydb/etc/erydb.xml.singleserver
+%config /usr/local/erydb/etc/ProcessConfig.xml.singleserver
+#
+/usr/local/erydb/etc/MessageFile.txt
+/usr/local/erydb/etc/ErrorMessage.txt
+#
+%attr(0666, root, root) /usr/local/erydb/local/module
+#
+/usr/local/erydb/releasenum
+
+# Tools...
+/usr/local/erydb/bin/rollback
+/usr/local/erydb/bin/editem
+/usr/local/erydb/bin/getConfig
+/usr/local/erydb/bin/setConfig
+/usr/local/erydb/bin/setenv-hdfs-12
+/usr/local/erydb/bin/setenv-hdfs-20
+/usr/local/erydb/bin/hdfsCheck
+/usr/local/erydb/bin/configxml.sh
+/usr/local/erydb/bin/remote_scp_get.sh
+/usr/local/erydb/bin/erydbAlias
+/usr/local/erydb/bin/autoConfigure
+/usr/local/erydb/bin/ddlcleanup
+/usr/local/erydb/bin/erydbmeminfo
+/usr/local/erydb/bin/ERYDBInstanceCmds.sh
+/usr/local/erydb/bin/ERYDBVolumeCmds.sh
+/usr/local/erydb/bin/binary_installer.sh 
+/usr/local/erydb/bin/myCnf-include-args.text 
+/usr/local/erydb/bin/myCnf-exclude-args.text
+/usr/local/erydb/bin/mycnfUpgrade
+/usr/local/erydb/bin/getMySQLpw
+/usr/local/erydb/bin/erydb.conf
+
+
+%config %attr(0666, root, root) /usr/local/erydb/etc/AlarmConfig.xml
+# 
+#
+/usr/local/erydb/post/functions
+/usr/local/erydb/post/test-001.sh
+/usr/local/erydb/post/test-002.sh
+/usr/local/erydb/post/test-003.sh
+/usr/local/erydb/post/test-004.sh
+
+%files enterprise
+%defattr(-, root, root)
+/usr/local/erydb/bin/displayJobGraph.sh
+/usr/local/erydb/bin/dbhealth.sh 
+/usr/local/erydb/bin/dbhealth.sql
+
+# Tools...
+/usr/local/erydb/bin/dumpcol
+/usr/local/erydb/bin/oid2file
+/usr/local/erydb/bin/evalcol
+/usr/local/erydb/bin/SesMgr
+/usr/local/erydb/bin/dumpVss
+/usr/local/erydb/bin/editTxn
+/usr/local/erydb/bin/dbprof.pl
+/usr/local/erydb/bin/dumpobm
+/usr/local/erydb/bin/file2oid.pl
+/usr/local/erydb/bin/print_journal
+/usr/local/erydb/bin/healthcheck
+/usr/local/erydb/bin/glusterctl
+/usr/local/erydb/bin/glusteradd
+/usr/local/erydb/bin/glusterconf
+/usr/local/erydb/bin/redistributeDB
+/usr/local/erydb/bin/databaseSizeReport
+/usr/local/erydb/bin/gdb
+#
+/usr/local/erydb/tools/copy2here.sh
+/usr/local/erydb/tools/getlogs.sh
+/usr/local/erydb/tools/getmodules.sh
+/usr/local/erydb/tools/getps.sh
+/usr/local/erydb/tools/getsar.sh
+/usr/local/erydb/tools/getuserinput.sh
+/usr/local/erydb/tools/prat
+/usr/local/erydb/tools/prat.sh
+/usr/local/erydb/tools/ps
+/usr/local/erydb/tools/pscollect
+/usr/local/erydb/tools/README
+/usr/local/erydb/tools/tarfiles.sh
+#
+%files libs
+%defattr(-, root, root)
+
+/usr/local/erydb/lib/libconfigcpp.so.1.0.0
+/usr/local/erydb/lib/libddlpackageproc.so.1.0.0
+/usr/local/erydb/lib/libddlpackage.so.1.0.0
+/usr/local/erydb/lib/libdmlpackageproc.so.1.0.0
+/usr/local/erydb/lib/libdmlpackage.so.1.0.0
+/usr/local/erydb/lib/libexecplan.so.1.0.0
+/usr/local/erydb/lib/libfuncexp.so.1.0.0
+/usr/local/erydb/lib/libudfsdk.so.1.0.0
+/usr/local/erydb/lib/libjoblist.so.1.0.0
+/usr/local/erydb/lib/libjoiner.so.1.0.0
+/usr/local/erydb/lib/libloggingcpp.so.1.0.0
+/usr/local/erydb/lib/libmessageqcpp.so.1.0.0
+/usr/local/erydb/lib/liboamcpp.so.1.0.0
+/usr/local/erydb/lib/libthreadpool.so.1.0.0
+/usr/local/erydb/lib/libwindowfunction.so.1.0.0
+/usr/local/erydb/lib/libwriteengine.so.1.0.0
+/usr/local/erydb/lib/libwriteengineclient.so.1.0.0
+/usr/local/erydb/lib/libbrm.so.1.0.0
+/usr/local/erydb/lib/librwlock.so.1.0.0
+/usr/local/erydb/lib/libdataconvert.so.1.0.0
+/usr/local/erydb/lib/librowgroup.so.1.0.0
+/usr/local/erydb/lib/libcacheutils.so.1.0.0
+/usr/local/erydb/lib/libcommon.so.1.0.0
+#/usr/local/erydb/lib/libboost_erydb.so.1.0.0
+/usr/local/erydb/lib/libcompress.so.1.0.0
+/usr/local/erydb/lib/libddlcleanuputil.so.1.0.0
+/usr/local/erydb/lib/libbatchloader.so.1.0.0
+/usr/local/erydb/lib/libmysqlcl_erydb.so.1.0.0
+/usr/local/erydb/lib/libquerystats.so.1.0.0
+/usr/local/erydb/lib/libwriteengineredistribute.so.1.0.0
+/usr/local/erydb/lib/liberydbdatafile.so.1.0.0
+/usr/local/erydb/lib/libhdfs-20.so
+/usr/local/erydb/lib/libhdfs-12.so
+#/usr/local/erydb/lib/libgcc_s.so.1
+#/usr/local/erydb/lib/libstdc++.so.6.0.14
+/usr/local/erydb/lib/libthrift.so.1.0.0
+/usr/local/erydb/lib/libquerytele.so.1.0.0
+
+%files storage-engine
+/usr/local/erydb/lib/liberymysql.so.1.0.0
+/usr/local/erydb/lib/libudf_mysql.so.1.0.0
+
+/usr/local/erydb/mysql/mysql-erydb
+/usr/local/erydb/mysql/install_erydb_mysql.sh
+/usr/local/erydb/mysql/syscatalog_mysql.sql
+/usr/local/erydb/mysql/dumpcat_mysql.sql
+/usr/local/erydb/mysql/dumpcat.pl
+/usr/local/erydb/mysql/calsetuserpriority.sql
+/usr/local/erydb/mysql/calremoveuserpriority.sql
+/usr/local/erydb/mysql/calshowprocesslist.sql
+
+%config /usr/local/erydb/mysql/my.cnf
+
+#
+# Scriptlets
+# for an install, pre & post run with $1 set to 1
+# for an erase, preun & postun run with $1 set to 0
+# for an upgrade, pre & post run first, with $1 set to 2 then the _old_ preun & postun run with $1 set to 1
+
+%post platform
+rpmmode=install
+if  [ "$1" -eq "$1" 2> /dev/null ]; then
+	if [ $1 -ne 1 ]; then
+		rpmmode=upgrade
+	fi
+fi
+
+prefix=/usr/local
+
+test -x /usr/local/erydb/bin/post-install && /usr/local/erydb/bin/post-install --prefix=$prefix --rpmmode=$rpmmode
+
+echo "ERYDB RPM install completed"
+
+%post libs
+rpmmode=install
+if  [ "$1" -eq "$1" 2> /dev/null ]; then
+	if [ $1 -ne 1 ]; then
+		rpmmode=upgrade
+	fi
+fi
+
+prefix=/usr/local
+
+echo "ERYDB RPM install completed"
+
+%post storage-engine
+rpmmode=install
+if  [ "$1" -eq "$1" 2> /dev/null ]; then
+	if [ $1 -ne 1 ]; then
+		rpmmode=upgrade
+	fi
+fi
+
+prefix=/usr/local
+
+echo "ERYDB RPM install completed"
+
+
+%post enterprise
+rpmmode=install
+if  [ "$1" -eq "$1" 2> /dev/null ]; then
+	if [ $1 -ne 1 ]; then
+		rpmmode=upgrade
+	fi
+fi
+
+prefix=/usr/local
+
+echo "ERYDB RPM install completed"
+
+%preun platform
+rpmmode=upgrade
+if  [ "$1" -eq "$1" 2> /dev/null ]; then
+	if [ $1 -ne 1 ]; then
+		rpmmode=erase
+	fi
+else
+	rpmmode=erase
+fi
+
+if [ $rpmmode = erase ]; then
+	test -x /usr/local/erydb/bin/pre-uninstall && /usr/local/erydb/bin/pre-uninstall
+fi
+
+exit 0
+
+%preun libs
+rpmmode=upgrade
+if  [ "$1" -eq "$1" 2> /dev/null ]; then
+	if [ $1 -ne 1 ]; then
+		rpmmode=erase
+	fi
+else
+	rpmmode=erase
+fi
+
+exit 0
+
+%preun storage-engine
+rpmmode=upgrade
+if  [ "$1" -eq "$1" 2> /dev/null ]; then
+	if [ $1 -ne 1 ]; then
+		rpmmode=erase
+	fi
+else
+	rpmmode=erase
+fi
+
+exit 0
+
+%preun enterprise
+rpmmode=upgrade
+if  [ "$1" -eq "$1" 2> /dev/null ]; then
+	if [ $1 -ne 1 ]; then
+		rpmmode=erase
+	fi
+else
+	rpmmode=erase
+fi
+
+exit 0
+
+

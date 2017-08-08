@@ -1,0 +1,205 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x86">
+      <Configuration>Debug</Configuration>
+      <Platform>x86</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x86">
+      <Configuration>Release</Configuration>
+      <Platform>x86</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{9AE60D66-99F6-4CCB-902D-3814A12AE0A9}</ProjectGuid>
+    <Keyword>Linux</Keyword>
+    <RootNamespace>libfuncexp</RootNamespace>
+    <MinimumVisualStudioVersion>15.0</MinimumVisualStudioVersion>
+    <ApplicationType>Linux</ApplicationType>
+    <ApplicationTypeRevision>1.0</ApplicationTypeRevision>
+    <TargetLinuxPlatform>Generic</TargetLinuxPlatform>
+    <LinuxProjectType>{D51BCBC9-82E9-4017-911E-C93873C4EA2B}</LinuxProjectType>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'" Label="Configuration">
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <RemoteRootDir>/app/build/erydb/src</RemoteRootDir>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'" Label="Configuration">
+    <UseDebugLibraries>false</UseDebugLibraries>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <RemoteRootDir>/app/build/erydb/src</RemoteRootDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings" />
+  <ImportGroup Label="Shared" />
+  <ImportGroup Label="PropertySheets" />
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>$(SolutionDir)..\..\bin\$(PlatformName)\$(ConfigurationName)\</OutDir>
+    <IntDir>$(SolutionDir)..\..\obj\$(ProjectName)\$(PlatformName)\$(ConfigurationName)\</IntDir>
+    <TargetName>$(ProjectName)</TargetName>
+    <TargetExt>.so</TargetExt>
+    <RemoteCompileCommandTimeout>3600000</RemoteCompileCommandTimeout>
+    <RemoteLdCommmandTimeout>3600000</RemoteLdCommmandTimeout>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
+    <OutDir>$(SolutionDir)..\..\bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)..\..\obj\$(Platform)\$(Configuration)\</IntDir>
+    <TargetExt>.so.1.0</TargetExt>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile />
+    <Link>
+      <LibraryDependencies>boost_system;boost_filesystem;boost_thread;boost_regex;boost_date_time;%(LibraryDependencies)</LibraryDependencies>
+      <AdditionalOptions>-L/app/build/x64  -lerydbboot  %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalLibraryDirectories>$(RemoteRootDir)/../../bin/x64/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <VerboseOutput>true</VerboseOutput>
+      <UnresolvedSymbolReferences>false</UnresolvedSymbolReferences>
+    </Link>
+    <ClCompile />
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="funcexpwrapper.cpp" />
+    <ClCompile Include="func_abs.cpp" />
+    <ClCompile Include="func_add_time.cpp" />
+    <ClCompile Include="func_ascii.cpp" />
+    <ClCompile Include="func_between.cpp" />
+    <ClCompile Include="func_bitwise.cpp" />
+    <ClCompile Include="func_case.cpp" />
+    <ClCompile Include="func_cast.cpp" />
+    <ClCompile Include="func_ceil.cpp" />
+    <ClCompile Include="func_char.cpp" />
+    <ClCompile Include="func_char_length.cpp" />
+    <ClCompile Include="func_coalesce.cpp" />
+    <ClCompile Include="func_concat.cpp" />
+    <ClCompile Include="func_concat_ws.cpp" />
+    <ClCompile Include="func_conv.cpp" />
+    <ClCompile Include="func_crc32.cpp" />
+    <ClCompile Include="func_date.cpp" />
+    <ClCompile Include="func_date_add.cpp" />
+    <ClCompile Include="func_date_format.cpp" />
+    <ClCompile Include="func_day.cpp" />
+    <ClCompile Include="func_dayname.cpp" />
+    <ClCompile Include="func_dayofweek.cpp" />
+    <ClCompile Include="func_dayofyear.cpp" />
+    <ClCompile Include="func_div.cpp" />
+    <ClCompile Include="func_elt.cpp" />
+    <ClCompile Include="func_exp.cpp" />
+    <ClCompile Include="func_extract.cpp" />
+    <ClCompile Include="func_find_in_set.cpp" />
+    <ClCompile Include="func_floor.cpp" />
+    <ClCompile Include="func_from_days.cpp" />
+    <ClCompile Include="func_from_unixtime.cpp" />
+    <ClCompile Include="func_get_format.cpp" />
+    <ClCompile Include="func_greatest.cpp" />
+    <ClCompile Include="func_hex.cpp" />
+    <ClCompile Include="func_hour.cpp" />
+    <ClCompile Include="func_erydbpartition.cpp" />
+    <ClCompile Include="func_if.cpp" />
+    <ClCompile Include="func_ifnull.cpp" />
+    <ClCompile Include="func_in.cpp" />
+    <ClCompile Include="func_inet_aton.cpp" />
+    <ClCompile Include="func_inet_ntoa.cpp" />
+    <ClCompile Include="func_insert.cpp" />
+    <ClCompile Include="func_instr.cpp" />
+    <ClCompile Include="func_isnull.cpp" />
+    <ClCompile Include="func_last_day.cpp" />
+    <ClCompile Include="func_lcase.cpp" />
+    <ClCompile Include="func_least.cpp" />
+    <ClCompile Include="func_left.cpp" />
+    <ClCompile Include="func_length.cpp" />
+    <ClCompile Include="func_lpad.cpp" />
+    <ClCompile Include="func_ltrim.cpp" />
+    <ClCompile Include="func_makedate.cpp" />
+    <ClCompile Include="func_maketime.cpp" />
+    <ClCompile Include="func_math.cpp" />
+    <ClCompile Include="func_md5.cpp" />
+    <ClCompile Include="func_microsecond.cpp" />
+    <ClCompile Include="func_minute.cpp" />
+    <ClCompile Include="func_mod.cpp" />
+    <ClCompile Include="func_month.cpp" />
+    <ClCompile Include="func_monthname.cpp" />
+    <ClCompile Include="func_nullif.cpp" />
+    <ClCompile Include="func_period_add.cpp" />
+    <ClCompile Include="func_period_diff.cpp" />
+    <ClCompile Include="func_pow.cpp" />
+    <ClCompile Include="func_quarter.cpp" />
+    <ClCompile Include="func_rand.cpp" />
+    <ClCompile Include="func_regexp.cpp" />
+    <ClCompile Include="func_repeat.cpp" />
+    <ClCompile Include="func_replace.cpp" />
+    <ClCompile Include="func_reverse.cpp" />
+    <ClCompile Include="func_right.cpp" />
+    <ClCompile Include="func_round.cpp" />
+    <ClCompile Include="func_rpad.cpp" />
+    <ClCompile Include="func_rtrim.cpp" />
+    <ClCompile Include="func_sec_to_time.cpp" />
+    <ClCompile Include="func_second.cpp" />
+    <ClCompile Include="func_sha.cpp" />
+    <ClCompile Include="func_sign.cpp" />
+    <ClCompile Include="func_str_to_date.cpp" />
+    <ClCompile Include="func_strcmp.cpp" />
+    <ClCompile Include="func_substr.cpp" />
+    <ClCompile Include="func_substring_index.cpp" />
+    <ClCompile Include="func_sysdate.cpp" />
+    <ClCompile Include="func_time.cpp" />
+    <ClCompile Include="func_time_format.cpp" />
+    <ClCompile Include="func_time_to_sec.cpp" />
+    <ClCompile Include="func_timediff.cpp" />
+    <ClCompile Include="func_timestampdiff.cpp" />
+    <ClCompile Include="func_to_days.cpp" />
+    <ClCompile Include="func_trim.cpp" />
+    <ClCompile Include="func_truncate.cpp" />
+    <ClCompile Include="func_ucase.cpp" />
+    <ClCompile Include="func_unhex.cpp" />
+    <ClCompile Include="func_unix_timestamp.cpp" />
+    <ClCompile Include="func_week.cpp" />
+    <ClCompile Include="func_weekday.cpp" />
+    <ClCompile Include="func_year.cpp" />
+    <ClCompile Include="func_yearweek.cpp" />
+    <ClCompile Include="funcexp.cpp" />
+    <ClCompile Include="functor.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="utf8\checked.h" />
+    <ClInclude Include="utf8\core.h" />
+    <ClInclude Include="funcexp.h" />
+    <ClInclude Include="funcexpwrapper.h" />
+    <ClInclude Include="funchelpers.h" />
+    <ClInclude Include="functor.h" />
+    <ClInclude Include="functor_all.h" />
+    <ClInclude Include="functor_bool.h" />
+    <ClInclude Include="functor_dtm.h" />
+    <ClInclude Include="functor_export.h" />
+    <ClInclude Include="functor_int.h" />
+    <ClInclude Include="functor_real.h" />
+    <ClInclude Include="functor_str.h" />
+    <ClInclude Include="sha.h" />
+    <ClInclude Include="utf8\unchecked.h" />
+    <ClInclude Include="utf8.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\configcpp\libconfigcpp.vcxproj">
+      <Project>{c543c9a1-b4e0-4bad-9fc2-2afeea952fc5}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

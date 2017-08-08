@@ -1,0 +1,10 @@
+#!/bin/bash -e
+
+rpmmode=install
+prefix=/usr/local
+
+test -x /usr/local/erydb/bin/post-install && /usr/local/erydb/bin/post-install --prefix=$prefix --rpmmode=$rpmmode
+
+echo "erydb install completed"
+
+exit 0

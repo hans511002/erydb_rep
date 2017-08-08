@@ -1,0 +1,8 @@
+#!/bin/bash -e
+
+rpmmode=install
+prefix=/usr/local
+
+echo "erydb install completed"
+
+exit 0
