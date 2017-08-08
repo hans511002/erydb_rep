@@ -1106,7 +1106,7 @@ mysql_declare_plugin(EryDB)
   PLUGIN_LICENSE_GPL,
   erydb_init_func,                            /* Plugin Init */
   erydb_done_func,                            /* Plugin Deinit */
-  0x50101 /* 5.1.1 */,
+  0x50200 /* 5.2.0 */,
   NULL,                                         /* status variables */
   erydb_system_variables,                     /* system variables */
   "5.2.0-1",                                  /* reserved */
