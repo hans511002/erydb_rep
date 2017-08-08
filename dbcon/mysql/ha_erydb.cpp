@@ -1109,8 +1109,8 @@ mysql_declare_plugin(EryDB)
   0x50101 /* 5.1.1 */,
   NULL,                                         /* status variables */
   erydb_system_variables,                     /* system variables */
-  "5.1.1-2",                                         /* reserved */
-	  MariaDB_PLUGIN_MATURITY_BETA                                             /* config flags */
+  "5.2.0-1",                                  /* reserved */
+  MariaDB_PLUGIN_MATURITY_BETA             /* config flags */
 }
 mysql_declare_plugin_end;
 
