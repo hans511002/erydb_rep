@@ -83,7 +83,7 @@ int HdfsFileSystem::remove(const char *pathname)
 	// treated as a successful operation
 	if( exists( pathname ) )
 	{
-#ifndef HADOOOP1
+#ifndef HADOOP1
 		ret = hdfsDelete(m_fs,pathname,1);
 #else
 		ret = hdfsDelete(m_fs,pathname);

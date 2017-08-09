@@ -11,6 +11,7 @@ set(hdfs-12_LIB_SRCS
     ../hdfs-shared/HdfsRdwrFileBuffer.cpp
     ../hdfs-shared/HdfsRdwrMemBuffer.cpp
     ../hdfs-shared/HdfsPlugin.cpp)
+add_definitions(-DHADOOP1)
 
 add_library(hdfs-12 SHARED ${hdfs-12_LIB_SRCS})
 
