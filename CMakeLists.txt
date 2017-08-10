@@ -1,3 +1,4 @@
+project(erydb)
 
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 # Avoid warnings in higher versions
