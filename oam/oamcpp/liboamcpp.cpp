@@ -8390,9 +8390,9 @@ namespace oam
 		}
 	
 		vector <string> lines;
-		char line[200];
+		char line[4096];
 		string buf;
-		while (file.getline(line, 200))
+		while (file.getline(line, 4096))
 		{
 			buf = line;
 			// change port
