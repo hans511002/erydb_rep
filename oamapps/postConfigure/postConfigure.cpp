@@ -865,16 +865,16 @@ int main(int argc, char *argv[])
 	    catch(...)
 	    {}
 
-	    if ( MySQLRep == "y" )
-		  mysqlRep = true;
-
-	    string answer = "y";
+	    string answer = "n"; 
+		if (MySQLRep == "y") {
+			mysqlRep = true;
+		}
 
 	    while(true) {
 		  if ( mysqlRep )
-			  prompt = "erydb Schema Sync feature is Enabled, do you want to leave enabled? [y,n] (y) > ";
+			  prompt = "erydb Schema Sync feature is Enabled, do you want to leave enabled? [y,n] (n) > ";
 		  else
-			  prompt = "erydb Schema Sync feature, do you want to enable? [y,n] (y) > ";
+			  prompt = "erydb Schema Sync feature, do you want to enable? [y,n] (n) > ";
 
 		  pcommand = callReadline(prompt.c_str());
 		  if (pcommand) {

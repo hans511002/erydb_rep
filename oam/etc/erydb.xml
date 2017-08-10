@@ -226,8 +226,8 @@
 	<SystemConfig>
 		<SystemLang>C</SystemLang>
 		<SystemName>erydb-1</SystemName>
-		<ParentOAMModuleName>pm1</ParentOAMModuleName>
-		<StandbyOAMModuleName>unassigned</StandbyOAMModuleName>
+		<ParentOAMModuleName>pm1</ParentOAMModuleName><!-- ProcMgr  DBRMControllerNode->ProcStatusControl -->
+		<StandbyOAMModuleName>unassigned</StandbyOAMModuleName><!-- ProcMgr DBRMControllerNode->ProcStatusControlStandby -->
 		<PrimaryUMModuleName>unassigned</PrimaryUMModuleName>
 		<ModuleHeartbeatPeriod>1</ModuleHeartbeatPeriod>
 		<ModuleHeartbeatCount>3</ModuleHeartbeatCount>
@@ -465,7 +465,7 @@
 		<CoreFileFlag>n</CoreFileFlag>
 		<JavaHome>unassigned</JavaHome>
 		<JavaPath>unassigned</JavaPath>
-		<MySQLPort>3306</MySQLPort>
+		<MySQLPort>3309</MySQLPort>
 		<MySQLPasswordConfig>unassigned</MySQLPasswordConfig>
 		<AmazonDeviceName>/dev/xvd</AmazonDeviceName>
 	</Installation>

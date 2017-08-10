@@ -19,9 +19,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{226D1F60-1E33-401B-A333-D583AF69B86E}</ProjectGuid>
+    <ProjectGuid>{44B16D2F-95EB-4A5C-B3D9-0C5111F7B60D}</ProjectGuid>
     <Keyword>Linux</Keyword>
-    <RootNamespace>libmessageqcpp</RootNamespace>
+    <RootNamespace>postConfigure</RootNamespace>
     <MinimumVisualStudioVersion>15.0</MinimumVisualStudioVersion>
     <ApplicationType>Linux</ApplicationType>
     <ApplicationTypeRevision>1.0</ApplicationTypeRevision>
@@ -39,7 +39,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <UseDebugLibraries>true</UseDebugLibraries>
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <RemoteRootDir>/app/build/erydb/src</RemoteRootDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
@@ -52,50 +52,49 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(SolutionDir)..\..\bin\$(PlatformName)\$(ConfigurationName)\</OutDir>
     <IntDir>$(SolutionDir)..\..\obj\$(ProjectName)\$(PlatformName)\$(ConfigurationName)\</IntDir>
-    <TargetName>$(ProjectName)</TargetName>
-    <TargetExt>.so</TargetExt>
-    <RemoteCompileCommandTimeout>3600000</RemoteCompileCommandTimeout>
-    <RemoteLdCommmandTimeout>3600000</RemoteLdCommmandTimeout>
+    <RemoteCompileCommandTimeout>600000</RemoteCompileCommandTimeout>
+    <RemoteLdCommmandTimeout>600000</RemoteLdCommmandTimeout>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
+    <AdditionalSourcesToCopyMapping>
+    </AdditionalSourcesToCopyMapping>
     <OutDir>$(SolutionDir)..\..\bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)..\..\obj\$(Platform)\$(Configuration)\</IntDir>
     <TargetExt>.so.1.0</TargetExt>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <ClCompile />
-    <Link>
-      <LibraryDependencies>boost_system;boost_filesystem;boost_thread;boost_regex;boost_date_time;%(LibraryDependencies)</LibraryDependencies>
-      <AdditionalOptions>-L/app/build/x64  -lerydbboot  %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalLibraryDirectories>$(RemoteRootDir)/../../bin/x64/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <UnresolvedSymbolReferences>false</UnresolvedSymbolReferences>
-      <VerboseOutput>true</VerboseOutput>
-    </Link>
     <ClCompile>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <LibraryDependencies>erydbboot;license;%(LibraryDependencies)</LibraryDependencies>
+      <AdditionalLibraryDirectories>$(RemoteRootDir)/../../bin/x64/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>-lerydbboot;-llicense;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
+    <ClCompile>
+      <AdditionalOptions>-v  -I/app/erymysql/erydb/utils/liblicense   -IE:/app/erymysql/erydb/utils/liblicense </AdditionalOptions>
+      <ForcedIncludeFiles>%(ForcedIncludeFiles)</ForcedIncludeFiles>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Verbose>true</Verbose>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="bytestream.cpp" />
-    <ClCompile Include="compressed_iss.cpp" />
-    <ClCompile Include="inetstreamsocket.cpp" />
-    <ClCompile Include="iosocket.cpp" />
-    <ClCompile Include="messagequeue.cpp" />
-    <ClCompile Include="messagequeuepool.cpp" />
-    <ClCompile Include="socketparms.cpp" />
+    <ProjectReference Include="..\..\utils\liblicense\liblicense.vcxproj">
+      <Project>{1b8c1cfc-5178-4163-b6f3-31e338af1447}</Project>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="bytestream.h" />
-    <ClInclude Include="compressed_iss.h" />
-    <ClInclude Include="inetstreamsocket.h" />
-    <ClInclude Include="iosocket.h" />
-    <ClInclude Include="messagequeue.h" />
-    <ClInclude Include="messagequeuepool.h" />
-    <ClInclude Include="serializeable.h" />
-    <ClInclude Include="serversocket.h" />
-    <ClInclude Include="socket.h" />
-    <ClInclude Include="socketclosed.h" />
-    <ClInclude Include="socketparms.h" />
+    <ClInclude Include="helpers.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="getMySQLpw.cpp" />
+    <ClCompile Include="helpers.cpp" />
+    <ClCompile Include="installer.cpp" />
+    <ClCompile Include="mycnfUpgrade.cpp" />
+    <ClCompile Include="patchInstaller.cpp" />
+    <ClCompile Include="postConfigure.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
