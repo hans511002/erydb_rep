@@ -19,7 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{E369D45E-2933-4E72-AA1D-CA2A8E59BA5F}</ProjectGuid>
+    <ProjectGuid>{4F4F78ED-5257-4872-9DB5-B54754642BEB}</ProjectGuid>
     <Keyword>Linux</Keyword>
     <RootNamespace>configTools</RootNamespace>
     <MinimumVisualStudioVersion>15.0</MinimumVisualStudioVersion>
@@ -69,12 +69,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\..\versioning\BRM\libbrm.vcxproj">
       <Project>{a13e870a-7a9e-4027-8e17-204398225361}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="autoConfigure.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="CMakeLists.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

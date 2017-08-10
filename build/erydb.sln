@@ -141,6 +141,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ServerMonitor", "..\oamapps
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "postConfigure", "..\oamapps\postConfigure\postConfigure.vcxproj", "{44B16D2F-95EB-4A5C-B3D9-0C5111F7B60D}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "configTools", "..\tools\configMgt\configTools.vcxproj", "{4F4F78ED-5257-4872-9DB5-B54754642BEB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|ARM = Debug|ARM
@@ -1245,6 +1247,22 @@ Global
 		{44B16D2F-95EB-4A5C-B3D9-0C5111F7B60D}.Release|x64.Build.0 = Release|x64
 		{44B16D2F-95EB-4A5C-B3D9-0C5111F7B60D}.Release|x86.ActiveCfg = Release|x86
 		{44B16D2F-95EB-4A5C-B3D9-0C5111F7B60D}.Release|x86.Build.0 = Release|x86
+		{4F4F78ED-5257-4872-9DB5-B54754642BEB}.Debug|ARM.ActiveCfg = Debug|x86
+		{4F4F78ED-5257-4872-9DB5-B54754642BEB}.Debug|x64.ActiveCfg = Debug|x64
+		{4F4F78ED-5257-4872-9DB5-B54754642BEB}.Debug|x64.Build.0 = Debug|x64
+		{4F4F78ED-5257-4872-9DB5-B54754642BEB}.Debug|x86.ActiveCfg = Debug|x86
+		{4F4F78ED-5257-4872-9DB5-B54754642BEB}.Debug|x86.Build.0 = Debug|x86
+		{4F4F78ED-5257-4872-9DB5-B54754642BEB}.EnterpriseRelease|ARM.ActiveCfg = Release|x86
+		{4F4F78ED-5257-4872-9DB5-B54754642BEB}.EnterpriseRelease|ARM.Build.0 = Release|x86
+		{4F4F78ED-5257-4872-9DB5-B54754642BEB}.EnterpriseRelease|x64.ActiveCfg = Release|x64
+		{4F4F78ED-5257-4872-9DB5-B54754642BEB}.EnterpriseRelease|x64.Build.0 = Release|x64
+		{4F4F78ED-5257-4872-9DB5-B54754642BEB}.EnterpriseRelease|x86.ActiveCfg = Release|x86
+		{4F4F78ED-5257-4872-9DB5-B54754642BEB}.EnterpriseRelease|x86.Build.0 = Release|x86
+		{4F4F78ED-5257-4872-9DB5-B54754642BEB}.Release|ARM.ActiveCfg = Release|x86
+		{4F4F78ED-5257-4872-9DB5-B54754642BEB}.Release|x64.ActiveCfg = Release|x64
+		{4F4F78ED-5257-4872-9DB5-B54754642BEB}.Release|x64.Build.0 = Release|x64
+		{4F4F78ED-5257-4872-9DB5-B54754642BEB}.Release|x86.ActiveCfg = Release|x86
+		{4F4F78ED-5257-4872-9DB5-B54754642BEB}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

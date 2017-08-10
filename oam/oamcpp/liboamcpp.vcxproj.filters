@@ -39,4 +39,26 @@
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <Xml Include="..\etc\AlarmConfig.xml">
+      <Filter>Resource Files</Filter>
+    </Xml>
+    <Xml Include="..\etc\ConsoleCmds.xml">
+      <Filter>Resource Files</Filter>
+    </Xml>
+    <Xml Include="..\etc\erydb.xml">
+      <Filter>Resource Files</Filter>
+    </Xml>
+    <Xml Include="..\etc\ProcessConfig.xml">
+      <Filter>Resource Files</Filter>
+    </Xml>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\etc\erydb.xml.singleserver">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\etc\ProcessConfig.xml.singleserver">
+      <Filter>Resource Files</Filter>
+    </None>
+  </ItemGroup>
 </Project>

@@ -220,7 +220,8 @@ int main(int argc, char *argv[])
 	// hidden options
 	// -f for force use nodeps on rpm install
 	// -o to prompt for process to start offline
-
+	string systemLang = "C";
+	setlocale(LC_ALL, systemLang.c_str());
 	//default
 	installDir = installDir + "";
 	//see if we can determine our own location
@@ -248,7 +249,6 @@ int main(int argc, char *argv[])
 			}
 		}
 	}
-
 	//check if root-user
 	int user;
 	user = getuid();

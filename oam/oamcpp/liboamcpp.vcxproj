@@ -84,6 +84,16 @@
     <ClInclude Include="..\..\snmpd\snmpmanager\snmpglobal.h" />
     <ClInclude Include="..\..\snmpd\snmpmanager\snmpmanager.h" />
   </ItemGroup>
+  <ItemGroup>
+    <Xml Include="..\etc\AlarmConfig.xml" />
+    <Xml Include="..\etc\ConsoleCmds.xml" />
+    <Xml Include="..\etc\erydb.xml" />
+    <Xml Include="..\etc\ProcessConfig.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\etc\erydb.xml.singleserver" />
+    <None Include="..\etc\ProcessConfig.xml.singleserver" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
