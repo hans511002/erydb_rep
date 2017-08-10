@@ -1,13 +1,6 @@
-/* config.h.  Generated from config.h.in by configure.  */
-/* config.h.in.  Generated from configure.ac by autoheader.  */
-
-/* Define to one of `_getb67', `GETB67', `getb67' for Cray-2 and Cray-YMP
-   systems. This function is required for `alloca.c' support on those systems.
-   */
-/* #undef CRAY_STACKSEG_END */
-
-/* Define to 1 if using `alloca.c'. */
-/* #undef C_ALLOCA */
+/* config.h.cmake  */
+#ifndef TEST_CONFIG_H
+#define TEST_CONFIG_H
 
 /* Define to 1 if you have the `alarm' function. */
 #define HAVE_ALARM 1
@@ -23,11 +16,11 @@
 #define HAVE_ARPA_INET_H 1
 
 /* Define to 1 if you have the `btowc' function. */
-/* #undef HAVE_BTOWC */
+#define HAVE_BTOWC 1
 
 /* Define to 1 if you have the declaration of `getenv', and to 0 if you don't.
    */
-/* #undef HAVE_DECL_GETENV */
+#define HAVE_DECL_GETENV 1
 
 /* Define to 1 if you have the declaration of `strerror_r', and to 0 if you
    don't. */
@@ -43,7 +36,7 @@
 #define HAVE_FCNTL_H 1
 
 /* Define to 1 if you have the `floor' function. */
-#define HAVE_FLOOR 1
+/* #undef HAVE_FLOOR */
 
 /* Define to 1 if you have the `fork' function. */
 #define HAVE_FORK 1
@@ -86,7 +79,7 @@
 #define HAVE_MALLOC_H 1
 
 /* Define to 1 if you have the `mbsrtowcs' function. */
-/* #undef HAVE_MBSRTOWCS */
+#define HAVE_MBSRTOWCS 1 
 
 /* Define to 1 if <wchar.h> declares mbstate_t. */
 #define HAVE_MBSTATE_T 1
@@ -101,7 +94,7 @@
 #define HAVE_MEMORY_H 1
 
 /* Define to 1 if you have the `mempcpy' function. */
-/* #undef HAVE_MEMPCPY */
+#define HAVE_MEMPCPY 1
 
 /* Define to 1 if you have the `memset' function. */
 #define HAVE_MEMSET 1
@@ -119,13 +112,13 @@
 #define HAVE_NETINET_IN_H 1
 
 /* Define to 1 if you have the `pow' function. */
-#define HAVE_POW 1
+/* #undef HAVE_POW */
 
 /* Define to 1 if the system has the type `ptrdiff_t'. */
 #define HAVE_PTRDIFF_T 1
 
 /* Define to 1 if you have the <readline/readline.h> header file. */
-#define HAVE_READLINE_READLINE_H 1
+/* #undef HAVE_READLINE_READLINE_H */
 
 /* Define to 1 if you have the `regcomp' function. */
 #define HAVE_REGCOMP 1
@@ -249,7 +242,7 @@
 #define HAVE_UTIME_H 1
 
 /* Define to 1 if `utime(file, NULL)' sets file's timestamp to the present. */
-/* #undef HAVE_UTIME_NULL */
+#define HAVE_UTIME_NULL 1
 
 /* Define to 1 if you have the <values.h> header file. */
 #define HAVE_VALUES_H 1
@@ -261,13 +254,13 @@
 /* #undef HAVE_VFORK_H */
 
 /* Define to 1 if you have the <wchar.h> header file. */
-/* #undef HAVE_WCHAR_H */
+#define HAVE_WCHAR_H 1
 
 /* Define to 1 if you have the <wctype.h> header file. */
-/* #undef HAVE_WCTYPE_H */
+#define HAVE_WCTYPE_H 1
 
 /* Define to 1 if you have the `wmempcpy' function. */
-/* #undef HAVE_WMEMPCPY */
+#define HAVE_WMEMPCPY 1
 
 /* Define to 1 if `fork' works. */
 #define HAVE_WORKING_FORK 1
@@ -289,22 +282,22 @@
 #define PACKAGE "erydb"
 
 /* Define to the address where bug reports for this package should be sent. */
-#define PACKAGE_BUGREPORT "support@erydb.co"
+#define PACKAGE_BUGREPORT "hans511002@sohu.com"
 
 /* Define to the full name of this package. */
 #define PACKAGE_NAME "erydb"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "erydb 5.0.0"
+#define PACKAGE_STRING "erydb-5.2.0"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "erydb"
 
 /* Define to the home page for this package. */
-#define PACKAGE_URL ""
+/* #undef PACKAGE_URL */
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "5.0.0"
+#define PACKAGE_VERSION "5.2.0"
 
 /* Define as the return type of signal handlers (`int' or `void'). */
 #define RETSIGTYPE void
@@ -317,14 +310,6 @@
 
 /* Define to the type of arg 5 for `select'. */
 #define SELECT_TYPE_ARG5 (struct timeval *)
-
-/* If using the C implementation of alloca, define if you know the
-   direction of stack growth for your system; otherwise it will be
-   automatically deduced at runtime.
-	STACK_DIRECTION > 0 => grows toward higher addresses
-	STACK_DIRECTION < 0 => grows toward lower addresses
-	STACK_DIRECTION = 0 => direction of growth unknown */
-/* #undef STACK_DIRECTION */
 
 /* Define to 1 if the `S_IS*' macros in <sys/stat.h> do not work properly. */
 /* #undef STAT_MACROS_BROKEN */
@@ -342,7 +327,7 @@
 /* #undef TM_IN_SYS_TIME */
 
 /* Version number of package */
-#define VERSION "5.0.0"
+#define VERSION "5.2.0"
 
 /* Define to 1 if `lex' declares `yytext' as a `char *' by default, not a
    `char[]'. */
@@ -398,3 +383,5 @@
 /* Define to empty if the keyword `volatile' does not work. Warning: valid
    code using `volatile' can become incorrect without. Disable with care. */
 /* #undef volatile */
+
+#endif
