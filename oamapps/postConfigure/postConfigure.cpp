@@ -216,12 +216,12 @@ int main(int argc, char *argv[])
 	string password;
 	string cmd;
 //  	struct sysinfo myinfo; 
-
 	// hidden options
 	// -f for force use nodeps on rpm install
 	// -o to prompt for process to start offline
 	string systemLang = "C";
 	setlocale(LC_ALL, systemLang.c_str());
+	setenv("LANG", "C", 1);
 	//default
 	installDir = installDir + "";
 	//see if we can determine our own location
