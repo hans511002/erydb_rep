@@ -987,7 +987,8 @@ int FileOp::initColumnExtent(
         {
             writeSize = MAX_NBLOCKS * BYTE_PER_BLOCK;
             loopCount = nBlocks / MAX_NBLOCKS;
-            remWriteSize = nBlocks - (loopCount * MAX_NBLOCKS);
+			//remWriteSize = nBlocks - (loopCount * MAX_NBLOCKS);
+			remWriteSize = (nBlocks % MAX_NBLOCKS) * BYTE_PER_BLOCK;
         }
 
         // Allocate a buffer, initialize it, and use it to create the extent

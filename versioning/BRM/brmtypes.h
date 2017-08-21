@@ -85,7 +85,7 @@ class ERYDBDataFile;
 namespace BRM {
 
 /* these types should be defined in the system catalog header */
-typedef int64_t LBID_t; /// The LBID space is currently 36 bits.  We use 64 here.
+typedef int64_t LBID_t; /// The LBID space is currently 56 bits.  We use 64 here.
 typedef uint32_t HWM_t;
 typedef int32_t VER_t;
 /// Object ID type.  Currently a 32-bit number.  24 for Object number, 8 for partition number.

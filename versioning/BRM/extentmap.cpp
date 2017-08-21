@@ -1643,7 +1643,7 @@ void ExtentMap::growFLShmseg()
 	fFreeList = fPFreeListImpl->get();
 	// init freelist entry
 	if (fFLShminfo->allocdSize == 0) {
- 		fFreeList->size = (1ULL << 36) / 1024;
+ 		fFreeList->size = (1ULL << 56) / 1024;
 		fFLShminfo->currentSize = sizeof(InlineLBIDRange);
 	}
 	fFLShminfo->allocdSize = allocSize;

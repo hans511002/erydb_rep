@@ -143,6 +143,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "postConfigure", "..\oamapps
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "configTools", "..\tools\configMgt\configTools.vcxproj", "{4F4F78ED-5257-4872-9DB5-B54754642BEB}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "eryadmin", "..\oamapps\eryadmin\eryadmin.vcxproj", "{0EAAC77D-7B1B-4707-8764-C45CACBD157D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|ARM = Debug|ARM
@@ -1263,6 +1265,22 @@ Global
 		{4F4F78ED-5257-4872-9DB5-B54754642BEB}.Release|x64.Build.0 = Release|x64
 		{4F4F78ED-5257-4872-9DB5-B54754642BEB}.Release|x86.ActiveCfg = Release|x86
 		{4F4F78ED-5257-4872-9DB5-B54754642BEB}.Release|x86.Build.0 = Release|x86
+		{0EAAC77D-7B1B-4707-8764-C45CACBD157D}.Debug|ARM.ActiveCfg = Debug|x86
+		{0EAAC77D-7B1B-4707-8764-C45CACBD157D}.Debug|x64.ActiveCfg = Debug|x64
+		{0EAAC77D-7B1B-4707-8764-C45CACBD157D}.Debug|x64.Build.0 = Debug|x64
+		{0EAAC77D-7B1B-4707-8764-C45CACBD157D}.Debug|x86.ActiveCfg = Debug|x86
+		{0EAAC77D-7B1B-4707-8764-C45CACBD157D}.Debug|x86.Build.0 = Debug|x86
+		{0EAAC77D-7B1B-4707-8764-C45CACBD157D}.EnterpriseRelease|ARM.ActiveCfg = Release|x86
+		{0EAAC77D-7B1B-4707-8764-C45CACBD157D}.EnterpriseRelease|ARM.Build.0 = Release|x86
+		{0EAAC77D-7B1B-4707-8764-C45CACBD157D}.EnterpriseRelease|x64.ActiveCfg = Release|x64
+		{0EAAC77D-7B1B-4707-8764-C45CACBD157D}.EnterpriseRelease|x64.Build.0 = Release|x64
+		{0EAAC77D-7B1B-4707-8764-C45CACBD157D}.EnterpriseRelease|x86.ActiveCfg = Release|x86
+		{0EAAC77D-7B1B-4707-8764-C45CACBD157D}.EnterpriseRelease|x86.Build.0 = Release|x86
+		{0EAAC77D-7B1B-4707-8764-C45CACBD157D}.Release|ARM.ActiveCfg = Release|x86
+		{0EAAC77D-7B1B-4707-8764-C45CACBD157D}.Release|x64.ActiveCfg = Release|x64
+		{0EAAC77D-7B1B-4707-8764-C45CACBD157D}.Release|x64.Build.0 = Release|x64
+		{0EAAC77D-7B1B-4707-8764-C45CACBD157D}.Release|x86.ActiveCfg = Release|x86
+		{0EAAC77D-7B1B-4707-8764-C45CACBD157D}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
