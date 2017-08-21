@@ -425,18 +425,17 @@ int main(int argc, char *argv[]) {
         cmd = installDir + "/bin/post-install --installdir=" + installDir + " > /dev/null 2>&1";
         system(cmd.c_str());
     }
-
-    //check Config saved files
-    if (!checkSaveConfigFile()) {
-        cout << "ERROR: Configuration File not setup" << endl;
-        exit(1);
-    }
     {
         string ermsg;
         if (!License::checkLicense(ermsg)) {
             cout << "ERROR:" << ermsg << endl;
             exit(1);
         }
+    }
+    //check Config saved files
+    if (!checkSaveConfigFile()) {//update reuseConfig
+        cout << "ERROR: Configuration File not setup" << endl;
+        exit(1);
     }
     if (!writeConfig(sysConfig)) {
         cout << "ERROR: Failed trying to update erydb System Configuration file" << endl;
@@ -482,8 +481,6 @@ int main(int argc, char *argv[]) {
         }
     } catch (...) {
     }
-
-
     // run my.cnf upgrade script
     if (reuseConfig == "y") {
         cmd = installDir + "/bin/mycnfUpgrade  > /tmp/mycnfUpgrade.log 2>&1";
@@ -557,17 +554,14 @@ int main(int argc, char *argv[]) {
             if (temp == "1") {
                 singleServerInstall = temp;
                 cout << endl << "Performing the Single Server Install." << endl;
-
                 if (reuseConfig == "n") {
                     //setup to use the single server erydb.xml file
-
                     // we know that our Config instance just timestamped itself in the getConfig
                     // call above.  if postConfigure is running non-interactively we may get here
                     // within the same second which means the changes that are about to happen
                     // when erydb.xml gets overwritten will be ignored because of the Config
                     // instance won't know to reload
                     sleep(2);
-
                     cmd = "rm -f " + installDir + "/etc/erydb.xml.installSave  > /dev/null 2>&1";
                     system(cmd.c_str());
                     cmd = "mv -f " + installDir + "/etc/erydb.xml " + installDir + "/etc/erydb.xml.installSave  > /dev/null 2>&1";
@@ -587,10 +581,10 @@ int main(int argc, char *argv[]) {
                     exit(1);
                 }
 
-                if (hdfs || !rootUser)
+                if (hdfs || !rootUser){
                     if (!updateBash())
                         cout << "updateBash error" << endl;
-
+                }
                 // setup storage
                 if (!singleServerDBrootSetup()) {
                     cout << "ERROR: Problem setting up DBRoot IDs" << endl;
@@ -4585,7 +4579,6 @@ bool singleServerDBrootSetup() {
 
     while (true) {
         dbroots.clear();
-
         prompt = "Enter the list (Nx,Ny,Nz) or range (Nx-Nz) of DBRoot IDs assigned to module 'pm1' (" + dbrootList + ") > ";
         pcommand = callReadline(prompt.c_str());
         if (pcommand) {
@@ -4624,7 +4617,6 @@ bool singleServerDBrootSetup() {
                 dbroots.push_back(*it);
             }
         }
-
         break;
     }
 
@@ -4642,7 +4634,6 @@ bool singleServerDBrootSetup() {
 
         string DBrootID = "DBRoot" + *it;
         string pathID = installDir + "/data" + *it;
-
         try {
             sysConfig->setConfig(SystemSection, DBrootID, pathID);
         } catch (...) {
@@ -4650,7 +4641,6 @@ bool singleServerDBrootSetup() {
             return false;
         }
     }
-
     //store number of dbroots
     moduledbrootcount = "ModuleDBRootCount1-3";
     try {
@@ -4659,15 +4649,12 @@ bool singleServerDBrootSetup() {
         cout << "ERROR: Problem setting DBRoot count in the erydb System Configuration file" << endl;
         exit(1);
     }
-
     //total dbroots on the system
     DBRootCount = DBRootCount + dbroots.size();
-
     if (!writeConfig(sysConfig)) {
         cout << "ERROR: Failed trying to update erydb System Configuration file" << endl;
         exit(1);
     }
-
     return true;
 }
 

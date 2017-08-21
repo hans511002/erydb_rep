@@ -112,8 +112,7 @@ int main(int argc, char *argv[]) {
     }
     includefile.close();
 
-    //see if in my.cnf.rpmsave
-    ifstream mycnfsavefile(mycnfsaveFile.c_str());
+    //see if in my.cnf.rpmsave 
     vector <string> mySaveLines;
     while (mycnfsavefile.getline(line, 4096)) {
         if (line[0] == '#') {
@@ -122,8 +121,7 @@ int main(int argc, char *argv[]) {
         includeArg = line;
         incLines.push_back(includeArg);
     }
-    mycnfsavefile.close();
-    ifstream mycnffile(mycnfFile.c_str());
+    mycnfsavefile.close(); 
     vector <string> myLines;
     while (mycnffile.getline(line, 4096)) {
         includeArg = line;

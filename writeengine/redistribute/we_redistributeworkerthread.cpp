@@ -76,7 +76,7 @@ namespace redistribute
 {
 
 // need be consistent with we_config.cpp
-const unsigned DEFAULT_FILES_PER_COLUMN_PARTITION  = 4;
+// const unsigned DEFAULT_FILES_PER_COLUMN_PARTITION  = 4;
 
 // static variables
 boost::mutex RedistributeWorkerThread::fActionMutex;
