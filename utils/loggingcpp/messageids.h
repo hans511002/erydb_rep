@@ -130,6 +130,7 @@ const unsigned M0100 = 100;
 const unsigned M0101 = 101;
 const unsigned M0102 = 102;
 const unsigned M0103 = 103;
+const unsigned M0104 = 104;
 
 }//namespace logging
 

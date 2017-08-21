@@ -97,6 +97,7 @@ const unsigned ERR_DBJ_UNKNOWN_ERROR = 2049;
 const unsigned ERR_DBJ_DISK_USAGE_LIMIT = 2050;
 const unsigned ERR_DBJ_DATA_DISTRIBUTION = 2051;
 const unsigned INFO_SWITCHING_TO_DJS = 2052;
+const unsigned ERR_FUNC_OUT_OF_RANGE_RESULT = 2053;
 const unsigned ERR_NON_SUPPORT_SUB_QUERY_TYPE = 3001;
 const unsigned ERR_MORE_THAN_1_ROW = 3002;
 const unsigned ERR_MEMORY_MAX_FOR_LIMIT_TOO_LOW = 3003;
