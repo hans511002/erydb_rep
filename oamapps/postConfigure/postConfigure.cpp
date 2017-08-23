@@ -719,7 +719,7 @@ int main(int argc, char *argv[]) {
     bool amazonInstall = false;
     string cloud = oam::UnassignedName;
     {
-        int rtnCode = system("which aws ");
+        int rtnCode = system("which aws  2>/dev/null");
         if (WEXITSTATUS(rtnCode) == 0) {
             system("aws --version > /tmp/amazon.log 2>&1");
             ifstream in("/tmp/amazon.log");
@@ -916,7 +916,7 @@ int main(int argc, char *argv[]) {
         } catch (...) {
             oldRepSize = "3";
         }
-        int PMreplicateSize = atoi(pcommand);
+        int PMreplicateSize = atoi(oldRepSize.c_str());
         while (true) {
             prompt = "Enter number of PM storage copies [1," + oam.itoa(licSize) + "] (" + oam.itoa(PMreplicateSize) + ") > ";
             pcommand = callReadline(prompt.c_str());
@@ -1187,7 +1187,7 @@ int main(int argc, char *argv[]) {
                     cout << "ERROR: Problem getting PMreplicateCount in the erydb System Configuration file" << endl;
                     exit(1);
                 }
-                int PMreplicateSize = atoi(pcommand);
+                int PMreplicateSize = atoi(oldRepSize.c_str());
                 if (pmNumber < PMreplicateSize) {
                     try {
                         cout << "warning:replicateCount lage than PM count,set replicateCount to PM count " << endl;
