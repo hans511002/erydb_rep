@@ -151,24 +151,21 @@ test -d /var/log/erydb/corefiles || mkdir /var/log/erydb/corefiles >/dev/null 2>
 test -d /var/log/erydb/trace || mkdir /var/log/erydb/trace >/dev/null 2>&1
 test -h /var/log/erydb/data && rm -f /var/log/erydb/data
 # make sure trace dir is world-writable and sticky
-test -d $installdir/data || mkdir $installdir/data
 test -d $installdir/data1 || mkdir $installdir/data1
-test -d $installdir/data1/systemFiles || mkdir $installdir/data1/systemFiles
-test -d $installdir/data1/systemFiles/dbrm || mkdir $installdir/data1/systemFiles/dbrm
-test -d $installdir/data1/systemFiles/dataTransaction || rmdir $installdir/data1/systemFiles/dataTransaction >/dev/null 2>&1
-test -d $installdir/data1/systemFiles/dataTransaction/archive || rmdir $installdir/data1/systemFiles/dataTransaction/archive >/dev/null 2>&1
+test -d $installdir/bulkload || mkdir $installdir/bulkload
+test -d $installdir/metadata/dbrm || mkdir -p $installdir/metadata/dbrm
 chmod 1755 $installdir/data1 >/dev/null 2>&1
-chmod -R 1755 $installdir/data1/systemFiles >/dev/null 2>&1
+chmod -R 1755 $installdir/metadata >/dev/null 2>&1
 chmod 1755 $installdir/etc > /dev/null 2>&1
 
 #create the bulk-load dirs
-mkdir -p $installdir/data/bulk/data/import >/dev/null 2>&1
-mkdir -p $installdir/data/bulk/log >/dev/null 2>&1
-mkdir -p $installdir/data/bulk/job >/dev/null 2>&1
-mkdir -p $installdir/data/bulk/rollback >/dev/null 2>&1
-mkdir -p $installdir/data/bulk/tmpjob >/dev/null 2>&1
-rm -f $installdir/data/bulk/tmpjob/* >/dev/null 2>&1
-chmod -R 755 $installdir/data/bulk >/dev/null 2>&1
+mkdir -p $installdir/bulkload/data/import >/dev/null 2>&1
+mkdir -p $installdir/bulkload/log >/dev/null 2>&1
+mkdir -p $installdir/bulkload/job >/dev/null 2>&1
+mkdir -p $installdir/bulkload/rollback >/dev/null 2>&1
+mkdir -p $installdir/bulkload/tmpjob >/dev/null 2>&1
+rm -f $installdir/bulkload/tmpjob/* >/dev/null 2>&1
+chmod -R 755 $installdir/bulkload >/dev/null 2>&1
 
 #create erydb temp file directory
 $SUDO chmod 777 /tmp
