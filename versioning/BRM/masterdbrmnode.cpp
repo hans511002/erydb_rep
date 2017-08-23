@@ -658,7 +658,8 @@ void MasterDBRMNode::distributeMsgNoCommit(ByteStream &msg, ThreadParams *p) {
     vector<ByteStream *>::iterator it;
     int err;
     uint8_t cmd;
-
+    msg.peek(cmd);
+retrycmd:
     for (int retry = 0; ; retry++) {
         try {
             distribute(&msg);
