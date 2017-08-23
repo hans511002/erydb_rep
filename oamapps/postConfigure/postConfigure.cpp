@@ -98,7 +98,7 @@ typedef struct Performance_Module_struct {
 typedef std::vector<PerformanceModule> PerformanceModuleList;
 
 void offLineAppCheck();
-bool setOSFiles(string parentOAMModuleName, int serverTypeInstall);
+bool setOSFiles(string parentOAMModuleName, string DBRootStorageType);
 bool checkSaveConfigFile();
 string getModuleName();
 bool setModuleName(string moduleName);
