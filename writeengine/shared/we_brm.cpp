@@ -452,15 +452,13 @@ int BRMWrapper::isSuspendPending()
 // Request to BRM to save its current state.
 //------------------------------------------------------------------------------
 int BRMWrapper::saveState()
-{
+{ 
+    //local save change to distribute
     int rc=0;
-
     rc = blockRsltnMgrPtr->saveState();
     if (rc != NO_ERROR)
         rc = ERR_BRM_SAVE_STATE;
-
-    return rc;
-
+    return rc; 
 }
 
 //------------------------------------------------------------------------------

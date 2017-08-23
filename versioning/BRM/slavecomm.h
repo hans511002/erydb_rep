@@ -33,6 +33,7 @@
 #include <boost/thread/mutex.hpp>
 
 #include "brmtypes.h"
+#include "dbrm.h"
 #include "slavedbrmnode.h"
 #include "messagequeue.h"
 #include "bytestream.h"
@@ -108,6 +109,10 @@ class SlaveComm {
 		void do_deleteDBRoot(messageqcpp::ByteStream &msg);
 		void do_bulkUpdateDBRoot(messageqcpp::ByteStream &msg);
 
+        void do_saveDbrmState(messageqcpp::ByteStream &msg);
+        void do_createColumnReplicateFile(messageqcpp::ByteStream &msg);
+        void do_updateReplicateFile(messageqcpp::ByteStream &msg);
+
 		void do_undo();
 		void do_confirm();
 		void do_flushInodeCache();
@@ -117,6 +122,7 @@ class SlaveComm {
 		void saveDelta();
 		bool processExists(const uint32_t pid, const std::string& pname);
 
+        string hostname;
 		messageqcpp::MessageQueueServer *server;
 		messageqcpp::IOSocket master;
 		SlaveDBRMNode *slave;

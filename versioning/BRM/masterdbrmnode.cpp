@@ -414,6 +414,12 @@ void MasterDBRMNode::msgProcessor()
 			case DELETE_AI_SEQUENCE: doDeleteAISequence(msg, p); continue;
 		}
 
+        switch (cmd) {
+            case SAVE_DBRM_STATE: 
+                distributeMsgNoCommit(msg, p);
+                continue;
+        }
+
 retrycmd:
 		uint32_t haltloops = 0;
 
@@ -598,11 +604,11 @@ retrycmd:
 		}
 		else 
 		{ 
-  		CHECK_ERROR1(err)
-  	}
+            CHECK_ERROR1(err)
+        }
 
 		// these cmds don't need the 2-phase commit
-		if (cmd == FLUSH_INODE_CACHES || cmd == BRM_CLEAR || cmd == TAKE_SNAPSHOT)
+		if (cmd == FLUSH_INODE_CACHES || cmd == BRM_CLEAR || cmd == TAKE_SNAPSHOT )
 			goto no_confirm;
 
 #ifdef BRM_VERBOSE
@@ -647,23 +653,79 @@ out:
 	return;
 }
 
-void MasterDBRMNode::distribute(ByteStream *msg)
-{
-	uint32_t i;
+void MasterDBRMNode::distributeMsgNoCommit(ByteStream &msg, ThreadParams *p) {
+    vector<ByteStream *> responses;
+    vector<ByteStream *>::iterator it;
+    int err;
+    uint8_t cmd;
 
-	for (i = 0, iSlave = slaves.begin(); iSlave != slaves.end() && !halting; iSlave++, i++)
-		try {
-			(*iSlave)->write(*msg);
-		}
-		catch (exception&) {
-			if (!halting) {
-				ostringstream os;
-				os << "DBRM Controller: network error distributing command to worker " <<
-					i + 1 << endl;
-				log(os.str());
-				throw;
-			}
-		}
+    for (int retry = 0; ; retry++) {
+        try {
+            distribute(&msg);
+        } catch (...) {
+            if (!halting) {
+                SEND_ALARM
+                    undo();
+                readOnly = true; 
+                ostringstream ostr;
+                ostr << "DBRM Controller: Caught network error.  "
+                    "Sending command " << (uint32_t)cmd <<
+                    ", length " << msg.length() << ".  Setting read-only mode.";
+                log(ostr.str());
+                sendError(p->sock, ERR_NETWORK);
+                goto out;
+            }
+        }
+
+#ifdef BRM_VERBOSE
+        cerr << "DBRM Controller: distributed msg" << endl;
+#endif
+
+        bool readErrFlag; // ignore this flag in this case
+        err = gatherResponses(cmd, msg.length(), &responses, readErrFlag);
+
+#ifdef BRM_VERBOSE
+        cerr << "DBRM Controller: got responses" << endl;
+#endif
+
+        CHECK_ERROR1(err)
+            err = compareResponses(cmd, msg.length(), responses);
+#ifdef BRM_VERBOSE
+        cerr << "DBRM Controller: compared responses" << endl;
+#endif
+        if (err != ERR_SLAVE_INCONSISTENCY) {
+            break;
+        } else {
+            if (retry > 1) {
+                readOnly = true;
+                ostringstream ostr;
+                ostr << "DBRM Controller: image inconsistency detected multi times.  Setting read-only mode.";
+                log(ostr.str());
+                break;
+            }
+        }
+    }
+out:
+    for (it = responses.begin(); it != responses.end(); it++)
+        delete *it;
+    responses.clear();
+}
+
+void MasterDBRMNode::distribute(ByteStream *msg) {
+    uint32_t i;
+    for (i = 0, iSlave = slaves.begin(); iSlave != slaves.end() && !halting; iSlave++, i++) {
+        try {
+            (*iSlave)->write(*msg);
+        } catch (exception&) {
+            if (!halting) {
+                ostringstream os;
+                os << "DBRM Controller: network error distributing command to worker " <<
+                    i + 1 << endl;
+                log(os.str());
+                throw;
+            }
+        }
+    }
 }
 
 // readErrFlag is a separate return flag used by doChangeTableLockOwner()
@@ -671,35 +733,29 @@ void MasterDBRMNode::distribute(ByteStream *msg)
 // scope of msgProcessor() which instead uses the halting flag for error
 // handling.
 int MasterDBRMNode::gatherResponses(uint8_t cmd,
-	uint32_t cmdMsgLength,
-	vector<ByteStream*>* responses,
-	bool& readErrFlag) throw()
-{
-	int i;
-	ByteStream *tmp=0;
-	readErrFlag = false;
-
-		//Bug 2258 gather all responses
-	int error = 0;
-
-	for (i = 0, iSlave = slaves.begin(); iSlave != slaves.end() && !halting; iSlave++, i++) {
-		tmp = new ByteStream();
-		try {
-			// can't just block for 5 mins
-			timespec newtimeout = {10, 0};
-			uint32_t ntRetries = FIVE_MIN_TIMEOUT.tv_sec/newtimeout.tv_sec;
-			uint32_t retries = 0;
-
-			while (++retries < ntRetries && tmp->length() == 0 && !halting)
-				*tmp = (*iSlave)->read(&newtimeout);
-			//*tmp = (*iSlave)->read();
-		}
-		catch (...) {
-			/* 2/21/12 - instead of setting readonly here, to support a peaceful failover
-			we will wait for a configuration change to come, then report the error
-			after a long timeout.
-			*/
-
+    uint32_t cmdMsgLength,
+    vector<ByteStream*>* responses,
+    bool& readErrFlag) throw() {
+    int i;
+    ByteStream *tmp = 0;
+    readErrFlag = false;
+    //Bug 2258 gather all responses
+    int error = 0;
+    for (i = 0, iSlave = slaves.begin(); iSlave != slaves.end() && !halting; iSlave++, i++) {
+        tmp = new ByteStream();
+        try {
+            // can't just block for 5 mins
+            timespec newtimeout = { 10, 0 };
+            uint32_t ntRetries = FIVE_MIN_TIMEOUT.tv_sec / newtimeout.tv_sec;
+            uint32_t retries = 0;
+            while (++retries < ntRetries && tmp->length() == 0 && !halting)
+                *tmp = (*iSlave)->read(&newtimeout);
+            //*tmp = (*iSlave)->read();
+        } catch (...) {
+            /* 2/21/12 - instead of setting readonly here, to support a peaceful failover
+            we will wait for a configuration change to come, then report the error
+            after a long timeout.
+            */
             ostringstream os;
             os << "DBRM Controller: Network error reading from node " << i + 1 <<
                 ".  Reading response to command " << (uint32_t)cmd <<
@@ -707,62 +763,62 @@ int MasterDBRMNode::gatherResponses(uint8_t cmd,
             log(os.str());
 
             halting = true;
-			readErrFlag = true;
-			delete tmp;
-			return ERR_OK;
+            readErrFlag = true;
+            delete tmp;
+            return ERR_OK;
 
-			/*
-			ostringstream os;
-			if (!halting) {
-				SEND_ALARM
-				readOnly = true;
-				os << "DBRM Controller: Network error reading from node " << i + 1 <<
-					".  Reading response to command " << (uint32_t)cmd <<
-					", length " << cmdMsgLength << ".  Setting read-only mode.";
-				log(os.str());
-				error++;
-			}
-			*/
-		}
-
-		if (tmp->length() == 0 && !halting) {
-			/* See the comment above */
+            /*
             ostringstream os;
-            os << "DBRM Controller: Network error reading from node " << i + 1<<
+            if (!halting) {
+                SEND_ALARM
+                readOnly = true;
+                os << "DBRM Controller: Network error reading from node " << i + 1 <<
+                    ".  Reading response to command " << (uint32_t)cmd <<
+                    ", length " << cmdMsgLength << ".  Setting read-only mode.";
+                log(os.str());
+                error++;
+            }
+            */
+        }
+
+        if (tmp->length() == 0 && !halting) {
+            /* See the comment above */
+            ostringstream os;
+            os << "DBRM Controller: Network error reading from node " << i + 1 <<
                 ".  Reading response to command " << (uint32_t)cmd <<
-                ", length " << cmdMsgLength << 
+                ", length " << cmdMsgLength <<
                 ".  0 length response, possible time-out"
                 ".  Will see if retry is possible.";
             log(os.str());
-			halting = true;
-			readErrFlag = true;
-			delete tmp;
-			return ERR_OK;
+            halting = true;
+            readErrFlag = true;
+            delete tmp;
+            return ERR_OK;
 
-			/*
-			ostringstream os;
+            /*
+            ostringstream os;
 
-			SEND_ALARM;
+            SEND_ALARM;
 
-			readOnly = true;
-			os << "DBRM Controller: Network error reading from node " << i + 1<<
-				".  Reading response to command " << (uint32_t)cmd <<
-				", length " << cmdMsgLength << 
-				".  0 length response, possible time-out"
-				".  Setting read-only mode.";
-			log(os.str());
-			error++;
-			*/
-		}
-		if ( error == 0 )
-			responses->push_back(tmp);
-		else
-			delete tmp;
-	}
-	if ( error > 0 )
-		return ERR_NETWORK;
-	else
-		return ERR_OK;
+            readOnly = true;
+            os << "DBRM Controller: Network error reading from node " << i + 1<<
+                ".  Reading response to command " << (uint32_t)cmd <<
+                ", length " << cmdMsgLength <<
+                ".  0 length response, possible time-out"
+                ".  Setting read-only mode.";
+            log(os.str());
+            error++;
+            */
+        }
+        if (error == 0)
+            responses->push_back(tmp);
+        else
+            delete tmp;
+    }
+    if (error > 0)
+        return ERR_NETWORK;
+    else
+        return ERR_OK;
 }
 	
 int MasterDBRMNode::compareResponses(uint8_t cmd,
@@ -789,14 +845,12 @@ int MasterDBRMNode::compareResponses(uint8_t cmd,
 		log(os.str());
 		return ERR_NETWORK;
 	}
-
 	/*if (errCode != ERR_OK) {
 #ifdef BRM_VERBOSE
 		cerr << "DBRM Controller: first response has error code " << errCode << endl;
 #endif
 		return errCode;
 	}*/
-	
 	for (it = responses.begin(), it2 = it + 1, i = 2; it2 != responses.end(); it++, it2++, i++)
 		if (**it != **it2 && !halting) {
 			SEND_ALARM
@@ -812,7 +866,6 @@ int MasterDBRMNode::compareResponses(uint8_t cmd,
 			log(ostr.str());
 			return ERR_SLAVE_INCONSISTENCY;
 		}
-
 	//return ERR_OK;
 	return errCode;
 }

@@ -58,7 +58,7 @@ void timespec_sub(const struct timespec &tv1,
 
 namespace BRM {
 
-SlaveComm::SlaveComm(string hostname, SlaveDBRMNode *s) :
+SlaveComm::SlaveComm(string hostname, SlaveDBRMNode *s) :hostname(hostname),
 	slave(s), currentSaveFD(-1), currentSaveFile(NULL), journalh(NULL)
 #ifdef _MSC_VER
 	, fPids(0), fMaxPids(64)
@@ -324,10 +324,31 @@ void SlaveComm::processCommand(ByteStream &msg)
 		case RELEASE_LBID_RANGES: do_dmlReleaseLBIDRanges(msg); break;
 		case DELETE_DBROOT: do_deleteDBRoot(msg); break;
 		case BULK_UPDATE_DBROOT: do_bulkUpdateDBRoot(msg); break;
+        case SAVE_DBRM_STATE:do_saveDbrmState(msg); break;
+        case CREATE_COLUMN_REPLICATE_FILE:do_createColumnReplicateFile(msg); break;
+        case UPDATE_COLUMN_REPLICATE_FILE:do_updateReplicateFile(msg); break;
 
 		default:
 			cerr << "WorkerComm: unknown command " << (int) cmd << endl;
 	}
+}
+
+void SlaveComm::do_saveDbrmState(messageqcpp::ByteStream &msg) {
+    ByteStream reply;
+    int err = slave->saveState(savefile);
+    reply << (uint8_t)err;
+    string rmsg;
+    if (err == ERR_OK) {
+        rmsg = hostname + " save success";
+    } else {
+        rmsg = hostname + " save failed";
+    }
+    reply << rmsg;
+    master.write(reply);
+}
+void SlaveComm::do_createColumnReplicateFile(messageqcpp::ByteStream &msg) {
+}
+void SlaveComm::do_updateReplicateFile(messageqcpp::ByteStream &msg) {
 }
 
 //------------------------------------------------------------------------------

@@ -224,6 +224,9 @@ private:
 	void doReleaseAILock(messageqcpp::ByteStream &msg, ThreadParams *p);
 	void doDeleteAISequence(messageqcpp::ByteStream &msg, ThreadParams *p);
 
+    void distributeMsgNoCommit(messageqcpp::ByteStream &msg, ThreadParams *p);
+
+
 	messageqcpp::MessageQueueServer *dbrmServer;
 	std::vector<messageqcpp::MessageQueueClient *> slaves;
 	std::vector<messageqcpp::MessageQueueClient *>::iterator iSlave;
