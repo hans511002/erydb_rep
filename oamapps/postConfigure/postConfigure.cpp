@@ -2889,6 +2889,7 @@ void setSingleServerInstall(bool startOfflinePrompt) {
 
     //set system DBRoot count and check 'files per parition' with number of dbroots
     try {
+        Oam oam;
         sysConfig->setConfig(SystemSection, "DBRootCount", oam.itoa(DBRootCount));
     } catch (...) {
         cout << "ERROR: Problem setting DBRoot Count in the erydb System Configuration file" << endl;
@@ -3184,7 +3185,7 @@ bool setOSFiles(string parentOAMModuleName, string DBRootStorageType) {
     ifstream oldFile(fileName.c_str());
     if (!oldFile)
         return allfound; 
-    string cmd = "cp " + fileName + " " + installDir + "/local/etc/ > /dev/null 2>&1";
+    cmd = "cp " + fileName + " " + installDir + "/local/etc/ > /dev/null 2>&1";
     system(cmd.c_str());
     return allfound;
 }
@@ -3445,13 +3446,7 @@ bool createMetaDataDir(string DBRootStorageType) {
         dbrmrootDir = installDir + "/metadata/dbrm";
     }
     int rtnCode;
-    string cmd;
-    string dbrmroot;
-    try {
-        dbrmroot = sysConfig->getConfig(SystemSection, "DBRMRoot");
-     } catch (const std::exception &exc) {
-        std::cerr << exc.what() << std::endl;
-    }
+    string cmd; 
     // create system file directories
     cmd = "mkdir -p " + dbrmrootDir + " > /dev/null 2>&1";
     rtnCode = system(cmd.c_str());
@@ -3803,7 +3798,7 @@ bool storageSetup(bool amazonInstall) {
         system("which hadoop > /tmp/hadoop.log 2>&1");
         ifstream in1("/tmp/hadoop.log");
         in1.seekg(0, std::ios::end);
-        size = in1.tellg();
+        int size = in1.tellg();
         if (size == 0 || oam.checkLogStatus("/tmp/hadoop.log", "no hadoop"))// no hadoop
             size = 0;
         else
