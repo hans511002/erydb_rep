@@ -5089,48 +5089,33 @@ namespace oam
      * Get System DBRoot Config data
      *
      ********************************************************************/
-	void Oam::getSystemDbrootConfig(DBRootConfigList& dbrootconfiglist)
-	{
-		SystemModuleTypeConfig systemmoduletypeconfig;
-		ModuleTypeConfig moduletypeconfig;
-		ModuleConfig moduleconfig;
-
-		try
-		{
-			getSystemConfig(systemmoduletypeconfig);
-
-			for( unsigned int i = 0 ; i < systemmoduletypeconfig.moduletypeconfig.size(); i++)
-			{
-				if( systemmoduletypeconfig.moduletypeconfig[i].ModuleType.empty() )
-					// end of list
-					break;
-
-				int moduleCount = systemmoduletypeconfig.moduletypeconfig[i].ModuleCount;
-
-				string moduletype = systemmoduletypeconfig.moduletypeconfig[i].ModuleType;
-
-				if ( moduleCount > 0 && moduletype == "pm")
-				{
-					DeviceDBRootList::iterator pt = systemmoduletypeconfig.moduletypeconfig[i].ModuleDBRootList.begin();
-					for( ; pt != systemmoduletypeconfig.moduletypeconfig[i].ModuleDBRootList.end() ; pt++)
-					{
-						DBRootConfigList::iterator pt1 = (*pt).dbrootConfigList.begin();
-						for( ; pt1 != (*pt).dbrootConfigList.end() ; pt1++)
-						{
-							dbrootconfiglist.push_back(*pt1);
-						}
-					}
-				}
-			}
-
-			sort ( dbrootconfiglist.begin(), dbrootconfiglist.end() );
-		}
-		catch (...)
-		{		// dbrootid not found, return with error
-			exceptionControl("getSystemDbrootConfig", API_INVALID_PARAMETER);
-		}
-		return;
-	}
+    void Oam::getSystemDbrootConfig(DBRootConfigList& dbrootconfiglist) {
+        SystemModuleTypeConfig systemmoduletypeconfig;
+        ModuleTypeConfig moduletypeconfig;
+        ModuleConfig moduleconfig;
+        try {
+            getSystemConfig(systemmoduletypeconfig);
+            for (unsigned int i = 0; i < systemmoduletypeconfig.moduletypeconfig.size(); i++) {
+                if (systemmoduletypeconfig.moduletypeconfig[i].ModuleType.empty())// end of list
+                    break;
+                int moduleCount = systemmoduletypeconfig.moduletypeconfig[i].ModuleCount;
+                string moduletype = systemmoduletypeconfig.moduletypeconfig[i].ModuleType;
+                if (moduleCount > 0 && moduletype == "pm") {
+                    DeviceDBRootList::iterator pt = systemmoduletypeconfig.moduletypeconfig[i].ModuleDBRootList.begin();
+                    for (; pt != systemmoduletypeconfig.moduletypeconfig[i].ModuleDBRootList.end(); pt++) {
+                        DBRootConfigList::iterator pt1 = (*pt).dbrootConfigList.begin();
+                        for (; pt1 != (*pt).dbrootConfigList.end(); pt1++) {
+                            dbrootconfiglist.push_back(*pt1);
+                        }
+                    }
+                }
+            }
+            sort(dbrootconfiglist.begin(), dbrootconfiglist.end());
+        } catch (...) {		// dbrootid not found, return with error
+            exceptionControl("getSystemDbrootConfig", API_INVALID_PARAMETER);
+        }
+        return;
+    }
 
     /********************************************************************
      *
@@ -6760,15 +6745,13 @@ namespace oam
      *
      ****************************************************************************/
 
-    	void Oam::getUnassignedDbroot(DBRootConfigList& dbrootlist)
+    void Oam::getUnassignedDbroot(DBRootConfigList& dbrootlist)
 	{
-
 		//get assigned dbroots IDs
 		DBRootConfigList dbrootConfigList;
 		try
 		{
 			getSystemDbrootConfig(dbrootConfigList);
-
 		}
 		catch(...) {}
 
@@ -6783,7 +6766,6 @@ namespace oam
 				dbrootPath = sysConfig->getConfig(Section, "DBRoot" + itoa(dbrootID));
 			}
 			catch(...) {}
-
 			if (dbrootPath.empty() || dbrootPath == oam::UnassignedName)
 				continue;
 
@@ -6796,11 +6778,9 @@ namespace oam
 					break;
 				}
 			}
-
 			if (!found)
 				dbrootlist.push_back(dbrootID);
 		}
-
 		return;
 	}
 

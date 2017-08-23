@@ -107,15 +107,18 @@ bool makeModuleFile(string moduleName, string parentOAMModuleName);
 bool updateProcessConfig(int serverTypeInstall);
 bool uncommenterydbXml(string entry);
 bool makeRClocal(string moduleType, string moduleName, int IserverTypeInstall);
-bool createDbrootDirs(string DBRootStorageType);
+bool createMetaDataDir(string DBRootStorageType);
 bool pkgCheck(std::string erydbPackage);
 bool storageSetup(bool amazonInstall);
 void setSystemName();
-bool singleServerDBrootSetup();
 bool copyFstab(string moduleName);
 bool attachVolume(string instanceName, string volumeName, string deviceName, string dbrootPath);
 
 void remoteInstallThread(void *);
+
+void setSingleServerInstall(bool startOfflinePrompt);
+bool singleServerDBrootSetup();
+
 
 typedef struct ModuleIP_struct {
     std::string     IPaddress;
@@ -156,6 +159,8 @@ string ModuleSection = "SystemModuleConfig";
 string serverTypeInstall;
 int    IserverTypeInstall;
 string parentOAMModuleIPAddr;
+string parentOAMModuleHostName;
+
 string remote_installer_debug = "1";
 bool thread_remote_installer = true;
 
@@ -189,16 +194,18 @@ string mysqlpw = " ";
 
 extern const char* pcommand;
 extern string prompt;
+string localHostName;
+string password;
+
 
 /* create thread argument struct for thr_func() */
 typedef struct _thread_data_t {
     std::string command;
 } thread_data_t;
 
-
+ 
 int main(int argc, char *argv[]) {
     Oam oam;
-    string parentOAMModuleHostName;
     ChildModuleList childmodulelist;
     ChildModuleList niclist;
     ChildModule childmodule;
@@ -209,7 +216,6 @@ int main(int argc, char *argv[]) {
     string nodeps = "-h";
     bool startOfflinePrompt = false;
     noPrompting = false;
-    string password;
     string cmd;
     //  	struct sysinfo myinfo; 
         // hidden options
@@ -257,7 +263,7 @@ int main(int argc, char *argv[]) {
         if (p && *p)
             HOME = p;
     }
-
+    // parse params
     for (int i = 1; i < argc; i++) {
         if (string("-h") == argv[i]) {
             cout << endl;
@@ -350,16 +356,18 @@ int main(int argc, char *argv[]) {
 
     if (oldFileName == "")
         oldFileName = installDir + "/etc/erydb.xml.rpmsave";
+    //out tips
+    {
+        cout << endl;
+        cout << "This is the erydb System Configuration and Installation tool." << endl;
+        cout << "It will Configure the erydb System and will perform a Package" << endl;
+        cout << "Installation of all of the Servers within the System that is being configured." << endl;
+        cout << endl;
 
-    cout << endl;
-    cout << "This is the erydb System Configuration and Installation tool." << endl;
-    cout << "It will Configure the erydb System and will perform a Package" << endl;
-    cout << "Installation of all of the Servers within the System that is being configured." << endl;
-    cout << endl;
-
-    cout << "IMPORTANT: This tool should only be run on the Parent OAM Module" << endl;
-    cout << "           which is a Performance Module, preferred Module #1" << endl;
-    cout << endl;
+        cout << "IMPORTANT: This tool should only be run on the Parent OAM Module" << endl;
+        cout << "           which is a Performance Module, preferred Module #1" << endl;
+        cout << endl;
+    }
 
     if (!noPrompting) {
         cout << "Prompting instructions:" << endl << endl;
@@ -517,11 +525,11 @@ int main(int argc, char *argv[]) {
     try {
         oam.setSystemConfig("MySQLPasswordConfig", oam::UnassignedName);
     } catch (...) {}
-
+    // set is SingleServerInstall
+    //out tips 
+    {
     cout << endl;
-
     cout << "===== Setup System Server Type Configuration =====" << endl << endl;
-
     cout << "There are 2 options when configuring the System Server Type: single and multi" << endl << endl;
     cout << "  'single'  - Single-Server install is used when there will only be 1 server configured" << endl;
     cout << "              on the system. It can also be used for production systems, if the plan is" << endl;
@@ -529,147 +537,75 @@ int main(int argc, char *argv[]) {
     cout << "  'multi'   - Multi-Server install is used when you want to configure multiple servers now or" << endl;
     cout << "              in the future. With Multi-Server install, you can still configure just 1 server" << endl;
     cout << "              now and add on addition servers/modules in the future." << endl << endl;
-
-    string temp;
-    try {
-        temp = sysConfig->getConfig(InstallSection, "SingleServerInstall");
-    } catch (...) {
     }
-
-    if (temp == "y")
-        singleServerInstall = "1";
-    else
-        singleServerInstall = "2";
-
-    while (true) {
-        prompt = "Select the type of System Server install [1=single, 2=multi] (" + singleServerInstall + ") > ";
-        pcommand = callReadline(prompt.c_str());
+    {
         string temp;
-        if (pcommand) {
-            if (strlen(pcommand) > 0)
-                temp = pcommand;
-            else
-                temp = singleServerInstall;
-            callFree(pcommand);
-            if (temp == "1") {
-                singleServerInstall = temp;
-                cout << endl << "Performing the Single Server Install." << endl;
-                if (reuseConfig == "n") {
-                    //setup to use the single server erydb.xml file
-                    // we know that our Config instance just timestamped itself in the getConfig
-                    // call above.  if postConfigure is running non-interactively we may get here
-                    // within the same second which means the changes that are about to happen
-                    // when erydb.xml gets overwritten will be ignored because of the Config
-                    // instance won't know to reload
-                    sleep(2);
-                    cmd = "rm -f " + installDir + "/etc/erydb.xml.installSave  > /dev/null 2>&1";
-                    system(cmd.c_str());
-                    cmd = "mv -f " + installDir + "/etc/erydb.xml " + installDir + "/etc/erydb.xml.installSave  > /dev/null 2>&1";
-                    system(cmd.c_str());
-                    cmd = "/bin/cp -f " + installDir + "/etc/erydb.xml.singleserver " + installDir + "/etc/erydb.xml  > /dev/null 2>&1";
-                    system(cmd.c_str());
-                }
-
-                setSystemName();
-                cout << endl;
-
-                system(cmd.c_str());
-
-                // setup storage
-                if (!storageSetup(false)) {
-                    cout << "ERROR: Problem setting up storage" << endl;
-                    exit(1);
-                }
-
-                if (hdfs || !rootUser){
-                    if (!updateBash())
-                        cout << "updateBash error" << endl;
-                }
-                // setup storage
-                if (!singleServerDBrootSetup()) {
-                    cout << "ERROR: Problem setting up DBRoot IDs" << endl;
-                    exit(1);
-                }
-
-                //set system DBRoot count and check 'files per parition' with number of dbroots
-                try {
-                    sysConfig->setConfig(SystemSection, "DBRootCount", oam.itoa(DBRootCount));
-                } catch (...) {
-                    cout << "ERROR: Problem setting DBRoot Count in the erydb System Configuration file" << endl;
-                    exit(1);
-                }
-
-                checkFilesPerPartion(DBRootCount, sysConfig);
-
-                //check if dbrm data resides in older directory path and inform user if it does
-                dbrmDirCheck();
-
-                if (startOfflinePrompt)
-                    offLineAppCheck();
-
-                checkMysqlPort(mysqlPort, sysConfig);
-
-                if (!writeConfig(sysConfig)) {
-                    cout << "ERROR: Failed trying to update erydb System Configuration file" << endl;
-                    exit(1);
-                }
-
-                cout << endl << "===== Performing Configuration Setup and erydb Startup =====" << endl;
-
-                cmd = installDir + "/bin/installer dummy.rpm dummy.rpm dummy.rpm dummy.rpm dummy.rpm initial dummy " + reuseConfig + " --nodeps ' ' 1 " + installDir;
-                system(cmd.c_str());
-                exit(0);
-            } else {
-                if (temp == "2") {
+        try {
+            temp = sysConfig->getConfig(InstallSection, "SingleServerInstall");
+        } catch (...) {
+        }
+        if (temp == "y")
+            singleServerInstall = "1";
+        else
+            singleServerInstall = "2";
+        while (true) {
+            prompt = "Select the type of System Server install [1=single, 2=multi] (" + singleServerInstall + ") > ";
+            pcommand = callReadline(prompt.c_str());
+            string temp;
+            if (pcommand) {
+                if (strlen(pcommand) > 0)
+                    temp = pcommand;
+                else
+                    temp = singleServerInstall;
+                callFree(pcommand);
+                if (temp == "1") {
+                    setSingleServerInstall(startOfflinePrompt);
+                } else if (temp == "2") {
                     singleServerInstall = temp;
                     break;
                 }
+                cout << "Invalid Entry, please re-enter" << endl;
+                if (noPrompting)
+                    exit(1);
+                continue;
             }
-            cout << "Invalid Entry, please re-enter" << endl;
-            if (noPrompting)
-                exit(1);
-
-            continue;
+            break;
         }
-        break;
-    }
+        try {
+            sysConfig->setConfig(InstallSection, "SingleServerInstall", "n");
+        } catch (...) {
+            cout << "ERROR: Problem setting SingleServerInstall from the erydb System Configuration file" << endl;
+            exit(1);
+        }
 
-    try {
-        sysConfig->setConfig(InstallSection, "SingleServerInstall", "n");
-    } catch (...) {
-        cout << "ERROR: Problem setting SingleServerInstall from the erydb System Configuration file" << endl;
-        exit(1);
-    }
+        if (!writeConfig(sysConfig)) {
+            cout << "ERROR: Failed trying to update erydb System Configuration file" << endl;
+            exit(1);
+        }
 
-    if (!writeConfig(sysConfig)) {
-        cout << "ERROR: Failed trying to update erydb System Configuration file" << endl;
-        exit(1);
     }
-
     //
     // Multi-server install
-    //
-
-    cout << endl;
-    //cleanup/create local/etc  directory
-    cmd = "rm -rf " + installDir + "/local/etc > /dev/null 2>&1";
-    system(cmd.c_str());
-    cmd = "mkdir " + installDir + "/local/etc > /dev/null 2>&1";
-    system(cmd.c_str());
-
-    cout << endl << "===== Setup System Module Type Configuration =====" << endl << endl;
-
-    cout << "There are 2 options when configuring the System Module Type: separate and combined" << endl << endl;
-    cout << "  'separate' - User and Performance functionality on separate servers." << endl << endl;
-    cout << "  'combined' - User and Performance functionality on the same server" << endl << endl;
-
+    //ouput tips
+    {
+        cout << endl;
+        //cleanup/create local/etc  directory
+        cmd = "rm -rf " + installDir + "/local/etc > /dev/null 2>&1";
+        system(cmd.c_str());
+        cmd = "mkdir " + installDir + "/local/etc > /dev/null 2>&1";
+        system(cmd.c_str());
+        cout << endl << "===== Setup System Module Type Configuration =====" << endl << endl;
+        cout << "There are 2 options when configuring the System Module Type: separate and combined" << endl << endl;
+        cout << "  'separate' - User and Performance functionality on separate servers." << endl << endl;
+        cout << "  'combined' - User and Performance functionality on the same server" << endl << endl;
+    }
+    // set ServerTypeInstall
     try {
         serverTypeInstall = sysConfig->getConfig(InstallSection, "ServerTypeInstall");
     } catch (...) {
         cout << "ERROR: Problem getting ServerTypeInstall from the erydb System Configuration file" << endl;
         exit(1);
     }
-
     while (true) {
         prompt = "Select the type of System Module Install [1=separate, 2=combined] (" + serverTypeInstall + ") > ";
         pcommand = callReadline(prompt.c_str());
@@ -678,50 +614,43 @@ int main(int argc, char *argv[]) {
             if (strlen(pcommand) > 0) serverTypeInstall = pcommand;
             callFree(pcommand);
         }
-
         if (serverTypeInstall != "1" && serverTypeInstall != "2") {
             cout << "Invalid Entry, please re-enter" << endl << endl;
-            serverTypeInstall = "1";
             if (noPrompting)
                 exit(1);
             continue;
         }
-
-        IserverTypeInstall = atoi(serverTypeInstall.c_str());
-
-        // set Server Type Installation Indicator
-        try {
-            sysConfig->setConfig(InstallSection, "ServerTypeInstall", serverTypeInstall);
-        } catch (...) {
-            cout << "ERROR: Problem setting ServerTypeInstall in the erydb System Configuration file" << endl;
-            exit(1);
-        }
-
-        switch (IserverTypeInstall) {
+        break;
+    }
+    IserverTypeInstall = atoi(serverTypeInstall.c_str());
+    // set Server Type Installation Indicator
+    try {
+        sysConfig->setConfig(InstallSection, "ServerTypeInstall", serverTypeInstall);
+    } catch (...) {
+        cout << "ERROR: Problem setting ServerTypeInstall in the erydb System Configuration file" << endl;
+        exit(1);
+    }
+    // set local query flag
+    switch (IserverTypeInstall) {
         case (oam::INSTALL_COMBINE_DM_UM_PM):	// combined #1 - dm/um/pm on a single server
         {
             cout << "Combined Server Installation will be performed." << endl;
             cout << "The Server will be configured as a Performance Module." << endl;
             cout << "All erydb Processes will run on the Performance Modules." << endl << endl;
-
             //module ProcessConfig.xml to setup all apps on the dm
             if (!updateProcessConfig(IserverTypeInstall))
                 cout << "Update ProcessConfig.xml error" << endl;
-
             //store local query flag
             try {
                 sysConfig->setConfig(InstallSection, "PMwithUM", "n");
             } catch (...) {
             }
-
             pmwithum = false;
-
             break;
         }
         default:	// normal, separate UM and PM
         {
             cout << "Seperate Server Installation will be performed." << endl << endl;
-
             try {
                 PMwithUM = sysConfig->getConfig(InstallSection, "PMwithUM");
             } catch (...) {
@@ -729,12 +658,9 @@ int main(int argc, char *argv[]) {
 
             if (PMwithUM == "y")
                 pmwithum = true;
-
             string answer = "n";
-
             cout << "NOTE: Local Query Feature allows the ability to query data from a single Performance" << endl;
             cout << "      Module. Check erydb Admin Guide for additional information." << endl << endl;
-
             while (true) {
                 if (pmwithum)
                     prompt = "Local Query feature is Enabled, Do you want to disable? [y,n] (n) > ";
@@ -767,160 +693,113 @@ int main(int argc, char *argv[]) {
                     PMwithUM = "y";
                 }
             }
-
             try {
                 sysConfig->setConfig(InstallSection, "PMwithUM", PMwithUM);
             } catch (...) {
             }
-
             break;
         }
-        }
-        break;
-    }
+    } 
 
-    // check for Schema Schema is Local Query wasnt selected
-    if (!pmwithum) {
-        cout << "NOTE: The erydb Schema Sync feature will replicate all of the" << endl;
-        cout << "      schemas and InnoDB tables across the User Module nodes. This feature can be enabled" << endl;
-        cout << "      or disabled, for example, if you wish to configure your own replication post installation." << endl << endl;
-
+    // check for Schema Schema is Local Query wasnt selected mysqlRep ,now use galera wsrep
+    {
         try {
-            MySQLRep = sysConfig->getConfig(InstallSection, "MySQLRep");
-        } catch (...) {
-        }
-
-        string answer = "n";
-        if (MySQLRep == "y") {
-            mysqlRep = true;
-        }
-
-        while (true) {
-            if (mysqlRep)
-                prompt = "erydb Schema Sync feature is Enabled, do you want to leave enabled? [y,n] (n) > ";
-            else
-                prompt = "erydb Schema Sync feature, do you want to enable? [y,n] (n) > ";
-
-            pcommand = callReadline(prompt.c_str());
-            if (pcommand) {
-                if (strlen(pcommand) > 0) answer = pcommand;
-                callFree(pcommand);
-            }
-
-            if (answer == "y" || answer == "n") {
-                cout << endl;
-                break;
-            } else
-                cout << "Invalid Entry, please enter 'y' for yes or 'n' for no" << endl;
-
-            if (noPrompting)
-                exit(1);
-        }
-
-        if (answer == "y") {
-            mysqlRep = true;
-            MySQLRep = "y";
-        } else {
-            mysqlRep = false;
             MySQLRep = "n";
-        }
-
-        try {
+            mysqlRep = false;
             sysConfig->setConfig(InstallSection, "MySQLRep", MySQLRep);
         } catch (...) {
         }
-    } else {	//Schema Sync is default as on when Local Query is Selected
-        mysqlRep = true;
-        MySQLRep = "y";
-
-        try {
-            sysConfig->setConfig(InstallSection, "MySQLRep", MySQLRep);
-        } catch (...) {
+        if (!writeConfig(sysConfig)) {
+            cout << "ERROR: Failed trying to update erydb System Configuration file" << endl;
+            exit(1);
         }
-    }
-
-    if (!writeConfig(sysConfig)) {
-        cout << "ERROR: Failed trying to update erydb System Configuration file" << endl;
-        exit(1);
     }
 
     //amazon install setup check
     bool amazonInstall = false;
     string cloud = oam::UnassignedName;
-    system("aws --version > /tmp/amazon.log 2>&1");
-
-    ifstream in("/tmp/amazon.log");
-
-    in.seekg(0, std::ios::end);
-    int size = in.tellg();
-    if (size == 0 || oam.checkLogStatus("/tmp/amazon.log", "not found"))
-        // not running on amazon with ec2-api-tools
-        amazonInstall = false;
-    else {
-        if (size == 0 || oam.checkLogStatus("/tmp/amazon.log", "not installed"))
+    {
+        int rtnCode = system("which aws ");
+        if (WEXITSTATUS(rtnCode) == 0) {
+            system("aws --version > /tmp/amazon.log 2>&1");
+            ifstream in("/tmp/amazon.log");
+            in.seekg(0, std::ios::end);
+            int size = in.tellg();
+            if (size == 0 || oam.checkLogStatus("/tmp/amazon.log", "not installed"))
+                amazonInstall = false;
+            else
+                amazonInstall = true;
+        }
+        try {
+            cloud = sysConfig->getConfig(InstallSection, "Cloud");
+        } catch (...) {
+            cloud = oam::UnassignedName;
+        }
+        if (cloud == "disable") {
             amazonInstall = false;
-        else
-            amazonInstall = true;
-    }
-
-    try {
-        cloud = sysConfig->getConfig(InstallSection, "Cloud");
-    } catch (...) {
-        cloud = oam::UnassignedName;
-    }
-
-    if (cloud == "disable")
-        amazonInstall = false;
-
-    if (amazonInstall) {
-        if (cloud == oam::UnassignedName) {
-            cout << "NOTE: Amazon AWS CLI Tools are installed and allow erydb to create Instances and ABS Volumes" << endl << endl;
-
-            while (true) {
-                string enable = "y";
-                prompt = "Do you want to have EryDB use the Amazon AWS CLI Tools [y,n] (y) > ";
-                pcommand = callReadline(prompt.c_str());
-
-                if (pcommand) {
-                    if (strlen(pcommand) > 0) enable = pcommand;
-                    callFree(pcommand);
-
-                    if (enable == "n") {
-                        amazonInstall = false;
-
-                        try {
-                            sysConfig->setConfig(InstallSection, "Cloud", "disable");
-                        } catch (...) {
-                        };
-
-                        break;
-                    }
-                }
-
-                if (enable != "y") {
-                    cout << "Invalid Entry, please enter 'y' for yes or 'n' for no" << endl;
-                    if (noPrompting)
-                        exit(1);
-                } else {
-                    try {
-                        sysConfig->setConfig(InstallSection, "Cloud", "amazon-vpc");
-                    } catch (...) {
-                    }
-                }
-
-                break;
-            }
-        } else
-            cout << "NOTE: Configured to have EryDB use the Amazon AWS CLI Tools" << endl << endl;
-
+        }
         if (amazonInstall) {
-            string cmd = installDir + "/bin/MCSgetCredentials.sh >/dev/null 2>&1";
-            int rtnCode = system(cmd.c_str());
-            if (WEXITSTATUS(rtnCode) != 0) {
-                cout << endl << "Error: No IAM Profile with Security Certificates used or AWS CLI Certificate file configured" << endl;
-                cout << "Check Amazon Install Documenation for additional information, exiting..." << endl;
+            if (cloud == oam::UnassignedName) {
+                cout << "NOTE: Amazon AWS CLI Tools are installed and allow erydb to create Instances and ABS Volumes" << endl << endl;
+                while (true) {
+                    string enable = "y";
+                    prompt = "Do you want to have EryDB use the Amazon AWS CLI Tools [y,n] (y) > ";
+                    pcommand = callReadline(prompt.c_str());
+
+                    if (pcommand) {
+                        if (strlen(pcommand) > 0) enable = pcommand;
+                        callFree(pcommand);
+
+                        if (enable == "n") {
+                            amazonInstall = false;
+
+                            try {
+                                sysConfig->setConfig(InstallSection, "Cloud", "disable");
+                            } catch (...) {
+                            };
+
+                            break;
+                        }
+                    }
+                    if (enable != "y") {
+                        cout << "Invalid Entry, please enter 'y' for yes or 'n' for no" << endl;
+                        if (noPrompting)
+                            exit(1);
+                    } else {
+                        try {
+                            sysConfig->setConfig(InstallSection, "Cloud", "amazon-vpc");
+                        } catch (...) {
+                        }
+                    }
+
+                    break;
+                }
+            } else
+                cout << "NOTE: Configured to have EryDB use the Amazon AWS CLI Tools" << endl << endl;
+            if (amazonInstall) {
+                string cmd = installDir + "/bin/ERYDBgetCredentials.sh >/dev/null 2>&1";
+                int rtnCode = system(cmd.c_str());
+                if (WEXITSTATUS(rtnCode) != 0) {
+                    cout << endl << "Error: No IAM Profile with Security Certificates used or AWS CLI Certificate file configured" << endl;
+                    cout << "Check Amazon Install Documenation for additional information, exiting..." << endl;
+                    exit(1);
+                }
+            }
+            if (!writeConfig(sysConfig)) {
+                cout << "ERROR: Failed trying to update erydb System Configuration file" << endl;
                 exit(1);
             }
+        }
+
+        if (pmwithum) {
+            cout << endl << "NOTE: Local Query Feature is enabled" << endl;
+        }
+        //Write out Updated System Configuration File
+        try {
+            sysConfig->setConfig(InstallSection, "InitialInstallFlag", "n");
+        } catch (...) {
+            cout << "ERROR: Problem setting InitialInstallFlag from the erydb System Configuration file" << endl;
+            exit(1);
         }
 
         if (!writeConfig(sysConfig)) {
@@ -928,89 +807,93 @@ int main(int argc, char *argv[]) {
             exit(1);
         }
     }
-
-    if (pmwithum)
-        cout << endl << "NOTE: Local Query Feature is enabled" << endl;
-
-    if (mysqlRep)
-        cout << endl << "NOTE: erydb Replication Feature is enabled" << endl;
-
-    //Write out Updated System Configuration File
-    try {
-        sysConfig->setConfig(InstallSection, "InitialInstallFlag", "n");
-    } catch (...) {
-        cout << "ERROR: Problem setting InitialInstallFlag from the erydb System Configuration file" << endl;
-        exit(1);
-    }
-
-    if (!writeConfig(sysConfig)) {
-        cout << "ERROR: Failed trying to update erydb System Configuration file" << endl;
-        exit(1);
-    }
-
     cout << endl;
-
     // prompt for system name
     setSystemName();
-
     cout << endl;
-
-    oamModuleInfo_t t;
+    //parentOAMModuleName check
+    string parentOAMModuleType;
     string localModuleName;
-    try {
-        t = oam.getModuleInfo();
-        localModuleName = boost::get<0>(t);
-    } catch (exception& e) {}
+    int parentOAMModuleID = 0;
+    {
+        try {
+            oamModuleInfo_t t;
+            t = oam.getModuleInfo();
+            localModuleName = boost::get<0>(t);
+        } catch (exception& e) {}
 
-    //get Parent OAM Module Name
-    parentOAMModuleName = "pm1";
+        //get Parent OAM Module Name , on init set parentOAMModuleName=pm1
+        parentOAMModuleName = "pm1";
+        try {
+            parentOAMModuleName = sysConfig->getConfig(SystemSection, "ParentOAMModuleName");
+        } catch (...) {
+        }
+        if (parentOAMModuleName != localModuleName || parentOAMModuleName != "pm1") {
+            string answer = "n";
+            while (true) {
+                prompt = "Do you want to reset to create a new cluster? [y,n] (n) > ";
+                pcommand = callReadline(prompt.c_str());
+                if (pcommand) {
+                    if (strlen(pcommand) > 0) answer = pcommand;
+                    callFree(pcommand);
+                }
+                if (answer == "y" || answer == "n") {
+                    cout << endl;
+                    break;
+                } else {
+                    cout << "Invalid Entry, please enter 'y' for yes or 'n' for no" << endl;
+                }
+            }
+            if (answer == "y") {
+                localModuleName = "pm1";
+                parentOAMModuleName = "pm1";
+                string fileName = installDir + "/local/module";
+                string cmd = "echo " + parentOAMModuleName + " > " + fileName;
+                system(cmd.c_str());
+            }
+        }
+        //if (localModuleName != parentOAMModuleName) {
+        //    cout << endl << endl << "ERROR: exiting, postConfigure can only run executed on " + parentOAMModuleName + ", current module is " << localModuleName << endl;
+        //    exit(1);
+        //}
+        //try {
+        //    sysConfig->setConfig(SystemSection, "ParentOAMModuleName", parentOAMModuleName);
+        //} catch (...) {
+        //    cout << "ERROR: Problem setting ParentOAMModuleName the erydb System Configuration file" << endl;
+        //    exit(1);
+        //}
+        ////all others both StandbyOAMModuleName 
+        //// set Standby Parent OAM module and IP to unassigned
+        //try {
+        //    sysConfig->setConfig(SystemSection, "StandbyOAMModuleName", oam::UnassignedName);
+        //    sysConfig->setConfig("ProcStatusControlStandby", "IPAddr", oam::UnassignedIpAddr);
+        //} catch (...) {
+        //    cout << "ERROR: Problem setting ParentStandbyOAMModuleName the erydb System Configuration file" << endl;
+        //    exit(1);
+        //}
 
-    if (localModuleName != parentOAMModuleName) {
-        cout << endl << endl << "ERROR: exiting, postConfigure can only run executed on " + parentOAMModuleName + ", current module is " << localModuleName << endl;
-        exit(1);
+        //create associated local/etc directory for parentOAMModuleName
+        cmd = "mkdir " + installDir + "/local/etc/" + parentOAMModuleName + " > /dev/null 2>&1";
+        system(cmd.c_str());
+        //setup local module file name
+        if (!makeModuleFile(parentOAMModuleName, parentOAMModuleName)) {
+            cout << "makeModuleFile error" << endl;
+            exit(1);
+        }
+        cout << endl;
+
+        if (startOfflinePrompt)
+            offLineAppCheck();
+
+        parentOAMModuleType = parentOAMModuleName.substr(0, MAX_MODULE_TYPE_SIZE);
+        parentOAMModuleID = atoi(parentOAMModuleName.substr(MAX_MODULE_TYPE_SIZE, MAX_MODULE_ID_SIZE).c_str());
+        if (parentOAMModuleID < 1) {
+            cout << "ERROR: Invalid Module ID of less than 1" << endl;
+            exit(1);
+        }
     }
-
-    try {
-        sysConfig->setConfig(SystemSection, "ParentOAMModuleName", parentOAMModuleName);
-    } catch (...) {
-        cout << "ERROR: Problem setting ParentOAMModuleName the erydb System Configuration file" << endl;
-        exit(1);
-    }
-
-    // set Standby Parent OAM module and IP to unassigned
-    try {
-        sysConfig->setConfig(SystemSection, "StandbyOAMModuleName", oam::UnassignedName);
-        sysConfig->setConfig("ProcStatusControlStandby", "IPAddr", oam::UnassignedIpAddr);
-    } catch (...) {
-        cout << "ERROR: Problem setting ParentStandbyOAMModuleName the erydb System Configuration file" << endl;
-        exit(1);
-    }
-
-    //create associated local/etc directory for parentOAMModuleName
-    cmd = "mkdir " + installDir + "/local/etc/" + parentOAMModuleName + " > /dev/null 2>&1";
-    system(cmd.c_str());
-
-    //setup local module file name
-    if (!makeModuleFile(parentOAMModuleName, parentOAMModuleName)) {
-        cout << "makeModuleFile error" << endl;
-        exit(1);
-    }
-
-    cout << endl;
-
-    if (startOfflinePrompt)
-        offLineAppCheck();
-
-    string parentOAMModuleType = parentOAMModuleName.substr(0, MAX_MODULE_TYPE_SIZE);
-    int parentOAMModuleID = atoi(parentOAMModuleName.substr(MAX_MODULE_TYPE_SIZE, MAX_MODULE_ID_SIZE).c_str());
-    if (parentOAMModuleID < 1) {
-        cout << "ERROR: Invalid Module ID of less than 1" << endl;
-        exit(1);
-    }
-
     //Get list of configured system modules
     SystemModuleTypeConfig sysModuleTypeConfig;
-
     try {
         oam.getSystemConfig(sysModuleTypeConfig);
     } catch (...) {
@@ -1018,191 +901,192 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
-    // 
     // setup storage
-    //
-
     if (!storageSetup(amazonInstall)) {
         cout << "ERROR: Problem setting up storage" << endl;
         exit(1);
     }
-
-    if (hdfs || !rootUser)
+    //set internal replica size
+    if (DBRootStorageType == "internal") { 
+        int licSize = oam::MAX_MODULE;
+        licSize = License::getPmCountLimit();
+        string oldRepSize = "3";
+        try {
+            oldRepSize = sysConfig->getConfig(SystemSection, "PMreplicateCount");
+        } catch (...) {
+            oldRepSize = "3";
+        }
+        int PMreplicateSize = atoi(pcommand);
+        while (true) {
+            prompt = "Enter number of PM storage copies [1," + oam.itoa(licSize) + "] (" + oam.itoa(PMreplicateSize) + ") > ";
+            pcommand = callReadline(prompt.c_str());
+            if (pcommand) {
+                if (strlen(pcommand) > 0) PMreplicateSize = atoi(pcommand);
+                callFree(pcommand);
+            }
+            if (PMreplicateSize>=1) {
+                cout << endl;
+                break;
+            } else {
+                cout << endl << "ERROR: Invalid replicate Count '" + oam.itoa(PMreplicateSize) + "', please re-enter" << endl << endl;
+            }
+        }
+        try {
+              sysConfig->setConfig(SystemSection, "PMreplicateCount", oam.itoa(PMreplicateSize));
+        } catch (...) {
+            cout << "ERROR: Problem setting PMreplicateCount in the erydb System Configuration file" << endl;
+            exit(1);
+        }
+        if (!writeConfig(sysConfig)) {
+            cout << "ERROR: Failed trying to update erydb System Configuration file" << endl;
+            exit(1);
+        }
+    }
+    if (hdfs || !rootUser) {
         if (!updateBash())
             cout << "updateBash error" << endl;
-
-    //
+    }
     // setup memory paramater settings
-    //
-
     cout << endl << "===== Setup Memory Configuration =====" << endl << endl;
-
     switch (IserverTypeInstall) {
-    case (oam::INSTALL_COMBINE_DM_UM_PM):	// combined #1 - dm/um/pm on a single server
-    {
-        // are we using settings from previous config file?
-        if (reuseConfig == "n") {
-            if (!uncommenterydbXml("NumBlocksPct")) {
-                cout << "Update erydb.xml NumBlocksPct Section" << endl;
-                exit(1);
+        case (oam::INSTALL_COMBINE_DM_UM_PM):	// combined #1 - dm/um/pm on a single server
+        {
+            // are we using settings from previous config file?
+            if (reuseConfig == "n") {
+                if (!uncommenterydbXml("NumBlocksPct")) {
+                    cout << "Update erydb.xml NumBlocksPct Section" << endl;
+                    exit(1);
+                }
+                string numBlocksPct;
+                try {
+                    numBlocksPct = sysConfig->getConfig("DBBC", "NumBlocksPct");
+                } catch (...) {
+                }
+                if (numBlocksPct == "70" || numBlocksPct.empty()) {
+                    numBlocksPct = "50";
+                    if (hdfs)
+                        numBlocksPct = "25";
+                }
+                try {
+                    sysConfig->setConfig("DBBC", "NumBlocksPct", numBlocksPct);
+                    cout << endl << "NOTE: Setting 'NumBlocksPct' to " << numBlocksPct << "%" << endl;
+                } catch (...) {
+                    cout << "ERROR: Problem setting NumBlocksPct in the erydb System Configuration file" << endl;
+                    exit(1);
+                }
+                string percent = "25%";
+                if (hdfs) {
+                    percent = "12%";
+                }
+                cout << "      Setting 'TotalUmMemory' to " << percent << endl;
+                try {
+                    sysConfig->setConfig("HashJoin", "TotalUmMemory", percent);
+                } catch (...) {
+                    cout << "ERROR: Problem setting TotalUmMemory in the erydb System Configuration file" << endl;
+                    exit(1);
+                }
+                if (!writeConfig(sysConfig)) {
+                    cout << "ERROR: Failed trying to update erydb System Configuration file" << endl;
+                    exit(1);
+                }
+            } else {
+                try {
+                    string numBlocksPct = sysConfig->getConfig("DBBC", "NumBlocksPct");
+                    cout << endl;
+                    if (numBlocksPct.empty())
+                        cout << "NOTE: Using the default setting for 'NumBlocksPct' at 70%" << endl;
+                    else
+                        cout << "NOTE: Using previous configuration setting for 'NumBlocksPct' = " << numBlocksPct << "%" << endl;
+                    string totalUmMemory = sysConfig->getConfig("HashJoin", "TotalUmMemory");
+                    cout << "      Using previous configuration setting for 'TotalUmMemory' = " << totalUmMemory << endl;
+                } catch (...) {
+                    cout << "ERROR: Problem reading NumBlocksPct/TotalUmMemory in the erydb System Configuration file" << endl;
+                    exit(1);
+                }
             }
-
-            string numBlocksPct;
-            try {
-                numBlocksPct = sysConfig->getConfig("DBBC", "NumBlocksPct");
-            } catch (...) {
-            }
-
-            if (numBlocksPct == "70" || numBlocksPct.empty()) {
-                numBlocksPct = "50";
-                if (hdfs)
-                    numBlocksPct = "25";
-            }
-
-            try {
-                sysConfig->setConfig("DBBC", "NumBlocksPct", numBlocksPct);
-
-                cout << endl << "NOTE: Setting 'NumBlocksPct' to " << numBlocksPct << "%" << endl;
-            } catch (...) {
-                cout << "ERROR: Problem setting NumBlocksPct in the erydb System Configuration file" << endl;
-                exit(1);
-            }
-
-            string percent = "25%";
-
-            if (hdfs) {
-                percent = "12%";
-            }
-
-            cout << "      Setting 'TotalUmMemory' to " << percent << endl;
-
-            try {
-                sysConfig->setConfig("HashJoin", "TotalUmMemory", percent);
-            } catch (...) {
-                cout << "ERROR: Problem setting TotalUmMemory in the erydb System Configuration file" << endl;
-                exit(1);
-            }
-
-            if (!writeConfig(sysConfig)) {
-                cout << "ERROR: Failed trying to update erydb System Configuration file" << endl;
-                exit(1);
-            }
-        } else {
-            try {
-                string numBlocksPct = sysConfig->getConfig("DBBC", "NumBlocksPct");
-
-                cout << endl;
-                if (numBlocksPct.empty())
-                    cout << "NOTE: Using the default setting for 'NumBlocksPct' at 70%" << endl;
-                else
-                    cout << "NOTE: Using previous configuration setting for 'NumBlocksPct' = " << numBlocksPct << "%" << endl;
-
-                string totalUmMemory = sysConfig->getConfig("HashJoin", "TotalUmMemory");
-
-                cout << "      Using previous configuration setting for 'TotalUmMemory' = " << totalUmMemory << endl;
-            } catch (...) {
-                cout << "ERROR: Problem reading NumBlocksPct/TotalUmMemory in the erydb System Configuration file" << endl;
-                exit(1);
-            }
+            break;
         }
-        break;
-    }
-    default:	// normal, separate UM and PM
-    {
-        // are we using settings from previous config file?
-        if (reuseConfig == "n") {
+        default:	// normal, separate UM and PM
+        {
+            // are we using settings from previous config file?
+            if (reuseConfig == "n") {
+                string numBlocksPct;
+                try {
+                    numBlocksPct = sysConfig->getConfig("DBBC", "NumBlocksPct");
+                } catch (...) {
+                }
+                if (numBlocksPct.empty()) {
+                    numBlocksPct = "70";
+                    if (hdfs)
+                        numBlocksPct = "35";
+                }
+                try {
+                    sysConfig->setConfig("DBBC", "NumBlocksPct", numBlocksPct);
 
-            string numBlocksPct;
-            try {
-                numBlocksPct = sysConfig->getConfig("DBBC", "NumBlocksPct");
-            } catch (...) {
+                    cout << "NOTE: Setting 'NumBlocksPct' to " << numBlocksPct << "%" << endl;
+                } catch (...) {
+                    cout << "ERROR: Problem setting NumBlocksPct in the erydb System Configuration file" << endl;
+                    exit(1);
+                }
+                string percent = "50%";
+                if (hdfs) {
+                    percent = "25%";
+                }
+                cout << "      Setting 'TotalUmMemory' to " << percent << endl;
+                try {
+                    sysConfig->setConfig("HashJoin", "TotalUmMemory", percent);
+                } catch (...) {
+                    cout << "ERROR: Problem setting TotalUmMemory in the erydb System Configuration file" << endl;
+                    exit(1);
+                }
+                if (!writeConfig(sysConfig)) {
+                    cout << "ERROR: Failed trying to update erydb System Configuration file" << endl;
+                    exit(1);
+                }
+            } else {
+                try {
+                    string numBlocksPct = sysConfig->getConfig("DBBC", "NumBlocksPct");
+                    if (numBlocksPct.empty())
+                        cout << "NOTE: Using the default setting for 'NumBlocksPct' at 70%" << endl;
+                    else
+                        cout << "NOTE: Using previous configuration setting for 'NumBlocksPct' = " << numBlocksPct << "%" << endl;
+                    string totalUmMemory = sysConfig->getConfig("HashJoin", "TotalUmMemory");
+                    cout << "      Using previous configuration setting for 'TotalUmMemory' = " << totalUmMemory << endl;
+                } catch (...) {
+                    cout << "ERROR: Problem reading NumBlocksPct/TotalUmMemory in the erydb System Configuration file" << endl;
+                    exit(1);
+                }
             }
-
-            if (numBlocksPct.empty()) {
-                numBlocksPct = "70";
-                if (hdfs)
-                    numBlocksPct = "35";
-            }
-
-            try {
-                sysConfig->setConfig("DBBC", "NumBlocksPct", numBlocksPct);
-
-                cout << "NOTE: Setting 'NumBlocksPct' to " << numBlocksPct << "%" << endl;
-            } catch (...) {
-                cout << "ERROR: Problem setting NumBlocksPct in the erydb System Configuration file" << endl;
-                exit(1);
-            }
-
-            string percent = "50%";
-            if (hdfs) {
-                percent = "25%";
-            }
-
-            cout << "      Setting 'TotalUmMemory' to " << percent << endl;
-
-            try {
-                sysConfig->setConfig("HashJoin", "TotalUmMemory", percent);
-            } catch (...) {
-                cout << "ERROR: Problem setting TotalUmMemory in the erydb System Configuration file" << endl;
-                exit(1);
-            }
-
-            if (!writeConfig(sysConfig)) {
-                cout << "ERROR: Failed trying to update erydb System Configuration file" << endl;
-                exit(1);
-            }
-        } else {
-            try {
-                string numBlocksPct = sysConfig->getConfig("DBBC", "NumBlocksPct");
-
-                if (numBlocksPct.empty())
-                    cout << "NOTE: Using the default setting for 'NumBlocksPct' at 70%" << endl;
-                else
-                    cout << "NOTE: Using previous configuration setting for 'NumBlocksPct' = " << numBlocksPct << "%" << endl;
-
-                string totalUmMemory = sysConfig->getConfig("HashJoin", "TotalUmMemory");
-
-                cout << "      Using previous configuration setting for 'TotalUmMemory' = " << totalUmMemory << endl;
-            } catch (...) {
-                cout << "ERROR: Problem reading NumBlocksPct/TotalUmMemory in the erydb System Configuration file" << endl;
-                exit(1);
-            }
+            break;
         }
-        break;
     }
-    }
-
     //Write out Updated System Configuration File
-    try {
-        sysConfig->setConfig(InstallSection, "InitialInstallFlag", "y");
-    } catch (...) {
-        cout << "ERROR: Problem setting InitialInstallFlag from the erydb System Configuration file" << endl;
-        exit(1);
+    {
+        try {
+            sysConfig->setConfig(InstallSection, "InitialInstallFlag", "y");
+        } catch (...) {
+            cout << "ERROR: Problem setting InitialInstallFlag from the erydb System Configuration file" << endl;
+            exit(1);
+        }
+        if (!writeConfig(sysConfig)) {
+            cout << "ERROR: Failed trying to update erydb System Configuration file" << endl;
+            exit(1);
+        }
     }
 
-    if (!writeConfig(sysConfig)) {
-        cout << "ERROR: Failed trying to update erydb System Configuration file" << endl;
-        exit(1);
-    }
-
-    //
     // Module Configuration
-    //
     cout << endl;
     cout << "===== Setup the Module Configuration =====" << endl << endl;
-
     if (amazonInstall) {
         cout << "Amazon Install: For Module Configuration, you have the option to provide the" << endl;
         cout << "existing Instance IDs or have the Instances created." << endl;
         cout << "You will be prompted during the Module Configuration setup section." << endl;
     }
-
     //get OAM Parent Module IP addresses and Host Name, if it exist
     for (unsigned int i = 0; i < sysModuleTypeConfig.moduletypeconfig.size(); i++) {
         DeviceNetworkList::iterator listPT = sysModuleTypeConfig.moduletypeconfig[i].ModuleNetworkList.begin();
         for (; listPT != sysModuleTypeConfig.moduletypeconfig[i].ModuleNetworkList.end(); listPT++) {
             HostConfigList::iterator pt1 = (*listPT).hostConfigList.begin();
-
             if ((*listPT).DeviceName == parentOAMModuleName) {
                 parentOAMModuleIPAddr = (*pt1).IPAddr;
                 parentOAMModuleHostName = (*pt1).HostName;
@@ -1212,16 +1096,18 @@ int main(int argc, char *argv[]) {
     }
 
     unsigned int maxPMNicCount = 1;
-
     //configure module type
     bool parentOAMmoduleConfig = false;
     bool moduleSkip = false;
+    char hostname[128];
+    gethostname(hostname, sizeof hostname);
+    localHostName = hostname;
 
     for (unsigned int i = 0; i < sysModuleTypeConfig.moduletypeconfig.size(); i++) {
         string moduleType = sysModuleTypeConfig.moduletypeconfig[i].ModuleType;
         string moduleDesc = sysModuleTypeConfig.moduletypeconfig[i].ModuleDesc;
         int moduleCount = sysModuleTypeConfig.moduletypeconfig[i].ModuleCount;
-
+        //set dm count to 0
         if (moduleType == "dm") {
             moduleCount = 0;
             try {
@@ -1231,8 +1117,9 @@ int main(int argc, char *argv[]) {
             } catch (...) {
             }
         }
-
-        //verify and setup of modules count
+        //set module count
+        int oldModuleCount = moduleCount;
+        //verify and setup of modules count set count to 0
         switch (IserverTypeInstall) {
         case (oam::INSTALL_COMBINE_DM_UM_PM):
         {
@@ -1252,10 +1139,8 @@ int main(int argc, char *argv[]) {
         default:
             break;
         }
-
+        //set module count
         cout << endl << "----- " << moduleDesc << " Configuration -----" << endl << endl;
-
-        int oldModuleCount = moduleCount;
         while (true) {
             int licSize = oam::MAX_MODULE;
             if (moduleType == "pm") {
@@ -1270,21 +1155,16 @@ int main(int argc, char *argv[]) {
                 if (strlen(pcommand) > 0) moduleCount = atoi(pcommand);
                 callFree(pcommand);
             }
-
             if (moduleCount < 1 || moduleCount > licSize) {
                 cout << endl << "ERROR: Invalid Module Count '" + oam.itoa(moduleCount) + "', please re-enter" << endl << endl;
-                if (noPrompting)
-                    exit(1);
+                if (noPrompting)exit(1);
                 continue;
             }
-
             if (parentOAMModuleType == moduleType && moduleCount == 0) {
                 cout << endl << "ERROR: Parent OAM Module Type is '" + parentOAMModuleType + "', so you have to have at least 1 of this Module Type, please re-enter" << endl << endl;
-                if (noPrompting)
-                    exit(1);
+                if (noPrompting)exit(1);
                 continue;
             }
-
             //update count
             try {
                 string ModuleCountParm = "ModuleCount" + oam.itoa(i + 1);
@@ -1296,24 +1176,42 @@ int main(int argc, char *argv[]) {
             }
         }
 
-        if (moduleType == "pm")
+        if (moduleType == "pm") {
             pmNumber = moduleCount;
-
+            //chekck internal replica size
+            if (DBRootStorageType == "internal") {
+                string oldRepSize = "3";
+                try {
+                    oldRepSize = sysConfig->getConfig(SystemSection, "PMreplicateCount");
+                } catch (...) {
+                    cout << "ERROR: Problem getting PMreplicateCount in the erydb System Configuration file" << endl;
+                    exit(1);
+                }
+                int PMreplicateSize = atoi(pcommand);
+                if (pmNumber < PMreplicateSize) {
+                    try {
+                        cout << "warning:replicateCount lage than PM count,set replicateCount to PM count " << endl;
+                        PMreplicateSize = pmNumber;
+                        sysConfig->setConfig(SystemSection, "PMreplicateCount", oam.itoa(PMreplicateSize));
+                    } catch (...) {
+                        cout << "ERROR: Problem setting PMreplicateCount in the erydb System Configuration file" << endl;
+                        exit(1);
+                    }
+                } 
+            }
+        }
         if (moduleType == "um")
             umNumber = moduleCount;
-
         int moduleID = 1;
-
         int listSize = sysModuleTypeConfig.moduletypeconfig[i].ModuleNetworkList.size();
-
         //clear any Equipped Module IP addresses that aren't in current ID range
         for (int j = 0; j < listSize; j++) {
             for (unsigned int k = 1; k < MAX_NIC + 1; k++) {
+                //<!--主机ID 网口id 类型ID-->
                 string ModuleIPAddr = "ModuleIPAddr" + oam.itoa(j + 1) + "-" + oam.itoa(k) + "-" + oam.itoa(i + 1);
                 if (!(sysConfig->getConfig(ModuleSection, ModuleIPAddr).empty())) {
                     if (j + 1 < moduleID || j + 1 > moduleID + (moduleCount - 1)) {
                         string ModuleHostName = "ModuleHostName" + oam.itoa(j + 1) + "-" + oam.itoa(k) + "-" + oam.itoa(i + 1);
-
                         sysConfig->setConfig(ModuleSection, ModuleIPAddr, oam::UnassignedIpAddr);
                         sysConfig->setConfig(ModuleSection, ModuleHostName, oam::UnassignedName);
                     }
@@ -1357,7 +1255,7 @@ int main(int argc, char *argv[]) {
                 for (unsigned int nicID = 1; nicID < MAX_NIC + 1; nicID++) {
                     string moduleHostName = oam::UnassignedName;
                     string moduleIPAddr = oam::UnassignedIpAddr;
-
+                    //find exists config nic ip and hostname
                     DeviceNetworkList::iterator listPT = sysModuleTypeConfig.moduletypeconfig[i].ModuleNetworkList.begin();
                     for (; listPT != sysModuleTypeConfig.moduletypeconfig[i].ModuleNetworkList.end(); listPT++) {
                         if (newModuleName == (*listPT).DeviceName) {
@@ -1379,7 +1277,7 @@ int main(int argc, char *argv[]) {
                             }
                         }
                     }
-
+                    //set module host state
                     if (nicID == 1) {
                         if (moduleDisableState != oam::ENABLEDSTATE) {
                             string disabled = "y";
@@ -1431,7 +1329,7 @@ int main(int argc, char *argv[]) {
                                 enableModuleCount--;
                         }
 
-                        //set Module Disable State
+                        //reset Module Disable State
                         string moduleDisableStateParm = "ModuleDisableState" + oam.itoa(moduleID) + "-" + oam.itoa(i + 1);
                         try {
                             sysConfig->setConfig(ModuleSection, moduleDisableStateParm, moduleDisableState);
@@ -1439,7 +1337,6 @@ int main(int argc, char *argv[]) {
                             cout << "ERROR: Problem setting ModuleDisableState in the erydb System Configuration file" << endl;
                             exit(1);
                         }
-
                         if (!writeConfig(sysConfig)) {
                             cout << "ERROR: Failed trying to update erydb System Configuration file" << endl;
                             exit(1);
@@ -1455,14 +1352,12 @@ int main(int argc, char *argv[]) {
                         moduleHostNameFound = true;
                         moduleHostName = oam::UnassignedName;
                     }
-
                     if (moduleIPAddr.empty())
                         moduleIPAddr = oam::UnassignedIpAddr;
-
                     string newModuleIPAddr;
-
                     while (true) {
                         newModuleHostName = moduleHostName;
+                        //可调用脚本动态创建虚拟机
                         if (amazonInstall) {
                             if (moduleHostName == oam::UnassignedName &&
                                 newModuleName == "pm1" && nicID == 1) {
@@ -1480,7 +1375,6 @@ int main(int argc, char *argv[]) {
                                 if (moduleHostName == oam::UnassignedName) {
                                     //check if need to create instance or user enter ID
                                     string create = "y";
-
                                     while (true) {
                                         pcommand = callReadline("Create Instance for " + newModuleName + " [y,n] (y) > ");
                                         if (pcommand) {
@@ -1495,8 +1389,6 @@ int main(int argc, char *argv[]) {
                                         if (noPrompting)
                                             exit(1);
                                     }
-
-
                                     if (create == "y") {
                                         ModuleIP moduleip;
                                         moduleip.moduleName = newModuleName;
@@ -1513,7 +1405,6 @@ int main(int argc, char *argv[]) {
                                             cout << "launch Instance failed for " + newModuleName << endl;
                                             exit(1);
                                         }
-
                                         prompt = "";
                                     } else
                                         prompt = "Enter EC2 Instance ID (" + moduleHostName + ") > ";
@@ -1522,15 +1413,11 @@ int main(int argc, char *argv[]) {
                             }
                         } else {
                             if (moduleHostName == oam::UnassignedName &&
-                                newModuleName == "pm1" && nicID == 1) {
-                                char hostname[128];
-                                gethostname(hostname, sizeof hostname);
-                                moduleHostName = hostname;
-                            }
-
+                                newModuleName == "pm1" && nicID == 1) { 
+                                moduleHostName = localHostName;
+                            } 
                             prompt = "Enter Nic Interface #" + oam.itoa(nicID) + " Host Name (" + moduleHostName + ") > ";
                         }
-
                         if (prompt != "") {
                             pcommand = callReadline(prompt.c_str());
                             if (pcommand) {
@@ -1538,11 +1425,9 @@ int main(int argc, char *argv[]) {
                                     newModuleHostName = pcommand;
                                 else
                                     newModuleHostName = moduleHostName;
-
                                 callFree(pcommand);
                             }
                         }
-
                         if (newModuleHostName == oam::UnassignedName && nicID == 1) {
                             cout << "Invalid Entry, please re-enter" << endl;
                             if (noPrompting)
@@ -1648,7 +1533,7 @@ int main(int argc, char *argv[]) {
                                         exit(1);
                                     continue;
                                 }
-
+                                //check ip 
                                 if (oam.isValidIP(newModuleIPAddr)) {
                                     //check and see if hostname already used
                                     bool matchFound = false;
@@ -1664,7 +1549,6 @@ int main(int argc, char *argv[]) {
                                     }
                                     if (matchFound)
                                         continue;
-
                                     // run ping test to validate
                                     string cmdLine = "ping ";
                                     string cmdOption = " -c 1 -w 5 >> /dev/null";
@@ -1696,8 +1580,16 @@ int main(int argc, char *argv[]) {
                                         cout << endl;
                                         if (temp == "1")
                                             break;
-                                    } else	// good ping
+                                    } else{// good ping
+                                        string IPAddress = oam.getIPAddress(newModuleHostName);
+                                        if (IPAddress != newModuleIPAddr) {
+                                            string cmd = "sed -i -e '/"+ newModuleHostName +"/d' -e '/" + IPAddress + "/d'  -e /^[[:space:]]*$/d /etc/hosts ";
+                                            system(cmd.c_str());
+                                            cmd = "echo '" + IPAddress + " " + newModuleHostName + " >> /etc/hosts ";
+                                            system(cmd.c_str());
+                                        }
                                         break;
+                                    }
                                 } else {
                                     cout << endl << "Invalid IP Address format, xxx.xxx.xxx.xxx, please re-enter" << endl << endl;
                                     if (noPrompting)
@@ -1721,7 +1613,6 @@ int main(int argc, char *argv[]) {
                         break;
 
                     if (moduleType == "pm" && moduleDisableState == oam::ENABLEDSTATE) {
-
                         switch (nicID) {
                         case 1:
                             performancemodule.moduleIP1 = newModuleIPAddr;
@@ -1771,34 +1662,28 @@ int main(int argc, char *argv[]) {
                         sysConfig->setConfig("ProcStatusControl", "IPAddr", parentOAMModuleIPAddr);
                         string parentServerMonitor = parentOAMModuleName + "_ServerMonitor";
                         sysConfig->setConfig(parentServerMonitor, "IPAddr", parentOAMModuleIPAddr);
+                        sysConfig->setConfig(parentServerMonitor, "Port", "8622");
                         string portName = parentOAMModuleName + "_WriteEngineServer";
                         sysConfig->setConfig(portName, "IPAddr", parentOAMModuleIPAddr);
                         sysConfig->setConfig(portName, "Port", "8630");
 
+                        //set User Module's IP Addresses
                         if (IserverTypeInstall == oam::INSTALL_COMBINE_DM_UM_PM) {
-
-                            //set User Module's IP Addresses
                             string Section = "ExeMgr" + oam.itoa(moduleID);
-
                             sysConfig->setConfig(Section, "IPAddr", newModuleIPAddr);
                             sysConfig->setConfig(Section, "Port", "8601");
                             sysConfig->setConfig(Section, "Module", parentOAMModuleName);
-
                             //set Performance Module's IP's to first NIC IP entered
                             sysConfig->setConfig("DDLProc", "IPAddr", newModuleIPAddr);
                             sysConfig->setConfig("DMLProc", "IPAddr", newModuleIPAddr);
                         }
-
                         //set User Module's IP Addresses
                         if (pmwithum) {
                             string Section = "ExeMgr" + oam.itoa(moduleID + umNumber);
-
                             sysConfig->setConfig(Section, "IPAddr", newModuleIPAddr);
                             sysConfig->setConfig(Section, "Port", "8601");
                             sysConfig->setConfig(Section, "Module", parentOAMModuleName);
-
                         }
-
                         //setup rc.local file in module tmp dir
                         if (!makeRClocal(moduleType, newModuleName, IserverTypeInstall))
                             cout << "makeRClocal error" << endl;
@@ -1806,9 +1691,7 @@ int main(int argc, char *argv[]) {
                         //set child Process Monitor Port IP Address
                         string portName = newModuleName + "_ProcessMonitor";
                         sysConfig->setConfig(portName, "IPAddr", newModuleIPAddr);
-
                         sysConfig->setConfig(portName, "Port", "8800");
-
                         //set child Server Monitor Port IP Address
                         portName = newModuleName + "_ServerMonitor";
                         sysConfig->setConfig(portName, "IPAddr", newModuleIPAddr);
@@ -1824,8 +1707,8 @@ int main(int argc, char *argv[]) {
                         //set User Module's IP Addresses
                         if (moduleType == "um" ||
                             (moduleType == "pm" && IserverTypeInstall == oam::INSTALL_COMBINE_DM_UM_PM) ||
-                            (moduleType == "um" && IserverTypeInstall == oam::INSTALL_COMBINE_DM_UM) ||
-                            (moduleType == "pm" && IserverTypeInstall == oam::INSTALL_COMBINE_PM_UM) ||
+                            /* (moduleType == "um" && IserverTypeInstall == oam::INSTALL_COMBINE_DM_UM) ||
+                            (moduleType == "pm" && IserverTypeInstall == oam::INSTALL_COMBINE_PM_UM)||*/ 
                             (moduleType == "pm" && pmwithum)) {
 
                             string Section = "ExeMgr" + oam.itoa(moduleID);
@@ -1851,14 +1734,20 @@ int main(int argc, char *argv[]) {
 
                     //create associated local/etc directory for module
                     string cmd = "mkdir " + installDir + "/local/etc/" + newModuleName + " > /dev/null 2>&1";
-                    system(cmd.c_str());
-
-                    if (newModuleName != parentOAMModuleName) {
-                        //make module file in local/etc/"modulename"
-                        if (!makeModuleFile(newModuleName, parentOAMModuleName))
-                            cout << "makeModuleFile error" << endl;
-                    }
-
+                    system(cmd.c_str()); 
+                    if (!makeModuleFile(newModuleName, parentOAMModuleName))
+                        cout << "makeModuleFile error" << endl;
+                    if (newModuleHostName == localHostName) {
+                        string cmd = "echo '"+ newModuleName +"' > "+installDir + "/local/module";
+                        system(cmd.c_str());
+                    } else if (newModuleName == parentOAMModuleName) {
+                        string cmd = "scp -r " + installDir + "/local/ " + parentOAMModuleIPAddr + ":" + installDir + "/> /dev/null 2>&1";
+                        system(cmd.c_str());
+                        cmd = "echo '" + newModuleName + "' > /tmp/module";
+                        system(cmd.c_str());
+                        cmd = "scp /tmp/module " + parentOAMModuleIPAddr + ":" + installDir + "/local/ > /dev/null 2>&1";
+                        system(cmd.c_str());
+                    } 
                     //setup rc.local file in module tmp dir
                     if (!makeRClocal(moduleType, newModuleName, IserverTypeInstall))
                         cout << "makeRClocal error" << endl;
@@ -1988,15 +1877,12 @@ int main(int argc, char *argv[]) {
                         count = atoi(tempCount.c_str());
 
                     string dbrootList;
-
                     for (unsigned int id = 1; id < count + 1; ) {
                         string moduledbrootid = "ModuleDBRootID" + oam.itoa(moduleID) + "-" + oam.itoa(id) + "-" + oam.itoa(i + 1);
                         try {
                             string dbrootid = sysConfig->getConfig(ModuleSection, moduledbrootid);
-
                             if (dbrootid != oam::UnassignedName) {
                                 sysConfig->setConfig(ModuleSection, moduledbrootid, oam::UnassignedName);
-
                                 dbrootList = dbrootList + dbrootid;
                                 id++;
                                 if (id < count + 1)
@@ -2007,10 +1893,8 @@ int main(int argc, char *argv[]) {
                             exit(1);
                         }
                     }
-
                     vector <string> dbroots;
                     string tempdbrootList;
-
                     while (true) {
                         dbroots.clear();
                         bool matchFound = false;
@@ -2028,7 +1912,6 @@ int main(int argc, char *argv[]) {
                         if (tempdbrootList.empty()) {
                             if (noPrompting)
                                 exit(1);
-
                             continue;
                         }
 
@@ -2044,7 +1927,6 @@ int main(int argc, char *argv[]) {
                                 cout << "Invalid Entry, please re-enter" << endl;
                                 if (noPrompting)
                                     exit(1);
-
                                 continue;
                             } else {
                                 for (int id = firstID; id < lastID + 1; id++) {
@@ -2061,24 +1943,23 @@ int main(int argc, char *argv[]) {
                             }
                         }
 
-                        //if pm1, make sure DBRoot #1 is in the list
-                        if (newModuleName == "pm1") {
-                            bool found = false;
-                            std::vector<std::string>::iterator list = dbroots.begin();
-                            for (; list != dbroots.end(); list++) {
-                                if (*list == "1") {
-                                    found = true;
-                                    break;
-                                }
-                            }
-
-                            if (!found) {
-                                cout << endl << "Invalid Entry, Module pm1 has to have DBRoot #1 assigned to it, please 	re-enter" << endl;
-                                if (noPrompting)
-                                    exit(1);
-                                continue;
-                            }
-                        }
+                        ////if pm1, make sure DBRoot #1 is in the list
+                        //if (newModuleName == "pm1") {
+                        //    bool found = false;
+                        //    std::vector<std::string>::iterator list = dbroots.begin();
+                        //    for (; list != dbroots.end(); list++) {
+                        //        if (*list == "1") {
+                        //            found = true;
+                        //            break;
+                        //        }
+                        //    }
+                        //    if (!found) {
+                        //        cout << endl << "Invalid Entry, Module pm1 has to have DBRoot #1 assigned to it, please 	re-enter" << endl;
+                        //        if (noPrompting)
+                        //            exit(1);
+                        //        continue;
+                        //    }
+                        //}
 
                         //check and see if DBRoot ID already used
                         std::vector<std::string>::iterator list = dbroots.begin();
@@ -2099,7 +1980,7 @@ int main(int argc, char *argv[]) {
                             if (inUse)
                                 break;
                             else {	// if upgrade, dont allow a new DBRoot id to be entered
-                                if (reuseConfig == "y") {
+                                if (reuseConfig == "y") {//不允许新增
                                     DBRootConfigList::iterator pt = dbrootConfigList.begin();
                                     for (; pt != dbrootConfigList.end(); pt++) {
                                         if (*list == oam.itoa(*pt)) {
@@ -2107,7 +1988,6 @@ int main(int argc, char *argv[]) {
                                             break;
                                         }
                                     }
-
                                     if (!matchFound) {
                                         //get any unassigned DBRoots
                                         DBRootConfigList undbrootlist;
@@ -2136,7 +2016,6 @@ int main(int argc, char *argv[]) {
                                     matchFound = true;
                             }
                         }
-
                         if (matchFound)
                             break;
                     }
@@ -2157,10 +2036,8 @@ int main(int argc, char *argv[]) {
                             cout << "ERROR: Problem setting DBRoot ID in the erydb System Configuration file" << endl;
                             exit(1);
                         }
-
                         string DBrootID = "DBRoot" + *it;
                         string pathID = installDir + "/data" + *it;
-
                         try {
                             sysConfig->setConfig(SystemSection, DBrootID, pathID);
                         } catch (...) {
@@ -2173,7 +2050,6 @@ int main(int argc, char *argv[]) {
                         system(cmd.c_str());
                         cmd = "chmod 755 " + pathID + " > /dev/null 2>&1";
                         system(cmd.c_str());
-
                         //get EC2 volume name and info
                         if (DBRootStorageType == "external" && amazonInstall) {
                             cout << endl << "*** Setup External EBS Volume for DBRoot #" << *it << " ***" << endl << endl;
@@ -2287,7 +2163,6 @@ int main(int argc, char *argv[]) {
                             }
                         }
                     }
-
                     //store number of dbroots
                     moduledbrootcount = "ModuleDBRootCount" + oam.itoa(moduleID) + "-" + oam.itoa(i + 1);
                     try {
@@ -2299,12 +2174,10 @@ int main(int argc, char *argv[]) {
                     //total dbroots on the system
                     DBRootCount = DBRootCount + dbroots.size();
                 }
-
                 if (!writeConfig(sysConfig)) {
                     cout << "ERROR: Failed trying to update erydb System Configuration file" << endl;
                     exit(1);
                 }
-
                 if (moduleType == "pm" && moduleDisableState == oam::ENABLEDSTATE)
                     performancemodulelist.push_back(performancemodule);
             } //end of k (moduleCount) loop
@@ -2331,10 +2204,10 @@ int main(int argc, char *argv[]) {
     }
 
     //if cloud, copy fstab in module tmp dir
-    if (amazonInstall)
+    if (amazonInstall) {
         if (!copyFstab("pm1"))
             cout << "copyFstab error" << endl;
-
+    }
 
     //check 'files per parition' with number of dbroots
     checkFilesPerPartion(DBRootCount, sysConfig);
@@ -2351,7 +2224,7 @@ int main(int argc, char *argv[]) {
     }
 
     //set the PM Ports based on Number of PM modules equipped, if any equipped
-    int minPmPorts = 32;
+    int minPmPorts = 2;
     sysConfig->setConfig("PrimitiveServers", "Count", oam.itoa(pmNumber));
 
     int pmPorts = pmNumber * (maxPMNicCount * 2);
@@ -2360,11 +2233,9 @@ int main(int argc, char *argv[]) {
 
     if (pmNumber > 0) {
         const string PM = "PMS";
-
         for (int pmsID = 1; pmsID < pmPorts + 1; ) {
             for (unsigned int j = 1; j < maxPMNicCount + 1; j++) {
                 PerformanceModuleList::iterator list1 = performancemodulelist.begin();
-
                 for (; list1 != performancemodulelist.end(); list1++) {
                     string pmName = PM + oam.itoa(pmsID);
                     string IpAddr;
@@ -2402,54 +2273,39 @@ int main(int argc, char *argv[]) {
     }
 
     //setup local OS Files
-    if (!setOSFiles(parentOAMModuleName, IserverTypeInstall)) {
+    if (!setOSFiles(parentOAMModuleName, DBRootStorageType)) {
         cout << "setOSFiles error" << endl;
         exit(1);
     }
-
+    //check if dbrm data resides in older directory path and inform user if it does
+    dbrmDirCheck();
     //create directories on dbroot1
-    if (!createDbrootDirs(DBRootStorageType)) {
+    if (!createMetaDataDir(DBRootStorageType)) {
         cout << "createDbrootDirs error" << endl;
         exit(1);
     }
-
     if (!writeConfig(sysConfig)) {
         cout << "ERROR: Failed trying to update erydb System Configuration file" << endl;
         exit(1);
     }
-
-    //check if dbrm data resides in older directory path and inform user if it does
-    dbrmDirCheck();
-
     if (IserverTypeInstall == oam::INSTALL_COMBINE_DM_UM_PM && pmNumber == 1) {
         //run the mysql / mysqld setup scripts
         cout << endl << "===== Running the erydb setup scripts =====" << endl << endl;
-
         checkMysqlPort(mysqlPort, sysConfig);
-
         // call the mysql setup scripts
         mysqlSetup();
         sleep(5);
     }
-
     int thread_id = 0;
-
     pthread_t thr[childmodulelist.size()];
-
     /* create a thread_data_t argument array */
     thread_data_t thr_data[childmodulelist.size()];
-
     string install = "y";
-
-    if (IserverTypeInstall != oam::INSTALL_COMBINE_DM_UM_PM ||
-        pmNumber > 1) {
-        //
+    //remote install
+    if (IserverTypeInstall != oam::INSTALL_COMBINE_DM_UM_PM || pmNumber > 1) {
         // perform remote install of other servers in the system
-        //
         cout << endl << "===== System Installation =====" << endl << endl;
-
         cout << "System Configuration is complete, System Installation is the next step." << endl;
-
         while (true) {
             pcommand = callReadline("Would you like to continue with the System Installation? [y,n] (y) > ");
             if (pcommand) {
@@ -2466,18 +2322,14 @@ int main(int argc, char *argv[]) {
         }
 
         if (install == "y") {
-
             SystemSoftware systemsoftware;
-
             try {
                 oam.getSystemSoftware(systemsoftware);
             } catch (exception& e) {
                 cout << " ERROR: reading getSystemSoftware API" << endl;
                 exit(1);
             }
-
             cout << endl;
-
             if (EEPackageType == "rpm") {
                 cout << "Performing an erydb System install using RPM packages" << endl;
                 cout << "located in the " + HOME + " directory." << endl << endl;
@@ -2490,89 +2342,74 @@ int main(int argc, char *argv[]) {
                     cout << "located in the " + HOME + " directory." << endl;
                 }
             }
-
             //check if pkgs are located in $HOME directory
             string version = systemsoftware.Version + "-" + systemsoftware.Release;
-            if (EEPackageType == "rpm")
+            if (EEPackageType == "rpm"){
                 erydbPackage = HOME + "/" + "erydb-" + version + "*.rpm.tar.gz";
-            else
+            } else{
                 if (EEPackageType == "deb")
                     erydbPackage = HOME + "/" + "erydb-" + version + "*.deb.tar.gz";
                 else
                     erydbPackage = HOME + "/" + "erydb-" + version + "*.bin.tar.gz";
-
-
+            }
             if (!pkgCheck(erydbPackage))
                 exit(1);
-
             if (password.empty()) {
                 cout << endl;
                 cout << "Next step is to enter the password to access the other Servers." << endl;
                 cout << "This is either your password or you can default to using a ssh key" << endl;
                 cout << "If using a password, the password needs to be the same on all Servers." << endl << endl;
             }
-
             while (true) {
                 char  *pass1, *pass2;
-
                 if (noPrompting) {
                     cout << "Enter password, hit 'enter' to default to using a ssh key, or 'exit' > " << endl;
                     if (password.empty())
                         password = "ssh";
                     break;
                 }
-
                 //check for command line option password
                 if (!password.empty())
                     break;
-
                 pass1 = getpass("Enter password, hit 'enter' to default to using a ssh key, or 'exit' > ");
                 if (strcmp(pass1, "") == 0) {
                     password = "ssh";
                     break;
                 }
-
                 if (pass1 == "exit")
                     exit(0);
-
                 string p1 = pass1;
                 pass2 = getpass("Confirm password > ");
                 string p2 = pass2;
                 if (p1 == p2) {
                     password = p2;
                     break;
-                } else
+                } else {
                     cout << "Password mismatch, please re-enter" << endl;
+                }
             }
-
             //add single quote for special characters
             if (password != "ssh") {
                 password = "'" + password + "'";
             }
-
             checkSystemMySQLPort(mysqlPort, sysConfig, USER, password, childmodulelist, IserverTypeInstall, pmwithum);
-
             if ((IserverTypeInstall == oam::INSTALL_COMBINE_DM_UM_PM) ||
                 ((IserverTypeInstall != oam::INSTALL_COMBINE_DM_UM_PM) && pmwithum)) {
                 cout << endl << "===== Running the erydb setup scripts =====" << endl << endl;
-
                 // call the mysql setup scripts
                 mysqlSetup();
                 sleep(5);
             }
-
             if (mysqlpw != oam::UnassignedName || mysqlpw != " ") {
                 mysqlpw = "'" + mysqlpw + "'";
                 pwprompt = "--password=" + mysqlpw;
             }
-
             ChildModuleList::iterator list1 = childmodulelist.begin();
             for (; list1 != childmodulelist.end(); list1++) {
                 string remoteModuleName = (*list1).moduleName;
                 string remoteModuleIP = (*list1).moduleIP;
                 string remoteHostName = (*list1).hostName;
                 string remoteModuleType = remoteModuleName.substr(0, MAX_MODULE_TYPE_SIZE);
-
                 string debug_logfile;
                 string logfile;
                 if (remote_installer_debug == "1") {
@@ -2580,29 +2417,23 @@ int main(int argc, char *argv[]) {
                     logfile += remoteModuleName + "_" + EEPackageType + "_install.log";
                     debug_logfile = " > " + logfile;
                 }
-
                 if (remoteModuleType == "um" ||
                     (remoteModuleType == "pm" && IserverTypeInstall == oam::INSTALL_COMBINE_DM_UM_PM) ||
                     (remoteModuleType == "pm" && pmwithum)) {
                     cout << endl << "----- Performing Install on '" + remoteModuleName + " / " + remoteHostName + "' -----" << endl << endl;
-
-                    if (remote_installer_debug == "1")
+                    if (remote_installer_debug == "1") {
                         cout << "Install log file is located here: " + logfile << endl << endl;
-
+                    }
                     if (EEPackageType != "binary") {
                         string temppwprompt = pwprompt;
                         if (pwprompt == " ")
                             temppwprompt = "none";
-
                         //run remote installer script
                         cmd = installDir + "/bin/user_installer.sh " + remoteModuleName + " " + remoteModuleIP + " " + password + " " + version + " initial " + EEPackageType + " " + nodeps + " " + temppwprompt + " " + mysqlPort + " " + remote_installer_debug + " " + debug_logfile;
-
                         //cout << cmd << endl;
                         if (thread_remote_installer) {
                             thr_data[thread_id].command = cmd;
-
                             int status = pthread_create(&thr[thread_id], NULL, (void*(*)(void*)) &remoteInstallThread, &thr_data[thread_id]);
-
                             if (status != 0) {
                                 cout << "remoteInstallThread failed for " << remoteModuleName << ", exiting" << endl;
                                 exit(1);
@@ -2614,7 +2445,6 @@ int main(int argc, char *argv[]) {
                                 cout << endl << "Error returned from user_installer.sh" << endl;
                                 exit(1);
                             }
-
                             //check for mysql password on remote UM
                             if (pwprompt == " ") {
                                 //start mysqld
@@ -2624,7 +2454,6 @@ int main(int argc, char *argv[]) {
                                     cout << endl << "Error returned from mysql-erydb start" << endl;
                                     exit(1);
                                 }
-
                                 //try to login
                                 cmd = installDir + "/bin/remote_command.sh " + remoteModuleIP + " " + password + " '" + installDir + "/mysql/bin/mysql --defaults-file=" + installDir + "/mysql/my.cnf -u root " + pwprompt + " -e status' 1 > /tmp/erydbmysql.log 2>&1";
                                 rtnCode = system(cmd.c_str());
@@ -2632,7 +2461,6 @@ int main(int argc, char *argv[]) {
                                     cout << endl << "Error returned from remote_command.sh" << endl;
                                     exit(1);
                                 }
-
                                 if (oam.checkLogStatus("/tmp/erydbmysql.log", "ERROR .my.cnf")) {
                                     // password needed check and get password from remote UM
                                     cmd = installDir + "/bin/remote_command.sh " + remoteModuleIP + " " + password + " '" + installDir + "bin/getMySQLpw > /tmp/mysqlpw.log 2>&1";
@@ -2642,15 +2470,12 @@ int main(int argc, char *argv[]) {
                                         cout << "Need erydb password configuration file " + HOME + "/.my.cnf on " << remoteModuleName << endl;
                                         exit(1);
                                     }
-
                                     //get password from local tmp file
                                     mysqlpw = getmysqlpw("/tmp/mysqlpw.log");
-
                                     if (mysqlpw != oam::UnassignedName) {
                                         mysqlpw = "'" + mysqlpw + "'";
                                         pwprompt = "--password=" + mysqlpw;
                                     }
-
                                     cmd = installDir + "/bin/remote_command.sh " + remoteModuleIP + " " + password + " '" + installDir + "/mysql/bin/mysql --defaults-file=" + installDir + "/mysql/my.cnf -u root " + pwprompt + " -e status' 1 > /tmp/erydbmysql.log 2>&1";
                                     rtnCode = system(cmd.c_str());
                                     if (WEXITSTATUS(rtnCode) != 0) {
@@ -2664,7 +2489,6 @@ int main(int argc, char *argv[]) {
                                         exit(1);
                                     } else {
                                         cout << endl << "Additional erydb Installation steps Successfully Completed on '" + remoteModuleName + "'" << endl << endl;
-
                                         cmd = installDir + "/bin/remote_command.sh " + remoteModuleIP + " " + password + " '" + installDir + "/mysql/mysql-erydb stop'";
                                         int rtnCode = system(cmd.c_str());
                                         if (WEXITSTATUS(rtnCode) != 0) {
@@ -2675,7 +2499,6 @@ int main(int argc, char *argv[]) {
                                         break;
                                     }
                                 }
-
                                 //re-run post-mysql-install with password
                                 cmd = installDir + "/bin/remote_command.sh " + remoteModuleIP + " " + password + " '" + installDir + "/bin/post-mysql-install " + pwprompt + "' < /tmp/post-mysql-install.log";
                                 rtnCode = system(cmd.c_str());
@@ -2688,27 +2511,20 @@ int main(int argc, char *argv[]) {
                         }
                     } else {	// do a binary package install
                         string binservertype = serverTypeInstall;
-                        if (pmwithum)
+                        if (pmwithum) {
                             binservertype = "pmwithum";
-
+                        }
                         //check my.cnf port in-user on remote node
 //						checkRemoteMysqlPort(remoteModuleIP, remoteModuleName, USER, password, mysqlPort, sysConfig);
-
-                        cmd = installDir + "/bin/binary_installer.sh " + remoteModuleName + " " +
-                            remoteModuleIP + " " + password + " " + erydbPackage + " " + remoteModuleType +
-                            " initial " + binservertype + " " + mysqlPort + " " + remote_installer_debug +
-                            " " + installDir + " " + debug_logfile;
-
+                        cmd = installDir + "/bin/binary_installer.sh " + remoteModuleName + " " + remoteModuleIP + " " + password + " " + erydbPackage + " " + remoteModuleType +
+                            " initial " + binservertype + " " + mysqlPort + " " + remote_installer_debug + " " + installDir +" "+ oam.itoa(thread_id) + " " + debug_logfile;
                         if (thread_remote_installer) {
                             thr_data[thread_id].command = cmd;
-
                             int status = pthread_create(&thr[thread_id], NULL, (void*(*)(void*)) &remoteInstallThread, &thr_data[thread_id]);
-
                             if (status != 0) {
                                 cout << "remoteInstallThread failed for " << remoteModuleName << ", exiting" << endl;
                                 exit(1);
                             }
-
                             thread_id++;
                         } else {
                             int rtnCode = system(cmd.c_str());
@@ -2719,28 +2535,23 @@ int main(int argc, char *argv[]) {
                         }
                     }
                 } else {
-                    if ((remoteModuleType == "pm" && IserverTypeInstall != oam::INSTALL_COMBINE_DM_UM_PM) ||
-                        (remoteModuleType == "pm" && !pmwithum)) {
+                    if ((remoteModuleType == "pm" && IserverTypeInstall != oam::INSTALL_COMBINE_DM_UM_PM) /*||
+                        (remoteModuleType == "pm" && !pmwithum)*/) {
                         cout << endl << "----- Performing Install on '" + remoteModuleName + " / " + remoteHostName + "' -----" << endl << endl;
-
-                        if (remote_installer_debug == "1")
+                        if (remote_installer_debug == "1") {
                             cout << "Install log file is located here: " + logfile << endl << endl;
-
+                        }
                         if (EEPackageType != "binary") {
                             //run remote installer script
                             cmd = installDir + "/bin/performance_installer.sh " + remoteModuleName + " " + remoteModuleIP + " " + password + " " + version + " initial " + EEPackageType + " " + nodeps + " " + remote_installer_debug + " " + debug_logfile;
-
                             //cout << cmd << endl;
                             if (thread_remote_installer) {
                                 thr_data[thread_id].command = cmd;
-
                                 int status = pthread_create(&thr[thread_id], NULL, (void*(*)(void*)) &remoteInstallThread, &thr_data[thread_id]);
-
                                 if (status != 0) {
                                     cout << "remoteInstallThread failed for " << remoteModuleName << ", exiting" << endl;
                                     exit(1);
                                 }
-
                                 thread_id++;
                             } else {
                                 int rtnCode = system(cmd.c_str());
@@ -2757,17 +2568,13 @@ int main(int argc, char *argv[]) {
                                 " " + password + " " + erydbPackage + " " + remoteModuleType + " initial " +
                                 binservertype + " " + mysqlPort + " " + remote_installer_debug + " " + installDir + " " +
                                 debug_logfile;
-
                             if (thread_remote_installer) {
                                 thr_data[thread_id].command = cmd;
-
                                 int status = pthread_create(&thr[thread_id], NULL, (void*(*)(void*)) &remoteInstallThread, &thr_data[thread_id]);
-
                                 if (status != 0) {
                                     cout << "remoteInstallThread failed for " << remoteModuleName << ", exiting" << endl;
                                     exit(1);
                                 }
-
                                 thread_id++;
                             } else {
                                 int rtnCode = system(cmd.c_str());
@@ -2780,18 +2587,14 @@ int main(int argc, char *argv[]) {
                     }
                 }
             }
-
             if (thread_remote_installer) {
-
                 //wait until remove install Thread Count is at zero or hit timeout
                 cout << endl << "erydb Package being installed, please wait ...";
                 cout.flush();
-
                 /* block until all threads complete */
                 for (thread_id = 0; thread_id < (int)childmodulelist.size(); ++thread_id) {
                     pthread_join(thr[thread_id], NULL);
                 }
-
                 cout << "  DONE" << endl;
             }
         }
@@ -2799,13 +2602,11 @@ int main(int argc, char *argv[]) {
 
     //configure data redundancy
     string glusterconfig = installDir + "/bin/glusterconf";
-
     if (gluster) {
         cout << endl;
         string start = "y";
         if (reuseConfig == "y")
             start = "n";
-
         while (true) {
             pcommand = callReadline("Would you like to configure erydb GlusterFS Data Redundancy? [y,n] (" + start + ") > ");
             if (pcommand) {
@@ -2820,7 +2621,6 @@ int main(int argc, char *argv[]) {
             if (noPrompting)
                 exit(1);
         }
-
         if (start == "y") {
             cout << endl << "===== Configuring erydb Data Redundancy Functionality =====" << endl << endl;
             int ret = system(glusterconfig.c_str());
@@ -2830,39 +2630,28 @@ int main(int argc, char *argv[]) {
             }
         }
     }
-
     if (!writeConfig(sysConfig)) {
         cout << "ERROR: Failed trying to update erydb System Configuration file" << endl;
         exit(1);
     }
-
     //check if local erydb system logging is working
     cout << endl << "===== Checking erydb System Logging Functionality =====" << endl << endl;
-
-    if (rootUser)
+    if (rootUser) {
         cmd = installDir + "/bin/syslogSetup.sh status  > /dev/null 2>&1";
-    else
+    } else {
         cmd = "sudo " + installDir + "/bin/syslogSetup.sh --installdir=" + installDir + " status  > /dev/null 2>&1";
-
+    }
     int ret = system(cmd.c_str());
-    if (WEXITSTATUS(ret) != 0)
+    if (WEXITSTATUS(ret) != 0) {
         cerr << "WARNING: The erydb system logging not correctly setup and working" << endl;
-    else
+    } else {
         cout << "The erydb system logging is setup and working on local server" << endl;
-
+    }
     cout << endl << "erydb System Configuration and Installation is Completed" << endl;
-
-    //
     // startup erydb
-    //
-
-    if (IserverTypeInstall != oam::INSTALL_COMBINE_DM_UM_PM ||
-        pmNumber > 1) {
-        //
+    if (IserverTypeInstall != oam::INSTALL_COMBINE_DM_UM_PM || pmNumber > 1) {
         // perform erydb system startup
-        //
         cout << endl << "===== erydb System Startup =====" << endl << endl;
-
         string start = "y";
         cout << "System Installation is complete. If any part of the install failed," << endl;
         cout << "the problem should be investigated and resolved before continuing." << endl << endl;
@@ -2880,9 +2669,8 @@ int main(int argc, char *argv[]) {
             if (noPrompting)
                 exit(1);
         }
-
+        //start cluster
         if (start == "y") {
-
             if (hdfs) {
                 cout << endl << "----- Starting erydb Service on all Modules -----" << endl << endl;
                 string cmd = "pdsh -a '" + installDir + "/bin/erydb restart' > /tmp/postConfigure.pdsh 2>&1";
@@ -2895,24 +2683,20 @@ int main(int argc, char *argv[]) {
                 if (password.empty()) {
                     while (true) {
                         char  *pass1, *pass2;
-
                         if (noPrompting) {
                             cout << "Enter your password, hit 'enter' to default to using a ssh key, or 'exit' > " << endl;
                             if (password.empty())
                                 password = "ssh";
                             break;
                         }
-
                         //check for command line option password
                         if (!password.empty())
                             break;
-
                         pass1 = getpass("Enter your password, hit 'enter' to default to using a ssh key, or 'exit' > ");
                         if (strcmp(pass1, "") == 0) {
                             password = "ssh";
                             break;
                         }
-
                         if (strcmp(pass1, "exit") == 0)
                             exit(0);
                         string p1 = pass1;
@@ -2924,56 +2708,52 @@ int main(int argc, char *argv[]) {
                         } else
                             cout << "Password mismatch, please re-enter" << endl;
                     }
-
                     //add single quote for special characters
                     if (password != "ssh") {
                         password = "'" + password + "'";
                     }
                 }
-
                 ChildModuleList::iterator list1 = childmodulelist.begin();
-
                 for (; list1 != childmodulelist.end(); list1++) {
                     string remoteModuleName = (*list1).moduleName;
                     string remoteModuleIP = (*list1).moduleIP;
                     string remoteHostName = (*list1).hostName;
-
                     //run remote command script
                     cout << endl << "----- Starting erydb on '" + remoteModuleName + "' -----" << endl << endl;
-
                     if (install == "n") {	// didnt do a full install, push the config file
                         cmd = installDir + "/bin/remote_scp_put.sh " + remoteModuleIP + " " + installDir + "/etc/erydb.xml  > /dev/null 2>&1";
                         system(cmd.c_str());
                     }
-
                     cmd = installDir + "/bin/remote_command.sh " + remoteModuleIP + " " + password + " '" + installDir + "/bin/erydb restart' 0";
                     int rtnCode = system(cmd.c_str());
-
-                    if (WEXITSTATUS(rtnCode) != 0)
+                    if (WEXITSTATUS(rtnCode) != 0) {
                         cout << "Error with running remote_command.sh" << endl;
-                    else
+                    } else {
                         cout << "erydb successfully started" << endl;
+                    }
                 }
-
-                //start erydb on local server
-                cout << endl << "----- Starting erydb on local server -----" << endl << endl;
-                cmd = installDir + "/bin/erydb restart > /dev/null 2>&1";
+                //start erydb on parentOamModule server
+                cout << endl << "----- Starting erydb on "<< parentOAMModuleHostName <<" server -----" << endl << endl;
+                if (parentOAMModuleHostName == localHostName) {
+                    cmd = installDir + "/bin/erydb restart > /dev/null 2>&1";
+                } else { 
+                    cmd = installDir + "/bin/remote_command.sh " + parentOAMModuleIPAddr + " '" + password + "'  '"+ installDir + "/bin/erydb restart' 0 ";
+                }
                 int rtnCode = system(cmd.c_str());
                 if (WEXITSTATUS(rtnCode) != 0) {
                     cout << "Error Starting erydb local module" << endl;
                     cout << "Installation Failed, exiting" << endl;
                     exit(1);
-                } else
+                } else {
                     cout << "erydb successfully started" << endl;
+                }
             }
         } else {
             cout << endl << "You choose not to Start the erydb Software at this time." << endl;
             exit(1);
         }
-    } else // Single Server start
-    {
+    } else {// Single Server start
         cout << endl << "===== erydb System Startup =====" << endl << endl;
-
         string start = "y";
         cout << "System Installation is complete." << endl;
         cout << "If an error occurred while running the erydb setup scripts," << endl;
@@ -2992,7 +2772,6 @@ int main(int argc, char *argv[]) {
             if (noPrompting)
                 exit(1);
         }
-
         if (start == "y") {
             //start erydb on local server
             cout << endl << "----- Starting erydb on local Server '" + parentOAMModuleName + "' -----" << endl << endl;
@@ -3009,67 +2788,56 @@ int main(int argc, char *argv[]) {
             exit(1);
         }
     }
-
     cout << endl << "erydb Database Platform Starting, please wait .";
     cout.flush();
-
     if (waitForActive()) {
         cout << " DONE" << endl;
-
-        if (hdfs)
+        if (hdfs) {
             cmd = "bash -c '. " + installDir + "/bin/" + DataFileEnvFile + ";" + installDir + "/bin/dbbuilder 7 > /tmp/dbbuilder.log'";
-        else
-            cmd = installDir + "/bin/dbbuilder 7 > /tmp/dbbuilder.log";
-
+        } else {
+            if (parentOAMModuleHostName == localHostName) {
+                cmd = installDir + "/bin/dbbuilder 7 > /tmp/dbbuilder.log";
+            } else {
+                 cmd =  "ssh " + parentOAMModuleIPAddr + " \"" + installDir + "/bin/dbbuilder 7\"  > /tmp/dbbuilder.log";
+            }
+        }
         system(cmd.c_str());
-
-        if (oam.checkLogStatus("/tmp/dbbuilder.log", "System Catalog created"))
+        if (oam.checkLogStatus("/tmp/dbbuilder.log", "System Catalog created")) {
             cout << endl << "System Catalog Successfully Created" << endl;
-        else {
+        } else {
             if (oam.checkLogStatus("/tmp/dbbuilder.log", "System catalog appears to exist")) {
-
-                //				cout << endl << "Run MySQL Upgrade.. ";
-                cout.flush();
-
+                //cout << endl << "Run MySQL Upgrade.. ";
+                //cout.flush();
                 //send message to procmon's to run upgrade script
-//				int status = sendUpgradeRequest(IserverTypeInstall, pmwithum);
-
-//				if ( status != 0 ) {
-//					cout << endl << "erydb Install Failed" << endl << endl;
-//					exit(1);
-//				}
-//				else
-//					cout << " DONE" << endl;
+                //    int status = sendUpgradeRequest(IserverTypeInstall, pmwithum);
+                //if (status != 0) {
+                //    cout << endl << "erydb Install Failed" << endl << endl;
+                //    exit(1);
+                //} else
+                //    cout << " DONE" << endl;
             } else {
                 cout << endl << "System Catalog Create Failure" << endl;
                 cout << "Check latest log file in /tmp/dbbuilder.log.*" << endl;
                 exit(1);
             }
         }
-
         //set mysql replication, if wasn't setup before on system
         if ((mysqlRep && pmwithum) ||
             (mysqlRep && (umNumber > 1)) ||
             (mysqlRep && (pmNumber > 1) && (IserverTypeInstall == oam::INSTALL_COMBINE_DM_UM_PM))) {
             cout << endl << "Run erydb Replication Setup.. ";
             cout.flush();
-
             //send message to procmon's to run upgrade script
             int status = sendReplicationRequest(IserverTypeInstall, password, mysqlPort, pmwithum);
-
             if (status != 0) {
                 cout << endl << " erydb Install Failed" << endl << endl;
                 exit(1);
             } else
                 cout << " DONE" << endl;
         }
-
         cout << endl << "erydb Install Successfully Completed, System is Active" << endl << endl;
-
         cout << "Enter the following command to define erydb Alias Commands" << endl << endl;
-
         cout << ". " + installDir + "/bin/erydbAlias" << endl << endl;
-
         cout << "Enter 'erymysql' to access the erydb SQL console" << endl;
         cout << "Enter 'eryadmin' to access the erydb Admin console" << endl << endl;
     } else {
@@ -3077,10 +2845,77 @@ int main(int argc, char *argv[]) {
         cout << endl << "erydb System failed to start, check log files in /var/log/erydb" << endl;
         exit(1);
     }
-
     exit(0);
 }
 
+void setSingleServerInstall(bool startOfflinePrompt) {
+    singleServerInstall = "1";
+    cout << endl << "Performing the Single Server Install." << endl;
+    string cmd = "";
+    if (reuseConfig == "n") {
+        //setup to use the single server erydb.xml file
+        // we know that our Config instance just timestamped itself in the getConfig
+        // call above.  if postConfigure is running non-interactively we may get here
+        // within the same second which means the changes that are about to happen
+        // when erydb.xml gets overwritten will be ignored because of the Config
+        // instance won't know to reload
+        sleep(2);
+        cmd = "rm -f " + installDir + "/etc/erydb.xml.installSave  > /dev/null 2>&1";
+        system(cmd.c_str());
+        cmd = "mv -f " + installDir + "/etc/erydb.xml " + installDir + "/etc/erydb.xml.installSave  > /dev/null 2>&1";
+        system(cmd.c_str());
+        cmd = "/bin/cp -f " + installDir + "/etc/erydb.xml.singleserver " + installDir + "/etc/erydb.xml  > /dev/null 2>&1";
+        system(cmd.c_str());
+    }
+
+    setSystemName();
+    cout << endl; 
+ 
+    // setup storage
+    if (!storageSetup(false)) {
+        cout << "ERROR: Problem setting up storage" << endl;
+        exit(1);
+    }
+
+    if (hdfs || !rootUser) {
+        if (!updateBash())
+            cout << "updateBash error" << endl;
+    }
+    // setup storage
+    if (!singleServerDBrootSetup()) {
+        cout << "ERROR: Problem setting up DBRoot IDs" << endl;
+        exit(1);
+    }
+
+    //set system DBRoot count and check 'files per parition' with number of dbroots
+    try {
+        sysConfig->setConfig(SystemSection, "DBRootCount", oam.itoa(DBRootCount));
+    } catch (...) {
+        cout << "ERROR: Problem setting DBRoot Count in the erydb System Configuration file" << endl;
+        exit(1);
+    }
+
+    checkFilesPerPartion(DBRootCount, sysConfig);
+
+    //check if dbrm data resides in older directory path and inform user if it does
+    dbrmDirCheck();
+
+    if (startOfflinePrompt)
+        offLineAppCheck();
+
+    checkMysqlPort(mysqlPort, sysConfig);
+
+    if (!writeConfig(sysConfig)) {
+        cout << "ERROR: Failed trying to update erydb System Configuration file" << endl;
+        exit(1);
+    }
+
+    cout << endl << "===== Performing Configuration Setup and erydb Startup =====" << endl;
+
+    cmd = installDir + "/bin/installer dummy.rpm dummy.rpm dummy.rpm dummy.rpm dummy.rpm initial dummy " + reuseConfig + " --nodeps ' ' 1 " + installDir;
+    system(cmd.c_str());
+    exit(0);
+}
 /*
  * Check for reuse of RPM saved erydb.xml
  */
@@ -3265,61 +3100,91 @@ string files[] = {
     " "
 };
 
-bool setOSFiles(string parentOAMModuleName, int serverTypeInstall) {
+bool setOSFiles(string parentOAMModuleName, string DBRootStorageType) {
+   string cmd = "scp " + installDir + "/local/etc/ "+ parentOAMModuleHostName +":" + installDir + "/local/ > /dev/null 2>&1";
+    system(cmd.c_str());
+    if (DBRootStorageType != "external") {
+        return true;
+    }
+    bool remote = false;
+    if (parentOAMModuleHostName != localHostName) {
+        remote = true;
+    }
+    string localHostName;
+    string password;
+     
     bool allfound = true;
-
     //update /etc files
     for (int i = 0;; ++i) {
         if (files[i] == " ")
             //end of list
             break;
-
         //create or update date on file to make sure on exist
         if (files[i] == "rc.local") {
-            string cmd = "touch " + installDir + "/local/etc/" + parentOAMModuleName + "/rc.local.erydb > /dev/null 2>&1";
-            if (!rootUser)
-                cmd = "sudo touch " + installDir + "/local/etc/" + parentOAMModuleName + "/rc.local.erydb > /dev/null 2>&1";
-            system(cmd.c_str());
+            if (remote) {
+                string cmd = "ssh " + parentOAMModuleHostName + " touch " + installDir + "/local/etc/" + parentOAMModuleName + "/rc.local.erydb > /dev/null 2>&1";
+                if (!rootUser) {
+                    cmd = "ssh " + parentOAMModuleHostName + " sudo touch " + installDir + "/local/etc/" + parentOAMModuleName + "/rc.local.erydb > /dev/null 2>&1";
+                }
+                system(cmd.c_str());
+            } else {
+                string cmd = "touch " + installDir + "/local/etc/" + parentOAMModuleName + "/rc.local.erydb > /dev/null 2>&1";
+                if (!rootUser)
+                    cmd = "sudo touch " + installDir + "/local/etc/" + parentOAMModuleName + "/rc.local.erydb > /dev/null 2>&1";
+                system(cmd.c_str());
+            }
         }
-
         string fileName = "/etc/" + files[i];
-
         //make a backup copy before changing
-        string cmd = "rm -f " + fileName + ".erydbSave";
-        if (!rootUser)
-            cmd = "sudo rm -f " + fileName + ".erydbSave";
-
-        system(cmd.c_str());
-
-        cmd = "cp " + fileName + " " + fileName + ".erydbSave > /dev/null 2>&1";
-        if (!rootUser)
-            cmd = "sudo cp " + fileName + " " + fileName + ".erydbSave > /dev/null 2>&1";
-
-        system(cmd.c_str());
-
-        if (rootUser)
-            cmd = "cat " + installDir + "/local/etc/" + parentOAMModuleName + "/" + files[i] + ".erydb >> " + fileName;
-        else
-            cmd = "sudo bash -c 'sudo cat " + installDir + "/local/etc/" + parentOAMModuleName + "/" + files[i] + ".erydb >> " + fileName + "'";
-
+        string cmd;
+        if (remote) {
+            cmd = "ssh " + parentOAMModuleHostName + " rm -f " + fileName + ".erydbSave";
+            if (!rootUser)
+                cmd = "ssh " + parentOAMModuleHostName + " sudo rm -f " + fileName + ".erydbSave";
+            system(cmd.c_str());
+            cmd = "ssh " + parentOAMModuleHostName + " scp " + fileName + " " + fileName + ".erydbSave > /dev/null 2>&1";
+            if (!rootUser)
+                cmd = "ssh " + parentOAMModuleHostName + " sudo scp " + fileName + " " + fileName + ".erydbSave > /dev/null 2>&1";
+            system(cmd.c_str());
+            if (rootUser)
+                cmd = "ssh " + parentOAMModuleHostName + " \"cat " + installDir + "/local/etc/" + parentOAMModuleName + "/" + files[i] + ".erydb >> " + fileName + "\"";
+            else
+                cmd = "ssh " + parentOAMModuleHostName + " sudo \"cat " + installDir + "/local/etc/" + parentOAMModuleName + "/" + files[i] + ".erydb >> " + fileName + "\"";
+        } else {
+            cmd = "rm -f " + fileName + ".erydbSave";
+            if (!rootUser)
+                cmd = "sudo rm -f " + fileName + ".erydbSave";
+            system(cmd.c_str());
+            cmd = "cp " + fileName + " " + fileName + ".erydbSave > /dev/null 2>&1";
+            if (!rootUser)
+                cmd = "sudo cp " + fileName + " " + fileName + ".erydbSave > /dev/null 2>&1";
+            system(cmd.c_str());
+            if (rootUser)
+                cmd = "cat " + installDir + "/local/etc/" + parentOAMModuleName + "/" + files[i] + ".erydb >> " + fileName;
+            else
+                cmd = "sudo bash -c 'sudo cat " + installDir + "/local/etc/" + parentOAMModuleName + "/" + files[i] + ".erydb >> " + fileName + "'";
+        }
         int rtnCode = system(cmd.c_str());
         if (WEXITSTATUS(rtnCode) != 0)
             cout << "Error Updating " + files[i] << endl;
-
-        cmd = "rm -f " + installDir + "/local/ " + files[i] + "*.erydb > /dev/null 2>&1";
-        system(cmd.c_str());
-
-        cmd = "cp " + installDir + "/local/etc/" + parentOAMModuleName + "/" + files[i] + ".erydb " + installDir + "/local/. > /dev/null 2>&1";
-        system(cmd.c_str());
+        if (remote) {
+            cmd = "ssh " + parentOAMModuleHostName + " rm -f " + installDir + "/local/ " + files[i] + "*.erydb > /dev/null 2>&1";
+            system(cmd.c_str());
+            cmd = "ssh " + parentOAMModuleHostName + " cp " + installDir + "/local/etc/" + parentOAMModuleName + "/" + files[i] + ".erydb " + installDir + "/local/. > /dev/null 2>&1";
+            system(cmd.c_str());
+        } else {
+            cmd =  " rm -f " + installDir + "/local/ " + files[i] + "*.erydb > /dev/null 2>&1";
+            system(cmd.c_str());
+            cmd = " cp " + installDir + "/local/etc/" + parentOAMModuleName + "/" + files[i] + ".erydb " + installDir + "/local/. > /dev/null 2>&1";
+            system(cmd.c_str());
+        }
     }
-
     //check and do the amazon credentials file
     string fileName = HOME + "/.aws/credentials";
     ifstream oldFile(fileName.c_str());
     if (!oldFile)
-        return allfound;
-
-    string cmd = "cp " + fileName + " " + installDir + "/local/etc/. > /dev/null 2>&1";
+        return allfound; 
+    string cmd = "cp " + fileName + " " + installDir + "/local/etc/ > /dev/null 2>&1";
     system(cmd.c_str());
     return allfound;
 }
@@ -3477,46 +3342,46 @@ bool makeRClocal(string moduleType, string moduleName, int IserverTypeInstall) {
     string mount2
         ;
     switch (IserverTypeInstall) {
-    case (oam::INSTALL_NORMAL):	// normal
-    {
-        if (moduleType == "um")
-            mount1 = "/mnt\\/tmp/";
-        else
-            if (moduleType == "pm")
-                mount1 = "/erydb\\/data/";
+        case (oam::INSTALL_NORMAL):	// normal
+        {
+            if (moduleType == "um")
+                mount1 = "/mysql\\/db/";
             else
+                if (moduleType == "pm")
+                    mount1 = "/erydb\\/data/";
+                else
+                    return true;
+            break;
+        }
+        case (oam::INSTALL_COMBINE_DM_UM_PM):	// combined #1 - dm/um/pm
+        {
+            if (moduleType == "pm") {
+                mount1 = "/mysql\\/db/";
+                mount2 = "/erydb\\/data/";
+            } else
                 return true;
-        break;
-    }
-    case (oam::INSTALL_COMBINE_DM_UM_PM):	// combined #1 - dm/um/pm
-    {
-        if (moduleType == "pm") {
-            mount1 = "/mnt\\/tmp/";
-            mount2 = "/erydb\\/data/";
-        } else
-            return true;
-        break;
-    }
-    case (oam::INSTALL_COMBINE_DM_UM):	// combined #2 dm/um on a same server
-    {
-        if (moduleType == "um")
-            mount1 = "/mnt\\/tmp/";
-        else
-            if (moduleType == "pm")
-                mount1 = "/erydb\\/data/";
+            break;
+        }
+        case (oam::INSTALL_COMBINE_DM_UM):	// combined #2 dm/um on a same server
+        {
+            if (moduleType == "um")
+                mount1 = "/mysql\\/db/";
             else
+                if (moduleType == "pm")
+                    mount1 = "/erydb\\/data/";
+                else
+                    return true;
+            break;
+        }
+        case (oam::INSTALL_COMBINE_PM_UM):	// combined #3 um/pm on a same server
+        {
+            if (moduleType == "pm") {
+                mount1 = "/mysql\\/db/";
+                mount2 = "/erydb\\/data/";
+            } else
                 return true;
-        break;
-    }
-    case (oam::INSTALL_COMBINE_PM_UM):	// combined #3 um/pm on a same server
-    {
-        if (moduleType == "pm") {
-            mount1 = "/mnt\\/tmp/";
-            mount2 = "/erydb\\/data/";
-        } else
-            return true;
-        break;
-    }
+            break;
+        }
     }
 
     if (!mount1.empty()) {
@@ -3527,7 +3392,6 @@ bool makeRClocal(string moduleType, string moduleName, int IserverTypeInstall) {
         lines.push_back(line1);
         lines.push_back(line2);
         lines.push_back(line3);
-    } else {
         if (!mount2.empty()) {
             string line1 = "for scsi_dev in `mount | awk '" + mount2 + " {print $1}' | awk -F/ '{print $3}' | sed 's/[0-9]*$//'`; do";
             string line2 = "echo deadline > /sys/block/$scsi_dev/queue/scheduler";
@@ -3537,58 +3401,74 @@ bool makeRClocal(string moduleType, string moduleName, int IserverTypeInstall) {
             lines.push_back(line2);
             lines.push_back(line3);
         }
-    }
 
-    unlink(fileName.c_str());
+        unlink(fileName.c_str());
 
-    if (lines.begin() == lines.end()) {
-        string cmd = "touch " + fileName;
-        system(cmd.c_str());
+        if (lines.begin() == lines.end()) {
+            string cmd = "touch " + fileName;
+            system(cmd.c_str());
+            return true;
+        }
+
+        ofstream newFile(fileName.c_str());
+
+        //create new file
+        int fd = open(fileName.c_str(), O_RDWR | O_CREAT, 0664);
+
+        copy(lines.begin(), lines.end(), ostream_iterator<string>(newFile, "\n"));
+        newFile.close();
+
+        close(fd);
+
         return true;
     }
-
-    ofstream newFile(fileName.c_str());
-
-    //create new file
-    int fd = open(fileName.c_str(), O_RDWR | O_CREAT, 0664);
-
-    copy(lines.begin(), lines.end(), ostream_iterator<string>(newFile, "\n"));
-    newFile.close();
-
-    close(fd);
-
-    return true;
 }
-
 /*
  * createDbrootDirs
  */
-bool createDbrootDirs(string DBRootStorageType) {
+bool createMetaDataDir(string DBRootStorageType) {
+    string SystemSection = "SystemConfig";
+    Config* sysConfig = Config::makeConfig();
+    string dbrmroot = "";
+    try {
+        dbrmroot = sysConfig->getConfig(SystemSection, "DBRMRoot");
+    } catch (const std::exception &exc) {
+        std::cerr << exc.what() << std::endl;
+    }
+    string dbrmrootDir = dbrmroot;
+    string::size_type pos = dbrmroot.find("/BRM_saves", 0);
+    if (pos != string::npos)
+        //get directory path
+        dbrmrootDir = dbrmroot.substr(0, pos);
+
+    if (dbrmrootDir == "") {
+        dbrmrootDir = installDir + "/metadata/dbrm";
+    }
     int rtnCode;
     string cmd;
-
-    // mount data1 and create directories if configured with storage
-    if (DBRootStorageType == "external") {
-        string cmd = "mount " + installDir + "/data1 > /tmp/mount.txt 2>&1";
-        system(cmd.c_str());
-
-        if (!rootUser) {
-            cmd = "sudo chown -R " + USER + ":" + USER + " " + installDir + "/data1 > /dev/null";
-            system(cmd.c_str());
-        }
-
-        // create system file directories
-        cmd = "mkdir -p " + installDir + "/data1/systemFiles/dbrm > /dev/null 2>&1";
+    string dbrmroot;
+    try {
+        dbrmroot = sysConfig->getConfig(SystemSection, "DBRMRoot");
+     } catch (const std::exception &exc) {
+        std::cerr << exc.what() << std::endl;
+    }
+    // create system file directories
+    cmd = "mkdir -p " + dbrmrootDir + " > /dev/null 2>&1";
+    rtnCode = system(cmd.c_str());
+    if (WEXITSTATUS(rtnCode) != 0) {
+        cmd = "sudo mkdir -p " + dbrmrootDir + " > /dev/null 2>&1";
         rtnCode = system(cmd.c_str());
         if (WEXITSTATUS(rtnCode) != 0) {
             cout << endl << "Error: failed to make mount dbrm dir" << endl;
             return false;
         }
     }
-
-    cmd = "chmod 755 -R " + installDir + "/data1/systemFiles/dbrm > /dev/null 2>&1";
+    if (!rootUser) {
+        cmd = "sudo chown -R " + USER + ":" + USER + " " + installDir + "/metadata/dbrm > /dev/null";
+        system(cmd.c_str());
+    }
+    cmd = "chmod 755 -R " + dbrmrootDir + " > /dev/null 2>&1";
     system(cmd.c_str());
-
     return true;
 }
 
@@ -3599,7 +3479,6 @@ bool pkgCheck(string erydbPackage) {
     while (true) {
         string cmd = "ls " + erydbPackage + " > /tmp/erydbpkgs";
         system(cmd.c_str());
-
         string pkg = erydbPackage;
         string fileName = "/tmp/erydbpkgs";
         ifstream oldFile(fileName.c_str());
@@ -3613,11 +3492,9 @@ bool pkgCheck(string erydbPackage) {
                 return true;
             }
         }
-
         cout << endl << " Error: can't locate " + pkg + " Package in directory " + HOME << endl << endl;
         if (noPrompting)
             exit(1);
-
         while (true) {
             pcommand = callReadline("Please place a copy of the erydb Packages in directory " + HOME + " and press <enter> to continue or enter 'exit' to exit the install > ");
             if (pcommand) {
@@ -3638,29 +3515,23 @@ bool pkgCheck(string erydbPackage) {
             break;
         }
     }
-
     return true;
 }
 
 bool storageSetup(bool amazonInstall) {
     Oam oam;
-
     try {
         DBRootStorageType = sysConfig->getConfig(InstallSection, "DBRootStorageType");
     } catch (...) {
         cout << "ERROR: Problem getting DB Storage Data from the erydb System Configuration file" << endl;
         return false;
     }
-
     if (DBRootStorageType == "hdfs")
         hdfs = true;
-
     if (DBRootStorageType == "gluster")
         gluster = true;
-
     if (reuseConfig == "y") {
         cout << "===== Storage Configuration = " + DBRootStorageType + " =====" << endl << endl;
-
         if (hdfs) {
             //default
             DataFileEnvFile = "setenv-hdfs-20";
@@ -3669,7 +3540,6 @@ bool storageSetup(bool amazonInstall) {
             } catch (...) {
                 DataFileEnvFile = "setenv-hdfs-20";
             }
-
             string DataFilePlugin = installDir + "/lib/libhdfs-20.so";
             try {
                 DataFilePlugin = sysConfig->getConfig("SystemConfig", "DataFilePlugin");
@@ -3732,32 +3602,24 @@ bool storageSetup(bool amazonInstall) {
                 }
             }
         }
-
         return true;
     }
 
     cout << "===== Setup Storage Configuration =====" << endl << endl;
-
+    //set UMStorageType
     string storageType;
-
     if (IserverTypeInstall != oam::INSTALL_COMBINE_DM_UM_PM && amazonInstall) {
-        //
         // get Frontend Data storage type
-        //
-
         cout << "----- Setup User Module erydb Data Storage Mount Configuration -----" << endl << endl;
-
         cout << "There are 2 options when configuring the storage: internal and external" << endl << endl;
         cout << "  'internal' -    This is specified when a local disk is used for the Data storage." << endl << endl;
         cout << "  'external' -    This is specified when the erydb Data directory is externally mounted." << endl << endl;
-
         try {
             UMStorageType = sysConfig->getConfig(InstallSection, "UMStorageType");
         } catch (...) {
             cout << "ERROR: Problem getting UM DB Storage Data from the erydb System Configuration file" << endl;
             return false;
         }
-
         while (true) {
             storageType = "1";
             if (UMStorageType == "external")
@@ -3779,7 +3641,6 @@ bool storageSetup(bool amazonInstall) {
         if (storageType == "1")
             UMStorageType = "internal";
         else {
-
             cout << endl << "NOTE: The volume type. This can be gp2 for General Purpose  SSD,  io1  for" << endl;
             cout << "      Provisioned IOPS SSD, st1 for Throughput Optimized HDD, sc1 for Cold" << endl;
             cout << "      HDD, or standard for Magnetic volumes." << endl;
@@ -3921,33 +3782,33 @@ bool storageSetup(bool amazonInstall) {
     }
 
     //check if gluster is installed
-    if (rootUser)
-        system("which gluster > /tmp/gluster.log 2>&1");
-    else
-        system("sudo which gluster > /tmp/gluster.log 2>&1");
+    {
+        if (rootUser)
+            system("which gluster > /tmp/gluster.log 2>&1");
+        else
+            system("sudo which gluster > /tmp/gluster.log 2>&1");
 
-    ifstream in("/tmp/gluster.log");
-
-    in.seekg(0, std::ios::end);
-    int size = in.tellg();
-    if (size == 0 || oam.checkLogStatus("/tmp/gluster.log", "no gluster"))
-        // no gluster
-        size = 0;
-    else
-        glusterInstalled = "y";
+        ifstream in("/tmp/gluster.log");
+        in.seekg(0, std::ios::end);
+        int size = in.tellg();
+        if (size == 0 || oam.checkLogStatus("/tmp/gluster.log", "no gluster"))
+            // no gluster
+            size = 0;
+        else
+            glusterInstalled = "y";
+    }
 
     //check if hadoop is installed
-    system("which hadoop > /tmp/hadoop.log 2>&1");
-
-    ifstream in1("/tmp/hadoop.log");
-
-    in1.seekg(0, std::ios::end);
-    size = in1.tellg();
-    if (size == 0 || oam.checkLogStatus("/tmp/hadoop.log", "no hadoop"))
-        // no hadoop
-        size = 0;
-    else
-        hadoopInstalled = "y";
+    {
+        system("which hadoop > /tmp/hadoop.log 2>&1");
+        ifstream in1("/tmp/hadoop.log");
+        in1.seekg(0, std::ios::end);
+        size = in1.tellg();
+        if (size == 0 || oam.checkLogStatus("/tmp/hadoop.log", "no hadoop"))// no hadoop
+            size = 0;
+        else
+            hadoopInstalled = "y";
+    }
 
     //
     // get Backend Data storage type
@@ -4043,26 +3904,26 @@ bool storageSetup(bool amazonInstall) {
     }
 
     switch (atoi(storageType.c_str())) {
-    case (1):
-    {
-        DBRootStorageType = "internal";
-        break;
-    }
-    case (2):
-    {
-        DBRootStorageType = "external";
-        break;
-    }
-    case (3):
-    {
-        DBRootStorageType = "gluster";
-        break;
-    }
-    case (4):
-    {
-        DBRootStorageType = "hdfs";
-        break;
-    }
+        case (1):
+        {
+            DBRootStorageType = "internal";
+            break;
+        }
+        case (2):
+        {
+            DBRootStorageType = "external";
+            break;
+        }
+        case (3):
+        {
+            DBRootStorageType = "gluster";
+            break;
+        }
+        case (4):
+        {
+            DBRootStorageType = "hdfs";
+            break;
+        }
     }
 
     //set DBRootStorageType
@@ -4256,10 +4117,8 @@ bool storageSetup(bool amazonInstall) {
                 if (strlen(pcommand) > 0) DataFilePlugin = pcommand;
                 callFree(pcommand);
             }
-
             if (DataFilePlugin == "exit")
                 exit(1);
-
             if (DataFilePlugin != installDir + "/lib/libhdfs-20.so")
                 DataFileEnvFile = "setenv-hdfs-12";
 
@@ -4290,21 +4149,18 @@ bool storageSetup(bool amazonInstall) {
             cout << "ERROR: Problem setting DataFilePlugin in the erydb System Configuration file" << endl;
             return false;
         }
-
         try {
             sysConfig->setConfig("SystemConfig", "DataFileEnvFile", DataFileEnvFile);
         } catch (...) {
             cout << "ERROR: Problem setting DataFileEnvFile in the erydb System Configuration file" << endl;
             return false;
         }
-
         try {
             sysConfig->setConfig("SystemConfig", "DataFileLog", "OFF");
         } catch (...) {
             cout << "ERROR: Problem setting DataFileLog in the erydb System Configuration file" << endl;
             return false;
         }
-
         try {
             sysConfig->setConfig("ExtentMap", "ExtentsPerSegmentFile", "1");
         } catch (...) {
@@ -4395,19 +4251,15 @@ bool copyFstab(string moduleName) {
  */
 bool makeModuleFile(string moduleName, string parentOAMModuleName) {
     string fileName;
-    if (moduleName == parentOAMModuleName)
-        fileName = installDir + "/local/module";
-    else
+    //if (moduleName == parentOAMModuleName)
+    //    fileName = installDir + "/local/module";
+    //else
         fileName = installDir + "/local/etc/" + moduleName + "/module";
-
     unlink(fileName.c_str());
-    ofstream newFile(fileName.c_str());
-
+    //ofstream newFile(fileName.c_str());
     string cmd = "echo " + moduleName + " > " + fileName;
     system(cmd.c_str());
-
-    newFile.close();
-
+    //newFile.close();
     return true;
 }
 
@@ -4416,23 +4268,18 @@ bool makeModuleFile(string moduleName, string parentOAMModuleName) {
  */
 bool updateBash() {
     string fileName = HOME + "/.bashrc";
-
     ifstream newFile(fileName.c_str());
-
     if (hdfs) {
-        string cmd = "echo . " + installDir + "/bin/" + DataFileEnvFile + " >> " + fileName;
+        //string cmd = "echo . " + installDir + "/bin/" + DataFileEnvFile + " >> " + fileName;
+        string cmd = "scp " + installDir + "/bin/" + DataFileEnvFile + " /etc/profile.d/hdfs_env.sh " ;
         system(cmd.c_str());
-
         if (rootUser)
             cmd = "su - hdfs -c 'hadoop fs -mkdir -p " + installDir + ";hadoop fs -chown root:root " + installDir + "' >/dev/null 2>&1";
         else
             cmd = "sudo su - hdfs -c 'hadoop fs -mkdir -p " + installDir + ";hadoop fs -chown " + USER + ":" + USER + " " + installDir + "' >/dev/null 2>&1";
-
         system(cmd.c_str());
     }
-
     newFile.close();
-
     return true;
 
 }
@@ -4448,7 +4295,6 @@ void offLineAppCheck() {
         cout << "ERROR: Problem getting systemStartupOffline from the erydb System Configuration file" << endl;
         exit(1);
     }
-
     cout << endl;
     string temp = "y";
     while (true) {
@@ -4471,7 +4317,6 @@ void offLineAppCheck() {
         systemStartupOffline = "n";
     else
         systemStartupOffline = "y";
-
     try {
         sysConfig->setConfig(InstallSection, "SystemStartupOffline", systemStartupOffline);
     } catch (...) {
@@ -4662,14 +4507,12 @@ pthread_mutex_t THREAD_LOCK;
 
 void remoteInstallThread(void *arg) {
     thread_data_t *data = (thread_data_t *)arg;
-
     int rtnCode = system((data->command).c_str());
     if (WEXITSTATUS(rtnCode) != 0) {
         pthread_mutex_lock(&THREAD_LOCK);
         cout << endl << "Failure with a remote module install, check install log files in /tmp" << endl;
         exit(1);
     }
-
     // exit thread
     pthread_exit(0);
 }
