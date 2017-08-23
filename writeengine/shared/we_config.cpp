@@ -290,7 +290,7 @@ void Config::checkReload( )
         m_VersionBufferDir = startup::StartUp::installDir() + "\\version";
 #else
         m_VersionBufferDir =
-            startup::StartUp::installDir() + "/data1/systemFiles/dbrm/BRM_saves";
+            startup::StartUp::installDir() + "/metadata/dbrm/BRM_saves";
 #endif
     }
 

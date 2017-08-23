@@ -1925,8 +1925,8 @@ int SlaveComm::replayJournal(string prefix)
 	// argument.
 
 	// If A or B files are being loaded, strip off the A or B for the journal file name as there is only one journal file.
-	// For example, if prefix is "/usr/local/erydb/data1/systemFiles/dbrm/BRM_savesA" the journal file name will be
-	// "/usr/local/erydb/data1/systemFiles/dbrm/BRM_saves_journal".
+	// For example, if prefix is "/usr/local/erydb/metadata/dbrm/BRM_savesA" the journal file name will be
+	// "/usr/local/erydb/metadata/dbrm/BRM_saves_journal".
 
 	string tmp = prefix.substr(prefix.length()-1);
 	string fName;

@@ -69,7 +69,7 @@ namespace redistribute
 RedistributeControl* RedistributeControl::fInstance = NULL;
 boost::mutex instanceMutex;
 
-const string RedistributeDir("/data1/systemFiles/redistribute");
+const string RedistributeDir("/metadata/redistribute");
 const string InfoFileName("/redistribute.info");
 const string PlanFileName("/redistribute.plan");
 

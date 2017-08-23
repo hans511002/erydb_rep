@@ -3842,7 +3842,7 @@ int ProcessMonitor::createDataDirs(std::string cloud)
 
 					if ( id == 1 )
 					{
-						cmd = "mkdir -p " + startup::StartUp::installDir() + "/data1/systemFiles/dbrm > /dev/null 2>&1";
+						cmd = "mkdir -p " + startup::StartUp::installDir() + "/metadata/dbrm > /dev/null 2>&1";
 						system(cmd.c_str());
 					}
 
@@ -4066,10 +4066,9 @@ int ProcessMonitor::getDBRMdata()
 					//create journal file if none come across
 					if ( !journalFile)
 					{
-						string cmd = "touch " + startup::StartUp::installDir() + "/data1/systemFiles/dbrm/BRM_saves_journal";
+						string cmd = "touch " + startup::StartUp::installDir() + "/metadata/dbrm/BRM_saves_journal";
 						system(cmd.c_str());
 					}
-
 					returnStatus = oam::API_SUCCESS;
 				}
 				else

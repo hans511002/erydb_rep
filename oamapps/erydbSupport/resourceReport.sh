@@ -48,12 +48,12 @@ $SUDO df -k
 echo " "
 echo "-- Disk BRM Data files --"
 echo " "
-ls -l $INSTALLDIR/data1/systemFiles/dbrm 2> /dev/null
+ls -l $INSTALLDIR/metadata/dbrm 2> /dev/null
 ls -l $INSTALLDIR/dbrm 2> /dev/null
 
-echo "################# cat $INSTALLDIR/data1/systemFiles/dbrm/BRM_saves_current #################"
+echo "################# cat $INSTALLDIR/metadata/dbrm/BRM_saves_current #################"
 echo " "
-cat $INSTALLDIR/data1/systemFiles/dbrm/BRM_saves_current 2> /dev/null
+cat $INSTALLDIR/metadata/dbrm/BRM_saves_current 2> /dev/null
 
 echo " "
 echo "-- View Table Locks --"
