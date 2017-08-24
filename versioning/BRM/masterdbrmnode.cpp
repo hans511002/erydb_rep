@@ -706,6 +706,13 @@ retrycmd:
             }
         }
     }
+no_confirm:
+    try {
+        p->sock->write(*(responses.front()));
+    } catch (...) {
+        p->sock->close();
+        log("DBRM Controller: Warning: could not send the reply to a command", logging::LOG_TYPE_WARNING);
+    }
 out:
     for (it = responses.begin(); it != responses.end(); it++)
         delete *it;
