@@ -2433,7 +2433,8 @@ int main(int argc, char *argv[]) {
                         if (pwprompt == " ")
                             temppwprompt = "none";
                         //run remote installer script
-                        cmd = installDir + "/bin/user_installer.sh " + remoteModuleName + " " + remoteModuleIP + " " + password + " " + version + " initial " + EEPackageType + " " + nodeps + " " + temppwprompt + " " + mysqlPort + " " + remote_installer_debug + " " + debug_logfile;
+                        cmd = installDir + "/bin/user_installer.sh " + remoteModuleName + " " + remoteModuleIP + " " + password + " " + version + 
+                            " initial " + EEPackageType + " " + nodeps + " " + temppwprompt + " " + mysqlPort + " " + remote_installer_debug + " " + debug_logfile;
                         //cout << cmd << endl;
                         if (remote_installer_debug == "1") {
                             cout<< remoteModuleName<<" install: "<< cmd <<endl;
@@ -2524,7 +2525,7 @@ int main(int argc, char *argv[]) {
                         //check my.cnf port in-user on remote node
 //						checkRemoteMysqlPort(remoteModuleIP, remoteModuleName, USER, password, mysqlPort, sysConfig);
                         cmd = installDir + "/bin/binary_installer.sh " + remoteModuleName + " " + remoteModuleIP + " " + password + " " + erydbPackage + " " + remoteModuleType +
-                            " initial " + binservertype + " " + mysqlPort + " " + remote_installer_debug + " " + installDir +" "+ oam.itoa(thread_id) + " " + debug_logfile;
+                            " initial " + binservertype + " " + mysqlPort + " " + remote_installer_debug + " " + installDir +" " + debug_logfile;
                         if (remote_installer_debug == "1") {
                             cout << remoteModuleName << " install: " << cmd << endl;
                         }
@@ -2553,7 +2554,8 @@ int main(int argc, char *argv[]) {
                         }
                         if (EEPackageType != "binary") {
                             //run remote installer script
-                            cmd = installDir + "/bin/performance_installer.sh " + remoteModuleName + " " + remoteModuleIP + " " + password + " " + version + " initial " + EEPackageType + " " + nodeps + " " + remote_installer_debug + " " + debug_logfile;
+                            cmd = installDir + "/bin/performance_installer.sh " + remoteModuleName + " " + remoteModuleIP + " " + password + " " + version + " initial " + 
+                                EEPackageType + " " + nodeps + " " + remote_installer_debug + " " + debug_logfile;
                             //cout << cmd << endl;
                             if (remote_installer_debug == "1") {
                                 cout << remoteModuleName << " install: " << cmd << endl;
