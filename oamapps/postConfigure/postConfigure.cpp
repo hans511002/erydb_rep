@@ -906,42 +906,6 @@ int main(int argc, char *argv[]) {
         cout << "ERROR: Problem setting up storage" << endl;
         exit(1);
     }
-    //set internal replica size
-    if (DBRootStorageType == "internal") { 
-        int licSize = oam::MAX_MODULE;
-        licSize = License::getPmCountLimit();
-        string oldRepSize = "3";
-        try {
-            oldRepSize = sysConfig->getConfig(SystemSection, "PMreplicateCount");
-        } catch (...) {
-            oldRepSize = "3";
-        }
-        int PMreplicateSize = atoi(oldRepSize.c_str());
-        while (true) {
-            prompt = "Enter number of PM storage copies [1," + oam.itoa(licSize) + "] (" + oam.itoa(PMreplicateSize) + ") > ";
-            pcommand = callReadline(prompt.c_str());
-            if (pcommand) {
-                if (strlen(pcommand) > 0) PMreplicateSize = atoi(pcommand);
-                callFree(pcommand);
-            }
-            if (PMreplicateSize>=1) {
-                cout << endl;
-                break;
-            } else {
-                cout << endl << "ERROR: Invalid replicate Count '" + oam.itoa(PMreplicateSize) + "', please re-enter" << endl << endl;
-            }
-        }
-        try {
-              sysConfig->setConfig(SystemSection, "PMreplicateCount", oam.itoa(PMreplicateSize));
-        } catch (...) {
-            cout << "ERROR: Problem setting PMreplicateCount in the erydb System Configuration file" << endl;
-            exit(1);
-        }
-        if (!writeConfig(sysConfig)) {
-            cout << "ERROR: Failed trying to update erydb System Configuration file" << endl;
-            exit(1);
-        }
-    }
     if (hdfs || !rootUser) {
         if (!updateBash())
             cout << "updateBash error" << endl;
@@ -1172,6 +1136,46 @@ int main(int argc, char *argv[]) {
                 break;
             } catch (...) {
                 cout << "ERROR: Problem setting Module Count in the erydb System Configuration file" << endl;
+                exit(1);
+            }
+        }
+         
+        //set internal replica size
+        if (DBRootStorageType == "internal" && moduleType == "pm") {
+            int licSize = oam::MAX_MODULE;
+            licSize = License::getPmCountLimit();
+            string oldRepSize = "3";
+            try {
+                oldRepSize = sysConfig->getConfig(SystemSection, "PMreplicateCount");
+            } catch (...) {
+                oldRepSize = "3";
+            }
+            int PMreplicateSize = atoi(oldRepSize.c_str());
+            if (PMreplicateSize > moduleCount) {
+                PMreplicateSize = moduleCount;
+            }
+            while (true) {
+                prompt = "Enter number of PM storage copies [1," + oam.itoa(moduleCount) + "] (" + oam.itoa(PMreplicateSize) + ") > ";
+                pcommand = callReadline(prompt.c_str());
+                if (pcommand) {
+                    if (strlen(pcommand) > 0) PMreplicateSize = atoi(pcommand);
+                    callFree(pcommand);
+                }
+                if (PMreplicateSize >= 1) {
+                    cout << endl;
+                    break;
+                } else {
+                    cout << endl << "ERROR: Invalid replicate Count '" + oam.itoa(PMreplicateSize) + "', please re-enter" << endl << endl;
+                }
+            }
+            try {
+                sysConfig->setConfig(SystemSection, "PMreplicateCount", oam.itoa(PMreplicateSize));
+            } catch (...) {
+                cout << "ERROR: Problem setting PMreplicateCount in the erydb System Configuration file" << endl;
+                exit(1);
+            }
+            if (!writeConfig(sysConfig)) {
+                cout << "ERROR: Failed trying to update erydb System Configuration file" << endl;
                 exit(1);
             }
         }
@@ -2431,6 +2435,9 @@ int main(int argc, char *argv[]) {
                         //run remote installer script
                         cmd = installDir + "/bin/user_installer.sh " + remoteModuleName + " " + remoteModuleIP + " " + password + " " + version + " initial " + EEPackageType + " " + nodeps + " " + temppwprompt + " " + mysqlPort + " " + remote_installer_debug + " " + debug_logfile;
                         //cout << cmd << endl;
+                        if (remote_installer_debug == "1") {
+                            cout<< remoteModuleName<<" install: "<< cmd <<endl;
+                        }
                         if (thread_remote_installer) {
                             thr_data[thread_id].command = cmd;
                             int status = pthread_create(&thr[thread_id], NULL, (void*(*)(void*)) &remoteInstallThread, &thr_data[thread_id]);
@@ -2518,6 +2525,9 @@ int main(int argc, char *argv[]) {
 //						checkRemoteMysqlPort(remoteModuleIP, remoteModuleName, USER, password, mysqlPort, sysConfig);
                         cmd = installDir + "/bin/binary_installer.sh " + remoteModuleName + " " + remoteModuleIP + " " + password + " " + erydbPackage + " " + remoteModuleType +
                             " initial " + binservertype + " " + mysqlPort + " " + remote_installer_debug + " " + installDir +" "+ oam.itoa(thread_id) + " " + debug_logfile;
+                        if (remote_installer_debug == "1") {
+                            cout << remoteModuleName << " install: " << cmd << endl;
+                        }
                         if (thread_remote_installer) {
                             thr_data[thread_id].command = cmd;
                             int status = pthread_create(&thr[thread_id], NULL, (void*(*)(void*)) &remoteInstallThread, &thr_data[thread_id]);
@@ -2545,6 +2555,9 @@ int main(int argc, char *argv[]) {
                             //run remote installer script
                             cmd = installDir + "/bin/performance_installer.sh " + remoteModuleName + " " + remoteModuleIP + " " + password + " " + version + " initial " + EEPackageType + " " + nodeps + " " + remote_installer_debug + " " + debug_logfile;
                             //cout << cmd << endl;
+                            if (remote_installer_debug == "1") {
+                                cout << remoteModuleName << " install: " << cmd << endl;
+                            }
                             if (thread_remote_installer) {
                                 thr_data[thread_id].command = cmd;
                                 int status = pthread_create(&thr[thread_id], NULL, (void*(*)(void*)) &remoteInstallThread, &thr_data[thread_id]);
@@ -2568,6 +2581,9 @@ int main(int argc, char *argv[]) {
                                 " " + password + " " + erydbPackage + " " + remoteModuleType + " initial " +
                                 binservertype + " " + mysqlPort + " " + remote_installer_debug + " " + installDir + " " +
                                 debug_logfile;
+                            if (remote_installer_debug == "1") {
+                                cout << remoteModuleName << " install: " << cmd << endl;
+                            }
                             if (thread_remote_installer) {
                                 thr_data[thread_id].command = cmd;
                                 int status = pthread_create(&thr[thread_id], NULL, (void*(*)(void*)) &remoteInstallThread, &thr_data[thread_id]);
