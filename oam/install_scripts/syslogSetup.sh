@@ -227,7 +227,7 @@ test -f $installdir/post/functions && . $installdir/post/functions
 number=$RANDOM
 $installdir/bin/cplogger -i 104 "erydb Log Test: $number"
 sleep 3
-egrep -qs "erydb Log Test: $number" /var/log/erydb/info.log
+egrep -qs "erydb Log Test: $number" /var/log/erydb/*.log*
 if [ $? -eq 0 ]; then
 	echo "erydb System Logging working"
 	exit 0

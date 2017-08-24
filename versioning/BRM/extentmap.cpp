@@ -1049,7 +1049,7 @@ void ExtentMap::loadVersion4(ifstream &in)
 
 	// init the free list
 	memset(fFreeList, 0, fFLShminfo->allocdSize);
-	fFreeList[0].size = (1 << 26);   // 2^36 LBIDs
+	fFreeList[0].size = MAX_LBID_SIZE;   // 2^36 LBIDs
 	fFLShminfo->currentSize = sizeof(InlineLBIDRange);
 
 	// @Bug 3498
@@ -1122,7 +1122,7 @@ void ExtentMap::loadVersion4(ERYDBDataFile* in)
 
 	// init the free list
 	memset(fFreeList, 0, fFLShminfo->allocdSize);
-	fFreeList[0].size = (1 << 26);   // 2^36 LBIDs
+	fFreeList[0].size = MAX_LBID_SIZE;   // 2^36 LBIDs
 	fFLShminfo->currentSize = sizeof(InlineLBIDRange);
 
 	// @Bug 3498
@@ -1643,7 +1643,7 @@ void ExtentMap::growFLShmseg()
 	fFreeList = fPFreeListImpl->get();
 	// init freelist entry
 	if (fFLShminfo->allocdSize == 0) {
- 		fFreeList->size = (1ULL << 56) / 1024;
+ 		fFreeList->size = MAX_LBID_SIZE;
 		fFLShminfo->currentSize = sizeof(InlineLBIDRange);
 	}
 	fFLShminfo->allocdSize = allocSize;

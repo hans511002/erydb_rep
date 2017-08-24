@@ -112,18 +112,23 @@ struct EMPartition_struct {
 	EMCasualPartition_t		cprange;
 };
 typedef EMPartition_struct EMPartition_t;
+struct EMBackRoot {
+    uint16_t	dbRoot1;
+    uint16_t	dbRoot2;
+};
 
 struct EMEntry {
-	InlineLBIDRange range;
-	int         fileID;
-	uint32_t    blockOffset;
+	InlineLBIDRange range; //16 
+	int         fileID; //
+	uint32_t    blockOffset; //24
 	HWM_t       HWM;
-	uint32_t	partitionNum; // starts at 0
+	uint32_t	partitionNum; // starts at 0  //32
 	uint16_t	segmentNum;   // starts at 0
-	uint16_t	dbRoot;       // starts at 1 to match erydb.xml
-	uint16_t	colWid;
-	int16_t 	status;       //extent avail for query or not, or out of service
-	EMPartition_t partition;
+	uint16_t	dbRoot;       // starts at 1 to match erydb.xml 
+    EMBackRoot  bakRoot;//4
+	uint16_t	colWid;  //
+	int16_t 	status;       //extent avail for query or not, or out of service 40
+	EMPartition_t partition; //24
 	EXPORT EMEntry();
 	EXPORT EMEntry(const EMEntry&);
 	EXPORT EMEntry& operator= (const EMEntry&);
