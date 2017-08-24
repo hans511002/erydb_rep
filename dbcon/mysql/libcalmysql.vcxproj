@@ -96,6 +96,10 @@
     <ClCompile Include="ha_select_sub.cpp" />
     <ClCompile Include="ha_view.cpp" />
     <ClCompile Include="ha_window_function.cpp" />
+    <ClCompile Include="is_erydb_columns.cpp" />
+    <ClCompile Include="is_erydb_extents.cpp" />
+    <ClCompile Include="is_erydb_files.cpp" />
+    <ClCompile Include="is_erydb_tables.cpp" />
     <ClCompile Include="sm.cpp" />
   </ItemGroup>
   <ItemGroup>

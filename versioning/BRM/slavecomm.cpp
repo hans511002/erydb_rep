@@ -336,14 +336,12 @@ void SlaveComm::processCommand(ByteStream &msg)
 void SlaveComm::do_saveDbrmState(messageqcpp::ByteStream &msg) {
     ByteStream reply;
     int err = slave->saveState(savefile);
-    reply << (uint8_t)err;
-    string rmsg;
+    reply << (uint8_t)err; 
     if (err == ERR_OK) {
-        rmsg = hostname + " save success";
+        log("dbrm save success", logging::LOG_TYPE_INFO); 
     } else {
-        rmsg = hostname + " save failed";
+        log("dbrm save failed", logging::LOG_TYPE_INFO); 
     }
-    reply << rmsg;
     master.write(reply);
 }
 void SlaveComm::do_createColumnReplicateFile(messageqcpp::ByteStream &msg) {

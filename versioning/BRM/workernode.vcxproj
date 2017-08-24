@@ -70,6 +70,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h" />
+    <ClInclude Include="slavedbrmnode.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="workernode.rc" />

@@ -60,6 +60,18 @@
     <ClCompile Include="ha_pseudocolumn.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="is_erydb_extents.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="is_erydb_files.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="is_erydb_tables.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="is_erydb_columns.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ha_erydb.h">
