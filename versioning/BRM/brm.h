@@ -30,7 +30,6 @@
 #include "copylocks.h"
 #include "vss.h"
 #include "vbbm.h"
-#include "blockresolutionmanager.h"
 #include "sessionmanagerserver.h"
 #include "dbrm.h"
 #include "logicalpartition.h"
