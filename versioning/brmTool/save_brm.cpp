@@ -60,48 +60,52 @@ int main (int argc, char **argv)
         erydbdatafile::ERYDBPolicy::configERYDBPolicy();
         prefix = argv[1]; 
         err = brm.saveState(prefix);
+        if (err == 0) {
+            cout << "Saved to " << prefix << endl;
+        } else {
+            cout << "Save failed" << endl;
+            exit(1);
+        }
+        (void)::umask(0);
+        currentFilename = prefix + "_current";
+        currentFile = ERYDBDataFile::open(ERYDBPolicy::getType(currentFilename.c_str(),
+            ERYDBPolicy::WRITEENG),
+            currentFilename.c_str(),
+            "wb",
+            0);
+        if (!currentFile) {
+            cerr << "Error: could not open " << currentFilename << "for writing" << endl;
+            exit(1);
+        }
+        try {
+#ifndef _MSC_VER
+            prefix += '\n';
+#endif
+            currentFile->write(prefix.c_str(), prefix.length());
+        } catch (exception &e) {
+            cerr << "Error: failed to write to " << currentFilename << ": " << e.what() << endl;
+            exit(1);
+        }
+        try {
+            delete currentFile;
+            currentFile = NULL;
+        } catch (exception &e) {
+            cerr << "Error: failed to close " << currentFilename << ": " << e.what() << endl;
+            exit(1);
+        }
     } else {
-         	prefix = config->getConfig("SystemConfig", "DBRMRoot");
+         prefix = config->getConfig("SystemConfig", "DBRMRoot");
 		if (prefix.length() == 0) {
 			cerr << "Error: Need a valid erydb configuation file" << endl;
 			exit(1);
 		}
         err = WriteEngine::BRMWrapper::getInstance()->saveState();
-	}
-    if (err == 0) {
-        cout << "Saved to " << prefix << endl;
-    } else {
-        cout << "Save failed" << endl;
-        exit(1);
-    }
-	(void)::umask(0);
-	currentFilename = prefix + "_current";
-	currentFile = ERYDBDataFile::open(ERYDBPolicy::getType(currentFilename.c_str(),
-									ERYDBPolicy::WRITEENG),
-									currentFilename.c_str(),
-									"wb",
-									0);
-	if (!currentFile) {
-		cerr << "Error: could not open " << currentFilename << "for writing" << endl;
-		exit(1);
-	}
-	try {
-#ifndef _MSC_VER
-		prefix += '\n';
-#endif
-		currentFile->write(prefix.c_str(), prefix.length());
-	}
-	catch (exception &e) {
-		cerr << "Error: failed to write to " << currentFilename << ": " << e.what() << endl;
-		exit(1);
-	}
-	try {
-		delete currentFile;
-		currentFile = NULL;
-	}
-	catch (exception &e) {
-		cerr << "Error: failed to close " << currentFilename << ": " << e.what() << endl;
-		exit(1);
+        if (err == 0) {
+            cout << "Saved to " << prefix << endl;
+        } else {
+            cout << "Save failed" << endl;
+            exit(1);
+        }
 	}
 	return 0;
 }

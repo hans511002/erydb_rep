@@ -37,6 +37,7 @@ namespace logging
 {
 
 typedef std::map<Message::MessageID, Message> MsgMap;
+void rollLogFile(string logFile, string rollFile);
 
 /** @brief message log wrapper class */
 class Logger

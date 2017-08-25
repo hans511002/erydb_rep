@@ -33,6 +33,19 @@ Logger::Logger(unsigned subsys) :
 	fMl1(LoggingID(subsys))
 {
 }
+void rollLogFile(string outFileName,string saveoutFileName) {
+    FILE *fp = fopen(outFileName.c_str*(), "r");
+    if (fp) {
+        fseek(fp, 0, SEEK_END);
+        long fz = ftell(fp);
+        fclose(fp);
+        fp = NULL;
+        if (fz > 0) {
+            string cmd = "mv " + outFileName + " " + saveoutFileName;
+            std::system(cmd.c_str());
+        }
+    }
+}
 
 const string Logger::logMessage(LOG_TYPE logLevel, Message::MessageID mid, const Message::Args& args,
 	const LoggingID& logInfo)
