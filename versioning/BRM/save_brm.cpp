@@ -39,6 +39,7 @@ using namespace std;
 #include "copylocks.h"
 #include "vss.h"
 #include "vbbm.h"
+#include "we_brm.h"
 #include "blockresolutionmanager.h"
 #include "ERYDBDataFile.h"
 #include "ERYDBPolicy.h"
@@ -49,41 +50,38 @@ using namespace BRM;
 
 int main (int argc, char **argv)
 {
-	BlockResolutionManager brm;
-	config::Config *config = config::Config::makeConfig();
-	int err;
-	string prefix, currentFilename;
-	ERYDBDataFile* currentFile = NULL;
+    int err; 
+    string prefix, currentFilename;
+    config::Config *config = config::Config::makeConfig();
+    ERYDBDataFile* currentFile = NULL;
 
-	if (argc > 1)
-		prefix = argv[1];
-	else {
-		prefix = config->getConfig("SystemConfig", "DBRMRoot");
+    if (argc > 1){
+        BlockResolutionManager brm;
+        erydbdatafile::ERYDBPolicy::configERYDBPolicy();
+        prefix = argv[1]; 
+        err = brm.saveState(prefix);
+        if (err == 0)
+            cout << "Saved to " << prefix << endl;
+        else {
+            cout << "Save failed" << endl;
+            exit(1);
+        }
+    } else {
+         	prefix = config->getConfig("SystemConfig", "DBRMRoot");
 		if (prefix.length() == 0) {
 			cerr << "Error: Need a valid erydb configuation file" << endl;
 			exit(1);
 		}
+        err = WriteEngine::BRMWrapper::getInstance()->saveState();
 	}
-
-	erydbdatafile::ERYDBPolicy::configERYDBPolicy();
-
-	err = brm.saveState(prefix);
-	if (err == 0)
-		cout << "Saved to " << prefix << endl;
-	else {
-		cout << "Save failed" << endl;
-		exit(1);
-	}
-
+     
 	(void)::umask(0);
-
 	currentFilename = prefix + "_current";
 	currentFile = ERYDBDataFile::open(ERYDBPolicy::getType(currentFilename.c_str(),
 									ERYDBPolicy::WRITEENG),
 									currentFilename.c_str(),
 									"wb",
 									0);
-
 	if (!currentFile) {
 		cerr << "Error: could not open " << currentFilename << "for writing" << endl;
 		exit(1);
@@ -106,6 +104,5 @@ int main (int argc, char **argv)
 		cerr << "Error: failed to close " << currentFilename << ": " << e.what() << endl;
 		exit(1);
 	}
-
 	return 0;
 }
