@@ -60,12 +60,6 @@ int main (int argc, char **argv)
         erydbdatafile::ERYDBPolicy::configERYDBPolicy();
         prefix = argv[1]; 
         err = brm.saveState(prefix);
-        if (err == 0)
-            cout << "Saved to " << prefix << endl;
-        else {
-            cout << "Save failed" << endl;
-            exit(1);
-        }
     } else {
          	prefix = config->getConfig("SystemConfig", "DBRMRoot");
 		if (prefix.length() == 0) {
@@ -74,7 +68,12 @@ int main (int argc, char **argv)
 		}
         err = WriteEngine::BRMWrapper::getInstance()->saveState();
 	}
-     
+    if (err == 0) {
+        cout << "Saved to " << prefix << endl;
+    } else {
+        cout << "Save failed" << endl;
+        exit(1);
+    }
 	(void)::umask(0);
 	currentFilename = prefix + "_current";
 	currentFile = ERYDBDataFile::open(ERYDBPolicy::getType(currentFilename.c_str(),
