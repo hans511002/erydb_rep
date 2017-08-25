@@ -25,6 +25,8 @@ using namespace std;
 using namespace boost;
 
 #include "logger.h"
+#include "stdio.h"
+#include "stdlib.h"
 
 namespace logging
 {
@@ -34,7 +36,7 @@ Logger::Logger(unsigned subsys) :
 {
 }
 void rollLogFile(string outFileName,string saveoutFileName) {
-    FILE *fp = fopen(outFileName.c_str*(), "r");
+    FILE *fp = fopen(outFileName.c_str(), "r");
     if (fp) {
         fseek(fp, 0, SEEK_END);
         long fz = ftell(fp);
