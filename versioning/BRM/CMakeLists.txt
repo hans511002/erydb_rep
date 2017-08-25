@@ -6,7 +6,6 @@ include_directories( ${ENGINE_COMMON_INCLUDES} )
 
 set(brm_LIB_SRCS
     autoincrementmanager.cpp
-    blockresolutionmanager.cpp
     brmshmimpl.cpp
     brmtypes.cpp
     copylocks.cpp
