@@ -36,7 +36,7 @@ install(TARGETS rollback DESTINATION ${ENGINE_BINDIR} COMPONENT platform)
 
 ########### next target ###############
 
-set(save_brm_SRCS save_brm.cpp)
+set(save_brm_SRCS save_brm.cpp blockresolutionmanager.cpp)
 
 add_executable(save_brm ${save_brm_SRCS})
 
@@ -47,7 +47,7 @@ install(TARGETS save_brm DESTINATION ${ENGINE_BINDIR} COMPONENT platform)
 
 ########### next target ###############
 
-set(load_brm_SRCS load_brm.cpp)
+set(load_brm_SRCS load_brm.cpp blockresolutionmanager.cpp)
 
 add_executable(load_brm ${load_brm_SRCS})
 
