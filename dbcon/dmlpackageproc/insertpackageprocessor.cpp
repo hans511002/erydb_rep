@@ -236,11 +236,11 @@ namespace dmlpackageprocessor
 				// have 0 blocks, then we select the first DBRoot
 				BRM::EmDbRootHWMInfo tmp;
 				bool tmpSet = false;
-				for (unsigned i=0; i < allInfo.size(); i++)
+				for (unsigned i=0; i < allInfo.size(); i++)//pms
 				{
 					BRM::EmDbRootHWMInfo_v emDbRootHWMInfos = allInfo[i];
 						
-					for (unsigned j=0; j < emDbRootHWMInfos.size(); j++)
+					for (unsigned j=0; j < emDbRootHWMInfos.size(); j++)//dbroot
 					{					
 						if (!tmpSet)
 						{

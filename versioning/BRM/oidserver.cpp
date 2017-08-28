@@ -525,17 +525,17 @@ retry:
 	}
 
 	// verify the middle bytes
-	for (i = 1; i < byteSize - 1; i++, oidCount+=8)
+	for (i = 1; i < byteSize - 1; i++, oidCount+=8){
 		if (buf[i] != (mode ? 0xff : 0)) {
 			delete [] buf;
 			throw logic_error("flipOERYDBlock: bad allocation or deallocation attempted (2)");
-		}
-		else
+		}else{
 			if (mode)
 				buf[i] = 0;
 			else
 				buf[i] = 0xff;
-
+        }
+    }
 	// verify the last byte
 	mask = 0x80;
 	while (mask != 0 && oidCount < num) {

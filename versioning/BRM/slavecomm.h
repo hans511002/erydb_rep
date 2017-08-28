@@ -71,7 +71,7 @@ class SlaveComm {
 		EXPORT int printJournal(std::string prefix);
 
 	private:
-
+        void resetParentOam();
 		SlaveComm& operator=(const SlaveComm& s);
 
 		void processCommand(messageqcpp::ByteStream &msg);

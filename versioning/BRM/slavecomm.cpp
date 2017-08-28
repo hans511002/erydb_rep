@@ -38,6 +38,7 @@
 #include "configcpp.h"
 #include "ERYDBDataFile.h"
 #include "ERYDBPolicy.h"
+#include "liboamcpp.h"
 
 #define SLAVECOMM_DLLEXPORT
 #include "slavecomm.h"
@@ -46,6 +47,7 @@
 using namespace std;
 using namespace messageqcpp;
 using namespace erydbdatafile;
+using namespace oam;
 
 namespace {
     void timespec_sub(const struct timespec &tv1,
@@ -100,7 +102,7 @@ namespace BRM {
         else
             snapshotInterval = config->fromText(tmp);
         journalCount = 0;
-        firstSlave = true;
+        resetParentOam();
         journalName = savefile + "_journal";
         const char* filename = journalName.c_str();
         uint32_t utmp = ::umask(0);
@@ -172,6 +174,28 @@ namespace BRM {
         }
         delete journalh;
         journalh = NULL;
+    }
+    void SlaveComm :: resetParentOam() {
+        Oam oam;
+        oamModuleInfo_t t;
+        //get local module info
+        firstSlave = false;
+        try {
+            t = oam.getModuleInfo();
+            //flocalModuleName = boost::get<0>(t);
+            //flocalModuleType = boost::get<1>(t);
+            //flocalModuleID = boost::get<2>(t);
+            //fOAMParentModuleName = boost::get<3>(t);
+            bool fOAMParentModuleFlag = boost::get<4>(t);
+            //fserverInstallType = boost::get<5>(t);
+            //fOAMStandbyModuleName = boost::get<6>(t);
+            bool fOAMStandbyModuleFlag = boost::get<7>(t);
+            if (fOAMParentModuleFlag || fOAMStandbyModuleFlag) {
+                firstSlave = true;
+            }
+        } catch (exception& e) {
+            cout << endl << "slave Error reading getModuleInfo = " << e.what() << endl;
+        }
     }
 
     void SlaveComm::stop() {
