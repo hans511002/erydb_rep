@@ -110,7 +110,7 @@ namespace BRM {
 #endif
         ByteStream command, response;
         uint8_t err;
-        command << SAVE_DBRM_STATE ;
+        command << SAVE_DBRM_STATE;
         err = send_recv(command, response);
         if (err != ERR_OK)
             return err;
