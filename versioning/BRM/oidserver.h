@@ -54,11 +54,6 @@ namespace BRM {
  */
 class OIDServer
 {
-private:
-	struct FEntry {
-		int begin, end;
-	};
-
 public:
 	/** @brief Default constructor
 	 *
@@ -119,11 +114,10 @@ public:
 
 private:
 	std::string fFilename;
-	static const int FreeListEntries = 256;
-	static const int HeaderSize = FreeListEntries * sizeof(FEntry);
-	static const int StartOfVBOidSection = HeaderSize + 2097152;  // (2^24/8)
+ 	static const int HeaderSize = sizeof(int);
 	static const int MaxRetries = 10;   /// max number of retries on file operations
 	static boost::mutex fMutex;
+    int currentOID = 0;
 	erydbdatafile::ERYDBDataFile* fFp;
 	int fFd;  /// file descriptor referencing the bitmap file
 	std::vector<uint16_t> vbOidDBRootMap;
@@ -164,44 +158,7 @@ private:
 	 *       to fully rebuild it from actual DB contents instead.
 	 */
 	void initializeBitmap() const;
-
-	/** @brief Allocates OIDs using a designated freelist entry
-	 *
-	 * Allocates OIDs using a designated freelist entry
-	 * @param fe The freelist entry to use.
-	 * @param num The number of OIDs to allocate from that block
-	 */
-	void useFreeListEntry(struct FEntry& fe, int num);
-
-	/** @brief This allocates or deallocates a block of OIDs
-	 *
-	 * This allocates or deallocates a block of OIDs
-	 * @param start The first OID to alloc/dealloc
-	 * @param end The number of OIDs to flip
-	 * @param mode mode = 0 means 'allocate', mode = 1 means 'deallocate'
-	 */
-	void flipOERYDBlock(int start, int num, int mode) const;
-
-	/** @brief This scans the whole bitmap for a block of free OIDs
-	 *
-	 * This scans the whole bitmap for a block of free OIDs
-	 * @param num the size of the block to locate
-	 * @param freelist the freelist
-	 * @return The first OID of the block allocated, or -1 if there is no match
-	 */
-	int fullScan(int num, struct FEntry* freelist) const;
-
-	/** @brief This is used by allocOIDs to fix the freelist after a full scan
-	 *
-	 * This is used by fullScan to fix the freelist before an allocation
-	 * @param freelist The freelist
-	 * @param start The first OID of the block allocated by fullScan
-	 * @param num The number of OIDs allocated
-	 * @note At the moment it throws logic_error if it detects a specific error in
-	 * fullscan
-	 */
-	void patchFreelist(struct FEntry* freelist, int start, int num) const;
-
+ 
 	void loadVBOIDs();
 };
 
