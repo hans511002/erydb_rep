@@ -272,8 +272,7 @@ namespace BRM {
         }
         firstOID = static_cast<int>(ltmp);
         boost::mutex::scoped_lock lk(fMutex);
-        currentOID = firstOID;
-        writeData((uint8_t*)&currentOID, 0, HeaderSize);
+        writeData((uint8_t*)&firstOID, 0, HeaderSize);
         short sz = 0;
         /* append a 16-bit 0 to indicate 0 entries in the vboid->dbroot mapping */
         writeData((uint8_t*)sz, HeaderSize, 2);
@@ -394,7 +393,7 @@ namespace BRM {
     void OIDServer::loadVBOIDs() {
         uint16_t size;
         try {
-            readData((uint8_t *)&currentOID, HeaderSize, 2);
+            readData((uint8_t *)&currentOID, 0, 2);
             readData((uint8_t *)&size, HeaderSize, 2);
         } catch (EOFException &e) {
             /* convert old OID bitmap */
