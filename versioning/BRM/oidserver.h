@@ -117,7 +117,7 @@ private:
  	static const int HeaderSize = sizeof(int);
 	static const int MaxRetries = 10;   /// max number of retries on file operations
 	static boost::mutex fMutex;
-    int currentOID = 0;
+    int currentOID;
 	erydbdatafile::ERYDBDataFile* fFp;
 	int fFd;  /// file descriptor referencing the bitmap file
 	std::vector<uint16_t> vbOidDBRootMap;

@@ -272,14 +272,14 @@ namespace BRM {
         }
         firstOID = static_cast<int>(ltmp);
         boost::mutex::scoped_lock lk(fMutex);
-        this->currentOID = firstOID;
+        currentOID = firstOID;
         writeData((uint8_t*)&currentOID, 0, HeaderSize);
         short sz = 0;
         /* append a 16-bit 0 to indicate 0 entries in the vboid->dbroot mapping */
         writeData((uint8_t*)sz, HeaderSize, 2);
     }
 
-    OIDServer::OIDServer() : fFp(NULL), fFd(-1) {
+    OIDServer::OIDServer() : fFp(NULL), fFd(-1) , currentOID(0){
         boost::mutex::scoped_lock lk(CtorMutex);
 
         config::Config* conf;
@@ -458,7 +458,6 @@ namespace BRM {
         int bestMatchBegin = this->currentOID;
         this->currentOID += num; 
         writeData(reinterpret_cast<uint8_t*>(currentOID), 0, HeaderSize);
-        flipOERYDBlock(bestMatchBegin, num, 0);
         if (ERYDBPolicy::useHdfs())
             fFp->flush();
         return bestMatchBegin;
