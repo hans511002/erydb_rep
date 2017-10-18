@@ -275,7 +275,7 @@ namespace BRM {
         writeData((uint8_t*)&firstOID, 0, HeaderSize);
         short sz = 0;
         /* append a 16-bit 0 to indicate 0 entries in the vboid->dbroot mapping */
-        writeData((uint8_t*)sz, HeaderSize, 2);
+        writeData((uint8_t*)&sz, HeaderSize, 2);
     }
 
     OIDServer::OIDServer() : fFp(NULL), fFd(-1) , currentOID(0){
@@ -456,7 +456,7 @@ namespace BRM {
     int OIDServer::allocOIDs(int num) {
         int bestMatchBegin = this->currentOID;
         this->currentOID += num; 
-        writeData(reinterpret_cast<uint8_t*>(currentOID), 0, HeaderSize);
+        writeData(reinterpret_cast<uint8_t*>(&currentOID), 0, HeaderSize);
         if (ERYDBPolicy::useHdfs())
             fFp->flush();
         return bestMatchBegin;
