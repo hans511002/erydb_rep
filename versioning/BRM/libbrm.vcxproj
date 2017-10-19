@@ -77,8 +77,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\brmTool\blockresolutionmanager.cpp" />
     <ClCompile Include="autoincrementmanager.cpp" />
-    <ClCompile Include="blockresolutionmanager.cpp" />
     <ClCompile Include="brmshmimpl.cpp" />
     <ClCompile Include="brmtypes.cpp" />
     <ClCompile Include="copylocks.cpp" />

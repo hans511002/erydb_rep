@@ -16,11 +16,11 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
    MA 02110-1301, USA. */
 
-/******************************************************************************************
- ******************************************************************************************/
-/**
- * @file
- */
+   /******************************************************************************************
+    ******************************************************************************************/
+    /**
+     * @file
+     */
 #include <unistd.h>
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
@@ -65,9 +65,9 @@
 #include <string>
 static const std::string optim("Build is "
 #if !defined(__OPTIMIZE__)
-"NOT "
+    "NOT "
 #endif
-"optimized");
+    "optimized");
 #endif
 
 namespace fs = boost::filesystem;
@@ -82,142 +82,128 @@ using namespace BRM;
 
 namespace oam
 {
-	// flag to tell us ctrl-c was hit
-	uint32_t    ctrlc = 0;
+    // flag to tell us ctrl-c was hit
+    uint32_t    ctrlc = 0;
 
-	// flag for using HDFS
-	//   -1: non-hdfs
-	//    0: unknown
-	//    1: hdfs
-	int Oam::UseHdfs = 0;
+    // flag for using HDFS
+    //   -1: non-hdfs
+    //    0: unknown
+    //    1: hdfs
+    int Oam::UseHdfs = 0;
 
-	//------------------------------------------------------------------------------
-	// Signal handler to catch Control-C signal to terminate the process
-	// while waiting for a shutdown or suspend action
-	//------------------------------------------------------------------------------
-	void handleControlC(int i)
-	{
-		std::cout << "Received Control-C to terminate the command..." << std::endl;
-		ctrlc = 1;
-	}
+    //------------------------------------------------------------------------------
+    // Signal handler to catch Control-C signal to terminate the process
+    // while waiting for a shutdown or suspend action
+    //------------------------------------------------------------------------------
+    void handleControlC(int i) {
+        std::cout << "Received Control-C to terminate the command..." << std::endl;
+        ctrlc = 1;
+    }
 
-	Oam::Oam()
-	{
-		eryDBSystemRunFlagcheckTime = 0;
-		eryDBSystemRuningFlag = false;
-		// Assigned pointers to Config files
-		string erydbfiledir;
-		const char* cf=0;
+    Oam::Oam() {
+        eryDBSystemRunFlagcheckTime = 0;
+        eryDBSystemRuningFlag = false;
+        // Assigned pointers to Config files
+        string erydbfiledir;
+        const char* cf = 0;
 
-		InstallDir = startup::StartUp::installDir();
-		erydbfiledir = InstallDir;
+        InstallDir = startup::StartUp::installDir();
+        erydbfiledir = InstallDir;
 
-		//FIXME: we should not use this anymore. Everything should be based off the install dir
-		//If ERYDB_HOME is set, use it for etc directory
+        //FIXME: we should not use this anymore. Everything should be based off the install dir
+        //If ERYDB_HOME is set, use it for etc directory
 #ifdef _MSC_VER
-		cf = 0;
-		string cfStr = ERYDBreadRegistry("ERYDB_HOME");
-		if (!cfStr.empty())
-			cf = cfStr.c_str();
+        cf = 0;
+        string cfStr = ERYDBreadRegistry("ERYDB_HOME");
+        if (!cfStr.empty())
+            cf = cfStr.c_str();
 #else        
-		cf = getenv("ERYDB_HOME");
+        cf = getenv("ERYDB_HOME");
 #endif
-		if (cf != 0 && *cf != 0)
-			erydbfiledir = cf;
-		erydbfiledir = erydbfiledir + "/etc";
-		erydbConfigFile = erydbfiledir + "/erydb.xml";
-	
-		AlarmConfigFile = erydbfiledir + "/AlarmConfig.xml";
-	
-		ProcessConfigFile = erydbfiledir + "/ProcessConfig.xml";
-		if (UseHdfs == 0)
-		{
-			try {
-				Config* sysConfig = Config::makeConfig(erydbConfigFile.c_str());
-				string tmp = sysConfig->getConfig("Installation", "DBRootStorageType");
-				if (boost::iequals(tmp, "hdfs"))
-					UseHdfs = 1;
-				else
-					UseHdfs = -1;
-			}
-			catch(...) {} // defaulted to false
-		}
-	}
+        if (cf != 0 && *cf != 0)
+            erydbfiledir = cf;
+        erydbfiledir = erydbfiledir + "/etc";
+        erydbConfigFile = erydbfiledir + "/erydb.xml";
 
-    Oam::~Oam()
-    {}
+        AlarmConfigFile = erydbfiledir + "/AlarmConfig.xml";
 
-	bool Oam::checkSystemRunFlag(){
-		struct timeval tv;
-		gettimeofday(&tv, NULL);
-		if (tv.tv_sec - eryDBSystemRunFlagcheckTime >= 5){
-			eryDBSystemRunFlagcheckTime = tv.tv_sec;
-			string cmd = startup::StartUp::installDir() + "/bin/erydb status > /tmp/status.log";
-			system(cmd.c_str());
-			eryDBSystemRuningFlag = checkLogStatus("/tmp/status.log", "EryDB is running");
-		}
-		return eryDBSystemRuningFlag;
-	}
+        ProcessConfigFile = erydbfiledir + "/ProcessConfig.xml";
+        if (UseHdfs == 0) {
+            try {
+                Config* sysConfig = Config::makeConfig(erydbConfigFile.c_str());
+                string tmp = sysConfig->getConfig("Installation", "DBRootStorageType");
+                if (boost::iequals(tmp, "hdfs"))
+                    UseHdfs = 1;
+                else
+                    UseHdfs = -1;
+            } catch (...) {} // defaulted to false
+        }
+    }
 
-	/********************************************************************
-	*
-	* get System Software information
-	*
-	********************************************************************/
+    Oam::~Oam() {
+    }
 
-    void Oam::getSystemSoftware(SystemSoftware& systemsoftware)
-    {
+    bool Oam::checkSystemRunFlag() {
+        struct timeval tv;
+        gettimeofday(&tv, NULL);
+        if (tv.tv_sec - eryDBSystemRunFlagcheckTime >= 5) {
+            eryDBSystemRunFlagcheckTime = tv.tv_sec;
+            string cmd = startup::StartUp::installDir() + "/bin/erydb status > /tmp/status.log";
+            system(cmd.c_str());
+            eryDBSystemRuningFlag = checkLogStatus("/tmp/status.log", "EryDB is running");
+        }
+        return eryDBSystemRuningFlag;
+    }
+
+    /********************************************************************
+    *
+    * get System Software information
+    *
+    ********************************************************************/
+
+    void Oam::getSystemSoftware(SystemSoftware& systemsoftware) {
         // parse releasenum file
 
         string rn = InstallDir + "/releasenum";
-		ifstream File(rn.c_str());
+        ifstream File(rn.c_str());
         if (!File)
             // Open File error
             return;
 
         char line[400];
         string buf;
-        while (File.getline(line, 400))
-        {
+        while (File.getline(line, 400)) {
             buf = line;
-            for ( unsigned int i = 0;; i++)
-            {
-                if ( SoftwareData[i] == "")
+            for (unsigned int i = 0;; i++) {
+                if (SoftwareData[i] == "")
                     //end of list
                     break;
 
                 string data = "";
-                string::size_type pos = buf.find(SoftwareData[i],0);
-                if (pos != string::npos)
-                {
-                    string::size_type pos1 = buf.find("=",pos);
-                    if (pos1 != string::npos)
-                    {
-                     	data = buf.substr(pos1+1, 80);
-					}
-                    else
+                string::size_type pos = buf.find(SoftwareData[i], 0);
+                if (pos != string::npos) {
+                    string::size_type pos1 = buf.find("=", pos);
+                    if (pos1 != string::npos) {
+                        data = buf.substr(pos1 + 1, 80);
+                    } else
                         // parse error
                         exceptionControl("getSystemSoftware", API_FAILURE);
 
-					//strip off any leading or trailing spaces
-					for(;;)
-					{
-						string::size_type pos = data.find(' ',0);
-						if (pos == string::npos)
-							// no more found
-							break;
-						// strip leading
-						if (pos == 0) {
-							data = data.substr(pos+1,10000);
-						}
-						else 
-						{ // strip trailing
-							data = data.substr(0, pos);
-						}
-					}	
+                    //strip off any leading or trailing spaces
+                    for (;;) {
+                        string::size_type pos = data.find(' ', 0);
+                        if (pos == string::npos)
+                            // no more found
+                            break;
+                        // strip leading
+                        if (pos == 0) {
+                            data = data.substr(pos + 1, 10000);
+                        } else { // strip trailing
+                            data = data.substr(0, pos);
+                        }
+                    }
 
-                    switch(i)
-                    {
+                    switch (i) {
                         case(0):                  // line up with SoftwareData[]
                             systemsoftware.Version = data;
                             break;
@@ -237,9 +223,8 @@ namespace oam
      *
      ********************************************************************/
 
-    void Oam::getSystemConfig(SystemConfig& systemconfig)
-    {
-	
+    void Oam::getSystemConfig(SystemConfig& systemconfig) {
+
         Config* sysConfig = Config::makeConfig(erydbConfigFile.c_str());
         string Section = "SystemConfig";
 
@@ -247,22 +232,21 @@ namespace oam
         systemconfig.DBRootCount = strtol(sysConfig->getConfig(Section, "DBRootCount").c_str(), 0, 0);
         systemconfig.ModuleHeartbeatPeriod = strtol(sysConfig->getConfig(Section, "ModuleHeartbeatPeriod").c_str(), 0, 0);
         systemconfig.ModuleHeartbeatCount = strtol(sysConfig->getConfig(Section, "ModuleHeartbeatCount").c_str(), 0, 0);
-//        systemconfig.ProcessHeartbeatPeriod = strtol(sysConfig->getConfig(Section, "ProcessHeartbeatPeriod").c_str(), 0, 0);
+        //        systemconfig.ProcessHeartbeatPeriod = strtol(sysConfig->getConfig(Section, "ProcessHeartbeatPeriod").c_str(), 0, 0);
         systemconfig.ExternalCriticalThreshold = strtol(sysConfig->getConfig(Section, "ExternalCriticalThreshold").c_str(), 0, 0);
         systemconfig.ExternalMajorThreshold = strtol(sysConfig->getConfig(Section, "ExternalMajorThreshold").c_str(), 0, 0);
         systemconfig.ExternalMinorThreshold = strtol(sysConfig->getConfig(Section, "ExternalMinorThreshold").c_str(), 0, 0);
         systemconfig.TransactionArchivePeriod = strtol(sysConfig->getConfig(Section, "TransactionArchivePeriod").c_str(), 0, 0);
 
         // get string variables
-		for ( unsigned int dbrootID = 1 ; dbrootID < systemconfig.DBRootCount + 1 ; dbrootID++)
-		{
-			systemconfig.DBRoot.push_back(sysConfig->getConfig(Section, "DBRoot" + itoa(dbrootID)));
-		}
+        for (unsigned int dbrootID = 1; dbrootID < systemconfig.DBRootCount + 1; dbrootID++) {
+            systemconfig.DBRoot.push_back(sysConfig->getConfig(Section, "DBRoot" + itoa(dbrootID)));
+        }
 
         systemconfig.SystemName = sysConfig->getConfig(Section, "SystemName");
         systemconfig.DBRMRoot = sysConfig->getConfig(Section, "DBRMRoot");
-        systemconfig.ParentOAMModule  = sysConfig->getConfig(Section, "ParentOAMModuleName");
-        systemconfig.StandbyOAMModule  = sysConfig->getConfig(Section, "StandbyOAMModuleName");
+        systemconfig.ParentOAMModule = sysConfig->getConfig(Section, "ParentOAMModuleName");
+        systemconfig.StandbyOAMModule = sysConfig->getConfig(Section, "StandbyOAMModuleName");
 
         Section = "SessionManager";
 
@@ -286,23 +270,21 @@ namespace oam
      *
      ********************************************************************/
 
-    void Oam::getSystemConfig(SystemModuleTypeConfig& systemmoduletypeconfig)
-    {
+    void Oam::getSystemConfig(SystemModuleTypeConfig& systemmoduletypeconfig) {
         const string Section = "SystemModuleConfig";
         const string MODULE_TYPE = "ModuleType";
         systemmoduletypeconfig.moduletypeconfig.clear();
 
         Config* sysConfig = Config::makeConfig(erydbConfigFile.c_str());
 
-        for (int moduleTypeID = 1; moduleTypeID < MAX_MODULE_TYPE+1; moduleTypeID++)
-        {
-        	ModuleTypeConfig moduletypeconfig;
+        for (int moduleTypeID = 1; moduleTypeID < MAX_MODULE_TYPE + 1; moduleTypeID++) {
+            ModuleTypeConfig moduletypeconfig;
 
             // get Module info
 
             string moduleType = MODULE_TYPE + itoa(moduleTypeID);
 
-            Oam::getSystemConfig(sysConfig->getConfig(Section, moduleType), moduletypeconfig );
+            Oam::getSystemConfig(sysConfig->getConfig(Section, moduleType), moduletypeconfig);
 
             if (moduletypeconfig.ModuleType.empty())
                 continue;
@@ -317,8 +299,7 @@ namespace oam
      *
      ********************************************************************/
 
-    void Oam::getSystemConfig(const std::string&moduletype, ModuleTypeConfig& moduletypeconfig)
-    {
+    void Oam::getSystemConfig(const std::string&moduletype, ModuleTypeConfig& moduletypeconfig) {
         Config* sysConfig = Config::makeConfig(erydbConfigFile.c_str());
         const string Section = "SystemModuleConfig";
         const string MODULE_TYPE = "ModuleType";
@@ -345,12 +326,10 @@ namespace oam
         const string MODULE_DBROOT_COUNT = "ModuleDBRootCount";
         const string MODULE_DBROOT_ID = "ModuleDBRootID";
 
-        for (int moduleTypeID = 1; moduleTypeID < MAX_MODULE_TYPE+1; moduleTypeID++)
-        {
+        for (int moduleTypeID = 1; moduleTypeID < MAX_MODULE_TYPE + 1; moduleTypeID++) {
             string moduleType = MODULE_TYPE + itoa(moduleTypeID);
 
-            if( sysConfig->getConfig(Section, moduleType) ==  moduletype)
-            {
+            if (sysConfig->getConfig(Section, moduleType) == moduletype) {
                 string ModuleCount = MODULE_COUNT + itoa(moduleTypeID);
                 string ModuleType = MODULE_TYPE + itoa(moduleTypeID);
                 string ModuleDesc = MODULE_DESC + itoa(moduleTypeID);
@@ -387,108 +366,101 @@ namespace oam
                 moduletypeconfig.ModuleSwapMajorThreshold = strtol(sysConfig->getConfig(Section, ModuleSwapMajorThreshold).c_str(), 0, 0);
                 moduletypeconfig.ModuleSwapMinorThreshold = strtol(sysConfig->getConfig(Section, ModuleSwapMinorThreshold).c_str(), 0, 0);
 
-				int moduleFound = 0;
-				//get NIC IP address/hostnames
-				for (int moduleID = 1; moduleID <= moduletypeconfig.ModuleCount ; moduleID++)
-				{
-					DeviceNetworkConfig devicenetworkconfig;
-					HostConfig hostconfig;
+                int moduleFound = 0;
+                //get NIC IP address/hostnames
+                for (int moduleID = 1; moduleID <= moduletypeconfig.ModuleCount; moduleID++) {
+                    DeviceNetworkConfig devicenetworkconfig;
+                    HostConfig hostconfig;
 
-					for (int nicID= 1; nicID < MAX_NIC+1 ; nicID++)
-					{
-						string ModuleIpAddr = MODULE_IP_ADDR + itoa(moduleID) + "-" + itoa(nicID) + "-" + itoa(moduleTypeID);
-	
-						string ipAddr = sysConfig->getConfig(Section, ModuleIpAddr);
-						if (ipAddr.empty())
+                    for (int nicID = 1; nicID < MAX_NIC + 1; nicID++) {
+                        string ModuleIpAddr = MODULE_IP_ADDR + itoa(moduleID) + "-" + itoa(nicID) + "-" + itoa(moduleTypeID);
+
+                        string ipAddr = sysConfig->getConfig(Section, ModuleIpAddr);
+                        if (ipAddr.empty())
                             break;
-                        else if (ipAddr == UnassignedIpAddr )
-							continue;
-	
-						string ModuleHostName = MODULE_SERVER_NAME + itoa(moduleID) + "-" + itoa(nicID) + "-" + itoa(moduleTypeID);
-						string serverName = sysConfig->getConfig(Section, ModuleHostName);
-	
-						hostconfig.IPAddr = ipAddr;
-						hostconfig.HostName = serverName;
-						hostconfig.NicID = nicID;
+                        else if (ipAddr == UnassignedIpAddr)
+                            continue;
 
-						devicenetworkconfig.hostConfigList.push_back(hostconfig);
-					}
+                        string ModuleHostName = MODULE_SERVER_NAME + itoa(moduleID) + "-" + itoa(nicID) + "-" + itoa(moduleTypeID);
+                        string serverName = sysConfig->getConfig(Section, ModuleHostName);
 
-					if ( !devicenetworkconfig.hostConfigList.empty() ) {
-		                string ModuleDisableState = MODULE_DISABLE_STATE + itoa(moduleID) + "-" + itoa(moduleTypeID);
-						devicenetworkconfig.DisableState = sysConfig->getConfig(Section, ModuleDisableState);
+                        hostconfig.IPAddr = ipAddr;
+                        hostconfig.HostName = serverName;
+                        hostconfig.NicID = nicID;
 
-						devicenetworkconfig.DeviceName = moduletypeconfig.ModuleType + itoa(moduleID);
-						moduletypeconfig.ModuleNetworkList.push_back(devicenetworkconfig);
-						devicenetworkconfig.hostConfigList.clear();
+                        devicenetworkconfig.hostConfigList.push_back(hostconfig);
+                    }
 
-						moduleFound++;
-						if ( moduleFound >= moduletypeconfig.ModuleCount )
-							break;
-					}
-				}
+                    if (!devicenetworkconfig.hostConfigList.empty()) {
+                        string ModuleDisableState = MODULE_DISABLE_STATE + itoa(moduleID) + "-" + itoa(moduleTypeID);
+                        devicenetworkconfig.DisableState = sysConfig->getConfig(Section, ModuleDisableState);
 
-				// get filesystems
-				DiskMonitorFileSystems fs;
-				for (int fsID = 1;; fsID++)
-				{
-	            	string ModuleDiskMonitorFS = MODULE_DISK_MONITOR_FS + itoa(fsID) + "-" + itoa(moduleTypeID);
+                        devicenetworkconfig.DeviceName = moduletypeconfig.ModuleType + itoa(moduleID);
+                        moduletypeconfig.ModuleNetworkList.push_back(devicenetworkconfig);
+                        devicenetworkconfig.hostConfigList.clear();
 
-                	string fsName = sysConfig->getConfig(Section, ModuleDiskMonitorFS);
-					if (fsName.empty())
-						break;
+                        moduleFound++;
+                        if (moduleFound >= moduletypeconfig.ModuleCount)
+                            break;
+                    }
+                }
 
-					fs.push_back(fsName);
-				}
-				moduletypeconfig.FileSystems = fs;
+                // get filesystems
+                DiskMonitorFileSystems fs;
+                for (int fsID = 1;; fsID++) {
+                    string ModuleDiskMonitorFS = MODULE_DISK_MONITOR_FS + itoa(fsID) + "-" + itoa(moduleTypeID);
 
-				// get dbroot IDs
-				moduleFound = 0;
-				for (int moduleID = 1; moduleID <= moduletypeconfig.ModuleCount ; moduleID++)
-				{
-					string ModuleDBRootCount = MODULE_DBROOT_COUNT + itoa(moduleID) + "-" + itoa(moduleTypeID);
-					string temp = sysConfig->getConfig(Section, ModuleDBRootCount).c_str();
-					if ( temp.empty() || temp == oam::UnassignedName)
-						continue;
+                    string fsName = sysConfig->getConfig(Section, ModuleDiskMonitorFS);
+                    if (fsName.empty())
+                        break;
 
-					int moduledbrootcount = strtol(temp.c_str(), 0, 0);
-	
-					DeviceDBRootConfig devicedbrootconfig;
-					DBRootConfigList dbrootconfiglist;
+                    fs.push_back(fsName);
+                }
+                moduletypeconfig.FileSystems = fs;
 
-					if ( moduledbrootcount < 1 ) {
-						dbrootconfiglist.clear();
-					}
-					else
-					{
-	
-						int foundIDs = 0;
-						for (int dbrootID = 1; dbrootID < moduledbrootcount+1 ; dbrootID++)
-						{
-							string DBRootID = MODULE_DBROOT_ID + itoa(moduleID) + "-" + itoa(dbrootID) + "-" + itoa(moduleTypeID);
-		
-							string dbrootid = sysConfig->getConfig(Section, DBRootID);
-							if (dbrootid.empty() || dbrootid == oam::UnassignedName
-								|| dbrootid == "0")
-								continue;
-	
-							dbrootconfiglist.push_back(atoi(dbrootid.c_str()));
-							foundIDs++;
-							if ( moduledbrootcount == foundIDs)
-								break;
-						}
-					}
+                // get dbroot IDs
+                moduleFound = 0;
+                for (int moduleID = 1; moduleID <= moduletypeconfig.ModuleCount; moduleID++) {
+                    string ModuleDBRootCount = MODULE_DBROOT_COUNT + itoa(moduleID) + "-" + itoa(moduleTypeID);
+                    string temp = sysConfig->getConfig(Section, ModuleDBRootCount).c_str();
+                    if (temp.empty() || temp == oam::UnassignedName)
+                        continue;
 
-					sort ( dbrootconfiglist.begin(), dbrootconfiglist.end() );
-					devicedbrootconfig.DeviceID = moduleID;
-					devicedbrootconfig.dbrootConfigList = dbrootconfiglist;
-					moduletypeconfig.ModuleDBRootList.push_back(devicedbrootconfig);
-					devicedbrootconfig.dbrootConfigList.clear();
+                    int moduledbrootcount = strtol(temp.c_str(), 0, 0);
 
-					moduleFound++;
-					if ( moduleFound >= moduletypeconfig.ModuleCount )
-						break;
-				}
+                    DeviceDBRootConfig devicedbrootconfig;
+                    DBRootConfigList dbrootconfiglist;
+
+                    if (moduledbrootcount < 1) {
+                        dbrootconfiglist.clear();
+                    } else {
+
+                        int foundIDs = 0;
+                        for (int dbrootID = 1; dbrootID < moduledbrootcount + 1; dbrootID++) {
+                            string DBRootID = MODULE_DBROOT_ID + itoa(moduleID) + "-" + itoa(dbrootID) + "-" + itoa(moduleTypeID);
+
+                            string dbrootid = sysConfig->getConfig(Section, DBRootID);
+                            if (dbrootid.empty() || dbrootid == oam::UnassignedName
+                                || dbrootid == "0")
+                                continue;
+
+                            dbrootconfiglist.push_back(atoi(dbrootid.c_str()));
+                            foundIDs++;
+                            if (moduledbrootcount == foundIDs)
+                                break;
+                        }
+                    }
+
+                    sort(dbrootconfiglist.begin(), dbrootconfiglist.end());
+                    devicedbrootconfig.DeviceID = moduleID;
+                    devicedbrootconfig.dbrootConfigList = dbrootconfiglist;
+                    moduletypeconfig.ModuleDBRootList.push_back(devicedbrootconfig);
+                    devicedbrootconfig.dbrootConfigList.clear();
+
+                    moduleFound++;
+                    if (moduleFound >= moduletypeconfig.ModuleCount)
+                        break;
+                }
 
                 return;
             }
@@ -504,8 +476,7 @@ namespace oam
      *
      ********************************************************************/
 
-    void Oam::getSystemConfig(const std::string&module, ModuleConfig& moduleconfig)
-    {
+    void Oam::getSystemConfig(const std::string&module, ModuleConfig& moduleconfig) {
         Config* sysConfig = Config::makeConfig(erydbConfigFile.c_str());
         const string Section = "SystemModuleConfig";
         const string MODULE_TYPE = "ModuleType";
@@ -517,72 +488,68 @@ namespace oam
         const string MODULE_DBROOT_COUNT = "ModuleDBRootCount";
         const string MODULE_DBROOT_ID = "ModuleDBRootID";
 
-		string moduletype = module.substr(0,MAX_MODULE_TYPE_SIZE);
-		int moduleID = atoi(module.substr(MAX_MODULE_TYPE_SIZE,MAX_MODULE_ID_SIZE).c_str());
-		if ( moduleID < 1 )
-			//invalid ID
-        	exceptionControl("getSystemConfig", API_INVALID_PARAMETER);
+        string moduletype = module.substr(0, MAX_MODULE_TYPE_SIZE);
+        int moduleID = atoi(module.substr(MAX_MODULE_TYPE_SIZE, MAX_MODULE_ID_SIZE).c_str());
+        if (moduleID < 1)
+            //invalid ID
+            exceptionControl("getSystemConfig", API_INVALID_PARAMETER);
 
-        for (int moduleTypeID = 1; moduleTypeID < MAX_MODULE_TYPE+1; moduleTypeID++)
-        {
+        for (int moduleTypeID = 1; moduleTypeID < MAX_MODULE_TYPE + 1; moduleTypeID++) {
             string moduleType = MODULE_TYPE + itoa(moduleTypeID);
             string ModuleCount = MODULE_COUNT + itoa(moduleTypeID);
 
-            if( sysConfig->getConfig(Section, moduleType) ==  moduletype  )
-            {
+            if (sysConfig->getConfig(Section, moduleType) == moduletype) {
                 string ModuleType = MODULE_TYPE + itoa(moduleTypeID);
                 string ModuleDesc = MODULE_DESC + itoa(moduleTypeID);
-	            string ModuleDisableState = MODULE_DISABLE_STATE + itoa(moduleID) + "-" + itoa(moduleTypeID);
+                string ModuleDisableState = MODULE_DISABLE_STATE + itoa(moduleID) + "-" + itoa(moduleTypeID);
 
                 moduleconfig.ModuleName = module;
                 moduleconfig.ModuleType = sysConfig->getConfig(Section, ModuleType);
                 moduleconfig.ModuleDesc = sysConfig->getConfig(Section, ModuleDesc) + " #" + itoa(moduleID);
                 moduleconfig.DisableState = sysConfig->getConfig(Section, ModuleDisableState);
 
-				string ModuleDBRootCount = MODULE_DBROOT_COUNT + itoa(moduleID) + "-" + itoa(moduleTypeID);
-				string temp = sysConfig->getConfig(Section, ModuleDBRootCount).c_str();
+                string ModuleDBRootCount = MODULE_DBROOT_COUNT + itoa(moduleID) + "-" + itoa(moduleTypeID);
+                string temp = sysConfig->getConfig(Section, ModuleDBRootCount).c_str();
 
-				int moduledbrootcount = 0;
-				if ( temp.empty() || temp != oam::UnassignedName)
-					moduledbrootcount = strtol(temp.c_str(), 0, 0);
+                int moduledbrootcount = 0;
+                if (temp.empty() || temp != oam::UnassignedName)
+                    moduledbrootcount = strtol(temp.c_str(), 0, 0);
 
-				HostConfig hostconfig;
+                HostConfig hostconfig;
 
-				//get NIC IP address/hostnames
-				moduleconfig.hostConfigList.clear();
-				for (int nicID = 1; nicID < MAX_NIC+1 ; nicID++)
-				{
-					string ModuleIpAddr = MODULE_IP_ADDR + itoa(moduleID) + "-" + itoa(nicID) + "-" + itoa(moduleTypeID);
+                //get NIC IP address/hostnames
+                moduleconfig.hostConfigList.clear();
+                for (int nicID = 1; nicID < MAX_NIC + 1; nicID++) {
+                    string ModuleIpAddr = MODULE_IP_ADDR + itoa(moduleID) + "-" + itoa(nicID) + "-" + itoa(moduleTypeID);
 
-					string ipAddr = sysConfig->getConfig(Section, ModuleIpAddr);
-					if (ipAddr.empty() || ipAddr == UnassignedIpAddr )
-						continue;
+                    string ipAddr = sysConfig->getConfig(Section, ModuleIpAddr);
+                    if (ipAddr.empty() || ipAddr == UnassignedIpAddr)
+                        continue;
 
-					string ModuleHostName = MODULE_SERVER_NAME + itoa(moduleID) + "-" + itoa(nicID) + "-" + itoa(moduleTypeID);
-					string serverName = sysConfig->getConfig(Section, ModuleHostName);
+                    string ModuleHostName = MODULE_SERVER_NAME + itoa(moduleID) + "-" + itoa(nicID) + "-" + itoa(moduleTypeID);
+                    string serverName = sysConfig->getConfig(Section, ModuleHostName);
 
-					hostconfig.IPAddr = ipAddr;
-					hostconfig.HostName = serverName;
-					hostconfig.NicID = nicID;
+                    hostconfig.IPAddr = ipAddr;
+                    hostconfig.HostName = serverName;
+                    hostconfig.NicID = nicID;
 
-					moduleconfig.hostConfigList.push_back(hostconfig);
-				}
+                    moduleconfig.hostConfigList.push_back(hostconfig);
+                }
 
-				//get DBroot IDs
-				moduleconfig.dbrootConfigList.clear();
-				for (int dbrootID = 1; dbrootID < moduledbrootcount+1 ; dbrootID++)
-				{
-					string ModuleDBRootID = MODULE_DBROOT_ID + itoa(moduleID) + "-" + itoa(dbrootID) + "-" + itoa(moduleTypeID);
+                //get DBroot IDs
+                moduleconfig.dbrootConfigList.clear();
+                for (int dbrootID = 1; dbrootID < moduledbrootcount + 1; dbrootID++) {
+                    string ModuleDBRootID = MODULE_DBROOT_ID + itoa(moduleID) + "-" + itoa(dbrootID) + "-" + itoa(moduleTypeID);
 
-					string moduleDBRootID = sysConfig->getConfig(Section, ModuleDBRootID);
-					if (moduleDBRootID.empty() || moduleDBRootID == oam::UnassignedName
-						|| moduleDBRootID == "0")
-						continue;
+                    string moduleDBRootID = sysConfig->getConfig(Section, ModuleDBRootID);
+                    if (moduleDBRootID.empty() || moduleDBRootID == oam::UnassignedName
+                        || moduleDBRootID == "0")
+                        continue;
 
-					moduleconfig.dbrootConfigList.push_back(atoi(moduleDBRootID.c_str()));
-				}
+                    moduleconfig.dbrootConfigList.push_back(atoi(moduleDBRootID.c_str()));
+                }
 
-				sort ( moduleconfig.dbrootConfigList.begin(), moduleconfig.dbrootConfigList.end() );
+                sort(moduleconfig.dbrootConfigList.begin(), moduleconfig.dbrootConfigList.end());
 
                 return;
             }
@@ -598,8 +565,7 @@ namespace oam
      *
      ********************************************************************/
 
-    void Oam::getSystemConfig(ModuleConfig& moduleconfig)
-    {
+    void Oam::getSystemConfig(ModuleConfig& moduleconfig) {
         // get Local Module Name
 
         oamModuleInfo_t t = Oam::getModuleInfo();
@@ -617,14 +583,13 @@ namespace oam
      *
      ********************************************************************/
 
-    void Oam::getSystemConfig(ModuleTypeConfig& moduletypeconfig)
-    {
+    void Oam::getSystemConfig(ModuleTypeConfig& moduletypeconfig) {
         // get Local Module Name
 
         oamModuleInfo_t t = Oam::getModuleInfo();
 
         string module = boost::get<0>(t);
-		string moduleType = module.substr(0,MAX_MODULE_TYPE_SIZE);
+        string moduleType = module.substr(0, MAX_MODULE_TYPE_SIZE);
 
         // get Module info
 
@@ -637,60 +602,53 @@ namespace oam
      *
      ********************************************************************/
 
-	void Oam::getSystemConfig(SystemExtDeviceConfig& systemextdeviceconfig)
-	{
+    void Oam::getSystemConfig(SystemExtDeviceConfig& systemextdeviceconfig) {
         Config* sysConfig = Config::makeConfig(erydbConfigFile.c_str());
         const string Section = "SystemExtDeviceConfig";
         const string NAME = "Name";
         const string IPADDR = "IPAddr";
         const string DISABLE_STATE = "DisableState";
- 
+
         systemextdeviceconfig.Count = strtol(sysConfig->getConfig(Section, "Count").c_str(), 0, 0);
 
-		int configCount = 0;
-        for (int extDeviceID = 1; extDeviceID < MAX_EXT_DEVICE+1; extDeviceID++)
-        {
-	        ExtDeviceConfig Extdeviceconfig;
+        int configCount = 0;
+        for (int extDeviceID = 1; extDeviceID < MAX_EXT_DEVICE + 1; extDeviceID++) {
+            ExtDeviceConfig Extdeviceconfig;
 
-			string name = NAME + itoa(extDeviceID);
+            string name = NAME + itoa(extDeviceID);
 
-			try {
-				Extdeviceconfig.Name = sysConfig->getConfig(Section, name);
-			}
-			catch(...)
-			{
-				continue;
-			}
+            try {
+                Extdeviceconfig.Name = sysConfig->getConfig(Section, name);
+            } catch (...) {
+                continue;
+            }
 
             if (Extdeviceconfig.Name == oam::UnassignedName ||
-				Extdeviceconfig.Name.empty())
+                Extdeviceconfig.Name.empty())
                 continue;
 
-			string ipaddr = IPADDR + itoa(extDeviceID);
-			string disablestate = DISABLE_STATE + itoa(extDeviceID);
+            string ipaddr = IPADDR + itoa(extDeviceID);
+            string disablestate = DISABLE_STATE + itoa(extDeviceID);
 
-			Extdeviceconfig.IPAddr = sysConfig->getConfig(Section, ipaddr);
-			Extdeviceconfig.DisableState = sysConfig->getConfig(Section, disablestate);
+            Extdeviceconfig.IPAddr = sysConfig->getConfig(Section, ipaddr);
+            Extdeviceconfig.DisableState = sysConfig->getConfig(Section, disablestate);
 
             systemextdeviceconfig.extdeviceconfig.push_back(Extdeviceconfig);
-			configCount++;
-		}
-		//correct count if not matching
-		if ( systemextdeviceconfig.Count != configCount ) {
-			systemextdeviceconfig.Count = configCount;
+            configCount++;
+        }
+        //correct count if not matching
+        if (systemextdeviceconfig.Count != configCount) {
+            systemextdeviceconfig.Count = configCount;
 
-			sysConfig->setConfig(Section, "Count", itoa(configCount));
+            sysConfig->setConfig(Section, "Count", itoa(configCount));
 
-			try
-			{
-	        	sysConfig->write();
-			}
-			catch(...)
-			{
-				exceptionControl("getSystemConfig", API_FAILURE);
-			}
-		}
-	}
+            try {
+                sysConfig->write();
+            } catch (...) {
+                exceptionControl("getSystemConfig", API_FAILURE);
+            }
+        }
+    }
 
     /********************************************************************
      *
@@ -698,30 +656,28 @@ namespace oam
      *
      ********************************************************************/
 
-    void Oam::getSystemConfig(const std::string&extDevicename, ExtDeviceConfig& extdeviceconfig)
-	{
+    void Oam::getSystemConfig(const std::string&extDevicename, ExtDeviceConfig& extdeviceconfig) {
         Config* sysConfig = Config::makeConfig(erydbConfigFile.c_str());
         const string Section = "SystemExtDeviceConfig";
         const string NAME = "Name";
         const string IPADDR = "IPAddr";
         const string DISABLE_STATE = "DisableState";
 
-        for (int extDeviceID = 1; extDeviceID < MAX_EXT_DEVICE+1; extDeviceID++)
-        {
-			string name = NAME + itoa(extDeviceID);
+        for (int extDeviceID = 1; extDeviceID < MAX_EXT_DEVICE + 1; extDeviceID++) {
+            string name = NAME + itoa(extDeviceID);
 
-			extdeviceconfig.Name = sysConfig->getConfig(Section, name);
+            extdeviceconfig.Name = sysConfig->getConfig(Section, name);
 
             if (extdeviceconfig.Name != extDevicename)
                 continue;
 
-			string ipaddr = IPADDR + itoa(extDeviceID);
-			string disablestate = DISABLE_STATE + itoa(extDeviceID);
+            string ipaddr = IPADDR + itoa(extDeviceID);
+            string disablestate = DISABLE_STATE + itoa(extDeviceID);
 
-			extdeviceconfig.IPAddr = sysConfig->getConfig(Section, ipaddr);
-			extdeviceconfig.DisableState = sysConfig->getConfig(Section, disablestate);
-			return;
-		}
+            extdeviceconfig.IPAddr = sysConfig->getConfig(Section, ipaddr);
+            extdeviceconfig.DisableState = sysConfig->getConfig(Section, disablestate);
+            return;
+        }
 
         // Ext Device Not found
         exceptionControl("getSystemConfig", API_INVALID_PARAMETER);
@@ -734,10 +690,9 @@ namespace oam
      *
      ********************************************************************/
 
-    void Oam::setSystemConfig(const std::string deviceName, ExtDeviceConfig extdeviceconfig)
-    {
-		if ( deviceName == oam::UnassignedName )
-			return;
+    void Oam::setSystemConfig(const std::string deviceName, ExtDeviceConfig extdeviceconfig) {
+        if (deviceName == oam::UnassignedName)
+            return;
 
         Config* sysConfig = Config::makeConfig(erydbConfigFile.c_str());
         const string Section = "SystemExtDeviceConfig";
@@ -747,110 +702,90 @@ namespace oam
 
         int count = strtol(sysConfig->getConfig(Section, "Count").c_str(), 0, 0);
 
-		int entry = 0;
-		int extDeviceID = 1;
-        for (; extDeviceID < MAX_EXT_DEVICE+1; extDeviceID++)
-        {
-			string name = NAME + itoa(extDeviceID);
+        int entry = 0;
+        int extDeviceID = 1;
+        for (; extDeviceID < MAX_EXT_DEVICE + 1; extDeviceID++) {
+            string name = NAME + itoa(extDeviceID);
 
             if (sysConfig->getConfig(Section, name) == oam::UnassignedName)
-				entry = extDeviceID;
+                entry = extDeviceID;
 
             if ((sysConfig->getConfig(Section, name)).empty() && entry == 0)
-				entry = extDeviceID;
+                entry = extDeviceID;
 
             if (sysConfig->getConfig(Section, name) != deviceName)
                 continue;
 
-			string ipaddr = IPADDR + itoa(extDeviceID);
-			string disablestate = DISABLE_STATE + itoa(extDeviceID);
+            string ipaddr = IPADDR + itoa(extDeviceID);
+            string disablestate = DISABLE_STATE + itoa(extDeviceID);
 
-			sysConfig->setConfig(Section, name, extdeviceconfig.Name);
-			sysConfig->setConfig(Section, ipaddr, extdeviceconfig.IPAddr);
-			sysConfig->setConfig(Section, disablestate, extdeviceconfig.DisableState);
+            sysConfig->setConfig(Section, name, extdeviceconfig.Name);
+            sysConfig->setConfig(Section, ipaddr, extdeviceconfig.IPAddr);
+            sysConfig->setConfig(Section, disablestate, extdeviceconfig.DisableState);
 
-			if ( extdeviceconfig.Name == oam::UnassignedName ) {
-				// entry deleted decrement count
-				count--;
-				if ( count < 0 )
-					count = 0 ; 
-				sysConfig->setConfig(Section, "Count", itoa(count));
+            if (extdeviceconfig.Name == oam::UnassignedName) {
+                // entry deleted decrement count
+                count--;
+                if (count < 0)
+                    count = 0;
+                sysConfig->setConfig(Section, "Count", itoa(count));
 
-				//
-				//send message to Process Monitor to remove external device to shared memory
-				//
-				try
-				{
-					ByteStream obs;
-			
-					obs << (ByteStream::byte) REMOVE_EXT_DEVICE;
-					obs << deviceName;
-			
-					sendStatusUpdate(obs, REMOVE_EXT_DEVICE);
-				}
-				catch(...)
-				{
-					exceptionControl("setSystemConfig", API_INVALID_PARAMETER);
-				}
+                //
+                //send message to Process Monitor to remove external device to shared memory
+                //
+                try {
+                    ByteStream obs;
 
-			}
+                    obs << (ByteStream::byte) REMOVE_EXT_DEVICE;
+                    obs << deviceName;
 
-			try
-			{
-	        	sysConfig->write();
-			}
-			catch(...)
-			{
-				exceptionControl("setSystemConfig", API_FAILURE);
-			}
+                    sendStatusUpdate(obs, REMOVE_EXT_DEVICE);
+                } catch (...) {
+                    exceptionControl("setSystemConfig", API_INVALID_PARAMETER);
+                }
 
-			return;
-		}
+            }
+            try {
+                sysConfig->write();
+            } catch (...) {
+                exceptionControl("setSystemConfig", API_FAILURE);
+            }
+            return;
+        }
 
-		if ( entry == 0 )
-			entry = extDeviceID;
-
+        if (entry == 0)
+            entry = extDeviceID;
         // Ext Device Not found, add it
+        sysConfig->setConfig(Section, "Count", itoa(count + 1));
+        string name = NAME + itoa(entry);
+        string ipaddr = IPADDR + itoa(entry);
+        string disablestate = DISABLE_STATE + itoa(entry);
 
-		sysConfig->setConfig(Section, "Count", itoa(count+1));
+        sysConfig->setConfig(Section, name, extdeviceconfig.Name);
+        sysConfig->setConfig(Section, ipaddr, extdeviceconfig.IPAddr);
+        if (extdeviceconfig.DisableState.empty())
+            extdeviceconfig.DisableState = oam::ENABLEDSTATE;
 
-		string name = NAME + itoa(entry);
-		string ipaddr = IPADDR + itoa(entry);
-		string disablestate = DISABLE_STATE + itoa(entry);
+        sysConfig->setConfig(Section, disablestate, extdeviceconfig.DisableState);
+        try {
+            sysConfig->write();
+        } catch (...) {
+            exceptionControl("setSystemConfig", API_FAILURE);
+        }
+        //
+        //send message to Process Monitor to add new external device to shared memory
+        //
+        try {
+            ByteStream obs;
 
-		sysConfig->setConfig(Section, name, extdeviceconfig.Name);
-		sysConfig->setConfig(Section, ipaddr, extdeviceconfig.IPAddr);
-		if (extdeviceconfig.DisableState.empty() )
-			 extdeviceconfig.DisableState = oam::ENABLEDSTATE;
+            obs << (ByteStream::byte) ADD_EXT_DEVICE;
+            obs << extdeviceconfig.Name;
 
-		sysConfig->setConfig(Section, disablestate, extdeviceconfig.DisableState);
-		try
-		{
-			sysConfig->write();
-		}
-		catch(...)
-		{
-			exceptionControl("setSystemConfig", API_FAILURE);
-		}
-
-		//
-		//send message to Process Monitor to add new external device to shared memory
-		//
-		try
-		{
-			ByteStream obs;
-	
-			obs << (ByteStream::byte) ADD_EXT_DEVICE;
-			obs << extdeviceconfig.Name;
-	
-			sendStatusUpdate(obs, ADD_EXT_DEVICE);
-		}
-		catch(...)
-		{
-			exceptionControl("setSystemConfig", API_INVALID_PARAMETER);
-		}
-
-		return;
+            sendStatusUpdate(obs, ADD_EXT_DEVICE);
+        } catch (...) {
+            exceptionControl("setSystemConfig", API_INVALID_PARAMETER);
+        }
+        return;
     }
 
     /********************************************************************
@@ -859,23 +794,20 @@ namespace oam
      *
      ********************************************************************/
 
-    void Oam::getSystemConfig(const std::string&name, std::string& value)
-    {
- 	
+    void Oam::getSystemConfig(const std::string&name, std::string& value) {
+
         Config* sysConfig = Config::makeConfig(erydbConfigFile.c_str());
 
         // get string variables
 
-        for( int i = 0;;i++)
-        {
-            if ( configSections[i] == "" )
+        for (int i = 0;; i++) {
+            if (configSections[i] == "")
                 // end of section list
                 break;
 
             value = sysConfig->getConfig(configSections[i], name);
 
-            if (!(value.empty()))
-            {
+            if (!(value.empty())) {
                 // match found
                 return;
             }
@@ -890,8 +822,7 @@ namespace oam
      *
      ********************************************************************/
 
-    void Oam::getSystemConfig(const std::string&name, int& value)
-    {
+    void Oam::getSystemConfig(const std::string&name, int& value) {
         string returnValue;
 
         // get string variables
@@ -909,55 +840,48 @@ namespace oam
      *
      ********************************************************************/
 
-    void Oam::getModuleNameByIPAddr(const std::string IpAddress, std::string& moduleName)
-    {
-		SystemModuleTypeConfig systemmoduletypeconfig;
-		ModuleTypeConfig moduletypeconfig;
-		ModuleConfig moduleconfig;
-		systemmoduletypeconfig.moduletypeconfig.clear();
-		string returnValue;
-		string Argument;
+    void Oam::getModuleNameByIPAddr(const std::string IpAddress, std::string& moduleName) {
+        SystemModuleTypeConfig systemmoduletypeconfig;
+        ModuleTypeConfig moduletypeconfig;
+        ModuleConfig moduleconfig;
+        systemmoduletypeconfig.moduletypeconfig.clear();
+        string returnValue;
+        string Argument;
 
-		try
-		{
-			Oam::getSystemConfig(systemmoduletypeconfig);
+        try {
+            Oam::getSystemConfig(systemmoduletypeconfig);
 
-			for( unsigned int i = 0 ; i < systemmoduletypeconfig.moduletypeconfig.size(); i++)
-			{
-				if( systemmoduletypeconfig.moduletypeconfig[i].ModuleType.empty() )
-					// end of list
-					break;
+            for (unsigned int i = 0; i < systemmoduletypeconfig.moduletypeconfig.size(); i++) {
+                if (systemmoduletypeconfig.moduletypeconfig[i].ModuleType.empty())
+                    // end of list
+                    break;
 
-				int moduleCount = systemmoduletypeconfig.moduletypeconfig[i].ModuleCount;
-				if ( moduleCount == 0 )
-					// skip if no modules
-					continue;
+                int moduleCount = systemmoduletypeconfig.moduletypeconfig[i].ModuleCount;
+                if (moduleCount == 0)
+                    // skip if no modules
+                    continue;
 
-				string moduletype = systemmoduletypeconfig.moduletypeconfig[i].ModuleType;
+                string moduletype = systemmoduletypeconfig.moduletypeconfig[i].ModuleType;
 
-				DeviceNetworkList::iterator pt = systemmoduletypeconfig.moduletypeconfig[i].ModuleNetworkList.begin();
-				for( ; pt != systemmoduletypeconfig.moduletypeconfig[i].ModuleNetworkList.end() ; pt++)
-				{
-					string modulename = (*pt).DeviceName;
-					string moduleID = modulename.substr(MAX_MODULE_TYPE_SIZE,MAX_MODULE_ID_SIZE);
+                DeviceNetworkList::iterator pt = systemmoduletypeconfig.moduletypeconfig[i].ModuleNetworkList.begin();
+                for (; pt != systemmoduletypeconfig.moduletypeconfig[i].ModuleNetworkList.end(); pt++) {
+                    string modulename = (*pt).DeviceName;
+                    string moduleID = modulename.substr(MAX_MODULE_TYPE_SIZE, MAX_MODULE_ID_SIZE);
 
-					HostConfigList::iterator pt1 = (*pt).hostConfigList.begin();
-					for( ; pt1 != (*pt).hostConfigList.end() ; pt1++)
-					{
-						if ( IpAddress == (*pt1).IPAddr ) {
-							moduleName = modulename;
-							return;
-						}
-					}
-				}
-			}
-			moduleName = oam::UnassignedName;
-			return;
-		}
-		catch (exception&)
-		{
-			exceptionControl("getModuleNameByIPAddr", API_FAILURE);
-		}
+                    HostConfigList::iterator pt1 = (*pt).hostConfigList.begin();
+                    for (; pt1 != (*pt).hostConfigList.end(); pt1++) {
+                        if (IpAddress == (*pt1).IPAddr) {
+                            moduleName = modulename;
+                            return;
+                        }
+                    }
+                }
+            }
+            moduleName = oam::UnassignedName;
+            return;
+        } catch (exception&) {
+            exceptionControl("getModuleNameByIPAddr", API_FAILURE);
+        }
     }
 
 
@@ -967,8 +891,7 @@ namespace oam
      *
      ********************************************************************/
 
-    void Oam::setSystemConfig(const std::string name, const std::string value)
-    {
+    void Oam::setSystemConfig(const std::string name, const std::string value) {
         string mem = "Mem";
         string disk = "Disk";
         string swap = "Swap";
@@ -977,37 +900,32 @@ namespace oam
         string major = "Major";
         string minor = "Minor";
 
-	
+
         Config* sysConfig = Config::makeConfig(erydbConfigFile.c_str());
         string returnValue;
 
         // find and write new value to disk
 
-        for( int i = 0;;i++)
-        {
-            if ( configSections[i] == "" )
+        for (int i = 0;; i++) {
+            if (configSections[i] == "")
                 // end of section list, no match found
                 exceptionControl("setSystemConfig", API_INVALID_PARAMETER);
 
             returnValue = sysConfig->getConfig(configSections[i], name);
 
-            if (!(returnValue.empty()))
-            {
+            if (!(returnValue.empty())) {
                 // match found
                 sysConfig->setConfig(configSections[i], name, value);
-				try
-				{
-					sysConfig->write();
-				}
-				catch(...)
-				{
-					exceptionControl("setSystemConfig", API_FAILURE);
-				}
+                try {
+                    sysConfig->write();
+                } catch (...) {
+                    exceptionControl("setSystemConfig", API_FAILURE);
+                }
                 break;
             }
         }
 
-       return;
+        return;
     }
 
     /********************************************************************
@@ -1016,8 +934,7 @@ namespace oam
      *
      ********************************************************************/
 
-    void Oam::setSystemConfig(const std::string name, const int value)
-    {
+    void Oam::setSystemConfig(const std::string name, const int value) {
         string valueString;
 
         // convert Incoming Interger Parameter value to String
@@ -1035,8 +952,7 @@ namespace oam
      *
      ********************************************************************/
 
-    void Oam::setSystemConfig(const std::string moduletype, ModuleTypeConfig moduletypeconfig)
-    {
+    void Oam::setSystemConfig(const std::string moduletype, ModuleTypeConfig moduletypeconfig) {
         Config* sysConfig = Config::makeConfig(erydbConfigFile.c_str());
         const string Section = "SystemModuleConfig";
         const string MODULE_TYPE = "ModuleType";
@@ -1061,12 +977,10 @@ namespace oam
         const string MODULE_DISK_MONITOR_FS = "ModuleDiskMonitorFileSystem";
         const string MODULE_DISABLE_STATE = "ModuleDisableState";
 
-        for (int moduleTypeID = 1; moduleTypeID < MAX_MODULE_TYPE+1; moduleTypeID++)
-        {
+        for (int moduleTypeID = 1; moduleTypeID < MAX_MODULE_TYPE + 1; moduleTypeID++) {
             string moduleType = MODULE_TYPE + itoa(moduleTypeID);
 
-            if( sysConfig->getConfig(Section, moduleType) ==  moduletype)
-            {
+            if (sysConfig->getConfig(Section, moduleType) == moduletype) {
                 string ModuleType = MODULE_TYPE + itoa(moduleTypeID);
                 string ModuleDesc = MODULE_DESC + itoa(moduleTypeID);
                 string ModuleRunType = MODULE_RUN_TYPE + itoa(moduleTypeID);
@@ -1105,68 +1019,59 @@ namespace oam
                 sysConfig->setConfig(Section, ModuleSwapMajorThreshold, itoa(moduletypeconfig.ModuleSwapMajorThreshold));
                 sysConfig->setConfig(Section, ModuleSwapMinorThreshold, itoa(moduletypeconfig.ModuleSwapMinorThreshold));
 
-				// clear out hostConfig info before adding in new contents
-				if ( oldModuleCount > 0) {
-					for (int moduleID = 1; moduleID < MAX_MODULE ; moduleID++)
-					{
-						//get NIC IP address/hostnames
-						for (int nicID = 1; nicID < MAX_NIC+1 ; nicID++)
-						{
-							string ModuleIpAddr = MODULE_IP_ADDR + itoa(moduleID) + "-" + itoa(nicID) + "-" + itoa(moduleTypeID);
-		
-							string ipAddr = sysConfig->getConfig(Section, ModuleIpAddr);
-							if (ipAddr.empty())
-								continue;
-		
-							string ModuleHostName = MODULE_SERVER_NAME + itoa(moduleID) + "-" + itoa(nicID) + "-" + itoa(moduleTypeID);
-							string ModuleDisableState = MODULE_DISABLE_STATE + itoa(moduleID) + "-" + itoa(moduleTypeID);
+                // clear out hostConfig info before adding in new contents
+                if (oldModuleCount > 0) {
+                    for (int moduleID = 1; moduleID < MAX_MODULE; moduleID++) {
+                        //get NIC IP address/hostnames
+                        for (int nicID = 1; nicID < MAX_NIC + 1; nicID++) {
+                            string ModuleIpAddr = MODULE_IP_ADDR + itoa(moduleID) + "-" + itoa(nicID) + "-" + itoa(moduleTypeID);
 
-							sysConfig->setConfig(Section, ModuleIpAddr, UnassignedIpAddr);
-							sysConfig->setConfig(Section, ModuleHostName, UnassignedName);
-							sysConfig->setConfig(Section, ModuleDisableState, oam::ENABLEDSTATE);
-						}
-					}
-				}
+                            string ipAddr = sysConfig->getConfig(Section, ModuleIpAddr);
+                            if (ipAddr.empty())
+                                continue;
 
-				if ( moduletypeconfig.ModuleCount > 0 )
-				{
-					DeviceNetworkList::iterator pt = moduletypeconfig.ModuleNetworkList.begin();
-					for( ; pt != moduletypeconfig.ModuleNetworkList.end() ; pt++)
-					{
-						int ModuleID = atoi((*pt).DeviceName.substr(MAX_MODULE_TYPE_SIZE,MAX_MODULE_ID_SIZE).c_str());
+                            string ModuleHostName = MODULE_SERVER_NAME + itoa(moduleID) + "-" + itoa(nicID) + "-" + itoa(moduleTypeID);
+                            string ModuleDisableState = MODULE_DISABLE_STATE + itoa(moduleID) + "-" + itoa(moduleTypeID);
 
-						string ModuleDisableState = MODULE_DISABLE_STATE + itoa(ModuleID) + "-" + itoa(moduleTypeID);
-						sysConfig->setConfig(Section, ModuleDisableState, (*pt).DisableState);
+                            sysConfig->setConfig(Section, ModuleIpAddr, UnassignedIpAddr);
+                            sysConfig->setConfig(Section, ModuleHostName, UnassignedName);
+                            sysConfig->setConfig(Section, ModuleDisableState, oam::ENABLEDSTATE);
+                        }
+                    }
+                }
 
-						HostConfigList::iterator pt1 = (*pt).hostConfigList.begin();
-						for( ; pt1 != (*pt).hostConfigList.end() ; pt1++)
-						{
-							int nidID = (*pt1).NicID;
-							string ModuleIpAddr = MODULE_IP_ADDR + itoa(ModuleID) + "-" + itoa(nidID) + "-" + itoa(moduleTypeID);
-							sysConfig->setConfig(Section, ModuleIpAddr, (*pt1).IPAddr);
-	
-							string ModuleHostName = MODULE_SERVER_NAME + itoa(ModuleID) + "-" + itoa(nidID) + "-" + itoa(moduleTypeID);
-							sysConfig->setConfig(Section, ModuleHostName, (*pt1).HostName);
-						}
-					}
-				}
+                if (moduletypeconfig.ModuleCount > 0) {
+                    DeviceNetworkList::iterator pt = moduletypeconfig.ModuleNetworkList.begin();
+                    for (; pt != moduletypeconfig.ModuleNetworkList.end(); pt++) {
+                        int ModuleID = atoi((*pt).DeviceName.substr(MAX_MODULE_TYPE_SIZE, MAX_MODULE_ID_SIZE).c_str());
 
-				DiskMonitorFileSystems::iterator pt = moduletypeconfig.FileSystems.begin();
-				int id=1;
-				for( ; pt != moduletypeconfig.FileSystems.end() ; pt++)
-				{
-	            	string ModuleDiskMonitorFS = MODULE_DISK_MONITOR_FS + itoa(id) + "-" + itoa(moduleTypeID);
-                	sysConfig->setConfig(Section, ModuleDiskMonitorFS, *pt);
-					++id;
-				}
-				try
-				{
-					sysConfig->write();
-				}
-				catch(...)
-				{
-					exceptionControl("getSystemConfig", API_FAILURE);
-				}
+                        string ModuleDisableState = MODULE_DISABLE_STATE + itoa(ModuleID) + "-" + itoa(moduleTypeID);
+                        sysConfig->setConfig(Section, ModuleDisableState, (*pt).DisableState);
+
+                        HostConfigList::iterator pt1 = (*pt).hostConfigList.begin();
+                        for (; pt1 != (*pt).hostConfigList.end(); pt1++) {
+                            int nidID = (*pt1).NicID;
+                            string ModuleIpAddr = MODULE_IP_ADDR + itoa(ModuleID) + "-" + itoa(nidID) + "-" + itoa(moduleTypeID);
+                            sysConfig->setConfig(Section, ModuleIpAddr, (*pt1).IPAddr);
+
+                            string ModuleHostName = MODULE_SERVER_NAME + itoa(ModuleID) + "-" + itoa(nidID) + "-" + itoa(moduleTypeID);
+                            sysConfig->setConfig(Section, ModuleHostName, (*pt1).HostName);
+                        }
+                    }
+                }
+
+                DiskMonitorFileSystems::iterator pt = moduletypeconfig.FileSystems.begin();
+                int id = 1;
+                for (; pt != moduletypeconfig.FileSystems.end(); pt++) {
+                    string ModuleDiskMonitorFS = MODULE_DISK_MONITOR_FS + itoa(id) + "-" + itoa(moduleTypeID);
+                    sysConfig->setConfig(Section, ModuleDiskMonitorFS, *pt);
+                    ++id;
+                }
+                try {
+                    sysConfig->write();
+                } catch (...) {
+                    exceptionControl("getSystemConfig", API_FAILURE);
+                }
 
                 return;
             }
@@ -1182,8 +1087,7 @@ namespace oam
      *
      ********************************************************************/
 
-    void Oam::setSystemConfig(const std::string module, ModuleConfig moduleconfig)
-    {
+    void Oam::setSystemConfig(const std::string module, ModuleConfig moduleconfig) {
         Config* sysConfig100 = Config::makeConfig(erydbConfigFile.c_str());
 
         const string MODULE_TYPE = "ModuleType";
@@ -1195,69 +1099,58 @@ namespace oam
         const string MODULE_DBROOTID = "ModuleDBRootID";
         const string MODULE_DBROOT_COUNT = "ModuleDBRootCount";
 
-		string moduletype = module.substr(0,MAX_MODULE_TYPE_SIZE);
-		int moduleID = atoi(module.substr(MAX_MODULE_TYPE_SIZE,MAX_MODULE_ID_SIZE).c_str());
-		if ( moduleID < 1 )
-			//invalid ID
-        	exceptionControl("setSystemConfig", API_INVALID_PARAMETER);
+        string moduletype = module.substr(0, MAX_MODULE_TYPE_SIZE);
+        int moduleID = atoi(module.substr(MAX_MODULE_TYPE_SIZE, MAX_MODULE_ID_SIZE).c_str());
+        if (moduleID < 1)
+            //invalid ID
+            exceptionControl("setSystemConfig", API_INVALID_PARAMETER);
 
-        for (int moduleTypeID = 1; moduleTypeID < MAX_MODULE_TYPE+1; moduleTypeID++)
-        {
+        for (int moduleTypeID = 1; moduleTypeID < MAX_MODULE_TYPE + 1; moduleTypeID++) {
             string moduleType = MODULE_TYPE + itoa(moduleTypeID);
             string ModuleCount = MODULE_COUNT + itoa(moduleTypeID);
 
-            if( sysConfig100->getConfig(Section, moduleType) ==  moduletype )
-            {
-	            string ModuleDisableState = MODULE_DISABLE_STATE + itoa(moduleID) + "-" + itoa(moduleTypeID);
-				sysConfig100->setConfig(Section, ModuleDisableState, moduleconfig.DisableState);
+            if (sysConfig100->getConfig(Section, moduleType) == moduletype) {
+                string ModuleDisableState = MODULE_DISABLE_STATE + itoa(moduleID) + "-" + itoa(moduleTypeID);
+                sysConfig100->setConfig(Section, ModuleDisableState, moduleconfig.DisableState);
 
-				HostConfigList::iterator pt1 = moduleconfig.hostConfigList.begin();
-				for( ; pt1 != moduleconfig.hostConfigList.end() ; pt1++)
-				{
-					string ModuleIpAddr = MODULE_IP_ADDR + itoa(moduleID) + "-" + itoa((*pt1).NicID) + "-" + itoa(moduleTypeID);
-					sysConfig100->setConfig(Section, ModuleIpAddr, (*pt1).IPAddr);
-	
-					string ModuleHostName = MODULE_SERVER_NAME + itoa(moduleID) + "-" + itoa((*pt1).NicID) + "-" + itoa(moduleTypeID);
-					sysConfig100->setConfig(Section, ModuleHostName, (*pt1).HostName);
-				}
+                HostConfigList::iterator pt1 = moduleconfig.hostConfigList.begin();
+                for (; pt1 != moduleconfig.hostConfigList.end(); pt1++) {
+                    string ModuleIpAddr = MODULE_IP_ADDR + itoa(moduleID) + "-" + itoa((*pt1).NicID) + "-" + itoa(moduleTypeID);
+                    sysConfig100->setConfig(Section, ModuleIpAddr, (*pt1).IPAddr);
 
-				int id = 1;
-				if ( moduleconfig.dbrootConfigList.size() == 0 )
-				{
-					string ModuleDBrootID = MODULE_DBROOTID + itoa(moduleID) + "-" + itoa((id)) + "-" + itoa(moduleTypeID);
-					sysConfig100->setConfig(Section, ModuleDBrootID, oam::UnassignedName);
-				}
-				else
-				{
-					DBRootConfigList::iterator pt2 = moduleconfig.dbrootConfigList.begin();
-					for( ; pt2 != moduleconfig.dbrootConfigList.end() ; pt2++, id++)
-					{
-						string ModuleDBrootID = MODULE_DBROOTID + itoa(moduleID) + "-" + itoa((id)) + "-" + itoa(moduleTypeID);
-						sysConfig100->setConfig(Section, ModuleDBrootID, itoa((*pt2)));
-					}
-				}
+                    string ModuleHostName = MODULE_SERVER_NAME + itoa(moduleID) + "-" + itoa((*pt1).NicID) + "-" + itoa(moduleTypeID);
+                    sysConfig100->setConfig(Section, ModuleHostName, (*pt1).HostName);
+                }
 
-				//set entries no longer configured to unsassigned
-				for ( int extraid = id ; id < MAX_DBROOT ; extraid++ )
-				{
-					string ModuleDBrootID = MODULE_DBROOTID + itoa(moduleID) + "-" + itoa((extraid)) + "-" + itoa(moduleTypeID);
-					if ( sysConfig100->getConfig(Section, ModuleDBrootID).empty() || 
-							sysConfig100->getConfig(Section, ModuleDBrootID) == oam::UnassignedName )
-						break;
-					sysConfig100->setConfig(Section, ModuleDBrootID, oam::UnassignedName);
-				}
+                int id = 1;
+                if (moduleconfig.dbrootConfigList.size() == 0) {
+                    string ModuleDBrootID = MODULE_DBROOTID + itoa(moduleID) + "-" + itoa((id)) + "-" + itoa(moduleTypeID);
+                    sysConfig100->setConfig(Section, ModuleDBrootID, oam::UnassignedName);
+                } else {
+                    DBRootConfigList::iterator pt2 = moduleconfig.dbrootConfigList.begin();
+                    for (; pt2 != moduleconfig.dbrootConfigList.end(); pt2++, id++) {
+                        string ModuleDBrootID = MODULE_DBROOTID + itoa(moduleID) + "-" + itoa((id)) + "-" + itoa(moduleTypeID);
+                        sysConfig100->setConfig(Section, ModuleDBrootID, itoa((*pt2)));
+                    }
+                }
 
-				string ModuleDBRootCount = MODULE_DBROOT_COUNT + itoa(moduleID) + "-" + itoa(moduleTypeID);
-				sysConfig100->setConfig(Section, ModuleDBRootCount, itoa(moduleconfig.dbrootConfigList.size()));
+                //set entries no longer configured to unsassigned
+                for (int extraid = id; id < MAX_DBROOT; extraid++) {
+                    string ModuleDBrootID = MODULE_DBROOTID + itoa(moduleID) + "-" + itoa((extraid)) + "-" + itoa(moduleTypeID);
+                    if (sysConfig100->getConfig(Section, ModuleDBrootID).empty() ||
+                        sysConfig100->getConfig(Section, ModuleDBrootID) == oam::UnassignedName)
+                        break;
+                    sysConfig100->setConfig(Section, ModuleDBrootID, oam::UnassignedName);
+                }
 
-				try
-				{
-					sysConfig100->write();
-				}
-				catch(...)
-				{
-					exceptionControl("setSystemConfig", API_FAILURE);
-				}
+                string ModuleDBRootCount = MODULE_DBROOT_COUNT + itoa(moduleID) + "-" + itoa(moduleTypeID);
+                sysConfig100->setConfig(Section, ModuleDBRootCount, itoa(moduleconfig.dbrootConfigList.size()));
+
+                try {
+                    sysConfig100->write();
+                } catch (...) {
+                    exceptionControl("setSystemConfig", API_FAILURE);
+                }
 
                 return;
             }
@@ -1274,15 +1167,14 @@ namespace oam
      *
      ********************************************************************/
 
-    void Oam::addModule(DeviceNetworkList devicenetworklist, const std::string password, const std::string mysqlpw)
-	{
+    void Oam::addModule(DeviceNetworkList devicenetworklist, const std::string password, const std::string mysqlpw) {
         // build and send msg
         int returnStatus = sendMsgToProcMgr2(ADDMODULE, devicenetworklist, FORCEFUL, ACK_YES, password, mysqlpw);
 
         if (returnStatus != API_SUCCESS)
             exceptionControl("addModule", returnStatus);
 
-	}
+    }
 
     /********************************************************************
      *
@@ -1290,23 +1182,21 @@ namespace oam
      *
      ********************************************************************/
 
-    void Oam::removeModule(DeviceNetworkList devicenetworklist)
-	{
-		DeviceNetworkList::iterator pt = devicenetworklist.begin();
-		for( ; pt != devicenetworklist.end() ; pt++)
-		{
-			// validate Module name
-			int returnStatus = validateModule((*pt).DeviceName);
-			if (returnStatus != API_SUCCESS)
-				exceptionControl("removeModule", returnStatus);
-		}
+    void Oam::removeModule(DeviceNetworkList devicenetworklist) {
+        DeviceNetworkList::iterator pt = devicenetworklist.begin();
+        for (; pt != devicenetworklist.end(); pt++) {
+            // validate Module name
+            int returnStatus = validateModule((*pt).DeviceName);
+            if (returnStatus != API_SUCCESS)
+                exceptionControl("removeModule", returnStatus);
+        }
 
         // build and send msg
         int returnStatus = sendMsgToProcMgr2(REMOVEMODULE, devicenetworklist, FORCEFUL, ACK_YES);
 
         if (returnStatus != API_SUCCESS)
             exceptionControl("removeModule", returnStatus);
-	}
+    }
 
     /********************************************************************
      *
@@ -1314,20 +1204,19 @@ namespace oam
      *
      ********************************************************************/
 
-    void Oam::reconfigureModule(DeviceNetworkList devicenetworklist)
-	{
-		DeviceNetworkList::iterator pt = devicenetworklist.begin();
-		// validate Module name
-		int returnStatus = validateModule((*pt).DeviceName);
-		if (returnStatus != API_SUCCESS)
-			exceptionControl("reconfigureModule", returnStatus);
+    void Oam::reconfigureModule(DeviceNetworkList devicenetworklist) {
+        DeviceNetworkList::iterator pt = devicenetworklist.begin();
+        // validate Module name
+        int returnStatus = validateModule((*pt).DeviceName);
+        if (returnStatus != API_SUCCESS)
+            exceptionControl("reconfigureModule", returnStatus);
 
         // build and send msg
         returnStatus = sendMsgToProcMgr2(RECONFIGUREMODULE, devicenetworklist, FORCEFUL, ACK_YES);
 
         if (returnStatus != API_SUCCESS)
             exceptionControl("reconfigureModule", returnStatus);
-	}
+    }
 
 
     /********************************************************************
@@ -1336,10 +1225,9 @@ namespace oam
      *
      ********************************************************************/
 
-    void Oam::getSystemStatus(SystemStatus& systemstatus, bool systemStatusOnly)
-    {
-		if (!checkSystemRunFlag() || !checkSystemRunning())
-			return;
+    void Oam::getSystemStatus(SystemStatus& systemstatus, bool systemStatusOnly) {
+        if (!checkSystemRunFlag() || !checkSystemRunning())
+            return;
 
 #ifdef _MSC_VER
         // TODO: Remove when we create OAM for Windows
@@ -1354,162 +1242,136 @@ namespace oam
         DbrootStatus dbrootstatus;
         systemstatus.systemdbrootstatus.dbrootstatus.clear();
 
-		for ( int i = 0 ; i < 2 ; i ++)
-		{
-			try
-			{
-				MessageQueueClient processor("ProcStatusControl");
-			//			processor.syncProto(false);
-				ByteStream::byte ModuleNumber;
-				ByteStream::byte ExtDeviceNumber;
-				ByteStream::byte dbrootNumber;
-				ByteStream::byte NICNumber;
-						ByteStream::byte state;
-						std::string name;
-						std::string date;
-				ByteStream obs, ibs;
-			
-				obs << (ByteStream::byte) GET_SYSTEM_STATUS;
-				if ( systemStatusOnly )
-					obs << (ByteStream::byte) 1;
-				else
-					obs << (ByteStream::byte) 2;
-		
-				try {
-					struct timespec ts = { 3, 0 };
-					processor.write(obs, &ts);
-				}
-				catch (exception& e)
-				{
-					processor.shutdown();
-					string error = e.what();
-					//writeLog("getSystemStatus: write exception: " + error, LOG_TYPE_ERROR);
-					exceptionControl("getSystemStatus write", API_FAILURE);
-				}
-				catch(...)
-				{
-					processor.shutdown();
-					//writeLog("getSystemStatus: write exception: unknown", LOG_TYPE_ERROR);
-					exceptionControl("getSystemStatus write", API_FAILURE);
-				}
+        for (int i = 0; i < 2; i++) {
+            try {
+                MessageQueueClient processor("ProcStatusControl");
+                //			processor.syncProto(false);
+                ByteStream::byte ModuleNumber;
+                ByteStream::byte ExtDeviceNumber;
+                ByteStream::byte dbrootNumber;
+                ByteStream::byte NICNumber;
+                ByteStream::byte state;
+                std::string name;
+                std::string date;
+                ByteStream obs, ibs;
 
-				// wait 30 seconds for ACK from Process Monitor
-				try {
-					struct timespec ts = { 30, 0 };
-					ibs = processor.read(&ts);
-				}
-				catch (exception& e)
-				{
-					processor.shutdown();
-					string error = e.what();
-					//writeLog("getSystemStatus: read exception: " + error, LOG_TYPE_ERROR);
-					exceptionControl("getSystemStatus read", API_FAILURE);
-				}
-				catch(...)
-				{
-					processor.shutdown();
-					//writeLog("getSystemStatus: read exception: unknown", LOG_TYPE_ERROR);
-					exceptionControl("getSystemStatus read", API_FAILURE);
-				}
+                obs << (ByteStream::byte) GET_SYSTEM_STATUS;
+                if (systemStatusOnly)
+                    obs << (ByteStream::byte) 1;
+                else
+                    obs << (ByteStream::byte) 2;
 
-				if (ibs.length() > 0)
-				{
-					if ( systemStatusOnly )
-					{
-						ibs >> name;
-						ibs >> state;
-						ibs >> date;
-						if ( name.find("system") != string::npos ) {
-							systemstatus.SystemOpState = state;
-							systemstatus.StateChangeDate = date;
-						}
-					}
-					else
-					{
-						ibs >> ModuleNumber;
-		
-						for( int i=0 ; i < ModuleNumber ; ++i)
-						{
-							ibs >> name;
-							ibs >> state;
-							ibs >> date;
-							if ( name.find("system") != string::npos ) {
-								systemstatus.SystemOpState = state;
-								systemstatus.StateChangeDate = date;
-							}
-							else
-							{
-								modulestatus.Module = name;
-								modulestatus.ModuleOpState = state;
-								modulestatus.StateChangeDate = date;
-								systemstatus.systemmodulestatus.modulestatus.push_back(modulestatus);
-							}
-						}
-		
-						ibs >> ExtDeviceNumber;
-		
-						for( int i=0 ; i < ExtDeviceNumber ; ++i)
-						{
-							ibs >> name;
-							ibs >> state;
-							ibs >> date;
-							extdevicestatus.Name = name;
-							extdevicestatus.OpState = state;
-							extdevicestatus.StateChangeDate = date;
-							systemstatus.systemextdevicestatus.extdevicestatus.push_back(extdevicestatus);
-						}
-		
-						ibs >> NICNumber;
-		
-						for( int i=0 ; i < NICNumber ; ++i)
-						{
-							ibs >> name;
-							ibs >> state;
-							ibs >> date;
-							nicstatus.HostName = name;
-							nicstatus.NICOpState = state;
-							nicstatus.StateChangeDate = date;
-							systemstatus.systemnicstatus.nicstatus.push_back(nicstatus);
-						}
-		
-						ibs >> dbrootNumber;
-		
-						for( int i=0 ; i < dbrootNumber ; ++i)
-						{
-							ibs >> name;
-							ibs >> state;
-							ibs >> date;
-							dbrootstatus.Name = name;
-							dbrootstatus.OpState = state;
-							dbrootstatus.StateChangeDate = date;
-							systemstatus.systemdbrootstatus.dbrootstatus.push_back(dbrootstatus);
-						}
-					}
+                try {
+                    struct timespec ts = { 3, 0 };
+                    processor.write(obs, &ts);
+                } catch (exception& e) {
+                    processor.shutdown();
+                    string error = e.what();
+                    //writeLog("getSystemStatus: write exception: " + error, LOG_TYPE_ERROR);
+                    exceptionControl("getSystemStatus write", API_FAILURE);
+                } catch (...) {
+                    processor.shutdown();
+                    //writeLog("getSystemStatus: write exception: unknown", LOG_TYPE_ERROR);
+                    exceptionControl("getSystemStatus write", API_FAILURE);
+                }
 
-					processor.shutdown();
-					return;
-				}
-				else
-				{
-					//writeLog("getSystemStatus: ProcStatusControl returns 0 length", LOG_TYPE_ERROR);
-				}
-				// timeout ocurred, shutdown connection
-				processor.shutdown();
-				//writeLog("getSystemStatus: read 0 length", LOG_TYPE_ERROR);
-				exceptionControl("getSystemStatus read 0", API_FAILURE);
-			}
-			catch (exception& e)
-			{
-				string error = e.what();
-				//writeLog("getSystemStatus: final exception: " + error, LOG_TYPE_ERROR);
-			}
-			catch(...)
-			{
-				//writeLog("getSystemStatus: final exception: unknown", LOG_TYPE_ERROR);
-			}
-		}
+                // wait 30 seconds for ACK from Process Monitor
+                try {
+                    struct timespec ts = { 30, 0 };
+                    ibs = processor.read(&ts);
+                } catch (exception& e) {
+                    processor.shutdown();
+                    string error = e.what();
+                    //writeLog("getSystemStatus: read exception: " + error, LOG_TYPE_ERROR);
+                    exceptionControl("getSystemStatus read", API_FAILURE);
+                } catch (...) {
+                    processor.shutdown();
+                    //writeLog("getSystemStatus: read exception: unknown", LOG_TYPE_ERROR);
+                    exceptionControl("getSystemStatus read", API_FAILURE);
+                }
 
-		exceptionControl("getSystemStatus:MessageQueueClient-Error", API_FAILURE);
+                if (ibs.length() > 0) {
+                    if (systemStatusOnly) {
+                        ibs >> name;
+                        ibs >> state;
+                        ibs >> date;
+                        if (name.find("system") != string::npos) {
+                            systemstatus.SystemOpState = state;
+                            systemstatus.StateChangeDate = date;
+                        }
+                    } else {
+                        ibs >> ModuleNumber;
+
+                        for (int i = 0; i < ModuleNumber; ++i) {
+                            ibs >> name;
+                            ibs >> state;
+                            ibs >> date;
+                            if (name.find("system") != string::npos) {
+                                systemstatus.SystemOpState = state;
+                                systemstatus.StateChangeDate = date;
+                            } else {
+                                modulestatus.Module = name;
+                                modulestatus.ModuleOpState = state;
+                                modulestatus.StateChangeDate = date;
+                                systemstatus.systemmodulestatus.modulestatus.push_back(modulestatus);
+                            }
+                        }
+
+                        ibs >> ExtDeviceNumber;
+
+                        for (int i = 0; i < ExtDeviceNumber; ++i) {
+                            ibs >> name;
+                            ibs >> state;
+                            ibs >> date;
+                            extdevicestatus.Name = name;
+                            extdevicestatus.OpState = state;
+                            extdevicestatus.StateChangeDate = date;
+                            systemstatus.systemextdevicestatus.extdevicestatus.push_back(extdevicestatus);
+                        }
+
+                        ibs >> NICNumber;
+
+                        for (int i = 0; i < NICNumber; ++i) {
+                            ibs >> name;
+                            ibs >> state;
+                            ibs >> date;
+                            nicstatus.HostName = name;
+                            nicstatus.NICOpState = state;
+                            nicstatus.StateChangeDate = date;
+                            systemstatus.systemnicstatus.nicstatus.push_back(nicstatus);
+                        }
+
+                        ibs >> dbrootNumber;
+
+                        for (int i = 0; i < dbrootNumber; ++i) {
+                            ibs >> name;
+                            ibs >> state;
+                            ibs >> date;
+                            dbrootstatus.Name = name;
+                            dbrootstatus.OpState = state;
+                            dbrootstatus.StateChangeDate = date;
+                            systemstatus.systemdbrootstatus.dbrootstatus.push_back(dbrootstatus);
+                        }
+                    }
+
+                    processor.shutdown();
+                    return;
+                } else {
+                    //writeLog("getSystemStatus: ProcStatusControl returns 0 length", LOG_TYPE_ERROR);
+                }
+                // timeout ocurred, shutdown connection
+                processor.shutdown();
+                //writeLog("getSystemStatus: read 0 length", LOG_TYPE_ERROR);
+                exceptionControl("getSystemStatus read 0", API_FAILURE);
+            } catch (exception& e) {
+                string error = e.what();
+                //writeLog("getSystemStatus: final exception: " + error, LOG_TYPE_ERROR);
+            } catch (...) {
+                //writeLog("getSystemStatus: final exception: unknown", LOG_TYPE_ERROR);
+            }
+        }
+
+        exceptionControl("getSystemStatus:MessageQueueClient-Error", API_FAILURE);
     }
 
     /********************************************************************
@@ -1518,25 +1380,21 @@ namespace oam
      *
      ********************************************************************/
 
-    void Oam::setSystemStatus(const int state)
-    {
-		//send and wait for ack and resend if not received
-		//retry 3 time max
-		for ( int i=0; i < 3 ; i++)
-		{
-			try
-			{
-				ByteStream obs;
-				obs << (ByteStream::byte) SET_SYSTEM_STATUS;
-				obs << (ByteStream::byte) state;
-	
-	    		sendStatusUpdate(obs, SET_SYSTEM_STATUS);
-				return;
-			}
-			catch(...)
-			{}
-		}
-		exceptionControl("setSystemStatus", API_FAILURE);
+    void Oam::setSystemStatus(const int state) {
+        //send and wait for ack and resend if not received
+        //retry 3 time max
+        for (int i = 0; i < 3; i++) {
+            try {
+                ByteStream obs;
+                obs << (ByteStream::byte) SET_SYSTEM_STATUS;
+                obs << (ByteStream::byte) state;
+
+                sendStatusUpdate(obs, SET_SYSTEM_STATUS);
+                return;
+            } catch (...) {
+            }
+        }
+        exceptionControl("setSystemStatus", API_FAILURE);
     }
 
     /********************************************************************
@@ -1545,90 +1403,75 @@ namespace oam
      *
      ********************************************************************/
 
-    void Oam::getModuleStatus(const std::string name, int& state, bool& degraded)
-    {
-		SystemStatus systemstatus;
+    void Oam::getModuleStatus(const std::string name, int& state, bool& degraded) {
+        SystemStatus systemstatus;
         ModuleConfig moduleconfig;
         std::vector<int> NICstates;
-		degraded = false;
-		state = oam::UNEQUIP;
+        degraded = false;
+        state = oam::UNEQUIP;
 
-		try
-		{
-			getSystemStatus(systemstatus, false);
+        try {
+            getSystemStatus(systemstatus, false);
 
-			for( unsigned int i = 0 ; i < systemstatus.systemmodulestatus.modulestatus.size(); i++)
-			{
-				if( systemstatus.systemmodulestatus.modulestatus[i].Module == name ) {
-					state = systemstatus.systemmodulestatus.modulestatus[i].ModuleOpState;
+            for (unsigned int i = 0; i < systemstatus.systemmodulestatus.modulestatus.size(); i++) {
+                if (systemstatus.systemmodulestatus.modulestatus[i].Module == name) {
+                    state = systemstatus.systemmodulestatus.modulestatus[i].ModuleOpState;
 
-					// get NIC status for degraded state info
-                    try
-                    {
+                    // get NIC status for degraded state info
+                    try {
                         getSystemConfig(name, moduleconfig);
 
-						HostConfigList::iterator pt1 = moduleconfig.hostConfigList.begin();
-						for( ; pt1 != moduleconfig.hostConfigList.end() ; pt1++)
-						{
-							try {
-								int state;
-								getNICStatus((*pt1).HostName, state);
-								NICstates.push_back(state);
-							}
-							catch (exception& e)
-							{
-								Oam oam;
-								ostringstream os;
-								os << "Oam::getModuleStatus exception while getNICStatus " << (*pt1).HostName << " " << e.what();
-								//oam.writeLog(os.str(), logging::LOG_TYPE_ERROR);
-							}
-							catch (...) {
-								Oam oam;
-								ostringstream os;
-								os << "Oam::getModuleStatus exception while getNICStatus " << (*pt1).HostName;
-								//oam.writeLog(os.str(), logging::LOG_TYPE_ERROR);
-							}
-						}
-						
-						vector<int>::iterator pt = NICstates.begin();
-						for( ; pt != NICstates.end() ; pt++)
-						{
-							if ( (*pt) == oam::DOWN ) {
-								degraded = true;
-								break;
-							}
-						}
-						return;
+                        HostConfigList::iterator pt1 = moduleconfig.hostConfigList.begin();
+                        for (; pt1 != moduleconfig.hostConfigList.end(); pt1++) {
+                            try {
+                                int state;
+                                getNICStatus((*pt1).HostName, state);
+                                NICstates.push_back(state);
+                            } catch (exception& e) {
+                                Oam oam;
+                                ostringstream os;
+                                os << "Oam::getModuleStatus exception while getNICStatus " << (*pt1).HostName << " " << e.what();
+                                //oam.writeLog(os.str(), logging::LOG_TYPE_ERROR);
+                            } catch (...) {
+                                Oam oam;
+                                ostringstream os;
+                                os << "Oam::getModuleStatus exception while getNICStatus " << (*pt1).HostName;
+                                //oam.writeLog(os.str(), logging::LOG_TYPE_ERROR);
+                            }
+                        }
+
+                        vector<int>::iterator pt = NICstates.begin();
+                        for (; pt != NICstates.end(); pt++) {
+                            if ((*pt) == oam::DOWN) {
+                                degraded = true;
+                                break;
+                            }
+                        }
+                        return;
+                    } catch (exception& e) {
+                        Oam oam;
+                        ostringstream os;
+                        os << "Oam::getModuleStatus exception while getSystemConfig " << name << " " << e.what();
+                        //oam.writeLog(os.str(), logging::LOG_TYPE_ERROR);
+                    } catch (...) {
+                        Oam oam;
+                        ostringstream os;
+                        os << "Oam::getModuleStatus exception while getSystemConfig " << name;
+                        //oam.writeLog(os.str(), logging::LOG_TYPE_ERROR);
                     }
-					catch (exception& e)
-					{
-						Oam oam;
-						ostringstream os;
-						os << "Oam::getModuleStatus exception while getSystemConfig " << name << " " << e.what();
-						//oam.writeLog(os.str(), logging::LOG_TYPE_ERROR);
-					}
-					catch (...) {
-						Oam oam;
-						ostringstream os;
-						os << "Oam::getModuleStatus exception while getSystemConfig " << name;
-						//oam.writeLog(os.str(), logging::LOG_TYPE_ERROR);
-					}
-				}
-			}
-		}
-		catch (exception& e)
-		{
-			Oam oam;
-			ostringstream os;
-			os << "Oam::getModuleStatus exception while getSystemStatus " << e.what();
-			//oam.writeLog(os.str(), logging::LOG_TYPE_ERROR);
-		}
-		catch (...) {
-			Oam oam;
-			ostringstream os;
-			os << "Oam::getModuleStatus exception while getSystemStatus";
-			//oam.writeLog(os.str(), logging::LOG_TYPE_ERROR);
-		}
+                }
+            }
+        } catch (exception& e) {
+            Oam oam;
+            ostringstream os;
+            os << "Oam::getModuleStatus exception while getSystemStatus " << e.what();
+            //oam.writeLog(os.str(), logging::LOG_TYPE_ERROR);
+        } catch (...) {
+            Oam oam;
+            ostringstream os;
+            os << "Oam::getModuleStatus exception while getSystemStatus";
+            //oam.writeLog(os.str(), logging::LOG_TYPE_ERROR);
+        }
 
         // no match found
         exceptionControl("getModuleStatus", API_INVALID_PARAMETER);
@@ -1640,27 +1483,23 @@ namespace oam
      *
      ********************************************************************/
 
-    void Oam::setModuleStatus(const std::string name, const int state)
-    {
-		//send and wait for ack and resend if not received
-		//retry 3 time max
-		for ( int i=0; i < 3 ; i++)
-		{
-			try
-			{
-				ByteStream obs;
-	
-				obs << (ByteStream::byte) SET_MODULE_STATUS;
-				obs << name;
-				obs << (ByteStream::byte) state;
-	
-	    		sendStatusUpdate(obs, SET_MODULE_STATUS);
-				return;
-			}
-			catch(...)
-			{}
-		}
-		exceptionControl("setModuleStatus", API_FAILURE);
+    void Oam::setModuleStatus(const std::string name, const int state) {
+        //send and wait for ack and resend if not received
+        //retry 3 time max
+        for (int i = 0; i < 3; i++) {
+            try {
+                ByteStream obs;
+
+                obs << (ByteStream::byte) SET_MODULE_STATUS;
+                obs << name;
+                obs << (ByteStream::byte) state;
+
+                sendStatusUpdate(obs, SET_MODULE_STATUS);
+                return;
+            } catch (...) {
+            }
+        }
+        exceptionControl("setModuleStatus", API_FAILURE);
     }
 
 
@@ -1670,26 +1509,21 @@ namespace oam
      *
      ********************************************************************/
 
-    void Oam::getExtDeviceStatus(const std::string name, int& state)
-    {
-		SystemStatus systemstatus;
+    void Oam::getExtDeviceStatus(const std::string name, int& state) {
+        SystemStatus systemstatus;
 
-		try
-		{
-			getSystemStatus(systemstatus, false);
+        try {
+            getSystemStatus(systemstatus, false);
 
-			for( unsigned int i = 0 ; i < systemstatus.systemextdevicestatus.extdevicestatus.size(); i++)
-			{
-				if( systemstatus.systemextdevicestatus.extdevicestatus[i].Name == name ) {
-					state = systemstatus.systemextdevicestatus.extdevicestatus[i].OpState;
-					return;
-				}
-			}
-		}
-		catch (exception&)
-		{
-	        exceptionControl("getExtDeviceStatus", API_FAILURE);
-		}
+            for (unsigned int i = 0; i < systemstatus.systemextdevicestatus.extdevicestatus.size(); i++) {
+                if (systemstatus.systemextdevicestatus.extdevicestatus[i].Name == name) {
+                    state = systemstatus.systemextdevicestatus.extdevicestatus[i].OpState;
+                    return;
+                }
+            }
+        } catch (exception&) {
+            exceptionControl("getExtDeviceStatus", API_FAILURE);
+        }
 
         // no match found
         exceptionControl("getExtDeviceStatus", API_INVALID_PARAMETER);
@@ -1701,26 +1535,22 @@ namespace oam
      *
      ********************************************************************/
 
-    void Oam::setExtDeviceStatus(const std::string name, const int state)
-    {
-		//send and wait for ack and resend if not received
-		//retry 3 time max
-		for ( int i=0; i < 3 ; i++)
-		{
-			try
-			{
-				ByteStream obs;
-	
-				obs << (ByteStream::byte) SET_EXT_DEVICE_STATUS;
-				obs << name;
-				obs << (ByteStream::byte) state;
-	
-	    		sendStatusUpdate(obs, SET_EXT_DEVICE_STATUS);
-				return;
-			}
-			catch(...)
-			{}
-		}
+    void Oam::setExtDeviceStatus(const std::string name, const int state) {
+        //send and wait for ack and resend if not received
+        //retry 3 time max
+        for (int i = 0; i < 3; i++) {
+            try {
+                ByteStream obs;
+
+                obs << (ByteStream::byte) SET_EXT_DEVICE_STATUS;
+                obs << name;
+                obs << (ByteStream::byte) state;
+
+                sendStatusUpdate(obs, SET_EXT_DEVICE_STATUS);
+                return;
+            } catch (...) {
+            }
+        }
         exceptionControl("setExtDeviceStatus", API_FAILURE);
     }
 
@@ -1730,26 +1560,21 @@ namespace oam
      *
      ********************************************************************/
 
-    void Oam::getDbrootStatus(const std::string name, int& state)
-    {
-		SystemStatus systemstatus;
+    void Oam::getDbrootStatus(const std::string name, int& state) {
+        SystemStatus systemstatus;
 
-		try
-		{
-			getSystemStatus(systemstatus, false);
+        try {
+            getSystemStatus(systemstatus, false);
 
-			for( unsigned int i = 0 ; i < systemstatus.systemdbrootstatus.dbrootstatus.size(); i++)
-			{
-				if( systemstatus.systemdbrootstatus.dbrootstatus[i].Name == name ) {
-					state = systemstatus.systemdbrootstatus.dbrootstatus[i].OpState;
-					return;
-				}
-			}
-		}
-		catch (exception&)
-		{
-	        exceptionControl("getDbrootStatus", API_FAILURE);
-		}
+            for (unsigned int i = 0; i < systemstatus.systemdbrootstatus.dbrootstatus.size(); i++) {
+                if (systemstatus.systemdbrootstatus.dbrootstatus[i].Name == name) {
+                    state = systemstatus.systemdbrootstatus.dbrootstatus[i].OpState;
+                    return;
+                }
+            }
+        } catch (exception&) {
+            exceptionControl("getDbrootStatus", API_FAILURE);
+        }
 
         // no match found
         exceptionControl("getDbrootStatus", API_INVALID_PARAMETER);
@@ -1761,26 +1586,22 @@ namespace oam
      *
      ********************************************************************/
 
-    void Oam::setDbrootStatus(const std::string name, const int state)
-    {
-		//send and wait for ack and resend if not received
-		//retry 3 time max
-		for ( int i=0; i < 3 ; i++)
-		{
-			try
-			{
-				ByteStream obs;
-	
-				obs << (ByteStream::byte) SET_DBROOT_STATUS;
-				obs << name;
-				obs << (ByteStream::byte) state;
-	
-	    		sendStatusUpdate(obs, SET_DBROOT_STATUS);
-				return;
-			}
-			catch(...)
-			{}
-		}
+    void Oam::setDbrootStatus(const std::string name, const int state) {
+        //send and wait for ack and resend if not received
+        //retry 3 time max
+        for (int i = 0; i < 3; i++) {
+            try {
+                ByteStream obs;
+
+                obs << (ByteStream::byte) SET_DBROOT_STATUS;
+                obs << name;
+                obs << (ByteStream::byte) state;
+
+                sendStatusUpdate(obs, SET_DBROOT_STATUS);
+                return;
+            } catch (...) {
+            }
+        }
         exceptionControl("setDbrootStatus", API_FAILURE);
     }
 
@@ -1790,30 +1611,25 @@ namespace oam
      *
      ********************************************************************/
 
-    void Oam::getNICStatus(const std::string name, int& state)
-    {
-		SystemStatus systemstatus;
+    void Oam::getNICStatus(const std::string name, int& state) {
+        SystemStatus systemstatus;
 
-		try
-		{
-			getSystemStatus(systemstatus, false);
+        try {
+            getSystemStatus(systemstatus, false);
 
-			for( unsigned int i = 0 ; i < systemstatus.systemnicstatus.nicstatus.size(); i++)
-			{
-				if( systemstatus.systemnicstatus.nicstatus[i].HostName == name ) {
-					state = systemstatus.systemnicstatus.nicstatus[i].NICOpState;
-					return;
-				}
-			}
-		}
-		catch (exception& e)
-		{
-			Oam oam;
-			ostringstream os;
-			os << "Oam::getNICStatus exception while getSystemStatus for " << name << " " << e.what();
-			//oam.writeLog(os.str(), logging::LOG_TYPE_ERROR);
-	        exceptionControl("getNICStatus", API_FAILURE);
-		}
+            for (unsigned int i = 0; i < systemstatus.systemnicstatus.nicstatus.size(); i++) {
+                if (systemstatus.systemnicstatus.nicstatus[i].HostName == name) {
+                    state = systemstatus.systemnicstatus.nicstatus[i].NICOpState;
+                    return;
+                }
+            }
+        } catch (exception& e) {
+            Oam oam;
+            ostringstream os;
+            os << "Oam::getNICStatus exception while getSystemStatus for " << name << " " << e.what();
+            //oam.writeLog(os.str(), logging::LOG_TYPE_ERROR);
+            exceptionControl("getNICStatus", API_FAILURE);
+        }
 
         // no match found
         exceptionControl("getNICStatus", API_INVALID_PARAMETER);
@@ -1825,27 +1641,23 @@ namespace oam
      *
      ********************************************************************/
 
-    void Oam::setNICStatus(const std::string name, const int state)
-    {
-		//send and wait for ack and resend if not received
-		//retry 3 time max
-		for ( int i=0; i < 3 ; i++)
-		{
-			try
-			{
-				ByteStream obs;
-	
-				obs << (ByteStream::byte) SET_NIC_STATUS;
-				obs << name;
-				obs << (ByteStream::byte) state;
-	
-	    		sendStatusUpdate(obs, SET_NIC_STATUS);
-				return;
-			}
-			catch(...)
-			{}
-		}
-		exceptionControl("setNICStatus", API_FAILURE);
+    void Oam::setNICStatus(const std::string name, const int state) {
+        //send and wait for ack and resend if not received
+        //retry 3 time max
+        for (int i = 0; i < 3; i++) {
+            try {
+                ByteStream obs;
+
+                obs << (ByteStream::byte) SET_NIC_STATUS;
+                obs << name;
+                obs << (ByteStream::byte) state;
+
+                sendStatusUpdate(obs, SET_NIC_STATUS);
+                return;
+            } catch (...) {
+            }
+        }
+        exceptionControl("setNICStatus", API_FAILURE);
     }
 
     /********************************************************************
@@ -1854,8 +1666,7 @@ namespace oam
      *
      ********************************************************************/
 
-    void Oam::getProcessConfig(const std::string process, const std::string module, ProcessConfig& processconfig)
-    {
+    void Oam::getProcessConfig(const std::string process, const std::string module, ProcessConfig& processconfig) {
 
         Config* proConfig = Config::makeConfig(ProcessConfigFile.c_str());
         const string SECTION_NAME = "PROCESSCONFIG";
@@ -1865,63 +1676,55 @@ namespace oam
         const string DEP_MDLNAME = "DepModuleName";
         string depName;
         string depMdlName;
-		string moduleType = module.substr(0,MAX_MODULE_TYPE_SIZE);
+        string moduleType = module.substr(0, MAX_MODULE_TYPE_SIZE);
 
-        for (int processID = 1; processID < MAX_PROCESS+1; processID++)
-        {
+        for (int processID = 1; processID < MAX_PROCESS + 1; processID++) {
             string sectionName = SECTION_NAME + itoa(processID);
 
-            if( proConfig->getConfig(sectionName, "ProcessName") == process )
-			{
-            	string ModuleType = proConfig->getConfig(sectionName, "ModuleType");
+            if (proConfig->getConfig(sectionName, "ProcessName") == process) {
+                string ModuleType = proConfig->getConfig(sectionName, "ModuleType");
 
-           		if ( ModuleType == "ParentOAMModule" 
-					|| ModuleType == "ChildExtOAMModule"
-					|| ( ModuleType == "ChildOAMModule" && moduleType != "xm" )
-					|| ModuleType == moduleType)
-            	{
-					// get string variables
-					processconfig.ProcessName = process;
-					processconfig.ModuleType = ModuleType;
-	
-					processconfig.ProcessLocation = proConfig->getConfig(sectionName, "ProcessLocation");
-					processconfig.LogFile = proConfig->getConfig(sectionName, "LogFile");;
-	
-					// get Integer variables
-					processconfig.BootLaunch = strtol(proConfig->getConfig(sectionName, "BootLaunch").c_str(), 0, 0);
-					processconfig.LaunchID = strtol(proConfig->getConfig(sectionName, "LaunchID").c_str(), 0, 0);;
-	
-					// get Auguments
-					for (int argID = 0; argID < MAX_ARGUMENTS; argID++)
-					{
-						argName = ARG_NAME + itoa(argID+1);
-						processconfig.ProcessArgs[argID] = proConfig->getConfig(sectionName, argName);
-					}
-	
-					// get process dependencies
-					for (int depID = 0; depID < MAX_DEPENDANCY; depID++)
-					{
-						depName = DEP_NAME + itoa(depID+1);
-						processconfig.DepProcessName[depID] = proConfig->getConfig(sectionName, depName);
-					}
-					// get dependent process Module name
-					for (int moduleID = 0; moduleID < MAX_DEPENDANCY; moduleID++)
-					{
-						depMdlName = DEP_MDLNAME + itoa(moduleID+1);
-						processconfig.DepModuleName[moduleID] = proConfig->getConfig(sectionName, depMdlName);
-					}
-	
-					// get optional group id and type
-					try {
-						processconfig.RunType = proConfig->getConfig(sectionName, "RunType");
-					}
-					catch(...)
-					{
-						processconfig.RunType = "LOADSHARE";
-					}
-	
-					return;
-				}
+                if (ModuleType == "ParentOAMModule"
+                    || ModuleType == "ChildExtOAMModule"
+                    || (ModuleType == "ChildOAMModule" && moduleType != "xm")
+                    || ModuleType == moduleType) {
+                    // get string variables
+                    processconfig.ProcessName = process;
+                    processconfig.ModuleType = ModuleType;
+
+                    processconfig.ProcessLocation = proConfig->getConfig(sectionName, "ProcessLocation");
+                    processconfig.LogFile = proConfig->getConfig(sectionName, "LogFile");;
+
+                    // get Integer variables
+                    processconfig.BootLaunch = strtol(proConfig->getConfig(sectionName, "BootLaunch").c_str(), 0, 0);
+                    processconfig.LaunchID = strtol(proConfig->getConfig(sectionName, "LaunchID").c_str(), 0, 0);;
+
+                    // get Auguments
+                    for (int argID = 0; argID < MAX_ARGUMENTS; argID++) {
+                        argName = ARG_NAME + itoa(argID + 1);
+                        processconfig.ProcessArgs[argID] = proConfig->getConfig(sectionName, argName);
+                    }
+
+                    // get process dependencies
+                    for (int depID = 0; depID < MAX_DEPENDANCY; depID++) {
+                        depName = DEP_NAME + itoa(depID + 1);
+                        processconfig.DepProcessName[depID] = proConfig->getConfig(sectionName, depName);
+                    }
+                    // get dependent process Module name
+                    for (int moduleID = 0; moduleID < MAX_DEPENDANCY; moduleID++) {
+                        depMdlName = DEP_MDLNAME + itoa(moduleID + 1);
+                        processconfig.DepModuleName[moduleID] = proConfig->getConfig(sectionName, depMdlName);
+                    }
+
+                    // get optional group id and type
+                    try {
+                        processconfig.RunType = proConfig->getConfig(sectionName, "RunType");
+                    } catch (...) {
+                        processconfig.RunType = "LOADSHARE";
+                    }
+
+                    return;
+                }
             }
         }
 
@@ -1935,17 +1738,15 @@ namespace oam
      *
      ********************************************************************/
 
-    void Oam::getProcessConfig(SystemProcessConfig& systemprocessconfig)
-    {
+    void Oam::getProcessConfig(SystemProcessConfig& systemprocessconfig) {
 
         const string SECTION_NAME = "PROCESSCONFIG";
         systemprocessconfig.processconfig.clear();
 
         Config* proConfig = Config::makeConfig(ProcessConfigFile.c_str());
 
-        for (int processID = 1; processID < MAX_PROCESS+1; processID++)
-        {
-	        ProcessConfig processconfig;
+        for (int processID = 1; processID < MAX_PROCESS + 1; processID++) {
+            ProcessConfig processconfig;
 
             // get process info
 
@@ -1953,7 +1754,7 @@ namespace oam
 
             Oam::getProcessConfig(proConfig->getConfig(sectionName, "ProcessName"),
                 proConfig->getConfig(sectionName, "ModuleType"),
-                processconfig );
+                processconfig);
 
             if (processconfig.ProcessName.empty())
                 continue;
@@ -1968,37 +1769,32 @@ namespace oam
      *
      ********************************************************************/
 
-    void Oam::getProcessConfig(const std::string process, const std::string module, 
-								const std::string name, std::string& value)
-    {
+    void Oam::getProcessConfig(const std::string process, const std::string module,
+        const std::string name, std::string& value) {
 
         Config* proConfig = Config::makeConfig(ProcessConfigFile.c_str());
         const string SECTION_NAME = "PROCESSCONFIG";
-		string moduleType = module.substr(0,MAX_MODULE_TYPE_SIZE);
+        string moduleType = module.substr(0, MAX_MODULE_TYPE_SIZE);
 
-        for (int processID = 1; processID < MAX_PROCESS+1; processID++)
-        {
+        for (int processID = 1; processID < MAX_PROCESS + 1; processID++) {
             string sectionName = SECTION_NAME + itoa(processID);
 
-            if( proConfig->getConfig(sectionName, "ProcessName") == process )
-			{
-            	string ModuleType = proConfig->getConfig(sectionName, "ModuleType");
+            if (proConfig->getConfig(sectionName, "ProcessName") == process) {
+                string ModuleType = proConfig->getConfig(sectionName, "ModuleType");
 
-           		if ( ModuleType == "ParentOAMModule" 
-					|| ModuleType == "ChildExtOAMModule"
-					|| ( ModuleType == "ChildOAMModule" && moduleType != "xm" )
-					|| ModuleType == moduleType)
-            	{
-					// get string variables
-	
-					value = proConfig->getConfig(sectionName, name);
-	
-					if (value.empty())
-					{
-						exceptionControl("getProcessConfig", API_INVALID_PARAMETER);
-					}
-					return;
-				}
+                if (ModuleType == "ParentOAMModule"
+                    || ModuleType == "ChildExtOAMModule"
+                    || (ModuleType == "ChildOAMModule" && moduleType != "xm")
+                    || ModuleType == moduleType) {
+                    // get string variables
+
+                    value = proConfig->getConfig(sectionName, name);
+
+                    if (value.empty()) {
+                        exceptionControl("getProcessConfig", API_INVALID_PARAMETER);
+                    }
+                    return;
+                }
             }
         }
 
@@ -2013,9 +1809,8 @@ namespace oam
      *
      ********************************************************************/
 
-    void Oam::getProcessConfig(const std::string process, const std::string module, 
-								const std::string name, int& value)
-    {
+    void Oam::getProcessConfig(const std::string process, const std::string module,
+        const std::string name, int& value) {
         string returnValue;
 
         Oam::getProcessConfig(process, module, name, returnValue);
@@ -2029,48 +1824,41 @@ namespace oam
      *
      ********************************************************************/
 
-    void Oam::setProcessConfig(const std::string process, const std::string module, 
-								const std::string name, const std::string value)
-    {
+    void Oam::setProcessConfig(const std::string process, const std::string module,
+        const std::string name, const std::string value) {
 
         Config* proConfig = Config::makeConfig(ProcessConfigFile.c_str());
         const string SECTION_NAME = "PROCESSCONFIG";
         string returnValue;
-		string moduleType = module.substr(0,MAX_MODULE_TYPE_SIZE);
+        string moduleType = module.substr(0, MAX_MODULE_TYPE_SIZE);
 
-        for (int processID = 1; processID < MAX_PROCESS+1; processID++)
-        {
+        for (int processID = 1; processID < MAX_PROCESS + 1; processID++) {
             string sectionName = SECTION_NAME + itoa(processID);
 
-            if( proConfig->getConfig(sectionName, "ProcessName") == process )
-			{
-            	string ModuleType = proConfig->getConfig(sectionName, "ModuleType");
+            if (proConfig->getConfig(sectionName, "ProcessName") == process) {
+                string ModuleType = proConfig->getConfig(sectionName, "ModuleType");
 
-           		if ( ModuleType == "ParentOAMModule" 
-					|| ModuleType == "ChildExtOAMModule"
-					|| ( ModuleType == "ChildOAMModule" && moduleType != "xm" )
-					|| ModuleType == moduleType)
-            	{
-					// check if parameter exist
-	
-					Oam::getProcessConfig(process, module, name, returnValue);
-	
-					// Set string variables
-					proConfig->setConfig(sectionName, name, value);
-					try
-					{
-						proConfig->write();
-					}
-					catch(...)
-					{
-						exceptionControl("setProcessConfig", API_FAILURE);
-					}
-	
-					// build and send msg to inform Proc-Mgt that Configuration is updated
-					// don't care if fails, sincet his can be called with Proc-Mgr enable
-					sendMsgToProcMgr(UPDATECONFIG, "", FORCEFUL, ACK_NO);
-					return;
-				}
+                if (ModuleType == "ParentOAMModule"
+                    || ModuleType == "ChildExtOAMModule"
+                    || (ModuleType == "ChildOAMModule" && moduleType != "xm")
+                    || ModuleType == moduleType) {
+                    // check if parameter exist
+
+                    Oam::getProcessConfig(process, module, name, returnValue);
+
+                    // Set string variables
+                    proConfig->setConfig(sectionName, name, value);
+                    try {
+                        proConfig->write();
+                    } catch (...) {
+                        exceptionControl("setProcessConfig", API_FAILURE);
+                    }
+
+                    // build and send msg to inform Proc-Mgt that Configuration is updated
+                    // don't care if fails, sincet his can be called with Proc-Mgr enable
+                    sendMsgToProcMgr(UPDATECONFIG, "", FORCEFUL, ACK_NO);
+                    return;
+                }
             }
         }
 
@@ -2085,9 +1873,8 @@ namespace oam
      *
      ********************************************************************/
 
-    void Oam::setProcessConfig(const std::string process, const std::string module, 
-								const std::string name, const int value)
-    {
+    void Oam::setProcessConfig(const std::string process, const std::string module,
+        const std::string name, const int value) {
         string valueString;
 
         // convert Incoming Interger Parameter value to String
@@ -2105,93 +1892,77 @@ namespace oam
      *
      ********************************************************************/
 
-    void Oam::getProcessStatus(SystemProcessStatus& systemprocessstatus, string port)
-    {
-		if (!checkSystemRunFlag() || !checkSystemRunning())
-			exceptionControl("getProcessStatus", API_FAILURE);
+    void Oam::getProcessStatus(SystemProcessStatus& systemprocessstatus, string port) {
+        if (!checkSystemRunFlag() || !checkSystemRunning())
+            exceptionControl("getProcessStatus", API_FAILURE);
         ProcessStatus processstatus;
         systemprocessstatus.processstatus.clear();
 
-        try
-        {
-            	MessageQueueClient processor(port);
-//		processor.syncProto(false);
+        try {
+            MessageQueueClient processor(port);
+            //		processor.syncProto(false);
 
-            	ByteStream::quadbyte processNumber;
-		ByteStream::byte state;
-		ByteStream::quadbyte PID;
-		std::string changeDate;
-		std::string processName;
-		std::string moduleName;
-	        ByteStream obs, ibs;
+            ByteStream::quadbyte processNumber;
+            ByteStream::byte state;
+            ByteStream::quadbyte PID;
+            std::string changeDate;
+            std::string processName;
+            std::string moduleName;
+            ByteStream obs, ibs;
 
-            	obs << (ByteStream::byte) GET_ALL_PROC_STATUS;
+            obs << (ByteStream::byte) GET_ALL_PROC_STATUS;
 
-		try {
-			struct timespec ts = { 5, 0 };
-			processor.write(obs, &ts);
-		}
-		catch (std::exception& ex)
-		{
-			exceptionControl("getProcessStatus:write", API_FAILURE);
-		}
-		catch(...)
-		{
-			exceptionControl("getProcessStatus:write", API_TIMEOUT);
-		}
-	
-		// wait 10 seconds for ACK from Process Monitor
-		struct timespec ts = { 30, 0 };
-	
-		try {
-			ibs = processor.read(&ts);
-		}
-		catch (std::exception& ex)
-		{
-			exceptionControl("getProcessStatus:read", API_FAILURE);
-		}
-		catch(...)
-		{
-			exceptionControl("getProcessStatus:read", API_TIMEOUT);
-		}
-	
-		if (ibs.length() > 0)
-		{
-			ibs >> processNumber;
-	
-			for( unsigned i=0 ; i < processNumber ; ++i)
-			{
-				ibs >> processName;
-				ibs >> moduleName;
-				ibs >> state;
-				ibs >> PID;
-				ibs >> changeDate;
-	
-				processstatus.ProcessName = processName;
-				processstatus.Module = moduleName;
-				processstatus.ProcessOpState = state;
-				processstatus.ProcessID = PID;
-				processstatus.StateChangeDate = changeDate;
-	
-				systemprocessstatus.processstatus.push_back(processstatus);
-			}
-			processor.shutdown();
-			return;
-		}
+            try {
+                struct timespec ts = { 5, 0 };
+                processor.write(obs, &ts);
+            } catch (std::exception& ex) {
+                exceptionControl("getProcessStatus:write", API_FAILURE);
+            } catch (...) {
+                exceptionControl("getProcessStatus:write", API_TIMEOUT);
+            }
 
-		// timeout occurred, shutdown connection
-		processor.shutdown();
-	}
-	catch (std::exception& ex)
-	{
-		exceptionControl("getProcessStatus:MessageQueueClient", API_FAILURE, ex.what());
-	}
-	catch(...)
-	{
-		exceptionControl("getProcessStatus:MessageQueueClient", API_FAILURE);
-	}
+            // wait 10 seconds for ACK from Process Monitor
+            struct timespec ts = { 30, 0 };
 
-	exceptionControl("getProcessStatus", API_TIMEOUT);
+            try {
+                ibs = processor.read(&ts);
+            } catch (std::exception& ex) {
+                exceptionControl("getProcessStatus:read", API_FAILURE);
+            } catch (...) {
+                exceptionControl("getProcessStatus:read", API_TIMEOUT);
+            }
+
+            if (ibs.length() > 0) {
+                ibs >> processNumber;
+
+                for (unsigned i = 0; i < processNumber; ++i) {
+                    ibs >> processName;
+                    ibs >> moduleName;
+                    ibs >> state;
+                    ibs >> PID;
+                    ibs >> changeDate;
+
+                    processstatus.ProcessName = processName;
+                    processstatus.Module = moduleName;
+                    processstatus.ProcessOpState = state;
+                    processstatus.ProcessID = PID;
+                    processstatus.StateChangeDate = changeDate;
+
+                    systemprocessstatus.processstatus.push_back(processstatus);
+                }
+                processor.shutdown();
+                return;
+            }
+
+            // timeout occurred, shutdown connection
+            processor.shutdown();
+        } catch (std::exception& ex) {
+            exceptionControl("getProcessStatus:MessageQueueClient", API_FAILURE, ex.what());
+        } catch (...) {
+            exceptionControl("getProcessStatus:MessageQueueClient", API_FAILURE);
+        }
+
+        exceptionControl("getProcessStatus", API_TIMEOUT);
     }
 
     /********************************************************************
@@ -2200,97 +1971,82 @@ namespace oam
      *
      ********************************************************************/
 
-    void Oam::getProcessStatus(const std::string process, const std::string module, ProcessStatus& processstatus)
-    {
+    void Oam::getProcessStatus(const std::string process, const std::string module, ProcessStatus& processstatus) {
 #ifdef _MSC_VER
         // TODO: Remove when we create OAM for Windows
         return;
 #endif
 
-		if (!checkSystemRunFlag() || !checkSystemRunning())
-			exceptionControl("getProcessStatus", API_FAILURE);
+        if (!checkSystemRunFlag() || !checkSystemRunning())
+            exceptionControl("getProcessStatus", API_FAILURE);
 
-	for ( int i = 0 ; i < 5 ; i ++)
-	{
-		try
-		{
-			MessageQueueClient processor("ProcStatusControl");
-	//			processor.syncProto(false);
-			ByteStream::byte status, state;
-			ByteStream::quadbyte PID;
-			std::string changeDate;
-			ByteStream obs, ibs;
-		
-			obs << (ByteStream::byte) GET_PROC_STATUS;
-			obs << module;
-			obs << process;
-	
-			try {
-				struct timespec ts = { 5, 0 };
-				processor.write(obs, &ts);
-			}
-			catch (std::exception& ex)
-			{
-				processor.shutdown();
-				exceptionControl("getProcessStatus:write", API_FAILURE, ex.what());
-			}
-			catch(...)
-			{
-				processor.shutdown();
-				exceptionControl("getProcessStatus:write", API_TIMEOUT);
-			}
-	
-			// wait 10 seconds for ACK from Process Monitor
-			struct timespec ts = { 15, 0 };
-	
-			try {
-				ibs = processor.read(&ts);
-			}
-			catch (std::exception& ex)
-			{
-				processor.shutdown();
-				exceptionControl("getProcessStatus:read", API_FAILURE, ex.what());
-			}
-			catch(...)
-			{
-				processor.shutdown();
-				exceptionControl("getProcessStatus:read", API_TIMEOUT);
-			}
-	
-			if (ibs.length() > 0)
-			{
-				ibs >> status;
-				if ( status == oam::API_SUCCESS ) {
-					ibs >> state;
-					ibs >> PID;
-					ibs >> changeDate;
-				}
-				else
-				{
-					// shutdown connection
-					processor.shutdown();
-					exceptionControl("getProcessStatus:status", API_FAILURE);
-				}
-	
-				processstatus.ProcessName = process;
-				processstatus.Module = module;
-				processstatus.ProcessOpState = state;
-				processstatus.ProcessID = PID;
-				processstatus.StateChangeDate = changeDate;
-	
-				processor.shutdown();
-				return;
-			}
-	
-			// timeout occurred, shutdown connection
-			processor.shutdown();
-			exceptionControl("getProcessStatus:status", API_TIMEOUT);
-		}
-		catch(...)
-		{}
-	}
+        for (int i = 0; i < 5; i++) {
+            try {
+                MessageQueueClient processor("ProcStatusControl");
+                //			processor.syncProto(false);
+                ByteStream::byte status, state;
+                ByteStream::quadbyte PID;
+                std::string changeDate;
+                ByteStream obs, ibs;
 
-	exceptionControl("getProcessStatus:MessageQueueClient-Error", API_FAILURE);
+                obs << (ByteStream::byte) GET_PROC_STATUS;
+                obs << module;
+                obs << process;
+
+                try {
+                    struct timespec ts = { 5, 0 };
+                    processor.write(obs, &ts);
+                } catch (std::exception& ex) {
+                    processor.shutdown();
+                    exceptionControl("getProcessStatus:write", API_FAILURE, ex.what());
+                } catch (...) {
+                    processor.shutdown();
+                    exceptionControl("getProcessStatus:write", API_TIMEOUT);
+                }
+
+                // wait 10 seconds for ACK from Process Monitor
+                struct timespec ts = { 15, 0 };
+
+                try {
+                    ibs = processor.read(&ts);
+                } catch (std::exception& ex) {
+                    processor.shutdown();
+                    exceptionControl("getProcessStatus:read", API_FAILURE, ex.what());
+                } catch (...) {
+                    processor.shutdown();
+                    exceptionControl("getProcessStatus:read", API_TIMEOUT);
+                }
+
+                if (ibs.length() > 0) {
+                    ibs >> status;
+                    if (status == oam::API_SUCCESS) {
+                        ibs >> state;
+                        ibs >> PID;
+                        ibs >> changeDate;
+                    } else {
+                        // shutdown connection
+                        processor.shutdown();
+                        exceptionControl("getProcessStatus:status", API_FAILURE);
+                    }
+
+                    processstatus.ProcessName = process;
+                    processstatus.Module = module;
+                    processstatus.ProcessOpState = state;
+                    processstatus.ProcessID = PID;
+                    processstatus.StateChangeDate = changeDate;
+
+                    processor.shutdown();
+                    return;
+                }
+
+                // timeout occurred, shutdown connection
+                processor.shutdown();
+                exceptionControl("getProcessStatus:status", API_TIMEOUT);
+            } catch (...) {
+            }
+        }
+
+        exceptionControl("getProcessStatus:MessageQueueClient-Error", API_FAILURE);
 
     }
 
@@ -2301,35 +2057,31 @@ namespace oam
      *
      ********************************************************************/
 
-    void Oam::setProcessStatus(const std::string process, const std::string module, const int state, pid_t PID)
-    {
-		if (!checkSystemRunFlag() || !checkSystemRunning())
-			exceptionControl("setProcessStatus", API_FAILURE);
-		//send and wait for ack and resend if not received
-		//retry 5 time max
-		for ( int i=0; i < 5 ; i++)
-		{
-			try
-			{
-				ByteStream obs;
-	
-				obs << (ByteStream::byte) SET_PROC_STATUS;
-				obs << module;
-				obs << process;
-				obs << (ByteStream::byte) state;
-				obs << (ByteStream::quadbyte) PID;
-	
-	    		sendStatusUpdate(obs, SET_PROC_STATUS);
-				return;
-			}
-			catch(...)
-			{}
+    void Oam::setProcessStatus(const std::string process, const std::string module, const int state, pid_t PID) {
+        if (!checkSystemRunFlag() || !checkSystemRunning())
+            exceptionControl("setProcessStatus", API_FAILURE);
+        //send and wait for ack and resend if not received
+        //retry 5 time max
+        for (int i = 0; i < 5; i++) {
+            try {
+                ByteStream obs;
+
+                obs << (ByteStream::byte) SET_PROC_STATUS;
+                obs << module;
+                obs << process;
+                obs << (ByteStream::byte) state;
+                obs << (ByteStream::quadbyte) PID;
+
+                sendStatusUpdate(obs, SET_PROC_STATUS);
+                return;
+            } catch (...) {
+            }
 #ifdef _MSC_VER
-			Sleep(1 * 1000);
+            Sleep(1 * 1000);
 #else
-			sleep(1);
+            sleep(1);
 #endif
-		}
+        }
         exceptionControl("setProcessStatus", API_TIMEOUT);
     }
 
@@ -2339,49 +2091,42 @@ namespace oam
      *
      ********************************************************************/
 
-    void Oam::processInitComplete(std::string processName, int state)
-	{
-//This method takes too long on Windows and doesn't do anything there anyway...
+    void Oam::processInitComplete(std::string processName, int state) {
+        //This method takes too long on Windows and doesn't do anything there anyway...
 #if !defined(_MSC_VER) && !defined(SKIP_OAM_INIT)
-		// get current Module name
-		string moduleName;
-		oamModuleInfo_t st;
-		try {
-			st = getModuleInfo();
-			moduleName = boost::get<0>(st);
-		}
-		catch (...) {
-			//system("touch /var/log/erydb/test2");
-		}
-	
-		for ( int i = 0 ; i < 5 ; i++)
-		{
-			//set process
-			try
-			{
-				setProcessStatus(processName, moduleName, state, getpid());
+        // get current Module name
+        string moduleName;
+        oamModuleInfo_t st;
+        try {
+            st = getModuleInfo();
+            moduleName = boost::get<0>(st);
+        } catch (...) {
+            //system("touch /var/log/erydb/test2");
+        }
 
-				//verify it's set
-				try{
-					ProcessStatus procstat;
-					getProcessStatus(processName, moduleName, procstat);
-					if ( procstat.ProcessOpState == state)
-						return;
-				}
-				catch (...)
-				{}
-			}
-			catch(...)
-			{
-				//system("touch /var/log/erydb/test3");
-			}
+        for (int i = 0; i < 5; i++) {
+            //set process
+            try {
+                setProcessStatus(processName, moduleName, state, getpid());
 
-			sleep(1);
-		}
-		writeLog("processInitComplete: Status update failed", LOG_TYPE_ERROR );
-		exceptionControl("processInitComplete", API_FAILURE);
+                //verify it's set
+                try {
+                    ProcessStatus procstat;
+                    getProcessStatus(processName, moduleName, procstat);
+                    if (procstat.ProcessOpState == state)
+                        return;
+                } catch (...) {
+                }
+            } catch (...) {
+                //system("touch /var/log/erydb/test3");
+            }
+
+            sleep(1);
+        }
+        writeLog("processInitComplete: Status update failed", LOG_TYPE_ERROR);
+        exceptionControl("processInitComplete", API_FAILURE);
 #endif
-	}
+    }
 
     /********************************************************************
      *
@@ -2389,50 +2134,41 @@ namespace oam
      *
      ********************************************************************/
 
-    void Oam::processInitFailure()
-	{
-		// get current process name
-		string processName;
-		myProcessStatus_t t;
-		try {
-			t = getMyProcessStatus();
-			processName = boost::get<1>(t);
-		}
-		catch (...) {
-       		exceptionControl("processInitFailure", API_FAILURE);
-		}
-
-		// get current Module name
-		string moduleName;
-		oamModuleInfo_t st;
-		try {
-			st = getModuleInfo();
-			moduleName = boost::get<0>(st);
-		}
-		catch (...) {
-       		exceptionControl("processInitFailure", API_FAILURE);
-		}
-
-		//set process to FAILED
-        try
-        {
-			setProcessStatus(processName, moduleName, FAILED, 0);
+    void Oam::processInitFailure() {
+        // get current process name
+        string processName;
+        myProcessStatus_t t;
+        try {
+            t = getMyProcessStatus();
+            processName = boost::get<1>(t);
+        } catch (...) {
+            exceptionControl("processInitFailure", API_FAILURE);
         }
-        catch(...)
-        {
-        	exceptionControl("processInitFailure", API_FAILURE);
-		}
 
-		//set MODULE to FAILED
-        try
-        {
-			setModuleStatus(moduleName, FAILED);
+        // get current Module name
+        string moduleName;
+        oamModuleInfo_t st;
+        try {
+            st = getModuleInfo();
+            moduleName = boost::get<0>(st);
+        } catch (...) {
+            exceptionControl("processInitFailure", API_FAILURE);
         }
-        catch(...)
-        {
-        	exceptionControl("processInitFailure", API_FAILURE);
-		}
-	}
+
+        //set process to FAILED
+        try {
+            setProcessStatus(processName, moduleName, FAILED, 0);
+        } catch (...) {
+            exceptionControl("processInitFailure", API_FAILURE);
+        }
+
+        //set MODULE to FAILED
+        try {
+            setModuleStatus(moduleName, FAILED);
+        } catch (...) {
+            exceptionControl("processInitFailure", API_FAILURE);
+        }
+    }
 
     /********************************************************************
      *
@@ -2440,8 +2176,7 @@ namespace oam
      *
      ********************************************************************/
 
-    void Oam::getAlarmConfig(const int alarmid, AlarmConfig& alarmconfig)
-    {
+    void Oam::getAlarmConfig(const int alarmid, AlarmConfig& alarmconfig) {
 
         Config* alaConfig = Config::makeConfig(AlarmConfigFile.c_str());
         string temp;
@@ -2449,7 +2184,7 @@ namespace oam
 
         // validate Alarm ID
 
-        if( alarmid > MAX_ALARM_ID )
+        if (alarmid > MAX_ALARM_ID)
             exceptionControl("getAlarmConfig", API_INVALID_PARAMETER);
 
         // convert Alarm ID to ASCII
@@ -2460,8 +2195,7 @@ namespace oam
 
         temp = alaConfig->getConfig(Section, "AlarmID");
 
-        if( temp.empty())
-        {
+        if (temp.empty()) {
             exceptionControl("getAlarmConfig", API_INVALID_PARAMETER);
         }
 
@@ -2484,15 +2218,14 @@ namespace oam
      *
      ********************************************************************/
 
-    void Oam::getAlarmConfig(const int alarmid, const std::string name, std::string& value)
-    {
+    void Oam::getAlarmConfig(const int alarmid, const std::string name, std::string& value) {
 
         Config* alaConfig = Config::makeConfig(AlarmConfigFile.c_str());
         string Section = "AlarmConfig";
 
         // validate Alarm ID
 
-        if( alarmid > MAX_ALARM_ID )
+        if (alarmid > MAX_ALARM_ID)
             exceptionControl("getSystemConfig", API_INVALID_PARAMETER);
 
         // convert Alarm ID to ASCII
@@ -2503,8 +2236,7 @@ namespace oam
 
         value = alaConfig->getConfig(Section, name);
 
-        if (value.empty())
-        {
+        if (value.empty()) {
             exceptionControl("getSystemConfig", API_INVALID_PARAMETER);
         }
     }
@@ -2515,8 +2247,7 @@ namespace oam
      *
      ********************************************************************/
 
-    void Oam::getAlarmConfig(const int alarmid, const std::string name, int& value)
-    {
+    void Oam::getAlarmConfig(const int alarmid, const std::string name, int& value) {
         string returnValue;
 
         // get string variables
@@ -2532,14 +2263,13 @@ namespace oam
      *
      ********************************************************************/
 
-    void Oam::setAlarmConfig(const int alarmid, const std::string name, const std::string value)
-    {
+    void Oam::setAlarmConfig(const int alarmid, const std::string name, const std::string value) {
         string Section = "AlarmConfig";
         int returnValue;
 
         // validate Alarm ID
 
-        if( alarmid > MAX_ALARM_ID )
+        if (alarmid > MAX_ALARM_ID)
             exceptionControl("setAlarmConfig", API_INVALID_PARAMETER);
 
         // convert Alarm ID to ASCII
@@ -2550,24 +2280,21 @@ namespace oam
 
         Oam::getAlarmConfig(alarmid, name, returnValue);
 
-		// only allow user to change these levels
-		if ( name != "Threshold" && 
-				name != "Occurrences" &&
-				name != "LastIssueTime" )
+        // only allow user to change these levels
+        if (name != "Threshold" &&
+            name != "Occurrences" &&
+            name != "LastIssueTime")
             exceptionControl("setAlarmConfig", API_READONLY_PARAMETER);
 
         //  write parameter to disk
 
         Config* alaConfig = Config::makeConfig(AlarmConfigFile.c_str());
         alaConfig->setConfig(Section, name, value);
-		try
-		{
-			alaConfig->write();
-		}
-		catch(...)
-		{
-			exceptionControl("setAlarmConfig", API_FAILURE);
-		}
+        try {
+            alaConfig->write();
+        } catch (...) {
+            exceptionControl("setAlarmConfig", API_FAILURE);
+        }
 
     }
 
@@ -2577,8 +2304,7 @@ namespace oam
      *
      ********************************************************************/
 
-    void Oam::setAlarmConfig(const int alarmid, const std::string name, const int value)
-    {
+    void Oam::setAlarmConfig(const int alarmid, const std::string name, const int value) {
         string Section = "AlarmConfig";
         string valueString;
 
@@ -2597,8 +2323,7 @@ namespace oam
      *
      ********************************************************************/
 
-    void Oam::getActiveAlarms(AlarmList& activeAlarm)
-    {
+    void Oam::getActiveAlarms(AlarmList& activeAlarm) {
         // check if on Active OAM Parent
         bool OAMParentModuleFlag;
         oamModuleInfo_t st;
@@ -2612,19 +2337,15 @@ namespace oam
                 sm.getActiveAlarm(activeAlarm);
                 return;
             }
-        }
-        catch (...) {
+        } catch (...) {
             exceptionControl("getActiveAlarms", API_FAILURE);
         }
 
         int returnStatus = API_SUCCESS;
-        if (UseHdfs > 0)
-        {
+        if (UseHdfs > 0) {
             // read from HDFS files
             returnStatus = readHdfsActiveAlarms(activeAlarm);
-        }
-        else
-        {
+        } else {
             // build and send msg
             returnStatus = sendMsgToProcMgr3(GETACTIVEALARMDATA, activeAlarm, "");
         }
@@ -2639,8 +2360,7 @@ namespace oam
      *
      ********************************************************************/
 
-    void Oam::getAlarms(std::string date, AlarmList& alarmlist)
-    {
+    void Oam::getAlarms(std::string date, AlarmList& alarmlist) {
         // check if on Active OAM Parent
         bool OAMParentModuleFlag;
         oamModuleInfo_t st;
@@ -2654,8 +2374,7 @@ namespace oam
                 sm.getAlarm(date, alarmlist);
                 return;
             }
-        }
-        catch (...) {
+        } catch (...) {
             exceptionControl("getAlarms", API_FAILURE);
         }
 
@@ -2672,8 +2391,7 @@ namespace oam
      ********************************************************************/
 
     bool Oam::checkActiveAlarm(const int alarmid, const std::string moduleName,
-                               const std::string deviceName)
-    {
+        const std::string deviceName) {
         AlarmList activeAlarm;
 
         // check if on Active OAM Parent
@@ -2687,32 +2405,26 @@ namespace oam
                 //call getAlarm API directly
                 ALARMManager sm;
                 sm.getActiveAlarm(activeAlarm);
-            }
-            else if (UseHdfs > 0)
-            {
+            } else if (UseHdfs > 0) {
                 // read from HDFS files
                 if (readHdfsActiveAlarms(activeAlarm) != API_SUCCESS)
                     return false;
-            }
-            else
-            {
+            } else {
                 // build and send msg
                 int returnStatus = sendMsgToProcMgr3(GETACTIVEALARMDATA, activeAlarm, "");
                 if (returnStatus != API_SUCCESS)
                     return false;
             }
-        }
-        catch (...) {
+        } catch (...) {
             return false;
         }
 
-        for (AlarmList::iterator i = activeAlarm.begin(); i != activeAlarm.end(); ++i)
-        {
+        for (AlarmList::iterator i = activeAlarm.begin(); i != activeAlarm.end(); ++i) {
             // check if matching ID
-            if (alarmid != (i->second).getAlarmID() )
+            if (alarmid != (i->second).getAlarmID())
                 continue;
 
-        	//check for moduleName of wildcard "*", if so return if alarm set on any module
+            //check for moduleName of wildcard "*", if so return if alarm set on any module
             if (deviceName.compare((i->second).getComponentID()) == 0 &&
                 moduleName == "*")
                 return true;
@@ -2728,65 +2440,62 @@ namespace oam
     /********************************************************************
      *
      * get Local Module Information from Local Module Configuration file
-	 *
-	 *   Returns: Local Module Name, Local Module Type, Local Module ID, 
-	 *					OAM Parent Module Name, and OAM Parent Flag
+     *
+     *   Returns: Local Module Name, Local Module Type, Local Module ID,
+     *					OAM Parent Module Name, and OAM Parent Flag
      *
      ********************************************************************/
 
-    oamModuleInfo_t Oam::getModuleInfo()
-    {
+    oamModuleInfo_t Oam::getModuleInfo() {
         string localModule;
         string localModuleType;
         int localModuleID;
 
-	// Get Module Name from module-file
-	string fileName = InstallDir + "/local/module";
+        // Get Module Name from module-file
+        string fileName = InstallDir + "/local/module";
 
-	ifstream oldFile (fileName.c_str());
-	
-	char line[400];
-	while (oldFile.getline(line, 400))
-	{
-		localModule = line;
-		break;
-	}
-	oldFile.close();
+        ifstream oldFile(fileName.c_str());
 
-	if (localModule.empty() ) {
-		// not found
-		//system("touch /var/log/erydb/test8");	
-		exceptionControl("getModuleInfo", API_FAILURE);
-	}
+        char line[400];
+        while (oldFile.getline(line, 400)) {
+            localModule = line;
+            break;
+        }
+        oldFile.close();
 
-	localModuleType = localModule.substr(0,MAX_MODULE_TYPE_SIZE);
-	localModuleID = atoi(localModule.substr(MAX_MODULE_TYPE_SIZE,MAX_MODULE_ID_SIZE).c_str());
+        if (localModule.empty()) {
+            // not found
+            //system("touch /var/log/erydb/test8");	
+            exceptionControl("getModuleInfo", API_FAILURE);
+        }
 
-	// Get Parent OAM Module name
+        localModuleType = localModule.substr(0, MAX_MODULE_TYPE_SIZE);
+        localModuleID = atoi(localModule.substr(MAX_MODULE_TYPE_SIZE, MAX_MODULE_ID_SIZE).c_str());
 
-	string ParentOAMModule = oam::UnassignedName;
-	string StandbyOAMModule = oam::UnassignedName;
-	bool parentOAMModuleFlag = false;
-    bool standbyOAMModuleFlag = false;
-	int serverTypeInstall = 1;
+        // Get Parent OAM Module name
 
-	try {
-		Config* sysConfig = Config::makeConfig(erydbConfigFile.c_str());
-		string Section = "SystemConfig";
-		ParentOAMModule = sysConfig->getConfig(Section, "ParentOAMModuleName");
-		StandbyOAMModule = sysConfig->getConfig(Section, "StandbyOAMModuleName");
+        string ParentOAMModule = oam::UnassignedName;
+        string StandbyOAMModule = oam::UnassignedName;
+        bool parentOAMModuleFlag = false;
+        bool standbyOAMModuleFlag = false;
+        int serverTypeInstall = 1;
 
-		if ( localModule == ParentOAMModule )
-			parentOAMModuleFlag = true;
+        try {
+            Config* sysConfig = Config::makeConfig(erydbConfigFile.c_str());
+            string Section = "SystemConfig";
+            ParentOAMModule = sysConfig->getConfig(Section, "ParentOAMModuleName");
+            StandbyOAMModule = sysConfig->getConfig(Section, "StandbyOAMModuleName");
 
-		if ( localModule == StandbyOAMModule )
-			standbyOAMModuleFlag = true;
+            if (localModule == ParentOAMModule)
+                parentOAMModuleFlag = true;
 
-		// Get Server Type Install ID
-	
-		serverTypeInstall = atoi(sysConfig->getConfig("Installation", "ServerTypeInstall").c_str());
-	}
-	catch (...) {}
+            if (localModule == StandbyOAMModule)
+                standbyOAMModuleFlag = true;
+
+            // Get Server Type Install ID
+
+            serverTypeInstall = atoi(sysConfig->getConfig("Installation", "ServerTypeInstall").c_str());
+        } catch (...) {}
 
         return boost::make_tuple(localModule, localModuleType, localModuleID, ParentOAMModule, parentOAMModuleFlag, serverTypeInstall, StandbyOAMModule, standbyOAMModuleFlag);
     }
@@ -2797,101 +2506,87 @@ namespace oam
      *
      ********************************************************************/
 
-    myProcessStatus_t Oam::getMyProcessStatus(pid_t processID)
-    {
+    myProcessStatus_t Oam::getMyProcessStatus(pid_t processID) {
         string returnValue;
-		ByteStream::quadbyte pid;
+        ByteStream::quadbyte pid;
 
-		if ( processID == 0 )
-        	// get current process PID
-        	pid = getpid();
-		else
-			pid = processID;
+        if (processID == 0)
+            // get current process PID
+            pid = getpid();
+        else
+            pid = processID;
 
-		// get process current Module
-		string moduleName;
-		oamModuleInfo_t st;
-		try {
-			st = getModuleInfo();
-			moduleName = boost::get<0>(st);
-		}
-		catch (...) {
-			//system("touch /var/log/erydb/test4");
-       		exceptionControl("getMyProcessStatus", API_FAILURE);
-		}
+        // get process current Module
+        string moduleName;
+        oamModuleInfo_t st;
+        try {
+            st = getModuleInfo();
+            moduleName = boost::get<0>(st);
+        } catch (...) {
+            //system("touch /var/log/erydb/test4");
+            exceptionControl("getMyProcessStatus", API_FAILURE);
+        }
 
-		if (!checkSystemRunFlag() || !checkSystemRunning())
-			exceptionControl("getMyProcessStatus", API_FAILURE);
+        if (!checkSystemRunFlag() || !checkSystemRunning())
+            exceptionControl("getMyProcessStatus", API_FAILURE);
 
-	for ( int i = 0 ; i < 5 ; i ++)
-	{
-		try
-		{
-		MessageQueueClient processor("ProcStatusControl");
-	//			processor.syncProto(false);
-				ByteStream::byte status, state;
-				std::string processName;
-		ByteStream obs, ibs;
-	
-		obs << (ByteStream::byte) GET_PROC_STATUS_BY_PID;
-		obs << moduleName;
-		obs << pid;
-	
-				try
-				{
-					struct timespec ts = { 5, 0 };
-					processor.write(obs, &ts);
-		
-					try
-					{	
-						// wait 10 seconds for ACK from Process Monitor
-						struct timespec ts = { 10, 0 };
-	
-						ibs = processor.read(&ts);
-			
-						if (ibs.length() > 0)
-						{
-							ibs >> status;
-							if ( status == oam::API_SUCCESS ) {
-								ibs >> state;
-								ibs >> processName;
-							}
-							else
-							{
-								// shutdown connection
-								processor.shutdown();
-								//system("touch /var/log/erydb/test5");
-								exceptionControl("getMyProcessStatus", API_FAILURE);
-							}
-			
-							// shutdown connection
-							processor.shutdown();
-			
-							return boost::make_tuple((pid_t) pid, processName, state);
-						}
-					}
-					catch(...)
-					{
-						//system("touch /var/log/erydb/test6");
-						processor.shutdown();
-						exceptionControl("getMyProcessStatus", API_INVALID_PARAMETER);
-					}
-				}
-				catch(...)
-				{
-					//system("touch /var/log/erydb/test7");
-					processor.shutdown();
-					exceptionControl("getMyProcessStatus", API_INVALID_PARAMETER);
-				}
-	
-				// timeout occurred, shutdown connection
-				processor.shutdown();
-        			exceptionControl("getMyProcessStatus", API_TIMEOUT);
-		}
-		catch(...)
-		{}
-	}
-	//system("touch /var/log/erydb/test9");
+        for (int i = 0; i < 5; i++) {
+            try {
+                MessageQueueClient processor("ProcStatusControl");
+                //			processor.syncProto(false);
+                ByteStream::byte status, state;
+                std::string processName;
+                ByteStream obs, ibs;
+
+                obs << (ByteStream::byte) GET_PROC_STATUS_BY_PID;
+                obs << moduleName;
+                obs << pid;
+
+                try {
+                    struct timespec ts = { 5, 0 };
+                    processor.write(obs, &ts);
+
+                    try {
+                        // wait 10 seconds for ACK from Process Monitor
+                        struct timespec ts = { 10, 0 };
+
+                        ibs = processor.read(&ts);
+
+                        if (ibs.length() > 0) {
+                            ibs >> status;
+                            if (status == oam::API_SUCCESS) {
+                                ibs >> state;
+                                ibs >> processName;
+                            } else {
+                                // shutdown connection
+                                processor.shutdown();
+                                //system("touch /var/log/erydb/test5");
+                                exceptionControl("getMyProcessStatus", API_FAILURE);
+                            }
+
+                            // shutdown connection
+                            processor.shutdown();
+
+                            return boost::make_tuple((pid_t)pid, processName, state);
+                        }
+                    } catch (...) {
+                        //system("touch /var/log/erydb/test6");
+                        processor.shutdown();
+                        exceptionControl("getMyProcessStatus", API_INVALID_PARAMETER);
+                    }
+                } catch (...) {
+                    //system("touch /var/log/erydb/test7");
+                    processor.shutdown();
+                    exceptionControl("getMyProcessStatus", API_INVALID_PARAMETER);
+                }
+
+                // timeout occurred, shutdown connection
+                processor.shutdown();
+                exceptionControl("getMyProcessStatus", API_TIMEOUT);
+            } catch (...) {
+            }
+        }
+        //system("touch /var/log/erydb/test9");
         exceptionControl("getMyProcessStatus", API_FAILURE);
 
         return boost::make_tuple(-1, "", -1);
@@ -2903,23 +2598,21 @@ namespace oam
      *
      ********************************************************************/
 
-    void Oam::stopModule(DeviceNetworkList devicenetworklist, GRACEFUL_FLAG gracefulflag, ACK_FLAG ackflag)
-	{
-		DeviceNetworkList::iterator pt = devicenetworklist.begin();
-		for( ; pt != devicenetworklist.end() ; pt++)
-		{
-			// validate Module name
-			int returnStatus = validateModule((*pt).DeviceName);
-			if (returnStatus != API_SUCCESS)
-				exceptionControl("stopModule", returnStatus);
-		}
+    void Oam::stopModule(DeviceNetworkList devicenetworklist, GRACEFUL_FLAG gracefulflag, ACK_FLAG ackflag) {
+        DeviceNetworkList::iterator pt = devicenetworklist.begin();
+        for (; pt != devicenetworklist.end(); pt++) {
+            // validate Module name
+            int returnStatus = validateModule((*pt).DeviceName);
+            if (returnStatus != API_SUCCESS)
+                exceptionControl("stopModule", returnStatus);
+        }
 
         // build and send msg
         int returnStatus = sendMsgToProcMgr2(STOPMODULE, devicenetworklist, gracefulflag, ackflag);
 
         if (returnStatus != API_SUCCESS)
             exceptionControl("stopModule", returnStatus);
-	}
+    }
 
     /********************************************************************
      *
@@ -2927,23 +2620,21 @@ namespace oam
      *
      ********************************************************************/
 
-    void Oam::shutdownModule(DeviceNetworkList devicenetworklist, GRACEFUL_FLAG gracefulflag, ACK_FLAG ackflag)
-	{
-		DeviceNetworkList::iterator pt = devicenetworklist.begin();
-		for( ; pt != devicenetworklist.end() ; pt++)
-		{
-			// validate Module name
-			int returnStatus = validateModule((*pt).DeviceName);
-			if (returnStatus != API_SUCCESS)
-				exceptionControl("shutdownModule", returnStatus);
-		}
+    void Oam::shutdownModule(DeviceNetworkList devicenetworklist, GRACEFUL_FLAG gracefulflag, ACK_FLAG ackflag) {
+        DeviceNetworkList::iterator pt = devicenetworklist.begin();
+        for (; pt != devicenetworklist.end(); pt++) {
+            // validate Module name
+            int returnStatus = validateModule((*pt).DeviceName);
+            if (returnStatus != API_SUCCESS)
+                exceptionControl("shutdownModule", returnStatus);
+        }
 
         // build and send msg
         int returnStatus = sendMsgToProcMgr2(SHUTDOWNMODULE, devicenetworklist, gracefulflag, ackflag);
 
         if (returnStatus != API_SUCCESS)
             exceptionControl("shutdownModule", returnStatus);
-	}
+    }
 
     /********************************************************************
      *
@@ -2951,23 +2642,21 @@ namespace oam
      *
      ********************************************************************/
 
-    void Oam::startModule(DeviceNetworkList devicenetworklist, ACK_FLAG ackflag)
-	{
-		DeviceNetworkList::iterator pt = devicenetworklist.begin();
-		for( ; pt != devicenetworklist.end() ; pt++)
-		{
-			// validate Module name
-			int returnStatus = validateModule((*pt).DeviceName);
-			if (returnStatus != API_SUCCESS)
-				exceptionControl("startModule", returnStatus);
-		}
+    void Oam::startModule(DeviceNetworkList devicenetworklist, ACK_FLAG ackflag) {
+        DeviceNetworkList::iterator pt = devicenetworklist.begin();
+        for (; pt != devicenetworklist.end(); pt++) {
+            // validate Module name
+            int returnStatus = validateModule((*pt).DeviceName);
+            if (returnStatus != API_SUCCESS)
+                exceptionControl("startModule", returnStatus);
+        }
 
         // build and send msg
         int returnStatus = sendMsgToProcMgr2(STARTMODULE, devicenetworklist, FORCEFUL, ackflag);
 
         if (returnStatus != API_SUCCESS)
             exceptionControl("startModule", returnStatus);
-	}
+    }
 
     /********************************************************************
      *
@@ -2975,23 +2664,21 @@ namespace oam
      *
      ********************************************************************/
 
-    void Oam::restartModule(DeviceNetworkList devicenetworklist, GRACEFUL_FLAG gracefulflag, ACK_FLAG ackflag)
-	{
-		DeviceNetworkList::iterator pt = devicenetworklist.begin();
-		for( ; pt != devicenetworklist.end() ; pt++)
-		{
-			// validate Module name
-			int returnStatus = validateModule((*pt).DeviceName);
-			if (returnStatus != API_SUCCESS)
-				exceptionControl("restartModule", returnStatus);
-		}
+    void Oam::restartModule(DeviceNetworkList devicenetworklist, GRACEFUL_FLAG gracefulflag, ACK_FLAG ackflag) {
+        DeviceNetworkList::iterator pt = devicenetworklist.begin();
+        for (; pt != devicenetworklist.end(); pt++) {
+            // validate Module name
+            int returnStatus = validateModule((*pt).DeviceName);
+            if (returnStatus != API_SUCCESS)
+                exceptionControl("restartModule", returnStatus);
+        }
 
         // build and send msg
         int returnStatus = sendMsgToProcMgr2(RESTARTMODULE, devicenetworklist, gracefulflag, ackflag);
 
         if (returnStatus != API_SUCCESS)
             exceptionControl("restartModule", returnStatus);
-	}
+    }
 
     /********************************************************************
      *
@@ -2999,23 +2686,21 @@ namespace oam
      *
      ********************************************************************/
 
-    void Oam::disableModule(DeviceNetworkList devicenetworklist)
-	{
-		DeviceNetworkList::iterator pt = devicenetworklist.begin();
-		for( ; pt != devicenetworklist.end() ; pt++)
-		{
-			// validate Module name
-			int returnStatus = validateModule((*pt).DeviceName);
-			if (returnStatus != API_SUCCESS)
-				exceptionControl("disableModule", returnStatus);
-		}
+    void Oam::disableModule(DeviceNetworkList devicenetworklist) {
+        DeviceNetworkList::iterator pt = devicenetworklist.begin();
+        for (; pt != devicenetworklist.end(); pt++) {
+            // validate Module name
+            int returnStatus = validateModule((*pt).DeviceName);
+            if (returnStatus != API_SUCCESS)
+                exceptionControl("disableModule", returnStatus);
+        }
 
         // build and send msg
         int returnStatus = sendMsgToProcMgr2(DISABLEMODULE, devicenetworklist, FORCEFUL, ACK_YES);
 
         if (returnStatus != API_SUCCESS)
             exceptionControl("disableModule", returnStatus);
-	}
+    }
 
     /********************************************************************
      *
@@ -3023,23 +2708,21 @@ namespace oam
      *
      ********************************************************************/
 
-    void Oam::enableModule(DeviceNetworkList devicenetworklist)
-	{
-		DeviceNetworkList::iterator pt = devicenetworklist.begin();
-		for( ; pt != devicenetworklist.end() ; pt++)
-		{
-			// validate Module name
-			int returnStatus = validateModule((*pt).DeviceName);
-			if (returnStatus != API_SUCCESS)
-				exceptionControl("enableModule", returnStatus);
-		}
+    void Oam::enableModule(DeviceNetworkList devicenetworklist) {
+        DeviceNetworkList::iterator pt = devicenetworklist.begin();
+        for (; pt != devicenetworklist.end(); pt++) {
+            // validate Module name
+            int returnStatus = validateModule((*pt).DeviceName);
+            if (returnStatus != API_SUCCESS)
+                exceptionControl("enableModule", returnStatus);
+        }
 
         // build and send msg
         int returnStatus = sendMsgToProcMgr2(ENABLEMODULE, devicenetworklist, FORCEFUL, ACK_YES);
 
         if (returnStatus != API_SUCCESS)
             exceptionControl("enableModule", returnStatus);
-	}
+    }
 
     /********************************************************************
      *
@@ -3047,10 +2730,9 @@ namespace oam
      *
      ********************************************************************/
 
-    void Oam::stopSystem(GRACEFUL_FLAG gracefulflag, ACK_FLAG ackflag)
-    {
+    void Oam::stopSystem(GRACEFUL_FLAG gracefulflag, ACK_FLAG ackflag) {
         // build and send msg
-		int returnStatus = sendMsgToProcMgrWithStatus(STOPSYSTEM, "stopped", gracefulflag, ackflag);
+        int returnStatus = sendMsgToProcMgrWithStatus(STOPSYSTEM, "stopped", gracefulflag, ackflag);
 
         if (returnStatus != API_SUCCESS)
             exceptionControl("stopSystem", returnStatus);
@@ -3062,57 +2744,53 @@ namespace oam
      *
      ********************************************************************/
 
-    void Oam::shutdownSystem(GRACEFUL_FLAG gracefulflag, ACK_FLAG ackflag)
-    {
-		int returnStatus = sendMsgToProcMgrWithStatus(SHUTDOWNSYSTEM, "shutdown", gracefulflag, ackflag);
+    void Oam::shutdownSystem(GRACEFUL_FLAG gracefulflag, ACK_FLAG ackflag) {
+        int returnStatus = sendMsgToProcMgrWithStatus(SHUTDOWNSYSTEM, "shutdown", gracefulflag, ackflag);
 
-		//Wait for everything to settle down
-		sleep(10);
+        //Wait for everything to settle down
+        sleep(10);
 
-		switch (returnStatus)
-		{ 
-			case API_SUCCESS:
-				cout << endl << "   Successful shutdown of System " << endl << endl;
-				break;
-			case API_CANCELLED:
-				cout << endl << "   Shutdown of System canceled" << endl << endl;
-				break;
-			default:
-				exceptionControl("shutdownSystem", returnStatus);
-				break;
-		}
+        switch (returnStatus) {
+            case API_SUCCESS:
+                cout << endl << "   Successful shutdown of System " << endl << endl;
+                break;
+            case API_CANCELLED:
+                cout << endl << "   Shutdown of System canceled" << endl << endl;
+                break;
+            default:
+                exceptionControl("shutdownSystem", returnStatus);
+                break;
+        }
     }
 
-	/********************************************************************
-	 *
-	 * Suspend Database Writes - build and send message to Process Manager
-	 *
-	 ********************************************************************/
+    /********************************************************************
+     *
+     * Suspend Database Writes - build and send message to Process Manager
+     *
+     ********************************************************************/
 
-	void Oam::SuspendWrites(GRACEFUL_FLAG gracefulflag, ACK_FLAG ackflag)
-	{
-		SystemProcessStatus systemprocessstatus;
+    void Oam::SuspendWrites(GRACEFUL_FLAG gracefulflag, ACK_FLAG ackflag) {
+        SystemProcessStatus systemprocessstatus;
 
-		// Send the message to suspend and wait for it to finish
-		int returnStatus = sendMsgToProcMgrWithStatus(SUSPENDWRITES, "write suspended", gracefulflag, ackflag);
+        // Send the message to suspend and wait for it to finish
+        int returnStatus = sendMsgToProcMgrWithStatus(SUSPENDWRITES, "write suspended", gracefulflag, ackflag);
 
-		// An error throws here.
-		switch (returnStatus)
-		{ 
-			case API_SUCCESS:
-				cout << endl << "Suspend erydb Database Writes Request successfully completed" << endl;
-				break;
-			case API_FAILURE_DB_ERROR:
-				cout << endl << "**** stopDatabaseWrites Failed: save_brm Failed" << endl;
-				break;
-			case API_CANCELLED:
-				cout << endl << "   Suspension of database writes canceled" << endl << endl;
-				break;
-			default:
-				exceptionControl("suspendWrites", returnStatus);
-				break;
-		}
-	}
+        // An error throws here.
+        switch (returnStatus) {
+            case API_SUCCESS:
+                cout << endl << "Suspend erydb Database Writes Request successfully completed" << endl;
+                break;
+            case API_FAILURE_DB_ERROR:
+                cout << endl << "**** stopDatabaseWrites Failed: save_brm Failed" << endl;
+                break;
+            case API_CANCELLED:
+                cout << endl << "   Suspension of database writes canceled" << endl << endl;
+                break;
+            default:
+                exceptionControl("suspendWrites", returnStatus);
+                break;
+        }
+    }
 
     /********************************************************************
      *
@@ -3120,8 +2798,7 @@ namespace oam
      *
      ********************************************************************/
 
-    void Oam::startSystem(ACK_FLAG ackflag)
-    {
+    void Oam::startSystem(ACK_FLAG ackflag) {
         // build and send msg
         int returnStatus = sendMsgToProcMgr(STARTSYSTEM, "", FORCEFUL, ackflag);
 
@@ -3135,13 +2812,11 @@ namespace oam
      *
      ********************************************************************/
 
-    int Oam::restartSystem(GRACEFUL_FLAG gracefulflag, ACK_FLAG ackflag)
-    {
-		// Send the restart message (waits for completion)
-		int returnStatus = sendMsgToProcMgrWithStatus(RESTARTSYSTEM, "restarted", gracefulflag, ackflag);
+    int Oam::restartSystem(GRACEFUL_FLAG gracefulflag, ACK_FLAG ackflag) {
+        // Send the restart message (waits for completion)
+        int returnStatus = sendMsgToProcMgrWithStatus(RESTARTSYSTEM, "restarted", gracefulflag, ackflag);
 
-        if (returnStatus != API_SUCCESS && returnStatus != API_CANCELLED)
-        {
+        if (returnStatus != API_SUCCESS && returnStatus != API_CANCELLED) {
             exceptionControl("restartSystem", returnStatus);
         }
         return returnStatus;
@@ -3153,23 +2828,22 @@ namespace oam
      *
      ********************************************************************/
 
-    void Oam::stopProcess(const std::string moduleName, const std::string processName, GRACEFUL_FLAG gracefulflag, ACK_FLAG ackflag)
-    {
+    void Oam::stopProcess(const std::string moduleName, const std::string processName, GRACEFUL_FLAG gracefulflag, ACK_FLAG ackflag) {
         // validate Process name
         int returnStatus = validateProcess(moduleName, processName);
         if (returnStatus != API_SUCCESS)
             exceptionControl("stopProcess", returnStatus);
 
-		// validate Process Name, don't allow Process-Monitor / Process-Manager
+        // validate Process Name, don't allow Process-Monitor / Process-Manager
 
-		if ( processName == "ProcessMonitor" || processName == "ProcessManager" )
+        if (processName == "ProcessMonitor" || processName == "ProcessManager")
             exceptionControl("stopProcess", API_INVALID_PARAMETER);
-		
-		// validate Process Name, don't allow COLD-STANDBY process
-		ProcessStatus procstat;
-		getProcessStatus(processName, moduleName, procstat);
-		if ( procstat.ProcessOpState == oam::COLD_STANDBY )
-			exceptionControl("stopProcess", API_INVALID_STATE);
+
+        // validate Process Name, don't allow COLD-STANDBY process
+        ProcessStatus procstat;
+        getProcessStatus(processName, moduleName, procstat);
+        if (procstat.ProcessOpState == oam::COLD_STANDBY)
+            exceptionControl("stopProcess", API_INVALID_STATE);
 
         // build and send msg
         returnStatus = sendMsgToProcMgr(STOPPROCESS, processName, gracefulflag, ackflag, moduleName);
@@ -3184,14 +2858,13 @@ namespace oam
      *
      ********************************************************************/
 
-    void Oam::startProcess(const std::string moduleName, const std::string processName, GRACEFUL_FLAG gracefulflag, ACK_FLAG ackflag)
-    {
+    void Oam::startProcess(const std::string moduleName, const std::string processName, GRACEFUL_FLAG gracefulflag, ACK_FLAG ackflag) {
         // validate Process name
         int returnStatus = validateProcess(moduleName, processName);
         if (returnStatus != API_SUCCESS)
             exceptionControl("startProcess", returnStatus);
 
-		// validate Process Name, don't allow COLD-STANDBY process
+        // validate Process Name, don't allow COLD-STANDBY process
 //		ProcessStatus procstat;
 //		getProcessStatus(processName, moduleName, procstat);
 //		if ( procstat.ProcessOpState == oam::COLD_STANDBY )
@@ -3210,12 +2883,11 @@ namespace oam
      *
      ********************************************************************/
 
-    void Oam::restartProcess(const std::string moduleName, const std::string processName, GRACEFUL_FLAG gracefulflag, ACK_FLAG ackflag)
-    {
+    void Oam::restartProcess(const std::string moduleName, const std::string processName, GRACEFUL_FLAG gracefulflag, ACK_FLAG ackflag) {
         // validate Process name
         int returnStatus = validateProcess(moduleName, processName);
         if (returnStatus != API_SUCCESS)
-             exceptionControl("restartProcess", returnStatus);
+            exceptionControl("restartProcess", returnStatus);
 
         // build and send msg
         returnStatus = sendMsgToProcMgr(RESTARTPROCESS, processName, gracefulflag, ackflag, moduleName);
@@ -3230,8 +2902,7 @@ namespace oam
      *
      ********************************************************************/
 
-    void Oam::stopProcessType(std::string type)
-    {
+    void Oam::stopProcessType(std::string type) {
         // build and send msg
         int returnStatus = sendMsgToProcMgr(STOPPROCESSTYPE, type);
 
@@ -3245,8 +2916,7 @@ namespace oam
      *
      ********************************************************************/
 
-    void Oam::startProcessType(std::string type)
-    {
+    void Oam::startProcessType(std::string type) {
         // build and send msg
         int returnStatus = sendMsgToProcMgr(STARTPROCESSTYPE, type);
 
@@ -3260,8 +2930,7 @@ namespace oam
      *
      ********************************************************************/
 
-    void Oam::restartProcessType(std::string type)
-    {
+    void Oam::restartProcessType(std::string type) {
         // build and send msg
         int returnStatus = sendMsgToProcMgr(RESTARTPROCESSTYPE, type);
 
@@ -3275,11 +2944,10 @@ namespace oam
      *
      ********************************************************************/
 
-    void Oam::reinitProcessType(std::string type)
-    {
+    void Oam::reinitProcessType(std::string type) {
         // build and send msg
         int returnStatus = sendMsgToProcMgr(REINITPROCESSTYPE, type, FORCEFUL);
- 
+
         if (returnStatus != API_SUCCESS)
             exceptionControl("reinitProcessType", returnStatus);
     }
@@ -3290,18 +2958,14 @@ namespace oam
      *                  Module at a specific level
      *
      ********************************************************************/
-    void Oam::updateLog(const std::string action, const std::string deviceid, const std::string loglevel)
-    {
+    void Oam::updateLog(const std::string action, const std::string deviceid, const std::string loglevel) {
         // validate the loglevel
-        for( int i = 0;;i++)
-        {
-            if ( LogLevel[i] == "" )
-            {
+        for (int i = 0;; i++) {
+            if (LogLevel[i] == "") {
                 // end of section list
                 exceptionControl("updateLog", API_INVALID_PARAMETER);
             }
-            if ( loglevel == LogLevel[i] )
-            {
+            if (loglevel == LogLevel[i]) {
                 // build and send msg
                 int returnStatus = sendMsgToProcMgr(UPDATELOG, deviceid, FORCEFUL, ACK_YES, action, loglevel);
                 if (returnStatus != API_SUCCESS)
@@ -3317,8 +2981,7 @@ namespace oam
      * Get Log File - Get Log file location for specific Module at a specific level
      *
      ********************************************************************/
-    void Oam::getLogFile(const std::string moduleName, const std::string loglevel, std::string& filelocation)
-    {
+    void Oam::getLogFile(const std::string moduleName, const std::string loglevel, std::string& filelocation) {
         // validate Module name
         int returnStatus = validateModule(moduleName);
         if (returnStatus != API_SUCCESS)
@@ -3326,35 +2989,31 @@ namespace oam
 
         string path;
 
-		// Get Parent OAM Module name
-	
-		Config* sysConfig = Config::makeConfig(erydbConfigFile.c_str());
+        // Get Parent OAM Module name
+
+        Config* sysConfig = Config::makeConfig(erydbConfigFile.c_str());
         string Section = "SystemConfig";
         string ParentOAMModule = sysConfig->getConfig(Section, "ParentOAMModuleName");
 
-		if (moduleName == ParentOAMModule)
-			path = "//";
-		else
-			path = "/mnt/" + moduleName;
+        if (moduleName == ParentOAMModule)
+            path = "//";
+        else
+            path = "/mnt/" + moduleName;
 
         // get log file name for level
         string logFile;
-        for( int i = 0;;i++)
-        {
-            if ( LogLevel[i] == "" )
-            {
+        for (int i = 0;; i++) {
+            if (LogLevel[i] == "") {
                 // end of list
                 exceptionControl("getLogFile", API_INVALID_PARAMETER);
                 break;
             }
-            if ( loglevel == LogLevel[i] )
-            {
+            if (loglevel == LogLevel[i]) {
                 // match found, get and strip off to '/'
                 logFile = LogFile[i];
-                string::size_type pos = logFile.find('/',0);
-                if (pos != string::npos)
-                {
-                    logFile = logFile.substr(pos,200);
+                string::size_type pos = logFile.find('/', 0);
+                if (pos != string::npos) {
+                    logFile = logFile.substr(pos, 200);
                     break;
                 }
             }
@@ -3369,9 +3028,8 @@ namespace oam
      * Get Log File - Get Log file location for specific Module at a specific level
      *
      ********************************************************************/
-    void Oam::getLogFile(const std::string moduleName, const std::string loglevel, const std::string date, 
-							std::string& filelocation)
-    {
+    void Oam::getLogFile(const std::string moduleName, const std::string loglevel, const std::string date,
+        std::string& filelocation) {
         // validate Module name
         int returnStatus = validateModule(moduleName);
         if (returnStatus != API_SUCCESS)
@@ -3379,186 +3037,180 @@ namespace oam
 
         string path;
 
-		// Get Parent OAM Module name
-	
-		Config* sysConfig = Config::makeConfig(erydbConfigFile.c_str());
+        // Get Parent OAM Module name
+
+        Config* sysConfig = Config::makeConfig(erydbConfigFile.c_str());
         string Section = "SystemConfig";
         string ParentOAMModule = sysConfig->getConfig(Section, "ParentOAMModuleName");
 
-		if (moduleName == ParentOAMModule)
-			path = "/";
-		else
-			path = "/mnt/" + moduleName;
+        if (moduleName == ParentOAMModule)
+            path = "/";
+        else
+            path = "/mnt/" + moduleName;
 
         // get log file name for level
         string logFile;
-		string logFileName;
-        for( int i = 0;;i++)
-        {
-            if ( LogLevel[i] == "" )
-            {
+        string logFileName;
+        for (int i = 0;; i++) {
+            if (LogLevel[i] == "") {
                 // end of list
                 exceptionControl("getLogFile", API_INVALID_PARAMETER);
                 break;
             }
-            if ( loglevel == LogLevel[i] )
-            {
+            if (loglevel == LogLevel[i]) {
                 // match found, get and strip off to '/'
                 logFile = LogFile[i];
-                string::size_type pos = logFile.find('/',0);
-                if (pos != string::npos)
-                {
-                    logFile = logFile.substr(pos,200);
+                string::size_type pos = logFile.find('/', 0);
+                if (pos != string::npos) {
+                    logFile = logFile.substr(pos, 200);
 
-					pos = logFile.rfind('/',200);
-					logFileName = logFile.substr(pos+1,200);
+                    pos = logFile.rfind('/', 200);
+                    logFileName = logFile.substr(pos + 1, 200);
                     break;
                 }
             }
         }
 
-		logFile = path + logFile;
+        logFile = path + logFile;
 
-		string tempLogFile = "/tmp/logs";
-	
-		//make 1 log file made up of archive and current *.log
-		(void)system("touch /tmp/logs");
-	
-		string logdir("/var/log/erydb");
-		if (access(logdir.c_str(), W_OK) != 0) logdir = "/tmp";
-		string cmd = "ls " + path + logdir + "/archive | grep '" + logFileName + "' > /tmp/logfiles";
-		(void)system(cmd.c_str());
-	
-		string fileName = "/tmp/logfiles";
-	
-		ifstream oldFile (fileName.c_str());
-		if (oldFile) {
-			char line[400];
-			string buf;
-			while (oldFile.getline(line, 400))
-			{
-				buf = line;
-				cmd = "cat " + path + logdir + "/archive/" + buf + " >> /tmp/logs";
-				(void)system(cmd.c_str());
-			}
-		
-			oldFile.close();
-			unlink (fileName.c_str());
-		}
-	
-		cmd = "cat " + logFile + " >> /tmp/logs";
-		(void)system(cmd.c_str());
-	
-		//validate and get mm / dd from incoming date
-		if ( date.substr(2,1) != "/" )
+        string tempLogFile = "/tmp/logs";
+
+        //make 1 log file made up of archive and current *.log
+        (void)system("touch /tmp/logs");
+
+        string logdir("/var/log/erydb");
+        if (access(logdir.c_str(), W_OK) != 0) logdir = "/tmp";
+        string cmd = "ls " + path + logdir + "/archive | grep '" + logFileName + "' > /tmp/logfiles";
+        (void)system(cmd.c_str());
+
+        string fileName = "/tmp/logfiles";
+
+        ifstream oldFile(fileName.c_str());
+        if (oldFile) {
+            char line[400];
+            string buf;
+            while (oldFile.getline(line, 400)) {
+                buf = line;
+                cmd = "cat " + path + logdir + "/archive/" + buf + " >> /tmp/logs";
+                (void)system(cmd.c_str());
+            }
+
+            oldFile.close();
+            unlink(fileName.c_str());
+        }
+
+        cmd = "cat " + logFile + " >> /tmp/logs";
+        (void)system(cmd.c_str());
+
+        //validate and get mm / dd from incoming date
+        if (date.substr(2, 1) != "/")
             exceptionControl("getLogFile", oam::API_INVALID_PARAMETER);
 
-		string dd = date.substr(3,2);
-		if (dd.substr(0,1) == "0" )
-			dd = " " + dd.substr(1,1);
+        string dd = date.substr(3, 2);
+        if (dd.substr(0, 1) == "0")
+            dd = " " + dd.substr(1, 1);
 
-		int mmName = atoi(date.substr(0,2).c_str());
-		string mm;
+        int mmName = atoi(date.substr(0, 2).c_str());
+        string mm;
 
-		switch ( mmName ) {
-			case (1):
-			{
-				mm = "Jan";
-				break;
-			}
-			case (2):
-			{
-				mm = "Feb";
-				break;
-			}
-			case (3):
-			{
-				mm = "Mar";
-				break;
-			}
-			case (4):
-			{
-				mm = "Apr";
-				break;
-			}
-			case (5):
-			{
-				mm = "May";
-				break;
-			}
-			case (6):
-			{
-				mm = "Jun";
-				break;
-			}
-			case (7):
-			{
-				mm = "Jul";
-				break;
-			}
-			case (8):
-			{
-				mm = "Aug";
-				break;
-			}
-			case (9):
-			{
-				mm = "Sep";
-				break;
-			}
-			case (10):
-			{
-				mm = "Oct";
-				break;
-			}
-			case (11):
-			{
-				mm = "Nov";
-				break;
-			}
-			case (12):
-			{
-				mm = "Dec";
-				break;
-			}
-			default:
-			{
-				filelocation = "";
-				return;
-			}
-		}
-	
-		string findDate = mm + " " + dd;
-	
-		ifstream file (tempLogFile.c_str());
-		vector <string> lines;
-	
-		if (file) {
-			char line[400];
-			string buf;
-			while (file.getline(line, 400))
-			{
-				buf = line;
-				string::size_type pos = buf.find(findDate,0);
-				if (pos != string::npos)
-					lines.push_back(buf);
-			}
-		
-			unlink (tempLogFile.c_str());
-		}
-	
-		fileName = "/tmp/logsByDate";
-		ofstream newFile (fileName.c_str());	
-		
-		//create new file
-		int fd = open(fileName.c_str(),O_RDWR|O_CREAT, 0664);
-		
-		copy(lines.begin(), lines.end(), ostream_iterator<string>(newFile, "\n"));
-		newFile.close();
-		
-		close(fd);
-	
-		filelocation = fileName;
+        switch (mmName) {
+            case (1):
+            {
+                mm = "Jan";
+                break;
+            }
+            case (2):
+            {
+                mm = "Feb";
+                break;
+            }
+            case (3):
+            {
+                mm = "Mar";
+                break;
+            }
+            case (4):
+            {
+                mm = "Apr";
+                break;
+            }
+            case (5):
+            {
+                mm = "May";
+                break;
+            }
+            case (6):
+            {
+                mm = "Jun";
+                break;
+            }
+            case (7):
+            {
+                mm = "Jul";
+                break;
+            }
+            case (8):
+            {
+                mm = "Aug";
+                break;
+            }
+            case (9):
+            {
+                mm = "Sep";
+                break;
+            }
+            case (10):
+            {
+                mm = "Oct";
+                break;
+            }
+            case (11):
+            {
+                mm = "Nov";
+                break;
+            }
+            case (12):
+            {
+                mm = "Dec";
+                break;
+            }
+            default:
+            {
+                filelocation = "";
+                return;
+            }
+        }
+
+        string findDate = mm + " " + dd;
+
+        ifstream file(tempLogFile.c_str());
+        vector <string> lines;
+
+        if (file) {
+            char line[400];
+            string buf;
+            while (file.getline(line, 400)) {
+                buf = line;
+                string::size_type pos = buf.find(findDate, 0);
+                if (pos != string::npos)
+                    lines.push_back(buf);
+            }
+
+            unlink(tempLogFile.c_str());
+        }
+
+        fileName = "/tmp/logsByDate";
+        ofstream newFile(fileName.c_str());
+
+        //create new file
+        int fd = open(fileName.c_str(), O_RDWR | O_CREAT, 0664);
+
+        copy(lines.begin(), lines.end(), ostream_iterator<string>(newFile, "\n"));
+        newFile.close();
+
+        close(fd);
+
+        filelocation = fileName;
     }
 
     /********************************************************************
@@ -3567,44 +3219,38 @@ namespace oam
      *                  Module syslog.conf file
      *
      ********************************************************************/
-    void Oam::getLogConfig(SystemLogConfigData& configdata )
-    {
+    void Oam::getLogConfig(SystemLogConfigData& configdata) {
         SystemModuleTypeConfig systemmoduletypeconfig;
         LogConfigData logconfigdata;
 
-        try
-        {
+        try {
             Oam::getSystemConfig(systemmoduletypeconfig);
-        }
-        catch(...)
-        {
+        } catch (...) {
             exceptionControl("getLogConfig", API_FAILURE);
         }
 
-        for( unsigned int i = 0 ; i < systemmoduletypeconfig.moduletypeconfig.size(); i++)
-        {
-            if( systemmoduletypeconfig.moduletypeconfig[i].ModuleType.empty() )
+        for (unsigned int i = 0; i < systemmoduletypeconfig.moduletypeconfig.size(); i++) {
+            if (systemmoduletypeconfig.moduletypeconfig[i].ModuleType.empty())
                 //end of file
                 break;
 
-			if ( systemmoduletypeconfig.moduletypeconfig[i].ModuleCount == 0 )
-				continue;
+            if (systemmoduletypeconfig.moduletypeconfig[i].ModuleCount == 0)
+                continue;
 
-			DeviceNetworkList::iterator pt = systemmoduletypeconfig.moduletypeconfig[i].ModuleNetworkList.begin();
-			for( ; pt != systemmoduletypeconfig.moduletypeconfig[i].ModuleNetworkList.end() ; pt++)
-			{
-				string moduleName = (*pt).DeviceName;
+            DeviceNetworkList::iterator pt = systemmoduletypeconfig.moduletypeconfig[i].ModuleNetworkList.begin();
+            for (; pt != systemmoduletypeconfig.moduletypeconfig[i].ModuleNetworkList.end(); pt++) {
+                string moduleName = (*pt).DeviceName;
 
-				int returnStatus = sendMsgToProcMgr(GETCONFIGLOG,
-									moduleName,
-									FORCEFUL,
-									ACK_YES);
-	
-				logconfigdata.moduleName = moduleName;
-				logconfigdata.configData = returnStatus;
-	
-				configdata.push_back(logconfigdata);
-			}
+                int returnStatus = sendMsgToProcMgr(GETCONFIGLOG,
+                    moduleName,
+                    FORCEFUL,
+                    ACK_YES);
+
+                logconfigdata.moduleName = moduleName;
+                logconfigdata.configData = returnStatus;
+
+                configdata.push_back(logconfigdata);
+            }
         }
     }
 
@@ -3616,95 +3262,83 @@ namespace oam
      *          database, but there are table locks.
      *
      ******************************************************************************************/
-    void Oam::DisplayLockedTables(std::vector<BRM::TableLockInfo>& tableLocks, BRM::DBRM* pDBRM)
-    {
+    void Oam::DisplayLockedTables(std::vector<BRM::TableLockInfo>& tableLocks, BRM::DBRM* pDBRM) {
         cout << "The following tables are locked:" << endl;
 
         // Initial widths of columns to display. We pass thru the table
         // and see if we need to grow any of these.
-        unsigned int lockIDColumnWidth    = 6;  // "LockID"
+        unsigned int lockIDColumnWidth = 6;  // "LockID"
         unsigned int tableNameColumnWidth = 12; // "Name"
-        unsigned int ownerColumnWidth     = 7;  // "Process"
-        unsigned int pidColumnWidth       = 3;  // "PID"
+        unsigned int ownerColumnWidth = 7;  // "Process"
+        unsigned int pidColumnWidth = 3;  // "PID"
         unsigned int sessionIDColumnWidth = 7;  // "Session"
-		unsigned int createTimeColumnWidth= 12; // "CreationTime"
-		unsigned int dbrootColumnWidth        = 7;  // "DBRoots"
-		unsigned int stateColumnWidth     = 9;  // "State"
+        unsigned int createTimeColumnWidth = 12; // "CreationTime"
+        unsigned int dbrootColumnWidth = 7;  // "DBRoots"
+        unsigned int stateColumnWidth = 9;  // "State"
 
         // Initialize System Catalog object used to get table name
         boost::shared_ptr<execplan::erydbSystemCatalog> systemCatalogPtr =
             execplan::erydbSystemCatalog::makeerydbSystemCatalog(0);
 
         std::string fullTblName;
-		const char* tableState;
+        const char* tableState;
 
         // Make preliminary pass through the table locks in order to determine our
         // output column widths based on the data.  Min column widths are based on
         // the width of the column heading (except for the 'state' column).
-        uint64_t maxLockID                = 0;
-        uint32_t maxPID                   = 0;
-        int32_t  maxSessionID             = 0;
-        int32_t  minSessionID             = 0;
-		std::vector<std::string> createTimes;
-		std::vector<std::string> pms;
-		char cTimeBuffer[64];
+        uint64_t maxLockID = 0;
+        uint32_t maxPID = 0;
+        int32_t  maxSessionID = 0;
+        int32_t  minSessionID = 0;
+        std::vector<std::string> createTimes;
+        std::vector<std::string> pms;
+        char cTimeBuffer[64];
 
         execplan::erydbSystemCatalog::TableName tblName;
 
-        for (unsigned idx=0; idx<tableLocks.size(); idx++)
-        {
-            if (tableLocks[idx].id > maxLockID)
-            {
+        for (unsigned idx = 0; idx < tableLocks.size(); idx++) {
+            if (tableLocks[idx].id > maxLockID) {
                 maxLockID = tableLocks[idx].id;
             }
-            try
-            {
+            try {
                 tblName = systemCatalogPtr->tableName(tableLocks[idx].tableOID);
-            }
-            catch (...)
-            {
+            } catch (...) {
                 tblName.schema.clear();
                 tblName.table.clear();
             }
             fullTblName = tblName.toString();
-            if (fullTblName.size() > tableNameColumnWidth)
-            {
+            if (fullTblName.size() > tableNameColumnWidth) {
                 tableNameColumnWidth = fullTblName.size();
             }
-            if (tableLocks[idx].ownerName.length() > ownerColumnWidth)
-            {
+            if (tableLocks[idx].ownerName.length() > ownerColumnWidth) {
                 ownerColumnWidth = tableLocks[idx].ownerName.length();
             }
-            if (tableLocks[idx].ownerPID > maxPID)
-            {
+            if (tableLocks[idx].ownerPID > maxPID) {
                 maxPID = tableLocks[idx].ownerPID;
             }
-            if (tableLocks[idx].ownerSessionID > maxSessionID)
-            {
+            if (tableLocks[idx].ownerSessionID > maxSessionID) {
                 maxSessionID = tableLocks[idx].ownerSessionID;
             }
-            if (tableLocks[idx].ownerSessionID < minSessionID)
-            {
+            if (tableLocks[idx].ownerSessionID < minSessionID) {
                 minSessionID = tableLocks[idx].ownerSessionID;
             }
-			// Creation Time.
-			// While we're at it, we save the time string off into a vector
-			// so we can display it later without recalcing it.
-			struct tm timeTM;
-			localtime_r(&tableLocks[idx].creationTime,&timeTM);
-			ctime_r(&tableLocks[idx].creationTime, cTimeBuffer);
-			strftime(cTimeBuffer, 64, "%F %r:", &timeTM);
-			cTimeBuffer[strlen(cTimeBuffer)-1] = '\0'; // strip trailing '\n'
-			std::string cTimeStr( cTimeBuffer );
-			if (cTimeStr.length() > createTimeColumnWidth)
-			{
-				createTimeColumnWidth = cTimeStr.length();
-			}
-			createTimes.push_back(cTimeStr);
+            // Creation Time.
+            // While we're at it, we save the time string off into a vector
+            // so we can display it later without recalcing it.
+            struct tm timeTM;
+            localtime_r(&tableLocks[idx].creationTime, &timeTM);
+            ctime_r(&tableLocks[idx].creationTime, cTimeBuffer);
+            strftime(cTimeBuffer, 64, "%F %r:", &timeTM);
+            cTimeBuffer[strlen(cTimeBuffer) - 1] = '\0'; // strip trailing '\n'
+            std::string cTimeStr(cTimeBuffer);
+            if (cTimeStr.length() > createTimeColumnWidth) {
+                createTimeColumnWidth = cTimeStr.length();
+            }
+            createTimes.push_back(cTimeStr);
         }
-        tableNameColumnWidth  += 1;
-        ownerColumnWidth      += 1;
-		createTimeColumnWidth += 1;
+        tableNameColumnWidth += 1;
+        ownerColumnWidth += 1;
+        createTimeColumnWidth += 1;
 
         std::ostringstream idString;
         idString << maxLockID;
@@ -3730,65 +3364,57 @@ namespace oam
 
         // write the column headers before the first entry
         cout.setf(ios::left, ios::adjustfield);
-        cout << setw(lockIDColumnWidth)     << "LockID"       <<
-                setw(tableNameColumnWidth)  << "Name"         <<
-                setw(ownerColumnWidth)      << "Process"      <<
-                setw(pidColumnWidth)        << "PID"          <<
-                setw(sessionIDColumnWidth)  << "Session"      <<
-				setw(createTimeColumnWidth) << "CreationTime" <<
-                setw(stateColumnWidth)      << "State"        <<
-				setw(dbrootColumnWidth)     << "DBRoots"      << endl;
+        cout << setw(lockIDColumnWidth) << "LockID" <<
+            setw(tableNameColumnWidth) << "Name" <<
+            setw(ownerColumnWidth) << "Process" <<
+            setw(pidColumnWidth) << "PID" <<
+            setw(sessionIDColumnWidth) << "Session" <<
+            setw(createTimeColumnWidth) << "CreationTime" <<
+            setw(stateColumnWidth) << "State" <<
+            setw(dbrootColumnWidth) << "DBRoots" << endl;
 
-        for (unsigned idx=0; idx<tableLocks.size(); idx++)
-        {
-            try
-            {
+        for (unsigned idx = 0; idx < tableLocks.size(); idx++) {
+            try {
 
                 tblName = systemCatalogPtr->tableName(tableLocks[idx].tableOID);
-            }
-            catch(...)
-            {
+            } catch (...) {
                 tblName.schema.clear();
                 tblName.table.clear();
             }
             fullTblName = tblName.toString();
-            cout << 
-                setw(lockIDColumnWidth)    << tableLocks[idx].id         <<
-                setw(tableNameColumnWidth) << fullTblName                <<
-                setw(ownerColumnWidth)     << tableLocks[idx].ownerName  <<
-                setw(pidColumnWidth)       << tableLocks[idx].ownerPID;
+            cout <<
+                setw(lockIDColumnWidth) << tableLocks[idx].id <<
+                setw(tableNameColumnWidth) << fullTblName <<
+                setw(ownerColumnWidth) << tableLocks[idx].ownerName <<
+                setw(pidColumnWidth) << tableLocks[idx].ownerPID;
 
-			// Log session ID, or "BulkLoad" if session is -1
-			if (tableLocks[idx].ownerSessionID < 0)
-				cout << setw(sessionIDColumnWidth) << sessionNoneStr;
-			else
-				cout << setw(sessionIDColumnWidth) <<
-					tableLocks[idx].ownerSessionID;
+            // Log session ID, or "BulkLoad" if session is -1
+            if (tableLocks[idx].ownerSessionID < 0)
+                cout << setw(sessionIDColumnWidth) << sessionNoneStr;
+            else
+                cout << setw(sessionIDColumnWidth) <<
+                tableLocks[idx].ownerSessionID;
 
-			// Creation Time
-			cout << setw(createTimeColumnWidth) << createTimes[idx];
+            // Creation Time
+            cout << setw(createTimeColumnWidth) << createTimes[idx];
 
-			// Processor State
-			if (pDBRM && !pDBRM->checkOwner(tableLocks[idx].id))
-			{
-				tableState = "Abandoned";
-			}
-			else
-			{
-				tableState = ((tableLocks[idx].state==BRM::LOADING) ?
-					"LOADING" : "CLEANUP");
-			}
-			cout << setw(stateColumnWidth) << tableState;
+            // Processor State
+            if (pDBRM && !pDBRM->checkOwner(tableLocks[idx].id)) {
+                tableState = "Abandoned";
+            } else {
+                tableState = ((tableLocks[idx].state == BRM::LOADING) ?
+                    "LOADING" : "CLEANUP");
+            }
+            cout << setw(stateColumnWidth) << tableState;
 
-			// PM List
-			cout << setw(dbrootColumnWidth);
-			for (unsigned k=0; k<tableLocks[idx].dbrootList.size(); k++)
-			{
-				if (k > 0)
-					cout << ',';
-				cout << tableLocks[idx].dbrootList[k];
-			}
-			cout << endl;
+            // PM List
+            cout << setw(dbrootColumnWidth);
+            for (unsigned k = 0; k < tableLocks[idx].dbrootList.size(); k++) {
+                if (k > 0)
+                    cout << ',';
+                cout << tableLocks[idx].dbrootList[k];
+            }
+            cout << endl;
         } // end of loop through table locks
     }
 
@@ -3798,17 +3424,16 @@ namespace oam
      * purpose:	get time/date in string format
      *
      ******************************************************************************************/
-    string Oam::getCurrentTime()
-    {
+    string Oam::getCurrentTime() {
         time_t cal;
-        time (&cal);
+        time(&cal);
         string stime;
         char ctime[26];
-        ctime_r (&cal, ctime);
-		stime = ctime;
-//        string stime = ctime_r (&cal);
-        // strip off cr/lf
-        stime = stime.substr (0,24);
+        ctime_r(&cal, ctime);
+        stime = ctime;
+        //        string stime = ctime_r (&cal);
+                // strip off cr/lf
+        stime = stime.substr(0, 24);
         return stime;
     }
 
@@ -3818,26 +3443,24 @@ namespace oam
      * purpose:	Get Local DBRM ID for Module
      *
      ******************************************************************************************/
-	int Oam::getLocalDBRMID(const std::string moduleName)
-	{
-		string cmd = "touch " + erydbConfigFile;
-		(void)system(cmd.c_str());
+    int Oam::getLocalDBRMID(const std::string moduleName) {
+        string cmd = "touch " + erydbConfigFile;
+        (void)system(cmd.c_str());
 
         string SECTION = "DBRM_Worker";
 
         Config* sysConfig = Config::makeConfig(erydbConfigFile.c_str());
 
-		int numWorker = atoi(sysConfig->getConfig("DBRM_Controller", "NumWorkers").c_str());
-        for (int workerID = 1; workerID < numWorker+1; workerID++)
-        {
+        int numWorker = atoi(sysConfig->getConfig("DBRM_Controller", "NumWorkers").c_str());
+        for (int workerID = 1; workerID < numWorker + 1; workerID++) {
             string section = SECTION + itoa(workerID);
 
-            if( sysConfig->getConfig(section, "Module") == moduleName )
-				return workerID;
+            if (sysConfig->getConfig(section, "Module") == moduleName)
+                return workerID;
         }
-		// not found
+        // not found
         exceptionControl("getLocalDBRMID", API_INVALID_PARAMETER);
-		return -1;
+        return -1;
     }
 
     /******************************************************************************************
@@ -3846,37 +3469,32 @@ namespace oam
      * purpose:	build empty set of System Tables
      *
      ******************************************************************************************/
-	void Oam::buildSystemTables()
-	{
-		//determine active PM (DDLProc is ACTIVE) to send request to
-		SystemProcessStatus systemprocessstatus;
-		string PMmodule;
-		int returnStatus = API_FAILURE;
-		try
-		{
-			getProcessStatus(systemprocessstatus);
-	
-			for( unsigned int i = 0 ; i < systemprocessstatus.processstatus.size(); i++)
-			{
-				if ( systemprocessstatus.processstatus[i].ProcessName == "DDLProc" &&
-						systemprocessstatus.processstatus[i].ProcessOpState == oam::ACTIVE) {
-					PMmodule = systemprocessstatus.processstatus[i].Module;
+    void Oam::buildSystemTables() {
+        //determine active PM (DDLProc is ACTIVE) to send request to
+        SystemProcessStatus systemprocessstatus;
+        string PMmodule;
+        int returnStatus = API_FAILURE;
+        try {
+            getProcessStatus(systemprocessstatus);
 
-					// build and send msg
-					returnStatus = sendMsgToProcMgr(BUILDSYSTEMTABLES, PMmodule, FORCEFUL, ACK_YES);
-				}
-			}
-		}
-        catch(...)
-		{
-        	exceptionControl("buildSystemTables", API_FAILURE);
-		}
+            for (unsigned int i = 0; i < systemprocessstatus.processstatus.size(); i++) {
+                if (systemprocessstatus.processstatus[i].ProcessName == "DDLProc" &&
+                    systemprocessstatus.processstatus[i].ProcessOpState == oam::ACTIVE) {
+                    PMmodule = systemprocessstatus.processstatus[i].Module;
 
-		if (returnStatus != API_SUCCESS)
-			exceptionControl("buildSystemTables", returnStatus);
-		else
-			return;
-	}
+                    // build and send msg
+                    returnStatus = sendMsgToProcMgr(BUILDSYSTEMTABLES, PMmodule, FORCEFUL, ACK_YES);
+                }
+            }
+        } catch (...) {
+            exceptionControl("buildSystemTables", API_FAILURE);
+        }
+
+        if (returnStatus != API_SUCCESS)
+            exceptionControl("buildSystemTables", returnStatus);
+        else
+            return;
+    }
 
     /******************************************************************************************
      * @brief	Get Network IP Address for Host Name
@@ -3884,28 +3502,27 @@ namespace oam
      * purpose:	Get Network IP Address for Host Name
      *
      ******************************************************************************************/
-	string Oam::getIPAddress(string hostName)
-	{
-		static uint32_t my_bind_addr;
-		struct hostent *ent;
-		string IPAddr = "";
-	
-		ent=gethostbyname(hostName.c_str());
-		if (ent != 0) {
-			my_bind_addr = (uint32_t) ((in_addr*)ent->h_addr_list[0])->s_addr;
-	
-			uint8_t split[4];
-			uint32_t ip = my_bind_addr;
-			split[0] = (ip & 0xff000000) >> 24;
-			split[1] = (ip & 0x00ff0000) >> 16;
-			split[2] = (ip & 0x0000ff00) >> 8;
-			split[3] = (ip & 0x000000ff);
-	
-			IPAddr = itoa(split[3]) + "." + itoa(split[2]) + "." +itoa(split[1]) + "." + itoa(split[0]);
-		}
-		
-		return IPAddr;
-	}
+    string Oam::getIPAddress(string hostName) {
+        static uint32_t my_bind_addr;
+        struct hostent *ent;
+        string IPAddr = "";
+
+        ent = gethostbyname(hostName.c_str());
+        if (ent != 0) {
+            my_bind_addr = (uint32_t)((in_addr*)ent->h_addr_list[0])->s_addr;
+
+            uint8_t split[4];
+            uint32_t ip = my_bind_addr;
+            split[0] = (ip & 0xff000000) >> 24;
+            split[1] = (ip & 0x00ff0000) >> 16;
+            split[2] = (ip & 0x0000ff00) >> 8;
+            split[3] = (ip & 0x000000ff);
+
+            IPAddr = itoa(split[3]) + "." + itoa(split[2]) + "." + itoa(split[1]) + "." + itoa(split[0]);
+        }
+
+        return IPAddr;
+    }
 
     /******************************************************************************************
      * @brief	Get System TOP Process CPU Users
@@ -3913,113 +3530,98 @@ namespace oam
      * purpose:	Get System TOP Process CPU Users
      *
      ******************************************************************************************/
-	void Oam::getTopProcessCpuUsers(int topNumber, SystemTopProcessCpuUsers& systemtopprocesscpuusers)
-	{
+    void Oam::getTopProcessCpuUsers(int topNumber, SystemTopProcessCpuUsers& systemtopprocesscpuusers) {
         SystemModuleTypeConfig systemmoduletypeconfig;
         TopProcessCpuUsers Topprocesscpuusers;
 
-        try
-        {
+        try {
             Oam::getSystemConfig(systemmoduletypeconfig);
-        }
-        catch(...)
-        {
+        } catch (...) {
             exceptionControl("getTopProcessCpuUsers", API_FAILURE);
         }
 
-        for( unsigned int i = 0 ; i < systemmoduletypeconfig.moduletypeconfig.size(); i++)
-        {
-            if( systemmoduletypeconfig.moduletypeconfig[i].ModuleType.empty() )
+        for (unsigned int i = 0; i < systemmoduletypeconfig.moduletypeconfig.size(); i++) {
+            if (systemmoduletypeconfig.moduletypeconfig[i].ModuleType.empty())
                 //end of file
                 break;
 
-			if ( systemmoduletypeconfig.moduletypeconfig[i].ModuleCount == 0 )
-				continue;
+            if (systemmoduletypeconfig.moduletypeconfig[i].ModuleCount == 0)
+                continue;
 
-			DeviceNetworkList::iterator pt = systemmoduletypeconfig.moduletypeconfig[i].ModuleNetworkList.begin();
-			for( ; pt != systemmoduletypeconfig.moduletypeconfig[i].ModuleNetworkList.end() ; pt++)
-			{
-				string moduleName = (*pt).DeviceName;
-				try {
-					getTopProcessCpuUsers(moduleName, topNumber, Topprocesscpuusers);
-	
-					systemtopprocesscpuusers.topprocesscpuusers.push_back(Topprocesscpuusers);
-				}
-                catch (exception&)
-                {
+            DeviceNetworkList::iterator pt = systemmoduletypeconfig.moduletypeconfig[i].ModuleNetworkList.begin();
+            for (; pt != systemmoduletypeconfig.moduletypeconfig[i].ModuleNetworkList.end(); pt++) {
+                string moduleName = (*pt).DeviceName;
+                try {
+                    getTopProcessCpuUsers(moduleName, topNumber, Topprocesscpuusers);
+
+                    systemtopprocesscpuusers.topprocesscpuusers.push_back(Topprocesscpuusers);
+                } catch (exception&) {
                 }
-			}
+            }
         }
-	}
+    }
 
     /******************************************************************************************
-     * @brief	Get Module TOP Process CPU Users 
+     * @brief	Get Module TOP Process CPU Users
      *
-     * purpose:	Get SModule TOP Process CPU Users 
+     * purpose:	Get SModule TOP Process CPU Users
      *
      ******************************************************************************************/
-	void Oam::getTopProcessCpuUsers(const std::string module, int topNumber, TopProcessCpuUsers& topprocesscpuusers)
-	{
+    void Oam::getTopProcessCpuUsers(const std::string module, int topNumber, TopProcessCpuUsers& topprocesscpuusers) {
         ByteStream msg;
         ByteStream receivedMSG;
-		ByteStream::byte count;
+        ByteStream::byte count;
         string processName;
-		ByteStream::quadbyte cpuUsage;
-    	ProcessCpuUser Processcpuuser;
-		topprocesscpuusers.processcpuuser.clear();
+        ByteStream::quadbyte cpuUsage;
+        ProcessCpuUser Processcpuuser;
+        topprocesscpuusers.processcpuuser.clear();
 
-		// validate Module name
-		if ( module.find("xm") != string::npos )
-			exceptionControl("getTopProcessCpuUsers", API_INVALID_PARAMETER);
+        // validate Module name
+        if (module.find("xm") != string::npos)
+            exceptionControl("getTopProcessCpuUsers", API_INVALID_PARAMETER);
 
-		int returnStatus = validateModule(module);
-		if (returnStatus != API_SUCCESS)
-			exceptionControl("getTopProcessCpuUsers", returnStatus);
+        int returnStatus = validateModule(module);
+        if (returnStatus != API_SUCCESS)
+            exceptionControl("getTopProcessCpuUsers", returnStatus);
 
         // setup message
         msg << (ByteStream::byte) GET_PROC_CPU_USAGE;
         msg << (ByteStream::byte) topNumber;
 
-		topprocesscpuusers.ModuleName = module;
-		topprocesscpuusers.numberTopUsers = topNumber;
+        topprocesscpuusers.ModuleName = module;
+        topprocesscpuusers.numberTopUsers = topNumber;
 
-        try
-        {
+        try {
             //send the msg to Server Monitor
             MessageQueueClient servermonitor(module + "_ServerMonitor");
             servermonitor.write(msg);
 
-			// wait 10 seconds for ACK from Server Monitor
-			struct timespec ts = { 30, 0 };
+            // wait 10 seconds for ACK from Server Monitor
+            struct timespec ts = { 30, 0 };
 
-			receivedMSG = servermonitor.read(&ts);
-			if (receivedMSG.length() > 0)
-			{
-				receivedMSG >> count;
+            receivedMSG = servermonitor.read(&ts);
+            if (receivedMSG.length() > 0) {
+                receivedMSG >> count;
 
-				for ( int i=0 ; i < count ; i++)
-				{
-					receivedMSG >> processName;
-					receivedMSG >> cpuUsage;
+                for (int i = 0; i < count; i++) {
+                    receivedMSG >> processName;
+                    receivedMSG >> cpuUsage;
 
-        			Processcpuuser.ProcessName = processName;
-        			Processcpuuser.CpuUsage = cpuUsage;
+                    Processcpuuser.ProcessName = processName;
+                    Processcpuuser.CpuUsage = cpuUsage;
 
-					topprocesscpuusers.processcpuuser.push_back(Processcpuuser);
-				}
+                    topprocesscpuusers.processcpuuser.push_back(Processcpuuser);
+                }
 
-			}
-			else// timeout
-        		exceptionControl("getTopProcessCpuUsers", API_TIMEOUT);
+            } else// timeout
+                exceptionControl("getTopProcessCpuUsers", API_TIMEOUT);
 
             // shutdown connection
             servermonitor.shutdown();
+        } catch (...) {
+            exceptionControl("getTopProcessCpuUsers", API_FAILURE);
         }
-        catch(...)
-        {
-        	exceptionControl("getTopProcessCpuUsers", API_FAILURE);
-        }
-	}
+    }
 
     /******************************************************************************************
      * @brief	get System CPU Usage
@@ -4027,45 +3629,37 @@ namespace oam
      * purpose:	get System CPU Usage
      *
      ******************************************************************************************/
-	void Oam::getSystemCpuUsage(SystemCpu& systemcpu)
-	{
+    void Oam::getSystemCpuUsage(SystemCpu& systemcpu) {
         SystemModuleTypeConfig systemmoduletypeconfig;
         ModuleCpu Modulecpu;
 
-        try
-        {
+        try {
             Oam::getSystemConfig(systemmoduletypeconfig);
-        }
-        catch(...)
-        {
+        } catch (...) {
             exceptionControl("getSystemCpuUsage", API_FAILURE);
         }
 
-        for( unsigned int i = 0 ; i < systemmoduletypeconfig.moduletypeconfig.size(); i++)
-        {
-            if( systemmoduletypeconfig.moduletypeconfig[i].ModuleType.empty() )
+        for (unsigned int i = 0; i < systemmoduletypeconfig.moduletypeconfig.size(); i++) {
+            if (systemmoduletypeconfig.moduletypeconfig[i].ModuleType.empty())
                 //end of file
                 break;
 
-			if ( systemmoduletypeconfig.moduletypeconfig[i].ModuleCount == 0 )
-				continue;
+            if (systemmoduletypeconfig.moduletypeconfig[i].ModuleCount == 0)
+                continue;
 
-			DeviceNetworkList::iterator pt = systemmoduletypeconfig.moduletypeconfig[i].ModuleNetworkList.begin();
-			for( ; pt != systemmoduletypeconfig.moduletypeconfig[i].ModuleNetworkList.end() ; pt++)
-			{
-				string moduleName = (*pt).DeviceName;
+            DeviceNetworkList::iterator pt = systemmoduletypeconfig.moduletypeconfig[i].ModuleNetworkList.begin();
+            for (; pt != systemmoduletypeconfig.moduletypeconfig[i].ModuleNetworkList.end(); pt++) {
+                string moduleName = (*pt).DeviceName;
 
-				try{
-					getModuleCpuUsage(moduleName, Modulecpu);
-		
-					systemcpu.modulecpu.push_back(Modulecpu);
-				}
-                catch (exception&)
-                {
+                try {
+                    getModuleCpuUsage(moduleName, Modulecpu);
+
+                    systemcpu.modulecpu.push_back(Modulecpu);
+                } catch (exception&) {
                 }
-			}
+            }
         }
-	}
+    }
 
     /******************************************************************************************
      * @brief	get Module CPU Usage
@@ -4073,171 +3667,150 @@ namespace oam
      * purpose:	get Module CPU Usage
      *
      ******************************************************************************************/
-	void Oam::getModuleCpuUsage(const std::string module, ModuleCpu& modulecpu)
-	{
+    void Oam::getModuleCpuUsage(const std::string module, ModuleCpu& modulecpu) {
         ByteStream msg;
         ByteStream receivedMSG;
         string processName;
-		ByteStream::byte cpuUsage;
+        ByteStream::byte cpuUsage;
 
-		// validate Module name
-		if ( module.find("xm") != string::npos )
-			exceptionControl("getModuleCpuUsage", API_INVALID_PARAMETER);
+        // validate Module name
+        if (module.find("xm") != string::npos)
+            exceptionControl("getModuleCpuUsage", API_INVALID_PARAMETER);
 
-		int returnStatus = validateModule(module);
-		if (returnStatus != API_SUCCESS)
-			exceptionControl("getModuleCpuUsage", returnStatus);
+        int returnStatus = validateModule(module);
+        if (returnStatus != API_SUCCESS)
+            exceptionControl("getModuleCpuUsage", returnStatus);
 
         // setup message
         msg << (ByteStream::byte) GET_MODULE_CPU_USAGE;
 
-		modulecpu.ModuleName = module;
+        modulecpu.ModuleName = module;
 
-        try
-        {
+        try {
             //send the msg to Server Monitor
             MessageQueueClient servermonitor(module + "_ServerMonitor");
             servermonitor.write(msg);
 
-			// wait 30 seconds for ACK from Server Monitor
-			struct timespec ts = { 30, 0 };
+            // wait 30 seconds for ACK from Server Monitor
+            struct timespec ts = { 30, 0 };
 
-			receivedMSG = servermonitor.read(&ts);
-			if (receivedMSG.length() > 0)
-			{
-				receivedMSG >> cpuUsage;
+            receivedMSG = servermonitor.read(&ts);
+            if (receivedMSG.length() > 0) {
+                receivedMSG >> cpuUsage;
 
-				modulecpu.CpuUsage = cpuUsage;
-			}
-			else	// timeout
-        		exceptionControl("getModuleCpuUsage", API_TIMEOUT);
+                modulecpu.CpuUsage = cpuUsage;
+            } else	// timeout
+                exceptionControl("getModuleCpuUsage", API_TIMEOUT);
 
             // shutdown connection
             servermonitor.shutdown();
+        } catch (...) {
+            exceptionControl("getModuleCpuUsage", API_FAILURE);
         }
-        catch(...)
-        {
-			exceptionControl("getModuleCpuUsage", API_FAILURE);
-        }
-	}
+    }
 
     /******************************************************************************************
-     * @brief	get System TOP Process Memory Users 
+     * @brief	get System TOP Process Memory Users
      *
-     * purpose:	get System TOP Process Memory Users 
+     * purpose:	get System TOP Process Memory Users
      *
      ******************************************************************************************/
-	void Oam::getTopProcessMemoryUsers(int topNumber, SystemTopProcessMemoryUsers& systemtopprocessmemoryusers)
-	{
+    void Oam::getTopProcessMemoryUsers(int topNumber, SystemTopProcessMemoryUsers& systemtopprocessmemoryusers) {
         SystemModuleTypeConfig systemmoduletypeconfig;
         TopProcessMemoryUsers Topprocessmemoryusers;
 
-        try
-        {
+        try {
             Oam::getSystemConfig(systemmoduletypeconfig);
-        }
-        catch(...)
-        {
+        } catch (...) {
             exceptionControl("getTopProcessMemoryUsers", API_FAILURE);
         }
 
-        for( unsigned int i = 0 ; i < systemmoduletypeconfig.moduletypeconfig.size(); i++)
-        {
-            if( systemmoduletypeconfig.moduletypeconfig[i].ModuleType.empty() )
+        for (unsigned int i = 0; i < systemmoduletypeconfig.moduletypeconfig.size(); i++) {
+            if (systemmoduletypeconfig.moduletypeconfig[i].ModuleType.empty())
                 //end of file
                 break;
 
-			if ( systemmoduletypeconfig.moduletypeconfig[i].ModuleCount == 0 )
-				continue;
+            if (systemmoduletypeconfig.moduletypeconfig[i].ModuleCount == 0)
+                continue;
 
-			DeviceNetworkList::iterator pt = systemmoduletypeconfig.moduletypeconfig[i].ModuleNetworkList.begin();
-			for( ; pt != systemmoduletypeconfig.moduletypeconfig[i].ModuleNetworkList.end() ; pt++)
-			{
-				string moduleName = (*pt).DeviceName;
+            DeviceNetworkList::iterator pt = systemmoduletypeconfig.moduletypeconfig[i].ModuleNetworkList.begin();
+            for (; pt != systemmoduletypeconfig.moduletypeconfig[i].ModuleNetworkList.end(); pt++) {
+                string moduleName = (*pt).DeviceName;
 
-				try {
-					getTopProcessMemoryUsers(moduleName, topNumber, Topprocessmemoryusers);
-		
-					systemtopprocessmemoryusers.topprocessmemoryusers.push_back(Topprocessmemoryusers);
-				}
-                catch (exception&)
-                {
+                try {
+                    getTopProcessMemoryUsers(moduleName, topNumber, Topprocessmemoryusers);
+
+                    systemtopprocessmemoryusers.topprocessmemoryusers.push_back(Topprocessmemoryusers);
+                } catch (exception&) {
                 }
-			}
+            }
         }
-	}
- 
+    }
+
     /******************************************************************************************
-     * @brief	get Module TOP Process Memory Users 
+     * @brief	get Module TOP Process Memory Users
      *
-     * purpose:	get Module TOP Process Memory Users 
+     * purpose:	get Module TOP Process Memory Users
      *
      ******************************************************************************************/
-	void Oam::getTopProcessMemoryUsers(const std::string module, int topNumber, TopProcessMemoryUsers& topprocessmemoryusers)
-	{
+    void Oam::getTopProcessMemoryUsers(const std::string module, int topNumber, TopProcessMemoryUsers& topprocessmemoryusers) {
         ByteStream msg;
         ByteStream receivedMSG;
-		ByteStream::byte count;
+        ByteStream::byte count;
         string processName;
-		ByteStream::quadbyte memoryUsed;
-		ByteStream::byte memoryUsage;
-    	ProcessMemoryUser Processmemoryuser;
-		topprocessmemoryusers.processmemoryuser.clear();
+        ByteStream::quadbyte memoryUsed;
+        ByteStream::byte memoryUsage;
+        ProcessMemoryUser Processmemoryuser;
+        topprocessmemoryusers.processmemoryuser.clear();
 
-		// validate Module name
-		if ( module.find("xm") != string::npos )
-			exceptionControl("getTopProcessMemoryUsers", API_INVALID_PARAMETER);
+        // validate Module name
+        if (module.find("xm") != string::npos)
+            exceptionControl("getTopProcessMemoryUsers", API_INVALID_PARAMETER);
 
-		int returnStatus = validateModule(module);
-		if (returnStatus != API_SUCCESS)
-			exceptionControl("getTopProcessMemoryUsers", returnStatus);
+        int returnStatus = validateModule(module);
+        if (returnStatus != API_SUCCESS)
+            exceptionControl("getTopProcessMemoryUsers", returnStatus);
 
         // setup message
         msg << (ByteStream::byte) GET_PROC_MEMORY_USAGE;
         msg << (ByteStream::byte) topNumber;
 
-		topprocessmemoryusers.ModuleName = module;
-		topprocessmemoryusers.numberTopUsers = topNumber;
+        topprocessmemoryusers.ModuleName = module;
+        topprocessmemoryusers.numberTopUsers = topNumber;
 
-        try
-        {
+        try {
             //send the msg to Server Monitor
             MessageQueueClient servermonitor(module + "_ServerMonitor");
             servermonitor.write(msg);
 
-			// wait 30 seconds for ACK from Server Monitor
-			struct timespec ts = { 30, 0 };
+            // wait 30 seconds for ACK from Server Monitor
+            struct timespec ts = { 30, 0 };
 
-			receivedMSG = servermonitor.read(&ts);
-			if (receivedMSG.length() > 0)
-			{
-				receivedMSG >> count;
+            receivedMSG = servermonitor.read(&ts);
+            if (receivedMSG.length() > 0) {
+                receivedMSG >> count;
 
-				for ( int i=0 ; i < count ; i++)
-				{
-					receivedMSG >> processName;
-					receivedMSG >> memoryUsed;
-					receivedMSG >> memoryUsage;
+                for (int i = 0; i < count; i++) {
+                    receivedMSG >> processName;
+                    receivedMSG >> memoryUsed;
+                    receivedMSG >> memoryUsage;
 
-        			Processmemoryuser.ProcessName = processName;
-        			Processmemoryuser.MemoryUsed = memoryUsed;
-        			Processmemoryuser.MemoryUsage = memoryUsage;
+                    Processmemoryuser.ProcessName = processName;
+                    Processmemoryuser.MemoryUsed = memoryUsed;
+                    Processmemoryuser.MemoryUsage = memoryUsage;
 
-					topprocessmemoryusers.processmemoryuser.push_back(Processmemoryuser);
-				}
+                    topprocessmemoryusers.processmemoryuser.push_back(Processmemoryuser);
+                }
 
-			}
-			else	// timeout
-        		exceptionControl("getTopProcessMemoryUsers", API_TIMEOUT);
+            } else	// timeout
+                exceptionControl("getTopProcessMemoryUsers", API_TIMEOUT);
 
             // shutdown connection
             servermonitor.shutdown();
+        } catch (...) {
+            exceptionControl("getTopProcessMemoryUsers", API_FAILURE);
         }
-        catch(...)
-        {
-        	exceptionControl("getTopProcessMemoryUsers", API_FAILURE);
-        }
-	}
+    }
 
     /******************************************************************************************
      * @brief	get System Memory Usage
@@ -4245,45 +3818,37 @@ namespace oam
      * purpose:	get System Memory Usage
      *
      ******************************************************************************************/
-	void Oam::getSystemMemoryUsage(SystemMemory& systemmemory)
-	{
+    void Oam::getSystemMemoryUsage(SystemMemory& systemmemory) {
         SystemModuleTypeConfig systemmoduletypeconfig;
         ModuleMemory Modulememory;
 
-        try
-        {
+        try {
             Oam::getSystemConfig(systemmoduletypeconfig);
-        }
-        catch(...)
-        {
+        } catch (...) {
             exceptionControl("getSystemMemoryUsage", API_FAILURE);
         }
 
-        for( unsigned int i = 0 ; i < systemmoduletypeconfig.moduletypeconfig.size(); i++)
-        {
-            if( systemmoduletypeconfig.moduletypeconfig[i].ModuleType.empty() )
+        for (unsigned int i = 0; i < systemmoduletypeconfig.moduletypeconfig.size(); i++) {
+            if (systemmoduletypeconfig.moduletypeconfig[i].ModuleType.empty())
                 //end of file
                 break;
 
-			if ( systemmoduletypeconfig.moduletypeconfig[i].ModuleCount == 0 )
-				continue;
+            if (systemmoduletypeconfig.moduletypeconfig[i].ModuleCount == 0)
+                continue;
 
-			DeviceNetworkList::iterator pt = systemmoduletypeconfig.moduletypeconfig[i].ModuleNetworkList.begin();
-			for( ; pt != systemmoduletypeconfig.moduletypeconfig[i].ModuleNetworkList.end() ; pt++)
-			{
-				string moduleName = (*pt).DeviceName;
+            DeviceNetworkList::iterator pt = systemmoduletypeconfig.moduletypeconfig[i].ModuleNetworkList.begin();
+            for (; pt != systemmoduletypeconfig.moduletypeconfig[i].ModuleNetworkList.end(); pt++) {
+                string moduleName = (*pt).DeviceName;
 
-				try {
-					getModuleMemoryUsage(moduleName, Modulememory);
-		
-					systemmemory.modulememory.push_back(Modulememory);
-				}
-                catch (exception&)
-                {
+                try {
+                    getModuleMemoryUsage(moduleName, Modulememory);
+
+                    systemmemory.modulememory.push_back(Modulememory);
+                } catch (exception&) {
                 }
-			}
+            }
         }
-	}
+    }
 
     /******************************************************************************************
      * @brief	get Module Memory Usage
@@ -4291,72 +3856,66 @@ namespace oam
      * purpose:	get Module Memory Usage
      *
      ******************************************************************************************/
-	void Oam::getModuleMemoryUsage(const std::string module, ModuleMemory& modulememory)
-	{
+    void Oam::getModuleMemoryUsage(const std::string module, ModuleMemory& modulememory) {
         ByteStream msg;
         ByteStream receivedMSG;
         string processName;
-		ByteStream::quadbyte mem_total;
-		ByteStream::quadbyte mem_used;
-		ByteStream::quadbyte cache;
-		ByteStream::byte memoryUsagePercent;
-		ByteStream::quadbyte swap_total;
-		ByteStream::quadbyte swap_used;
-		ByteStream::byte swapUsagePercent;
+        ByteStream::quadbyte mem_total;
+        ByteStream::quadbyte mem_used;
+        ByteStream::quadbyte cache;
+        ByteStream::byte memoryUsagePercent;
+        ByteStream::quadbyte swap_total;
+        ByteStream::quadbyte swap_used;
+        ByteStream::byte swapUsagePercent;
 
-		// validate Module name
-		if ( module.find("xm") != string::npos )
-			exceptionControl("getModuleMemoryUsage", API_INVALID_PARAMETER);
+        // validate Module name
+        if (module.find("xm") != string::npos)
+            exceptionControl("getModuleMemoryUsage", API_INVALID_PARAMETER);
 
-		// validate Module name
-		int returnStatus = validateModule(module);
-		if (returnStatus != API_SUCCESS)
-			exceptionControl("getModuleMemoryUsage", returnStatus);
+        // validate Module name
+        int returnStatus = validateModule(module);
+        if (returnStatus != API_SUCCESS)
+            exceptionControl("getModuleMemoryUsage", returnStatus);
 
         // setup message
         msg << (ByteStream::byte) GET_MODULE_MEMORY_USAGE;
 
-		modulememory.ModuleName = module;
+        modulememory.ModuleName = module;
 
-        try
-        {
+        try {
             //send the msg to Server Monitor
             MessageQueueClient servermonitor(module + "_ServerMonitor");
             servermonitor.write(msg);
 
-			// wait 30 seconds for ACK from Server Monitor
-			struct timespec ts = { 30, 0 };
+            // wait 30 seconds for ACK from Server Monitor
+            struct timespec ts = { 30, 0 };
 
-			receivedMSG = servermonitor.read(&ts);
-			if (receivedMSG.length() > 0)
-			{
-				receivedMSG >> mem_total;
-				receivedMSG >> mem_used;
-				receivedMSG >> cache;
-				receivedMSG >> memoryUsagePercent;
-				receivedMSG >> swap_total;
-				receivedMSG >> swap_used;
-				receivedMSG >> swapUsagePercent;
+            receivedMSG = servermonitor.read(&ts);
+            if (receivedMSG.length() > 0) {
+                receivedMSG >> mem_total;
+                receivedMSG >> mem_used;
+                receivedMSG >> cache;
+                receivedMSG >> memoryUsagePercent;
+                receivedMSG >> swap_total;
+                receivedMSG >> swap_used;
+                receivedMSG >> swapUsagePercent;
 
-				modulememory.MemoryTotal = mem_total;
-				modulememory.MemoryUsed = mem_used;
-				modulememory.cache = cache;
-				modulememory.MemoryUsage = memoryUsagePercent;
-				modulememory.SwapTotal = swap_total;
-				modulememory.SwapUsed = swap_used;
-				modulememory.SwapUsage = swapUsagePercent;
-			}
-			else	// timeout
-        		exceptionControl("getModuleMemoryUsage", API_TIMEOUT);
+                modulememory.MemoryTotal = mem_total;
+                modulememory.MemoryUsed = mem_used;
+                modulememory.cache = cache;
+                modulememory.MemoryUsage = memoryUsagePercent;
+                modulememory.SwapTotal = swap_total;
+                modulememory.SwapUsed = swap_used;
+                modulememory.SwapUsage = swapUsagePercent;
+            } else	// timeout
+                exceptionControl("getModuleMemoryUsage", API_TIMEOUT);
 
             // shutdown connection
             servermonitor.shutdown();
+        } catch (...) {
+            exceptionControl("getModuleMemoryUsage", API_FAILURE);
         }
-        catch(...)
-        {
-        	exceptionControl("getModuleMemoryUsage", API_FAILURE);
-        }
-	}
+    }
 
     /******************************************************************************************
      * @brief	get System Disk Usage
@@ -4364,45 +3923,37 @@ namespace oam
      * purpose:	get System Disk Usage
      *
      ******************************************************************************************/
-	void Oam::getSystemDiskUsage(SystemDisk& systemdisk)
-	{
+    void Oam::getSystemDiskUsage(SystemDisk& systemdisk) {
         SystemModuleTypeConfig systemmoduletypeconfig;
         ModuleDisk Moduledisk;
 
-        try
-        {
+        try {
             Oam::getSystemConfig(systemmoduletypeconfig);
-        }
-        catch(...)
-        {
+        } catch (...) {
             exceptionControl("getSystemMemoryUsage", API_FAILURE);
         }
 
-        for( unsigned int i = 0 ; i < systemmoduletypeconfig.moduletypeconfig.size(); i++)
-        {
-            if( systemmoduletypeconfig.moduletypeconfig[i].ModuleType.empty() )
+        for (unsigned int i = 0; i < systemmoduletypeconfig.moduletypeconfig.size(); i++) {
+            if (systemmoduletypeconfig.moduletypeconfig[i].ModuleType.empty())
                 //end of file
                 break;
 
-			if ( systemmoduletypeconfig.moduletypeconfig[i].ModuleCount == 0 )
-				continue;
+            if (systemmoduletypeconfig.moduletypeconfig[i].ModuleCount == 0)
+                continue;
 
-			DeviceNetworkList::iterator pt = systemmoduletypeconfig.moduletypeconfig[i].ModuleNetworkList.begin();
-			for( ; pt != systemmoduletypeconfig.moduletypeconfig[i].ModuleNetworkList.end() ; pt++)
-			{
-				string moduleName = (*pt).DeviceName;
+            DeviceNetworkList::iterator pt = systemmoduletypeconfig.moduletypeconfig[i].ModuleNetworkList.begin();
+            for (; pt != systemmoduletypeconfig.moduletypeconfig[i].ModuleNetworkList.end(); pt++) {
+                string moduleName = (*pt).DeviceName;
 
-				try {
-					getModuleDiskUsage(moduleName, Moduledisk);
-		
-					systemdisk.moduledisk.push_back(Moduledisk);
-				}
-                catch (exception&)
-                {
+                try {
+                    getModuleDiskUsage(moduleName, Moduledisk);
+
+                    systemdisk.moduledisk.push_back(Moduledisk);
+                } catch (exception&) {
                 }
-			}
+            }
         }
-	}
+    }
 
     /******************************************************************************************
      * @brief	get Module Disk Usage
@@ -4410,74 +3961,67 @@ namespace oam
      * purpose:	get Module Disk Usage
      *
      ******************************************************************************************/
-	void Oam::getModuleDiskUsage(const std::string module, ModuleDisk& moduledisk)
-	{
-		ByteStream msg;
+    void Oam::getModuleDiskUsage(const std::string module, ModuleDisk& moduledisk) {
+        ByteStream msg;
         ByteStream receivedMSG;
         string processName;
-    	DiskUsage Diskusage;
-		moduledisk.diskusage.clear();
+        DiskUsage Diskusage;
+        moduledisk.diskusage.clear();
 
-		// validate Module name
-		if ( module.find("xm") != string::npos )
-			exceptionControl("getModuleDiskUsage", API_INVALID_PARAMETER);
+        // validate Module name
+        if (module.find("xm") != string::npos)
+            exceptionControl("getModuleDiskUsage", API_INVALID_PARAMETER);
 
-		// validate Module name
-		int returnStatus = validateModule(module);
-		if (returnStatus != API_SUCCESS)
-			exceptionControl("getModuleDiskUsage", returnStatus);
+        // validate Module name
+        int returnStatus = validateModule(module);
+        if (returnStatus != API_SUCCESS)
+            exceptionControl("getModuleDiskUsage", returnStatus);
 
-		ByteStream::byte entries;
-		string deviceName;
-		uint64_t totalBlocks;
-		uint64_t usedBlocks;
-		uint8_t diskUsage;
+        ByteStream::byte entries;
+        string deviceName;
+        uint64_t totalBlocks;
+        uint64_t usedBlocks;
+        uint8_t diskUsage;
 
         // setup message
         msg << (ByteStream::byte) GET_MODULE_DISK_USAGE;
 
-		moduledisk.ModuleName = module;
+        moduledisk.ModuleName = module;
 
-        try
-        {
+        try {
             //send the msg to Server Monitor
             MessageQueueClient servermonitor(module + "_ServerMonitor");
             servermonitor.write(msg);
 
-			// wait 30 seconds for ACK from Server Monitor
-			struct timespec ts = { 30, 0 };
+            // wait 30 seconds for ACK from Server Monitor
+            struct timespec ts = { 30, 0 };
 
-			receivedMSG = servermonitor.read(&ts);
-			if (receivedMSG.length() > 0)
-			{
-				receivedMSG >> entries;
+            receivedMSG = servermonitor.read(&ts);
+            if (receivedMSG.length() > 0) {
+                receivedMSG >> entries;
 
-				for ( int i=0 ; i < entries ; i++)
-				{
-					receivedMSG >> deviceName;
-					receivedMSG >> totalBlocks;
-					receivedMSG >> usedBlocks;
-					receivedMSG >> diskUsage;
-	
-					Diskusage.DeviceName = deviceName;
-					Diskusage.TotalBlocks = totalBlocks;
-					Diskusage.UsedBlocks = usedBlocks;
-					Diskusage.DiskUsage = diskUsage;
+                for (int i = 0; i < entries; i++) {
+                    receivedMSG >> deviceName;
+                    receivedMSG >> totalBlocks;
+                    receivedMSG >> usedBlocks;
+                    receivedMSG >> diskUsage;
 
-					moduledisk.diskusage.push_back(Diskusage);
-				}
-			}
-			else	// timeout
-        		exceptionControl("getModuleDiskUsage", API_TIMEOUT);
+                    Diskusage.DeviceName = deviceName;
+                    Diskusage.TotalBlocks = totalBlocks;
+                    Diskusage.UsedBlocks = usedBlocks;
+                    Diskusage.DiskUsage = diskUsage;
+
+                    moduledisk.diskusage.push_back(Diskusage);
+                }
+            } else	// timeout
+                exceptionControl("getModuleDiskUsage", API_TIMEOUT);
 
             // shutdown connection
             servermonitor.shutdown();
+        } catch (...) {
+            exceptionControl("getModuleDiskUsage", API_FAILURE);
         }
-        catch(...)
-        {
-        	exceptionControl("getModuleDiskUsage", API_FAILURE);
-        }
-	}
+    }
 
     /******************************************************************************************
      * @brief	get Active SQL Statements
@@ -4485,16 +4029,14 @@ namespace oam
      * purpose:	get Active SQL Statements
      *
      ******************************************************************************************/
-    void Oam::getActiveSQLStatements(ActiveSqlStatements& activesqlstatements)
-    {
+    void Oam::getActiveSQLStatements(ActiveSqlStatements& activesqlstatements) {
         SystemModuleTypeConfig systemmoduletypeconfig;
         ByteStream msg;
         ByteStream receivedMSG;
         ByteStream::byte entries;
-		ByteStream::byte retStatus;
+        ByteStream::byte retStatus;
 
-        try
-        {
+        try {
             Oam::getSystemConfig(systemmoduletypeconfig);
 
             // get Server Type Install ID
@@ -4504,8 +4046,7 @@ namespace oam
             serverTypeInstall = boost::get<5>(st);
 
             string sendModule;
-            switch (serverTypeInstall)
-            {
+            switch (serverTypeInstall) {
                 case oam::INSTALL_NORMAL:
                 case oam::INSTALL_COMBINE_DM_UM:
                     sendModule = "um";
@@ -4517,20 +4058,17 @@ namespace oam
             }
 
             //send request to modules
-            for ( unsigned int i = 0 ; i < systemmoduletypeconfig.moduletypeconfig.size(); i++)
-            {
-                if ( systemmoduletypeconfig.moduletypeconfig[i].ModuleType.empty() )
+            for (unsigned int i = 0; i < systemmoduletypeconfig.moduletypeconfig.size(); i++) {
+                if (systemmoduletypeconfig.moduletypeconfig[i].ModuleType.empty())
                     //end of file
                     break;
 
-                if ( systemmoduletypeconfig.moduletypeconfig[i].ModuleType == sendModule )
-                {
-                    if ( systemmoduletypeconfig.moduletypeconfig[i].ModuleCount == 0 )
+                if (systemmoduletypeconfig.moduletypeconfig[i].ModuleType == sendModule) {
+                    if (systemmoduletypeconfig.moduletypeconfig[i].ModuleCount == 0)
                         break;
 
                     DeviceNetworkList::iterator pt = systemmoduletypeconfig.moduletypeconfig[i].ModuleNetworkList.begin();
-                    for ( ; pt != systemmoduletypeconfig.moduletypeconfig[i].ModuleNetworkList.end() ; pt++)
-                    {
+                    for (; pt != systemmoduletypeconfig.moduletypeconfig[i].ModuleNetworkList.end(); pt++) {
                         string module = (*pt).DeviceName;
 
                         // setup message
@@ -4544,27 +4082,23 @@ namespace oam
                         struct timespec ts = { 30, 0 };
 
                         receivedMSG = servermonitor.read(&ts);
-                        if (receivedMSG.length() > 0)
-                        {
-							receivedMSG >> retStatus;
-							if ( retStatus != oam::API_SUCCESS ) {
-                       			// shutdown connection
-                        		servermonitor.shutdown();
-                            	exceptionControl("getActiveSQLStatements", (int) retStatus);
-							}
+                        if (receivedMSG.length() > 0) {
+                            receivedMSG >> retStatus;
+                            if (retStatus != oam::API_SUCCESS) {
+                                // shutdown connection
+                                servermonitor.shutdown();
+                                exceptionControl("getActiveSQLStatements", (int)retStatus);
+                            }
 
                             receivedMSG >> entries;
                             ActiveSqlStatement activeSqlStatement;
-                            for (int i = 0; i < entries; i++)
-                            {
+                            for (int i = 0; i < entries; i++) {
                                 receivedMSG >> activeSqlStatement.sqlstatement;
                                 receivedMSG >> activeSqlStatement.starttime;
                                 receivedMSG >> activeSqlStatement.sessionid;
                                 activesqlstatements.push_back(activeSqlStatement);
                             }
-                        }
-                        else
-                        {
+                        } else {
                             // timeout
                             exceptionControl("getActiveSQLStatements", API_TIMEOUT);
                         }
@@ -4575,13 +4109,9 @@ namespace oam
                     break;
                 }
             }
-        }
-        catch (std::exception& ex)
-        {
+        } catch (std::exception& ex) {
             exceptionControl("getActiveSQLStatements", API_FAILURE, ex.what());
-        }
-        catch (...)
-        {
+        } catch (...) {
             exceptionControl("getActiveSQLStatements", API_FAILURE);
         }
     }
@@ -4591,29 +4121,25 @@ namespace oam
      * IsValidIP - Validate IP Address format
      *
      ********************************************************************/
-	bool Oam::isValidIP(const std::string ipAddress)
-	{
-		int currentPos = 0;
-		for ( int i = 0 ; i < 4 ; i++)
-		{
-			string::size_type pos = ipAddress.find(".",currentPos);
-			if (pos != string::npos) {
-				if ( (pos - currentPos) > 3 || (pos - currentPos) <= 0)
-					return false;
-				currentPos = pos+1;
-			}
-			else
-			{
-				if ( i < 3 )
-					return false;
-				if ( (ipAddress.size() - currentPos) > 3 || (ipAddress.size() - currentPos) <= 0)
-					return false;
-				else
-					return true;
-			}
-		}	
-		return false;
-	}
+    bool Oam::isValidIP(const std::string ipAddress) {
+        int currentPos = 0;
+        for (int i = 0; i < 4; i++) {
+            string::size_type pos = ipAddress.find(".", currentPos);
+            if (pos != string::npos) {
+                if ((pos - currentPos) > 3 || (pos - currentPos) <= 0)
+                    return false;
+                currentPos = pos + 1;
+            } else {
+                if (i < 3)
+                    return false;
+                if ((ipAddress.size() - currentPos) > 3 || (ipAddress.size() - currentPos) <= 0)
+                    return false;
+                else
+                    return true;
+            }
+        }
+        return false;
+    }
 
 
     /********************************************************************
@@ -4621,468 +4147,420 @@ namespace oam
      * incrementIPAddress - Increment IP Address
      *
      ********************************************************************/
-	std::string Oam::incrementIPAddress(const std::string ipAddress)
-	{
-		string newipAddress = ipAddress;
-		string::size_type pos = ipAddress.rfind(".",80);
-		if (pos != string::npos) {
-			string last = ipAddress.substr(pos+1,80);
-			int Ilast = atoi(last.c_str());
-			Ilast++;
+    std::string Oam::incrementIPAddress(const std::string ipAddress) {
+        string newipAddress = ipAddress;
+        string::size_type pos = ipAddress.rfind(".", 80);
+        if (pos != string::npos) {
+            string last = ipAddress.substr(pos + 1, 80);
+            int Ilast = atoi(last.c_str());
+            Ilast++;
 
-			if ( Ilast > 255 )
-			{
-				writeLog("incrementIPAddress: new address invalid, larger than 255", LOG_TYPE_ERROR );
-				exceptionControl("incrementIPAddress", API_FAILURE);
-			}
+            if (Ilast > 255) {
+                writeLog("incrementIPAddress: new address invalid, larger than 255", LOG_TYPE_ERROR);
+                exceptionControl("incrementIPAddress", API_FAILURE);
+            }
 
-			last = itoa(Ilast);
-			newipAddress = ipAddress.substr(0,pos+1);
-			newipAddress = newipAddress + last;
-		}
-		else
-		{
-			writeLog("incrementIPAddress: passed address invalid: " + ipAddress, LOG_TYPE_ERROR );
-			exceptionControl("incrementIPAddress", API_FAILURE);
-		}
+            last = itoa(Ilast);
+            newipAddress = ipAddress.substr(0, pos + 1);
+            newipAddress = newipAddress + last;
+        } else {
+            writeLog("incrementIPAddress: passed address invalid: " + ipAddress, LOG_TYPE_ERROR);
+            exceptionControl("incrementIPAddress", API_FAILURE);
+        }
 
-		return newipAddress;
-	}
+        return newipAddress;
+    }
 
     /********************************************************************
      *
      * checkLogStatus - Check for a phrase in a log file and return status
      *
      ********************************************************************/
-	bool Oam::checkLogStatus(std::string fileName, std::string phrase )
-	{
-		ifstream file (fileName.c_str());
-	
-		if (!file.is_open())
-		{
-			return false;
-		}
-		string buf;
-	
-		while (getline(file, buf))
-		{
-			string::size_type pos = buf.find(phrase,0);
-			if (pos != string::npos)
-				//found phrase
-				return true;
-		}
-		if (file.bad())
-		{
-			return false;
-		}
-		file.close();
-		return false;
-	}
+    bool Oam::checkLogStatus(std::string fileName, std::string phrase) {
+        ifstream file(fileName.c_str());
+
+        if (!file.is_open()) {
+            return false;
+        }
+        string buf;
+
+        while (getline(file, buf)) {
+            string::size_type pos = buf.find(phrase, 0);
+            if (pos != string::npos)
+                //found phrase
+                return true;
+        }
+        if (file.bad()) {
+            return false;
+        }
+        file.close();
+        return false;
+    }
 
     /********************************************************************
      *
      * fixRSAkey - Fix RSA key
      *
      ********************************************************************/
-	void Oam::fixRSAkey(std::string logFile)
-	{
-		ifstream file (logFile.c_str());
-	
-		char line[400];
-		string buf;
-	
-		while (file.getline(line, 400))
-		{
-			buf = line;
-	
-			string::size_type pos = buf.find("Offending",0);
-			if (pos != string::npos) {
-				// line ID
-				pos = buf.find(":",0);
-				string lineID = buf.substr(pos+1,80);
-				//remove non alphanumber characters
-				for (size_t i = 0; i < lineID.length();)
-				{
-					if (!isdigit(lineID[i]))
-						lineID.erase(i, 1);
-					else
-						 i++;
-				}
+    void Oam::fixRSAkey(std::string logFile) {
+        ifstream file(logFile.c_str());
 
-				//get user
-				string USER = "root";
-				char* p= getenv("USER");
-				if (p && *p)
-					USER = p;
+        char line[400];
+        string buf;
 
-				string userDir = USER;
-				if ( USER != "root")
-					userDir = "home/" + USER;
+        while (file.getline(line, 400)) {
+            buf = line;
 
-				string cmd = "sed '" + lineID + "d' /" + userDir + "/.ssh/known_hosts > /" + userDir + "/.ssh/known_hosts";
-				cout << cmd << endl;
-				system(cmd.c_str());
-				return;
-			}
+            string::size_type pos = buf.find("Offending", 0);
+            if (pos != string::npos) {
+                // line ID
+                pos = buf.find(":", 0);
+                string lineID = buf.substr(pos + 1, 80);
+                //remove non alphanumber characters
+                for (size_t i = 0; i < lineID.length();) {
+                    if (!isdigit(lineID[i]))
+                        lineID.erase(i, 1);
+                    else
+                        i++;
+                }
 
-		}
-		file.close();
+                //get user
+                string USER = "root";
+                char* p = getenv("USER");
+                if (p && *p)
+                    USER = p;
 
-		return;
-	}
+                string userDir = USER;
+                if (USER != "root")
+                    userDir = "home/" + USER;
+
+                string cmd = "sed '" + lineID + "d' /" + userDir + "/.ssh/known_hosts > /" + userDir + "/.ssh/known_hosts";
+                cout << cmd << endl;
+                system(cmd.c_str());
+                return;
+            }
+
+        }
+        file.close();
+
+        return;
+    }
 
     /********************************************************************
      *
      * getWritablePM - Get PM with read-write mount
      *
      ********************************************************************/
-	string Oam::getWritablePM()
-	{
-		string moduleName;
-		oamModuleInfo_t st;
-		try {
-			st = getModuleInfo();
-			moduleName = boost::get<3>(st);
-			if ( moduleName == oam::UnassignedName )
-				return "";
-			return moduleName;
-		}
-		catch (...) {
-       		exceptionControl("getWritablePM", API_FAILURE);
-		}
+    string Oam::getWritablePM() {
+        string moduleName;
+        oamModuleInfo_t st;
+        try {
+            st = getModuleInfo();
+            moduleName = boost::get<3>(st);
+            if (moduleName == oam::UnassignedName)
+                return "";
+            return moduleName;
+        } catch (...) {
+            exceptionControl("getWritablePM", API_FAILURE);
+        }
 
-		return "";
-	}
+        return "";
+    }
 
     /********************************************************************
      *
      * getHotStandbyPM
      *
      ********************************************************************/
-	string Oam::getHotStandbyPM()
-	{
-		string fileName = InstallDir + "/local/hotStandbyPM";
-		string module;
+    string Oam::getHotStandbyPM() {
+        string fileName = InstallDir + "/local/hotStandbyPM";
+        string module;
 
-		ifstream oldFile (fileName.c_str());
-		if (!oldFile)
-			return module;
-		
-		char line[400];
-		while (oldFile.getline(line, 400))
-		{
-			module = line;
-			break;
-		}
-		oldFile.close();
+        ifstream oldFile(fileName.c_str());
+        if (!oldFile)
+            return module;
 
-		return module;
+        char line[400];
+        while (oldFile.getline(line, 400)) {
+            module = line;
+            break;
+        }
+        oldFile.close();
 
-	}
+        return module;
+
+    }
 
     /********************************************************************
      *
      * setHotStandbyPM
      *
      ********************************************************************/
-	void Oam::setHotStandbyPM(std::string moduleName)
-	{
-		string fileName = InstallDir + "/local/hotStandbyPM";
-	
-		unlink (fileName.c_str());
+    void Oam::setHotStandbyPM(std::string moduleName) {
+        string fileName = InstallDir + "/local/hotStandbyPM";
 
-		if ( moduleName.empty() || moduleName == " " )
-			return;
+        unlink(fileName.c_str());
 
-		ofstream newFile (fileName.c_str());
-	
-		string cmd = "echo " + moduleName + " > " + fileName;
-		(void)system(cmd.c_str());
-	
-		newFile.close();
-	
-		return;
-	}
+        if (moduleName.empty() || moduleName == " ")
+            return;
+
+        ofstream newFile(fileName.c_str());
+
+        string cmd = "echo " + moduleName + " > " + fileName;
+        (void)system(cmd.c_str());
+
+        newFile.close();
+
+        return;
+    }
 
     /********************************************************************
      *
      * Distribute erydb Configure File
      *
      ********************************************************************/
-	void Oam::distributeConfigFile(std::string name, std::string file)
-	{
-		ACK_FLAG ackflag = oam::ACK_YES;
-		if ( name == "system" )
-			ackflag = oam::ACK_NO;
+    void Oam::distributeConfigFile(std::string name, std::string file) {
+        ACK_FLAG ackflag = oam::ACK_YES;
+        if (name == "system")
+            ackflag = oam::ACK_NO;
 
         // build and send msg
-		int returnStatus = sendMsgToProcMgr(DISTRIBUTECONFIG, name, oam::FORCEFUL, ackflag, file, "", 30);
+        int returnStatus = sendMsgToProcMgr(DISTRIBUTECONFIG, name, oam::FORCEFUL, ackflag, file, "", 30);
 
         if (returnStatus != API_SUCCESS)
             exceptionControl("distributeConfigFile", returnStatus);
 
-		return;
-	}
+        return;
+    }
 
     /********************************************************************
      *
      * Switch Parent OAM Module
      *
      ********************************************************************/
-	bool Oam::switchParentOAMModule(std::string moduleName, GRACEFUL_FLAG gracefulflag)
-	{
-		if (!checkSystemRunFlag() || !checkSystemRunning())
-			exceptionControl("switchParentOAMModule", API_FAILURE);
+    bool Oam::switchParentOAMModule(std::string moduleName, GRACEFUL_FLAG gracefulflag) {
+        if (!checkSystemRunFlag() || !checkSystemRunning())
+            exceptionControl("switchParentOAMModule", API_FAILURE);
 
-		int returnStatus;
-		// We assume that moduleName is a valid pm
+        int returnStatus;
+        // We assume that moduleName is a valid pm
 
-		// check if current Active Parent Process-Manager is down and running on Standby Module
-		// if so, send signal to Standby Process-Manager to start failover
-		Config* sysConfig = Config::makeConfig();
-	
-		string IPAddr = sysConfig->getConfig("ProcStatusControl", "IPAddr");
-	
-		string cmdLine = "ping ";
-		string cmdOption = " -w 1 >> /dev/null";
-		string cmd = cmdLine + IPAddr + cmdOption;
-		if ( system(cmd.c_str()) != 0 ) {
-			//ping failure
-			try{
-				string standbyOAMModule;
-				getSystemConfig("StandbyOAMModuleName", standbyOAMModule);
+        // check if current Active Parent Process-Manager is down and running on Standby Module
+        // if so, send signal to Standby Process-Manager to start failover
+        Config* sysConfig = Config::makeConfig();
 
-				oamModuleInfo_t t = Oam::getModuleInfo();
-				string localModule = boost::get<0>(t);
+        string IPAddr = sysConfig->getConfig("ProcStatusControl", "IPAddr");
 
-				if (standbyOAMModule == localModule )
-					// send SIGUSR1
-					system("pkill -SIGUSR1 ProcMgr");
-			}
-			catch(...)
-			{
-				exceptionControl("switchParentOAMModule", API_FAILURE);
-			}
+        string cmdLine = "ping ";
+        string cmdOption = " -w 1 >> /dev/null";
+        string cmd = cmdLine + IPAddr + cmdOption;
+        if (system(cmd.c_str()) != 0) {
+            //ping failure
+            try {
+                string standbyOAMModule;
+                getSystemConfig("StandbyOAMModuleName", standbyOAMModule);
 
-			return false;
-		}
+                oamModuleInfo_t t = Oam::getModuleInfo();
+                string localModule = boost::get<0>(t);
 
-		// only make call if system is ACTIVE and module switching to is ACTIVE
-		SystemStatus systemstatus;
+                if (standbyOAMModule == localModule)
+                    // send SIGUSR1
+                    system("pkill -SIGUSR1 ProcMgr");
+            } catch (...) {
+                exceptionControl("switchParentOAMModule", API_FAILURE);
+            }
 
-		try {
-			getSystemStatus(systemstatus);
-		}
-		catch (exception& )
-		{}
+            return false;
+        }
 
-		if (systemstatus.SystemOpState == oam::MAN_INIT ||
-			systemstatus.SystemOpState == oam::AUTO_INIT ||
-			systemstatus.SystemOpState == oam::UP ||
-			systemstatus.SystemOpState == oam::BUSY_INIT ||
-			systemstatus.SystemOpState == oam::UP )
-			exceptionControl("switchParentOAMModule", API_INVALID_STATE);
+        // only make call if system is ACTIVE and module switching to is ACTIVE
+        SystemStatus systemstatus;
 
-		if (systemstatus.SystemOpState == oam::ACTIVE ||
-			systemstatus.SystemOpState == oam::FAILED )
-		{
-			// build and send msg to stop system
-			returnStatus = sendMsgToProcMgrWithStatus(STOPSYSTEM, "OAM Module switched", gracefulflag, ACK_YES);
-	
-			if ( returnStatus != API_SUCCESS )
-				exceptionControl("stopSystem", returnStatus);
-		}
-	
-        	// build and send msg to switch configuration
-		cout << endl << "   Switch Active Parent OAM to Module '" << moduleName << "', please wait...";
-        	returnStatus = sendMsgToProcMgr(SWITCHOAMPARENT, moduleName, FORCEFUL, ACK_YES);
+        try {
+            getSystemStatus(systemstatus);
+        } catch (exception&) {
+        }
 
-        	if (returnStatus != API_SUCCESS)
-            		exceptionControl("switchParentOAMModule", returnStatus);
+        if (systemstatus.SystemOpState == oam::MAN_INIT ||
+            systemstatus.SystemOpState == oam::AUTO_INIT ||
+            systemstatus.SystemOpState == oam::UP ||
+            systemstatus.SystemOpState == oam::BUSY_INIT ||
+            systemstatus.SystemOpState == oam::UP)
+            exceptionControl("switchParentOAMModule", API_INVALID_STATE);
 
-		if (systemstatus.SystemOpState == oam::ACTIVE ||
-			systemstatus.SystemOpState == oam::FAILED )
-		{
-			//give  time for ProcMon/ProcMgr to get fully active on new pm
-			sleep(10);
-	
-			// build and send msg to restart system
-			returnStatus = sendMsgToProcMgr(RESTARTSYSTEM, "", FORCEFUL, ACK_YES);
-	
-			if (returnStatus != API_SUCCESS)
-				exceptionControl("startSystem", returnStatus);
-			return true; // Caller should wait for system to come up.
-		}
+        if (systemstatus.SystemOpState == oam::ACTIVE ||
+            systemstatus.SystemOpState == oam::FAILED) {
+            // build and send msg to stop system
+            returnStatus = sendMsgToProcMgrWithStatus(STOPSYSTEM, "OAM Module switched", gracefulflag, ACK_YES);
 
-		return false; // Caller should not wait for system to come up.
-	}
+            if (returnStatus != API_SUCCESS)
+                exceptionControl("stopSystem", returnStatus);
+        }
+
+        // build and send msg to switch configuration
+        cout << endl << "   Switch Active Parent OAM to Module '" << moduleName << "', please wait...";
+        returnStatus = sendMsgToProcMgr(SWITCHOAMPARENT, moduleName, FORCEFUL, ACK_YES);
+
+        if (returnStatus != API_SUCCESS)
+            exceptionControl("switchParentOAMModule", returnStatus);
+
+        if (systemstatus.SystemOpState == oam::ACTIVE ||
+            systemstatus.SystemOpState == oam::FAILED) {
+            //give  time for ProcMon/ProcMgr to get fully active on new pm
+            sleep(10);
+
+            // build and send msg to restart system
+            returnStatus = sendMsgToProcMgr(RESTARTSYSTEM, "", FORCEFUL, ACK_YES);
+
+            if (returnStatus != API_SUCCESS)
+                exceptionControl("startSystem", returnStatus);
+            return true; // Caller should wait for system to come up.
+        }
+
+        return false; // Caller should not wait for system to come up.
+    }
 
     /********************************************************************
      *
      * Get Storage Config Data
      *
      ********************************************************************/
-	systemStorageInfo_t Oam::getStorageConfig()
-	{
-		DeviceDBRootList deviceDBRootList;
-		std::string storageType = "";
-		std::string UMstorageType = "";
-		int SystemDBRootCount = 0;
+    systemStorageInfo_t Oam::getStorageConfig() {
+        DeviceDBRootList deviceDBRootList;
+        std::string storageType = "";
+        std::string UMstorageType = "";
+        int SystemDBRootCount = 0;
 
-		try {
-			getSystemConfig("DBRootStorageType", storageType);
-		}
-		catch(...)
-		{
-			exceptionControl("getStorageConfig", oam::API_FAILURE);
-		}
+        try {
+            getSystemConfig("DBRootStorageType", storageType);
+        } catch (...) {
+            exceptionControl("getStorageConfig", oam::API_FAILURE);
+        }
 
-		try {
-			getSystemConfig("UMStorageType", UMstorageType);
-		}
-		catch(...)
-		{
-			exceptionControl("getStorageConfig", oam::API_FAILURE);
-		}
+        try {
+            getSystemConfig("UMStorageType", UMstorageType);
+        } catch (...) {
+            exceptionControl("getStorageConfig", oam::API_FAILURE);
+        }
 
-		try {
-			getSystemConfig("DBRootCount", SystemDBRootCount);
-		}
-		catch(...)
-		{
-			exceptionControl("getStorageConfig", oam::API_FAILURE);
-		}
+        try {
+            getSystemConfig("DBRootCount", SystemDBRootCount);
+        } catch (...) {
+            exceptionControl("getStorageConfig", oam::API_FAILURE);
+        }
 
-		try
-		{
-			SystemModuleTypeConfig systemmoduletypeconfig;
-			getSystemConfig(systemmoduletypeconfig);
+        try {
+            SystemModuleTypeConfig systemmoduletypeconfig;
+            getSystemConfig(systemmoduletypeconfig);
 
-			for( unsigned int i = 0 ; i < systemmoduletypeconfig.moduletypeconfig.size(); i++)
-			{
-				if( systemmoduletypeconfig.moduletypeconfig[i].ModuleType.empty() )
-					// end of list
-					break;
+            for (unsigned int i = 0; i < systemmoduletypeconfig.moduletypeconfig.size(); i++) {
+                if (systemmoduletypeconfig.moduletypeconfig[i].ModuleType.empty())
+                    // end of list
+                    break;
 
-				int moduleCount = systemmoduletypeconfig.moduletypeconfig[i].ModuleCount;
+                int moduleCount = systemmoduletypeconfig.moduletypeconfig[i].ModuleCount;
 
-				string moduletype = systemmoduletypeconfig.moduletypeconfig[i].ModuleType;
+                string moduletype = systemmoduletypeconfig.moduletypeconfig[i].ModuleType;
 
-				if ( moduleCount > 0 && moduletype == "pm") {
-					deviceDBRootList = systemmoduletypeconfig.moduletypeconfig[i].ModuleDBRootList;
-					return boost::make_tuple(storageType, SystemDBRootCount, deviceDBRootList, UMstorageType);
-				}
-			}
-		}
-		catch(...)
-		{
-			exceptionControl("getStorageConfig", oam::API_FAILURE);
-		}
+                if (moduleCount > 0 && moduletype == "pm") {
+                    deviceDBRootList = systemmoduletypeconfig.moduletypeconfig[i].ModuleDBRootList;
+                    return boost::make_tuple(storageType, SystemDBRootCount, deviceDBRootList, UMstorageType);
+                }
+            }
+        } catch (...) {
+            exceptionControl("getStorageConfig", oam::API_FAILURE);
+        }
 
-		return boost::make_tuple(storageType, SystemDBRootCount, deviceDBRootList, UMstorageType);
-	}
+        return boost::make_tuple(storageType, SystemDBRootCount, deviceDBRootList, UMstorageType);
+    }
 
     /********************************************************************
      *
      * Get PM - DBRoot Config data
      *
      ********************************************************************/
-	void Oam::getPmDbrootConfig(const int pmid, DBRootConfigList& dbrootconfiglist)
-	{
-		string module = "pm" + itoa(pmid);
-		// validate Module name
-		int returnStatus = validateModule(module);
-		if (returnStatus != API_SUCCESS)
-			exceptionControl("getPmDbrootConfig", returnStatus);
+    void Oam::getPmDbrootConfig(const int pmid, DBRootConfigList& dbrootconfiglist) {
+        string module = "pm" + itoa(pmid);
+        // validate Module name
+        int returnStatus = validateModule(module);
+        if (returnStatus != API_SUCCESS)
+            exceptionControl("getPmDbrootConfig", returnStatus);
 
-		try
-		{
-			ModuleConfig moduleconfig;
-			getSystemConfig(module, moduleconfig);
+        try {
+            ModuleConfig moduleconfig;
+            getSystemConfig(module, moduleconfig);
 
-			DBRootConfigList::iterator pt1 = moduleconfig.dbrootConfigList.begin();
-			for( ; pt1 != moduleconfig.dbrootConfigList.end() ; pt1++)
-			{
-				dbrootconfiglist.push_back((*pt1));
-			}	
-		}
-		catch (...)
-		{
-			// dbrootid not found, return with error
-			exceptionControl("getPmDbrootConfig", API_INVALID_PARAMETER);
-		}
-	}
+            DBRootConfigList::iterator pt1 = moduleconfig.dbrootConfigList.begin();
+            for (; pt1 != moduleconfig.dbrootConfigList.end(); pt1++) {
+                dbrootconfiglist.push_back((*pt1));
+            }
+        } catch (...) {
+            // dbrootid not found, return with error
+            exceptionControl("getPmDbrootConfig", API_INVALID_PARAMETER);
+        }
+    }
 
     /********************************************************************
      *
      * Get DBRoot - PM Config data
      *
      ********************************************************************/
-	void Oam::getDbrootPmConfig(const int dbrootid, int& pmid)
-	{
-		SystemModuleTypeConfig systemmoduletypeconfig;
-		ModuleTypeConfig moduletypeconfig;
-		ModuleConfig moduleconfig;
+    void Oam::getDbrootPmConfig(const int dbrootid, int& pmid) {
+        SystemModuleTypeConfig systemmoduletypeconfig;
+        ModuleTypeConfig moduletypeconfig;
+        ModuleConfig moduleconfig;
 
-		try
-		{
-			getSystemConfig(systemmoduletypeconfig);
+        try {
+            getSystemConfig(systemmoduletypeconfig);
 
-			for( unsigned int i = 0 ; i < systemmoduletypeconfig.moduletypeconfig.size(); i++)
-			{
-				if( systemmoduletypeconfig.moduletypeconfig[i].ModuleType.empty() )
-					// end of list
-					break;
+            for (unsigned int i = 0; i < systemmoduletypeconfig.moduletypeconfig.size(); i++) {
+                if (systemmoduletypeconfig.moduletypeconfig[i].ModuleType.empty())
+                    // end of list
+                    break;
 
-				int moduleCount = systemmoduletypeconfig.moduletypeconfig[i].ModuleCount;
+                int moduleCount = systemmoduletypeconfig.moduletypeconfig[i].ModuleCount;
 
-				string moduletype = systemmoduletypeconfig.moduletypeconfig[i].ModuleType;
+                string moduletype = systemmoduletypeconfig.moduletypeconfig[i].ModuleType;
 
-				if ( moduleCount > 0 && moduletype == "pm")
-				{
-					DeviceDBRootList::iterator pt = systemmoduletypeconfig.moduletypeconfig[i].ModuleDBRootList.begin();
-					for( ; pt != systemmoduletypeconfig.moduletypeconfig[i].ModuleDBRootList.end() ; pt++)
-					{
-						DBRootConfigList::iterator pt1 = (*pt).dbrootConfigList.begin();
-						for( ; pt1 != (*pt).dbrootConfigList.end() ; pt1++)
-						{
-							if (*pt1 == dbrootid) {
-								pmid = (*pt).DeviceID;
-								return;
-							}
-						}
-					}
-				}
-			}
-			// dbrootid not found, return with error
-			exceptionControl("getDbrootPmConfig", API_INVALID_PARAMETER);
-		}
-		catch (exception& )
-		{}
-		
-		// dbrootid not found, return with error
-		exceptionControl("getDbrootPmConfig", API_INVALID_PARAMETER);
-	}
+                if (moduleCount > 0 && moduletype == "pm") {
+                    DeviceDBRootList::iterator pt = systemmoduletypeconfig.moduletypeconfig[i].ModuleDBRootList.begin();
+                    for (; pt != systemmoduletypeconfig.moduletypeconfig[i].ModuleDBRootList.end(); pt++) {
+                        DBRootConfigList::iterator pt1 = (*pt).dbrootConfigList.begin();
+                        for (; pt1 != (*pt).dbrootConfigList.end(); pt1++) {
+                            if (*pt1 == dbrootid) {
+                                pmid = (*pt).DeviceID;
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+            // dbrootid not found, return with error
+            exceptionControl("getDbrootPmConfig", API_INVALID_PARAMETER);
+        } catch (exception&) {
+        }
+
+        // dbrootid not found, return with error
+        exceptionControl("getDbrootPmConfig", API_INVALID_PARAMETER);
+    }
 
     /********************************************************************
      *
      * Get DBRoot - PM Config data
      *
      ********************************************************************/
-	void Oam::getDbrootPmConfig(const int dbrootid, std::string& pmid)
-	{
-		try {
-			int PMid;
-			getDbrootPmConfig(dbrootid, PMid);
-			pmid = itoa(PMid);
-			return;
-		}
-		catch (exception& )
-		{}
-		
-		// dbrootid not found, return with error
-		exceptionControl("getDbrootPmConfig", API_INVALID_PARAMETER);
-	}
+    void Oam::getDbrootPmConfig(const int dbrootid, std::string& pmid) {
+        try {
+            int PMid;
+            getDbrootPmConfig(dbrootid, PMid);
+            pmid = itoa(PMid);
+            return;
+        } catch (exception&) {
+        }
+
+        // dbrootid not found, return with error
+        exceptionControl("getDbrootPmConfig", API_INVALID_PARAMETER);
+    }
 
     /********************************************************************
      *
@@ -5122,831 +4600,692 @@ namespace oam
      * Set PM - DBRoot Config data
      *
      ********************************************************************/
-	void Oam::setPmDbrootConfig(const int pmid, DBRootConfigList& dbrootconfiglist)
-	{
-		ModuleConfig moduleconfig;
+    void Oam::setPmDbrootConfig(const int pmid, DBRootConfigList& dbrootconfiglist) {
+        ModuleConfig moduleconfig;
 
-		string module = "pm" + itoa(pmid);
-		try
-		{
-			getSystemConfig(module, moduleconfig);
+        string module = "pm" + itoa(pmid);
+        try {
+            getSystemConfig(module, moduleconfig);
 
-			moduleconfig.dbrootConfigList = dbrootconfiglist;
+            moduleconfig.dbrootConfigList = dbrootconfiglist;
 
-			try
-			{
-				setSystemConfig(module, moduleconfig);
-				return;
-			}
-			catch(...)
-			{
-//				writeLog("ERROR: setSystemConfig api failure for " + module  , LOG_TYPE_ERROR );
-//				cout << endl << "ERROR: setSystemConfig api failure for " + module << endl;
-				exceptionControl("getSystemDbrootConfig", API_INVALID_PARAMETER);
-			}
-		}
-		catch(...)
-		{
-//			writeLog("ERROR: getSystemConfig api failure for " + module  , LOG_TYPE_ERROR );
-//			cout << endl << "ERROR: getSystemConfig api failure for " + module << endl;
-			exceptionControl("getSystemDbrootConfig", API_INVALID_PARAMETER);
-		}
+            try {
+                setSystemConfig(module, moduleconfig);
+                return;
+            } catch (...) {
+                //				writeLog("ERROR: setSystemConfig api failure for " + module  , LOG_TYPE_ERROR );
+                //				cout << endl << "ERROR: setSystemConfig api failure for " + module << endl;
+                exceptionControl("getSystemDbrootConfig", API_INVALID_PARAMETER);
+            }
+        } catch (...) {
+            //			writeLog("ERROR: getSystemConfig api failure for " + module  , LOG_TYPE_ERROR );
+            //			cout << endl << "ERROR: getSystemConfig api failure for " + module << endl;
+            exceptionControl("getSystemDbrootConfig", API_INVALID_PARAMETER);
+        }
 
-		//set System DBRoot Count
-		try
-		{
-			setSystemDBrootCount();
-		}
-		catch (exception& )
-		{
-			cout << endl << "**** setSystemDBrootCount Failed" << endl;
-			exceptionControl("assignPmDbrootConfig", API_FAILURE);
-		}
-	}
+        //set System DBRoot Count
+        try {
+            setSystemDBrootCount();
+        } catch (exception&) {
+            cout << endl << "**** setSystemDBrootCount Failed" << endl;
+            exceptionControl("assignPmDbrootConfig", API_FAILURE);
+        }
+    }
 
     /********************************************************************
      *
      * Manual Move PM - DBRoot data
      *
      ********************************************************************/
-	void Oam::manualMovePmDbroot(std::string residePM, std::string dbrootIDs, std::string toPM)
-	{
-		typedef std::vector<string> dbrootList;
-		dbrootList dbrootlist;
-		dbrootList tempdbrootlist;
+    void Oam::manualMovePmDbroot(std::string residePM, std::string dbrootIDs, std::string toPM) {
+        typedef std::vector<string> dbrootList;
+        dbrootList dbrootlist;
+        dbrootList tempdbrootlist;
 
-		writeLog("manualMovePmDbroot: " + dbrootIDs + " from " + residePM + " to " + toPM, LOG_TYPE_DEBUG );
+        writeLog("manualMovePmDbroot: " + dbrootIDs + " from " + residePM + " to " + toPM, LOG_TYPE_DEBUG);
 
-		string GlusterConfig = "n";
-		try {
-			getSystemConfig( "GlusterConfig", GlusterConfig);
-		}
-		catch(...)
-		{
-			GlusterConfig = "n";
-		}
+        string GlusterConfig = "n";
+        try {
+            getSystemConfig("GlusterConfig", GlusterConfig);
+        } catch (...) {
+            GlusterConfig = "n";
+        }
 
-		boost::char_separator<char> sep(", ");
-		boost::tokenizer< boost::char_separator<char> > tokens(dbrootIDs, sep);
-		for ( boost::tokenizer< boost::char_separator<char> >::iterator it = tokens.begin();
-				it != tokens.end();
-				++it)
-		{
-			//if gluster, check if there are copies on the to-pm
-			if ( GlusterConfig == "y")
-			{
-				string pmList = "";
-				try {
-					string errmsg;
-					int ret = glusterctl(oam::GLUSTER_WHOHAS, *it, pmList, errmsg);
-					if ( ret != 0 )
-					{
-						writeLog("ERROR: glusterctl failure getting pm list for dbroot " + *it + " , error: " + errmsg, LOG_TYPE_ERROR );
-						exceptionControl("autoMovePmDbroot", API_INVALID_PARAMETER);
-					}
-				}
-				catch (exception& )
-				{
-					writeLog("ERROR: glusterctl failure getting pm list for dbroot " + *it, LOG_TYPE_ERROR );
-					exceptionControl("autoMovePmDbroot", API_INVALID_PARAMETER);
-				}
-				catch (...)
-				{
-					writeLog("ERROR: glusterctl failure getting pm list for dbroot " + *it, LOG_TYPE_ERROR );
-					exceptionControl("autoMovePmDbroot", API_INVALID_PARAMETER);
-				}
+        boost::char_separator<char> sep(", ");
+        boost::tokenizer< boost::char_separator<char> > tokens(dbrootIDs, sep);
+        for (boost::tokenizer< boost::char_separator<char> >::iterator it = tokens.begin();
+            it != tokens.end();
+            ++it) {
+            //if gluster, check if there are copies on the to-pm
+            if (GlusterConfig == "y") {
+                string pmList = "";
+                try {
+                    string errmsg;
+                    int ret = glusterctl(oam::GLUSTER_WHOHAS, *it, pmList, errmsg);
+                    if (ret != 0) {
+                        writeLog("ERROR: glusterctl failure getting pm list for dbroot " + *it + " , error: " + errmsg, LOG_TYPE_ERROR);
+                        exceptionControl("autoMovePmDbroot", API_INVALID_PARAMETER);
+                    }
+                } catch (exception&) {
+                    writeLog("ERROR: glusterctl failure getting pm list for dbroot " + *it, LOG_TYPE_ERROR);
+                    exceptionControl("autoMovePmDbroot", API_INVALID_PARAMETER);
+                } catch (...) {
+                    writeLog("ERROR: glusterctl failure getting pm list for dbroot " + *it, LOG_TYPE_ERROR);
+                    exceptionControl("autoMovePmDbroot", API_INVALID_PARAMETER);
+                }
 
-				boost::char_separator<char> sep(" ");
-				boost::tokenizer< boost::char_separator<char> > tokens(pmList, sep);
-				for ( boost::tokenizer< boost::char_separator<char> >::iterator it1 = tokens.begin();
-						it1 != tokens.end();
-						++it1)
-				{
-					string pmModule = "pm" + *it1;
-					if ( pmModule == toPM ) {
-						dbrootlist.push_back(*it);
-						tempdbrootlist.push_back(*it);
-					}
-				}
+                boost::char_separator<char> sep(" ");
+                boost::tokenizer< boost::char_separator<char> > tokens(pmList, sep);
+                for (boost::tokenizer< boost::char_separator<char> >::iterator it1 = tokens.begin();
+                    it1 != tokens.end();
+                    ++it1) {
+                    string pmModule = "pm" + *it1;
+                    if (pmModule == toPM) {
+                        dbrootlist.push_back(*it);
+                        tempdbrootlist.push_back(*it);
+                    }
+                }
 
-				if ( dbrootlist.size() == 0 )
-				{
-					writeLog("ERROR: No DBROOTs to move to-pm, no gluster copies", LOG_TYPE_ERROR );
-					exceptionControl("autoMovePmDbroot", API_INVALID_PARAMETER);
-				}
-			}
-			else
-			{
-				dbrootlist.push_back(*it);
-				tempdbrootlist.push_back(*it);
-			}
-		}
+                if (dbrootlist.size() == 0) {
+                    writeLog("ERROR: No DBROOTs to move to-pm, no gluster copies", LOG_TYPE_ERROR);
+                    exceptionControl("autoMovePmDbroot", API_INVALID_PARAMETER);
+                }
+            } else {
+                dbrootlist.push_back(*it);
+                tempdbrootlist.push_back(*it);
+            }
+        }
 
-		string residePMID = residePM.substr(MAX_MODULE_TYPE_SIZE,MAX_MODULE_ID_SIZE);;
-		string toPMID = toPM.substr(MAX_MODULE_TYPE_SIZE,MAX_MODULE_ID_SIZE);;
+        string residePMID = residePM.substr(MAX_MODULE_TYPE_SIZE, MAX_MODULE_ID_SIZE);;
+        string toPMID = toPM.substr(MAX_MODULE_TYPE_SIZE, MAX_MODULE_ID_SIZE);;
 
-		//get dbroots ids for reside PM
-		DBRootConfigList residedbrootConfigList;
-		try
-		{
-			getPmDbrootConfig(atoi(residePMID.c_str()), residedbrootConfigList);
+        //get dbroots ids for reside PM
+        DBRootConfigList residedbrootConfigList;
+        try {
+            getPmDbrootConfig(atoi(residePMID.c_str()), residedbrootConfigList);
 
-			DBRootConfigList::iterator pt = residedbrootConfigList.begin();
-			for( ; pt != residedbrootConfigList.end() ; pt++)
-			{
-				//check if entered dbroot id is in residing pm
-				dbrootList::iterator pt1 = tempdbrootlist.begin();
-				for( ; pt1 != tempdbrootlist.end() ; pt1++)
-				{
-					if ( itoa(*pt) == *pt1 ) {
-						tempdbrootlist.erase(pt1);
-						break;
-					}
-				}
-			}
+            DBRootConfigList::iterator pt = residedbrootConfigList.begin();
+            for (; pt != residedbrootConfigList.end(); pt++) {
+                //check if entered dbroot id is in residing pm
+                dbrootList::iterator pt1 = tempdbrootlist.begin();
+                for (; pt1 != tempdbrootlist.end(); pt1++) {
+                    if (itoa(*pt) == *pt1) {
+                        tempdbrootlist.erase(pt1);
+                        break;
+                    }
+                }
+            }
 
-			if ( !tempdbrootlist.empty() ) {
-				// there is a entered dbroot id not in the residing pm
-				writeLog("ERROR: dbroot IDs not assigned to " + residePM , LOG_TYPE_ERROR );
-				cout << endl << "ERROR: these dbroot IDs not assigned to '" << residePM << "' : ";
-				dbrootList::iterator pt1 = tempdbrootlist.begin();
-				for( ; pt1 != tempdbrootlist.end() ;)
-				{
-					cout << *pt1;
-					pt1++;
-					if (pt1 != tempdbrootlist.end())
-						cout << ", ";
-				}
-				cout << endl << endl;
-				exceptionControl("manualMovePmDbroot", API_FAILURE);
-			}
-		}
-		catch (exception& )
-		{
-			writeLog("ERROR: getPmDbrootConfig api failure for pm" + residePMID , LOG_TYPE_ERROR );
-			cout << endl << "ERROR: getPmDbrootConfig api failure for pm" + residePMID << endl;
-			exceptionControl("manualMovePmDbroot", API_FAILURE);
-		}
+            if (!tempdbrootlist.empty()) {
+                // there is a entered dbroot id not in the residing pm
+                writeLog("ERROR: dbroot IDs not assigned to " + residePM, LOG_TYPE_ERROR);
+                cout << endl << "ERROR: these dbroot IDs not assigned to '" << residePM << "' : ";
+                dbrootList::iterator pt1 = tempdbrootlist.begin();
+                for (; pt1 != tempdbrootlist.end();) {
+                    cout << *pt1;
+                    pt1++;
+                    if (pt1 != tempdbrootlist.end())
+                        cout << ", ";
+                }
+                cout << endl << endl;
+                exceptionControl("manualMovePmDbroot", API_FAILURE);
+            }
+        } catch (exception&) {
+            writeLog("ERROR: getPmDbrootConfig api failure for pm" + residePMID, LOG_TYPE_ERROR);
+            cout << endl << "ERROR: getPmDbrootConfig api failure for pm" + residePMID << endl;
+            exceptionControl("manualMovePmDbroot", API_FAILURE);
+        }
 
-		//get dbroots ids for reside PM
-		DBRootConfigList todbrootConfigList;
-		try
-		{
-			getPmDbrootConfig(atoi(toPMID.c_str()), todbrootConfigList);
-		}
-		catch (exception& )
-		{
-			writeLog("ERROR: getPmDbrootConfig api failure for pm" + toPMID , LOG_TYPE_ERROR );
-			cout << endl << "ERROR: getPmDbrootConfig api failure for pm" + toPMID << endl;
-			exceptionControl("manualMovePmDbroot", API_FAILURE);
-		}
+        //get dbroots ids for reside PM
+        DBRootConfigList todbrootConfigList;
+        try {
+            getPmDbrootConfig(atoi(toPMID.c_str()), todbrootConfigList);
+        } catch (exception&) {
+            writeLog("ERROR: getPmDbrootConfig api failure for pm" + toPMID, LOG_TYPE_ERROR);
+            cout << endl << "ERROR: getPmDbrootConfig api failure for pm" + toPMID << endl;
+            exceptionControl("manualMovePmDbroot", API_FAILURE);
+        }
 
-		//remove entered dbroot IDs from reside PM list
-		dbrootList::iterator pt1 = dbrootlist.begin();
-		for( ; pt1 != dbrootlist.end() ; pt1++)
-		{
-			DBRootConfigList::iterator pt2 = residedbrootConfigList.begin();
-			for( ; pt2 != residedbrootConfigList.end() ; pt2++)
-			{
-				if ( itoa(*pt2) == *pt1 ) {
+        //remove entered dbroot IDs from reside PM list
+        dbrootList::iterator pt1 = dbrootlist.begin();
+        for (; pt1 != dbrootlist.end(); pt1++) {
+            DBRootConfigList::iterator pt2 = residedbrootConfigList.begin();
+            for (; pt2 != residedbrootConfigList.end(); pt2++) {
+                if (itoa(*pt2) == *pt1) {
 
-					dbrootList dbroot1;
-					dbroot1.push_back(*pt1);
+                    dbrootList dbroot1;
+                    dbroot1.push_back(*pt1);
 
-					//send msg to unmount dbroot if module is not offline
-					int opState;
-					bool degraded;
-					try {
-						getModuleStatus(residePM, opState, degraded);
-					}
-					catch(...)
-					{}
-		
-					if (opState != oam::AUTO_OFFLINE || opState != oam::AUTO_DISABLED) {
-//						bool unmountPass = true;
-						try
-						{
-							mountDBRoot(dbroot1, false);
-						}
-						catch (exception& )
-						{
-							writeLog("ERROR: dbroot failed to unmount", LOG_TYPE_ERROR );
-							cout << endl << "ERROR: umountDBRoot api failure" << endl;
-							exceptionControl("manualMovePmDbroot", API_FAILURE);
-//							unmountPass = false;
-						}
-	
-//						if ( !unmountPass) {
-//							dbrootlist.erase(pt1);
-//							break;
-//						}
-					}
+                    //send msg to unmount dbroot if module is not offline
+                    int opState;
+                    bool degraded;
+                    try {
+                        getModuleStatus(residePM, opState, degraded);
+                    } catch (...) {
+                    }
 
-					//check for amazon moving required
-					try
-					{
-						amazonReattach(toPM, dbroot1);
-					}
-					catch (exception& )
-					{
-						writeLog("ERROR: amazonReattach api failure", LOG_TYPE_ERROR );
-						cout << endl << "ERROR: amazonReattach api failure" << endl;
-						exceptionControl("manualMovePmDbroot", API_FAILURE);
-					}
+                    if (opState != oam::AUTO_OFFLINE || opState != oam::AUTO_DISABLED) {
+                        //						bool unmountPass = true;
+                        try {
+                            mountDBRoot(dbroot1, false);
+                        } catch (exception&) {
+                            writeLog("ERROR: dbroot failed to unmount", LOG_TYPE_ERROR);
+                            cout << endl << "ERROR: umountDBRoot api failure" << endl;
+                            exceptionControl("manualMovePmDbroot", API_FAILURE);
+                            //							unmountPass = false;
+                        }
 
-					//if Gluster, do the assign command
-					if ( GlusterConfig == "y")
-					{
-						try {
-							string errmsg;
-							int ret = glusterctl(oam::GLUSTER_ASSIGN, *pt1, toPM, errmsg);
-							if ( ret != 0 )
-							{
-								cerr << "FAILURE: Error assigning gluster dbroot# " + *pt1 + " to pm" + toPMID + ", error: " + errmsg << endl;
-								exceptionControl("manualMovePmDbroot", API_FAILURE);
-							}
-						}
-						catch (exception& e)
-						{
-							cout << endl << "**** glusterctl API exception:  " << e.what() << endl;
-							cerr << "FAILURE: Error assigning gluster dbroot# " + *pt1 + " to pm" + toPMID << endl;
-							exceptionControl("manualMovePmDbroot", API_FAILURE);
-						}
-						catch (...)
-						{
-							cout << endl << "**** glusterctl API exception: UNKNOWN"  << endl;
-							cerr << "FAILURE: Error assigning gluster dbroot# " + *pt1 + " to pm" + toPMID << endl;
-							exceptionControl("manualMovePmDbroot", API_FAILURE);
-						}
-					}
+                        //						if ( !unmountPass) {
+                        //							dbrootlist.erase(pt1);
+                        //							break;
+                        //						}
+                    }
 
-					todbrootConfigList.push_back(*pt2);
+                    //check for amazon moving required
+                    try {
+                        amazonReattach(toPM, dbroot1);
+                    } catch (exception&) {
+                        writeLog("ERROR: amazonReattach api failure", LOG_TYPE_ERROR);
+                        cout << endl << "ERROR: amazonReattach api failure" << endl;
+                        exceptionControl("manualMovePmDbroot", API_FAILURE);
+                    }
 
-					residedbrootConfigList.erase(pt2);
+                    //if Gluster, do the assign command
+                    if (GlusterConfig == "y") {
+                        try {
+                            string errmsg;
+                            int ret = glusterctl(oam::GLUSTER_ASSIGN, *pt1, toPM, errmsg);
+                            if (ret != 0) {
+                                cerr << "FAILURE: Error assigning gluster dbroot# " + *pt1 + " to pm" + toPMID + ", error: " + errmsg << endl;
+                                exceptionControl("manualMovePmDbroot", API_FAILURE);
+                            }
+                        } catch (exception& e) {
+                            cout << endl << "**** glusterctl API exception:  " << e.what() << endl;
+                            cerr << "FAILURE: Error assigning gluster dbroot# " + *pt1 + " to pm" + toPMID << endl;
+                            exceptionControl("manualMovePmDbroot", API_FAILURE);
+                        } catch (...) {
+                            cout << endl << "**** glusterctl API exception: UNKNOWN" << endl;
+                            cerr << "FAILURE: Error assigning gluster dbroot# " + *pt1 + " to pm" + toPMID << endl;
+                            exceptionControl("manualMovePmDbroot", API_FAILURE);
+                        }
+                    }
 
-					break;
-				}
-			}
-		}
+                    todbrootConfigList.push_back(*pt2);
 
-		//set the 2 pms dbroot config
-		try
-		{
-			setPmDbrootConfig(atoi(residePMID.c_str()), residedbrootConfigList);
-		}
-		catch (exception& )
-		{
-			writeLog("ERROR: setPmDbrootConfig api failure for pm" + residePMID , LOG_TYPE_ERROR );
-			cout << endl << "ERROR: setPmDbrootConfig api failure for pm" + residePMID << endl;
-			exceptionControl("manualMovePmDbroot", API_FAILURE);
-		}
+                    residedbrootConfigList.erase(pt2);
 
-		try
-		{
-			setPmDbrootConfig(atoi(toPMID.c_str()), todbrootConfigList);
-		}
-		catch (exception& )
-		{
-			writeLog("ERROR: setPmDbrootConfig api failure for pm" + toPMID , LOG_TYPE_ERROR );
-			cout << endl << "ERROR: setPmDbrootConfig api failure for pm" + toPMID << endl;
-			exceptionControl("manualMovePmDbroot", API_FAILURE);
-		}
+                    break;
+                }
+            }
+        }
 
-		//send msg to mount dbroot
-		try
-		{
-    			mountDBRoot(dbrootlist);
-		}
-		catch (exception& )
-		{
-			writeLog("ERROR: mountDBRoot api failure", LOG_TYPE_DEBUG );
-			cout << endl << "ERROR: mountDBRoot api failure" << endl;
-		}
+        //set the 2 pms dbroot config
+        try {
+            setPmDbrootConfig(atoi(residePMID.c_str()), residedbrootConfigList);
+        } catch (exception&) {
+            writeLog("ERROR: setPmDbrootConfig api failure for pm" + residePMID, LOG_TYPE_ERROR);
+            cout << endl << "ERROR: setPmDbrootConfig api failure for pm" + residePMID << endl;
+            exceptionControl("manualMovePmDbroot", API_FAILURE);
+        }
 
-		//get updated erydb.xml distributed
-		distributeConfigFile("system");
+        try {
+            setPmDbrootConfig(atoi(toPMID.c_str()), todbrootConfigList);
+        } catch (exception&) {
+            writeLog("ERROR: setPmDbrootConfig api failure for pm" + toPMID, LOG_TYPE_ERROR);
+            cout << endl << "ERROR: setPmDbrootConfig api failure for pm" + toPMID << endl;
+            exceptionControl("manualMovePmDbroot", API_FAILURE);
+        }
 
-		return;
+        //send msg to mount dbroot
+        try {
+            mountDBRoot(dbrootlist);
+        } catch (exception&) {
+            writeLog("ERROR: mountDBRoot api failure", LOG_TYPE_DEBUG);
+            cout << endl << "ERROR: mountDBRoot api failure" << endl;
+        }
 
-	}
+        //get updated erydb.xml distributed
+        distributeConfigFile("system");
+
+        return;
+
+    }
 
 
-	bool comparex(const PmDBRootCount_s& x, const PmDBRootCount_s& y)
-	{
-		return x.count < y.count;
-	}
+    bool comparex(const PmDBRootCount_s& x, const PmDBRootCount_s& y) {
+        return x.count < y.count;
+    }
 
     /********************************************************************
      *
      * Auto Move PM - DBRoot data
      *
      ********************************************************************/
-	bool Oam::autoMovePmDbroot(std::string residePM)
-	{
-		writeLog("autoMovePmDbroot: " + residePM, LOG_TYPE_DEBUG );
+    bool Oam::autoMovePmDbroot(std::string residePM) {
+        writeLog("autoMovePmDbroot: " + residePM, LOG_TYPE_DEBUG);
 
-		string DBRootStorageType;
-		try {
-			getSystemConfig("DBRootStorageType", DBRootStorageType);
-		}
-		catch(...) {}
+        string DBRootStorageType;
+        try {
+            getSystemConfig("DBRootStorageType", DBRootStorageType);
+        } catch (...) {}
 
-		string GlusterConfig = "n";
-		try {
-			getSystemConfig( "GlusterConfig", GlusterConfig);
-		}
-		catch(...)
-		{
-			GlusterConfig = "n";
-		}
+        string GlusterConfig = "n";
+        try {
+            getSystemConfig("GlusterConfig", GlusterConfig);
+        } catch (...) {
+            GlusterConfig = "n";
+        }
 
-		if (DBRootStorageType == "internal" && GlusterConfig == "n")
-			return 1;
+        if (DBRootStorageType == "internal" && GlusterConfig == "n")
+            return 1;
 
-		// get current Module name
-		string localModuleName;
-		oamModuleInfo_t st;
-		try {
-			st = getModuleInfo();
-			localModuleName = boost::get<0>(st);
-		}
-		catch (...) 
-		{}
+        // get current Module name
+        string localModuleName;
+        oamModuleInfo_t st;
+        try {
+            st = getModuleInfo();
+            localModuleName = boost::get<0>(st);
+        } catch (...) {
+        }
 
-		int localPMID = atoi(localModuleName.substr(MAX_MODULE_TYPE_SIZE,MAX_MODULE_ID_SIZE).c_str());
-		string localPM = localModuleName;
+        int localPMID = atoi(localModuleName.substr(MAX_MODULE_TYPE_SIZE, MAX_MODULE_ID_SIZE).c_str());
+        string localPM = localModuleName;
 
-		int residePMID = atoi(residePM.substr(MAX_MODULE_TYPE_SIZE,MAX_MODULE_ID_SIZE).c_str());
+        int residePMID = atoi(residePM.substr(MAX_MODULE_TYPE_SIZE, MAX_MODULE_ID_SIZE).c_str());
 
-		//get dbroot ids for reside PM
-		DBRootConfigList residedbrootConfigList;
-		try
-		{
-			getPmDbrootConfig(residePMID, residedbrootConfigList);
-			if ( residedbrootConfigList.empty() ) {
-				writeLog("ERROR: residedbrootConfigList empty", LOG_TYPE_ERROR );
-				exceptionControl("autoMovePmDbroot", API_INVALID_PARAMETER);
-			}
-		}
-		catch (...)
-		{
-			writeLog("ERROR: getPmDbrootConfig failure", LOG_TYPE_ERROR );
-			exceptionControl("autoMovePmDbroot", API_INVALID_PARAMETER);
-		}
+        //get dbroot ids for reside PM
+        DBRootConfigList residedbrootConfigList;
+        try {
+            getPmDbrootConfig(residePMID, residedbrootConfigList);
+            if (residedbrootConfigList.empty()) {
+                writeLog("ERROR: residedbrootConfigList empty", LOG_TYPE_ERROR);
+                exceptionControl("autoMovePmDbroot", API_INVALID_PARAMETER);
+            }
+        } catch (...) {
+            writeLog("ERROR: getPmDbrootConfig failure", LOG_TYPE_ERROR);
+            exceptionControl("autoMovePmDbroot", API_INVALID_PARAMETER);
+        }
 
-		//get dbroot id for other PMs
-		systemStorageInfo_t t;
-		DeviceDBRootList moduledbrootlist;
-		try
-		{
-			t = getStorageConfig();
-			moduledbrootlist = boost::get<2>(t);
-		}
-		catch (exception& )
-		{
-			writeLog("ERROR: getStorageConfig failure", LOG_TYPE_ERROR );
-			exceptionControl("autoMovePmDbroot", API_FAILURE);
-		}
+        //get dbroot id for other PMs
+        systemStorageInfo_t t;
+        DeviceDBRootList moduledbrootlist;
+        try {
+            t = getStorageConfig();
+            moduledbrootlist = boost::get<2>(t);
+        } catch (exception&) {
+            writeLog("ERROR: getStorageConfig failure", LOG_TYPE_ERROR);
+            exceptionControl("autoMovePmDbroot", API_FAILURE);
+        }
 
-		// get list of dbroot count for each pm
-        	typedef std::vector<PmDBRootCount_s> PMdbrootList;
-		PMdbrootList pmdbrootList;
-		PmDBRootCount_s pmdbroot;
+        // get list of dbroot count for each pm
+        typedef std::vector<PmDBRootCount_s> PMdbrootList;
+        PMdbrootList pmdbrootList;
+        PmDBRootCount_s pmdbroot;
 
-		DeviceDBRootList::iterator pt = moduledbrootlist.begin();
-		for( ; pt != moduledbrootlist.end() ; pt++)
-		{
-			// only put pms with dbroots assigned, if 0 then that pm is disabled
-			if ( (*pt).dbrootConfigList.size() > 0 )
-			{
-				pmdbroot.pmID = (*pt).DeviceID;
-				pmdbroot.count = (*pt).dbrootConfigList.size();
-				pmdbrootList.push_back(pmdbroot);
-			}
-		}
+        DeviceDBRootList::iterator pt = moduledbrootlist.begin();
+        for (; pt != moduledbrootlist.end(); pt++) {
+            // only put pms with dbroots assigned, if 0 then that pm is disabled
+            if ((*pt).dbrootConfigList.size() > 0) {
+                pmdbroot.pmID = (*pt).DeviceID;
+                pmdbroot.count = (*pt).dbrootConfigList.size();
+                pmdbrootList.push_back(pmdbroot);
+            }
+        }
 
-		sort ( pmdbrootList.begin(), pmdbrootList.end(), comparex );
+        sort(pmdbrootList.begin(), pmdbrootList.end(), comparex);
 
-		//clear reside IDs
-		DBRootConfigList clearresidedbrootConfigList;
-		try
-		{
-			setPmDbrootConfig(residePMID, clearresidedbrootConfigList);
-		}
-		catch (...)
-		{
-			writeLog("ERROR: setPmDbrootConfig failure - clear reside ID", LOG_TYPE_ERROR );
-			exceptionControl("autoMovePmDbroot", API_FAILURE);
-		}
+        //clear reside IDs
+        DBRootConfigList clearresidedbrootConfigList;
+        try {
+            setPmDbrootConfig(residePMID, clearresidedbrootConfigList);
+        } catch (...) {
+            writeLog("ERROR: setPmDbrootConfig failure - clear reside ID", LOG_TYPE_ERROR);
+            exceptionControl("autoMovePmDbroot", API_FAILURE);
+        }
 
-		//distribute dbroot IDs to other PMs starting with lowest count
-		bool exceptionFailure = false;
-		bool dbroot1 = false;
-		DBRootConfigList::iterator pt2 = residedbrootConfigList.begin();
-		for( ; pt2 != residedbrootConfigList.end() ; )
-		{
-			int dbrootID = *pt2;
+        //distribute dbroot IDs to other PMs starting with lowest count
+        bool exceptionFailure = false;
+        bool dbroot1 = false;
+        DBRootConfigList::iterator pt2 = residedbrootConfigList.begin();
+        for (; pt2 != residedbrootConfigList.end(); ) {
+            int dbrootID = *pt2;
 
-			//dbroot #1 always get moved to local module
-			if ( dbrootID == 1 )
-			{
-				dbroot1 = true;
-				//get dbroot ids for PM
-				DBRootConfigList todbrootConfigList;
-				try
-				{
-					getPmDbrootConfig(localPMID, todbrootConfigList);
-				}
-				catch (...)
-				{
-					writeLog("ERROR: getPmDbrootConfig failure", LOG_TYPE_ERROR );
-					exceptionControl("autoMovePmDbroot", API_INVALID_PARAMETER);
-				}
+            //dbroot #1 always get moved to local module
+            if (dbrootID == 1) {
+                dbroot1 = true;
+                //get dbroot ids for PM
+                DBRootConfigList todbrootConfigList;
+                try {
+                    getPmDbrootConfig(localPMID, todbrootConfigList);
+                } catch (...) {
+                    writeLog("ERROR: getPmDbrootConfig failure", LOG_TYPE_ERROR);
+                    exceptionControl("autoMovePmDbroot", API_INVALID_PARAMETER);
+                }
 
-				//get the first dbroot assigned to this pm, so it can be auto unmoved later instead of dbroot1
-				DBRootConfigList::iterator pt = todbrootConfigList.begin();
-				int subDBRootID = *pt;
+                //get the first dbroot assigned to this pm, so it can be auto unmoved later instead of dbroot1
+                DBRootConfigList::iterator pt = todbrootConfigList.begin();
+                int subDBRootID = *pt;
 
-				todbrootConfigList.push_back(dbrootID);
+                todbrootConfigList.push_back(dbrootID);
 
-				try
-				{
-					setPmDbrootConfig(localPMID, todbrootConfigList);
-					writeLog("autoMovePmDbroot/setPmDbrootConfig : " + localModuleName + ":" + itoa(dbrootID), LOG_TYPE_DEBUG);
-					sleep(5);
+                try {
+                    setPmDbrootConfig(localPMID, todbrootConfigList);
+                    writeLog("autoMovePmDbroot/setPmDbrootConfig : " + localModuleName + ":" + itoa(dbrootID), LOG_TYPE_DEBUG);
+                    sleep(5);
 
-					//send msg to toPM to mount dbroot
-					try
-					{
-						typedef std::vector<string> dbrootList;
-						dbrootList dbrootlist;
-						dbrootlist.push_back(itoa(dbrootID));
-						mountDBRoot(dbrootlist);
-					}
-					catch (exception& )
-					{
-						writeLog("ERROR: mountDBRoot api failure", LOG_TYPE_DEBUG );
-						cout << endl << "ERROR: mountDBRoot api failure" << endl;
-					}
-				}
-				catch (...)
-				{
-					writeLog("ERROR: setPmDbrootConfig failure", LOG_TYPE_ERROR );
-					exceptionControl("autoMovePmDbroot", API_FAILURE);
-				}
-		
-				if ( GlusterConfig == "y")
-				{
-					try {
-						string errmsg;
-						int ret = glusterctl(oam::GLUSTER_ASSIGN, itoa(dbrootID), localPM, errmsg);
-						if ( ret != 0 )
-						{
-							writeLog("FAILURE: Error assigning gluster dbroot# " + itoa(dbrootID), LOG_TYPE_ERROR );
-						}
-					}
-					catch (...)
-					{
-						writeLog("FAILURE: Error assigning gluster dbroot# " + itoa(dbrootID), LOG_TYPE_ERROR );
-					}
-				}
+                    //send msg to toPM to mount dbroot
+                    try {
+                        typedef std::vector<string> dbrootList;
+                        dbrootList dbrootlist;
+                        dbrootlist.push_back(itoa(dbrootID));
+                        mountDBRoot(dbrootlist);
+                    } catch (exception&) {
+                        writeLog("ERROR: mountDBRoot api failure", LOG_TYPE_DEBUG);
+                        cout << endl << "ERROR: mountDBRoot api failure" << endl;
+                    }
+                } catch (...) {
+                    writeLog("ERROR: setPmDbrootConfig failure", LOG_TYPE_ERROR);
+                    exceptionControl("autoMovePmDbroot", API_FAILURE);
+                }
 
-				//store in move dbroot transaction file
-				string fileName = InstallDir + "/local/moveDbrootTransactionLog";
-			
-				string cmd = "echo '" + residePM + "|" + localModuleName + "|" + itoa(subDBRootID) + "' >> " + fileName;
-				system(cmd.c_str());
-				writeLog("WRITE1: " + cmd, LOG_TYPE_DEBUG );
-			
-				//check for amazon moving required
-				try
-				{
-					typedef std::vector<string> dbrootList;
-					dbrootList dbrootlist;
-					dbrootlist.push_back(itoa(dbrootID));
+                if (GlusterConfig == "y") {
+                    try {
+                        string errmsg;
+                        int ret = glusterctl(oam::GLUSTER_ASSIGN, itoa(dbrootID), localPM, errmsg);
+                        if (ret != 0) {
+                            writeLog("FAILURE: Error assigning gluster dbroot# " + itoa(dbrootID), LOG_TYPE_ERROR);
+                        }
+                    } catch (...) {
+                        writeLog("FAILURE: Error assigning gluster dbroot# " + itoa(dbrootID), LOG_TYPE_ERROR);
+                    }
+                }
 
-					amazonReattach(localModuleName, dbrootlist, true);
-				}
-				catch (exception& )
-				{
-					writeLog("ERROR: amazonReattach failure", LOG_TYPE_ERROR );
-					exceptionControl("autoMovePmDbroot", API_FAILURE);
-				}
+                //store in move dbroot transaction file
+                string fileName = InstallDir + "/local/moveDbrootTransactionLog";
 
-				pt2++;
-				if ( pt2 == residedbrootConfigList.end() )
-					break;
-			}
-			else
-			{
-				//if Gluster, get it's list for DBroot and move to one of those
-				string toPmID;
-				if ( GlusterConfig == "y")
-				{
-					string pmList = "";
-					try {
-						string errmsg;
-						int ret = glusterctl(oam::GLUSTER_WHOHAS, itoa(dbrootID), pmList, errmsg);
-						if ( ret != 0 )
-						{
-							writeLog("ERROR: glusterctl failure getting pm list for dbroot " + itoa(dbrootID) + " , error: " + errmsg, LOG_TYPE_ERROR );
-							exceptionControl("autoMovePmDbroot", API_INVALID_PARAMETER);
-						}
-					}
-					catch (exception& )
-					{
-						writeLog("ERROR: glusterctl failure getting pm list for dbroot " + itoa(dbrootID), LOG_TYPE_ERROR );
-						exceptionControl("autoMovePmDbroot", API_INVALID_PARAMETER);
-					}
-					catch (...)
-					{
-						writeLog("ERROR: glusterctl failure getting pm list for dbroot " + itoa(dbrootID), LOG_TYPE_ERROR );
-						exceptionControl("autoMovePmDbroot", API_INVALID_PARAMETER);
-					}
+                string cmd = "echo '" + residePM + "|" + localModuleName + "|" + itoa(subDBRootID) + "' >> " + fileName;
+                system(cmd.c_str());
+                writeLog("WRITE1: " + cmd, LOG_TYPE_DEBUG);
 
-					bool found = false;
-					boost::char_separator<char> sep(" ");
-					boost::tokenizer< boost::char_separator<char> > tokens(pmList, sep);
-					for ( boost::tokenizer< boost::char_separator<char> >::iterator it = tokens.begin();
-							it != tokens.end();
-							++it)
-					{
-						if ( atoi((*it).c_str()) != residePMID ) {
-							found = true;
-							toPmID = *it;
+                //check for amazon moving required
+                try {
+                    typedef std::vector<string> dbrootList;
+                    dbrootList dbrootlist;
+                    dbrootlist.push_back(itoa(dbrootID));
 
-							string toPM = "pm" + toPmID;
+                    amazonReattach(localModuleName, dbrootlist, true);
+                } catch (exception&) {
+                    writeLog("ERROR: amazonReattach failure", LOG_TYPE_ERROR);
+                    exceptionControl("autoMovePmDbroot", API_FAILURE);
+                }
 
-							try {
-								string errmsg;
-								int ret = glusterctl(oam::GLUSTER_ASSIGN, itoa(dbrootID), toPM, errmsg);
-								if ( ret != 0 )
-								{
-									writeLog("FAILURE: Error assigning gluster dbroot# " + itoa(dbrootID), LOG_TYPE_ERROR );
-								}
-							}
-							catch (...)
-							{
-								writeLog("FAILURE: Error assigning gluster dbroot# " + itoa(dbrootID), LOG_TYPE_ERROR );
-							}
+                pt2++;
+                if (pt2 == residedbrootConfigList.end())
+                    break;
+            } else {
+                //if Gluster, get it's list for DBroot and move to one of those
+                string toPmID;
+                if (GlusterConfig == "y") {
+                    string pmList = "";
+                    try {
+                        string errmsg;
+                        int ret = glusterctl(oam::GLUSTER_WHOHAS, itoa(dbrootID), pmList, errmsg);
+                        if (ret != 0) {
+                            writeLog("ERROR: glusterctl failure getting pm list for dbroot " + itoa(dbrootID) + " , error: " + errmsg, LOG_TYPE_ERROR);
+                            exceptionControl("autoMovePmDbroot", API_INVALID_PARAMETER);
+                        }
+                    } catch (exception&) {
+                        writeLog("ERROR: glusterctl failure getting pm list for dbroot " + itoa(dbrootID), LOG_TYPE_ERROR);
+                        exceptionControl("autoMovePmDbroot", API_INVALID_PARAMETER);
+                    } catch (...) {
+                        writeLog("ERROR: glusterctl failure getting pm list for dbroot " + itoa(dbrootID), LOG_TYPE_ERROR);
+                        exceptionControl("autoMovePmDbroot", API_INVALID_PARAMETER);
+                    }
 
-							DBRootConfigList todbrootConfigList;
-							try
-							{
-								getPmDbrootConfig(atoi(toPmID.c_str()), todbrootConfigList);
-							}
-							catch (...)
-							{
-								writeLog("ERROR: getPmDbrootConfig failure", LOG_TYPE_ERROR );
-								exceptionControl("autoMovePmDbroot", API_INVALID_PARAMETER);
-							}
+                    bool found = false;
+                    boost::char_separator<char> sep(" ");
+                    boost::tokenizer< boost::char_separator<char> > tokens(pmList, sep);
+                    for (boost::tokenizer< boost::char_separator<char> >::iterator it = tokens.begin();
+                        it != tokens.end();
+                        ++it) {
+                        if (atoi((*it).c_str()) != residePMID) {
+                            found = true;
+                            toPmID = *it;
 
-							todbrootConfigList.push_back(dbrootID);
-			
-							try
-							{
-								setPmDbrootConfig(atoi(toPmID.c_str()), todbrootConfigList);
-								writeLog("autoMovePmDbroot/setPmDbrootConfig : " + toPM + ":" + itoa(dbrootID), LOG_TYPE_DEBUG);
-								sleep(5);
-		
-								//send msg to toPM to mount dbroot
-								try
-								{
-									typedef std::vector<string> dbrootList;
-									dbrootList dbrootlist;
-									dbrootlist.push_back(itoa(dbrootID));
-		
-									mountDBRoot(dbrootlist);
-								}
-								catch (exception& )
-								{
-									writeLog("ERROR: mountDBRoot api failure", LOG_TYPE_DEBUG );
-									cout << endl << "ERROR: mountDBRoot api failure" << endl;
-								}
-							}
-							catch (...)
-							{
-								writeLog("ERROR: setPmDbrootConfig failure", LOG_TYPE_ERROR );
-								exceptionFailure = true;
-							}
-					
-							//store in move dbroot transaction file
-							string fileName = InstallDir + "/local/moveDbrootTransactionLog";
-						
-							string cmd = "echo '" + residePM + "|" + toPM + "|" + itoa(dbrootID) + "' >> " + fileName;
-							system(cmd.c_str());
-							writeLog("WRITE2: " + cmd, LOG_TYPE_DEBUG );
+                            string toPM = "pm" + toPmID;
 
-							pt2++;
-							if ( pt2 == residedbrootConfigList.end() )
-								break;
-							dbrootID = *pt2;
-						}
-					}
+                            try {
+                                string errmsg;
+                                int ret = glusterctl(oam::GLUSTER_ASSIGN, itoa(dbrootID), toPM, errmsg);
+                                if (ret != 0) {
+                                    writeLog("FAILURE: Error assigning gluster dbroot# " + itoa(dbrootID), LOG_TYPE_ERROR);
+                                }
+                            } catch (...) {
+                                writeLog("FAILURE: Error assigning gluster dbroot# " + itoa(dbrootID), LOG_TYPE_ERROR);
+                            }
 
-					if (!found) {
-						writeLog("ERROR: no available pm found for DBRoot " + itoa(dbrootID), LOG_TYPE_ERROR );
-						exceptionControl("autoMovePmDbroot", API_INVALID_PARAMETER);
-					}
-				}
-				else
-				{  // not gluster, pmdbrootList = available pms for assigning
-					PMdbrootList::iterator pt1 = pmdbrootList.begin();
-					for( ; pt1 != pmdbrootList.end() ; pt1++)
-					{
-						//if dbroot1 was moved, skip local module the first time through
-						if ( dbroot1 )
-						{
-							if ( (*pt1).pmID == localPMID ) {
-								dbroot1 = false;
-								continue;
-							}
-						}
+                            DBRootConfigList todbrootConfigList;
+                            try {
+                                getPmDbrootConfig(atoi(toPmID.c_str()), todbrootConfigList);
+                            } catch (...) {
+                                writeLog("ERROR: getPmDbrootConfig failure", LOG_TYPE_ERROR);
+                                exceptionControl("autoMovePmDbroot", API_INVALID_PARAMETER);
+                            }
 
-						if ( (*pt1).pmID != residePMID ) {
-			
-							string toPM = "pm" + itoa((*pt1).pmID);
-					
-							//get dbroot ids for PM
-							DBRootConfigList todbrootConfigList;
-							try
-							{
-								getPmDbrootConfig((*pt1).pmID, todbrootConfigList);
-							}
-							catch (...)
-							{
-								writeLog("ERROR: getPmDbrootConfig failure", LOG_TYPE_ERROR );
-								exceptionControl("autoMovePmDbroot", API_INVALID_PARAMETER);
-							}
-					
-							todbrootConfigList.push_back(dbrootID);
-			
-							//check for amazon moving required
-							try
-							{
-								typedef std::vector<string> dbrootList;
-								dbrootList dbrootlist;
-								dbrootlist.push_back(itoa(dbrootID));
-		
-								amazonReattach(toPM, dbrootlist, true);
-							}
-							catch (exception& )
-							{
-								writeLog("ERROR: amazonReattach failure", LOG_TYPE_ERROR );
-								exceptionFailure = true;
-							}
-		
-							try
-							{
-								setPmDbrootConfig((*pt1).pmID, todbrootConfigList);
-								writeLog("autoMovePmDbroot/setPmDbrootConfig : " + toPM + ":" + itoa(dbrootID), LOG_TYPE_DEBUG);
-								sleep(5);
-		
-								//send msg to toPM to mount dbroot
-								try
-								{
-									typedef std::vector<string> dbrootList;
-									dbrootList dbrootlist;
-									dbrootlist.push_back(itoa(dbrootID));
-	
-									mountDBRoot(dbrootlist);
-								}
-								catch (exception& )
-								{
-									writeLog("ERROR: mountDBRoot api failure", LOG_TYPE_DEBUG );
-									cout << endl << "ERROR: mountDBRoot api failure" << endl;
-								}
-							}
-							catch (...)
-							{
-								writeLog("ERROR: setPmDbrootConfig failure", LOG_TYPE_ERROR );
-								exceptionFailure = true;
-							}
-					
-							//store in move dbroot transaction file
-							string fileName = InstallDir + "/local/moveDbrootTransactionLog";
-						
-							string cmd = "echo '" + residePM + "|" + toPM + "|" + itoa(dbrootID) + "' >> " + fileName;
-							system(cmd.c_str());
-							writeLog("WRITE3: " + cmd, LOG_TYPE_DEBUG );
+                            todbrootConfigList.push_back(dbrootID);
 
-							pt2++;
-							if ( pt2 == residedbrootConfigList.end() )
-								break;
-							dbrootID = *pt2;
-						}
-					}
-				}
-			}
-		}
+                            try {
+                                setPmDbrootConfig(atoi(toPmID.c_str()), todbrootConfigList);
+                                writeLog("autoMovePmDbroot/setPmDbrootConfig : " + toPM + ":" + itoa(dbrootID), LOG_TYPE_DEBUG);
+                                sleep(5);
 
-		if (exceptionFailure)
-			exceptionControl("autoMovePmDbroot", API_FAILURE);
+                                //send msg to toPM to mount dbroot
+                                try {
+                                    typedef std::vector<string> dbrootList;
+                                    dbrootList dbrootlist;
+                                    dbrootlist.push_back(itoa(dbrootID));
 
-		return 0;
+                                    mountDBRoot(dbrootlist);
+                                } catch (exception&) {
+                                    writeLog("ERROR: mountDBRoot api failure", LOG_TYPE_DEBUG);
+                                    cout << endl << "ERROR: mountDBRoot api failure" << endl;
+                                }
+                            } catch (...) {
+                                writeLog("ERROR: setPmDbrootConfig failure", LOG_TYPE_ERROR);
+                                exceptionFailure = true;
+                            }
 
-	}
+                            //store in move dbroot transaction file
+                            string fileName = InstallDir + "/local/moveDbrootTransactionLog";
+
+                            string cmd = "echo '" + residePM + "|" + toPM + "|" + itoa(dbrootID) + "' >> " + fileName;
+                            system(cmd.c_str());
+                            writeLog("WRITE2: " + cmd, LOG_TYPE_DEBUG);
+
+                            pt2++;
+                            if (pt2 == residedbrootConfigList.end())
+                                break;
+                            dbrootID = *pt2;
+                        }
+                    }
+
+                    if (!found) {
+                        writeLog("ERROR: no available pm found for DBRoot " + itoa(dbrootID), LOG_TYPE_ERROR);
+                        exceptionControl("autoMovePmDbroot", API_INVALID_PARAMETER);
+                    }
+                } else {  // not gluster, pmdbrootList = available pms for assigning
+                    PMdbrootList::iterator pt1 = pmdbrootList.begin();
+                    for (; pt1 != pmdbrootList.end(); pt1++) {
+                        //if dbroot1 was moved, skip local module the first time through
+                        if (dbroot1) {
+                            if ((*pt1).pmID == localPMID) {
+                                dbroot1 = false;
+                                continue;
+                            }
+                        }
+
+                        if ((*pt1).pmID != residePMID) {
+
+                            string toPM = "pm" + itoa((*pt1).pmID);
+
+                            //get dbroot ids for PM
+                            DBRootConfigList todbrootConfigList;
+                            try {
+                                getPmDbrootConfig((*pt1).pmID, todbrootConfigList);
+                            } catch (...) {
+                                writeLog("ERROR: getPmDbrootConfig failure", LOG_TYPE_ERROR);
+                                exceptionControl("autoMovePmDbroot", API_INVALID_PARAMETER);
+                            }
+
+                            todbrootConfigList.push_back(dbrootID);
+
+                            //check for amazon moving required
+                            try {
+                                typedef std::vector<string> dbrootList;
+                                dbrootList dbrootlist;
+                                dbrootlist.push_back(itoa(dbrootID));
+
+                                amazonReattach(toPM, dbrootlist, true);
+                            } catch (exception&) {
+                                writeLog("ERROR: amazonReattach failure", LOG_TYPE_ERROR);
+                                exceptionFailure = true;
+                            }
+
+                            try {
+                                setPmDbrootConfig((*pt1).pmID, todbrootConfigList);
+                                writeLog("autoMovePmDbroot/setPmDbrootConfig : " + toPM + ":" + itoa(dbrootID), LOG_TYPE_DEBUG);
+                                sleep(5);
+
+                                //send msg to toPM to mount dbroot
+                                try {
+                                    typedef std::vector<string> dbrootList;
+                                    dbrootList dbrootlist;
+                                    dbrootlist.push_back(itoa(dbrootID));
+
+                                    mountDBRoot(dbrootlist);
+                                } catch (exception&) {
+                                    writeLog("ERROR: mountDBRoot api failure", LOG_TYPE_DEBUG);
+                                    cout << endl << "ERROR: mountDBRoot api failure" << endl;
+                                }
+                            } catch (...) {
+                                writeLog("ERROR: setPmDbrootConfig failure", LOG_TYPE_ERROR);
+                                exceptionFailure = true;
+                            }
+
+                            //store in move dbroot transaction file
+                            string fileName = InstallDir + "/local/moveDbrootTransactionLog";
+
+                            string cmd = "echo '" + residePM + "|" + toPM + "|" + itoa(dbrootID) + "' >> " + fileName;
+                            system(cmd.c_str());
+                            writeLog("WRITE3: " + cmd, LOG_TYPE_DEBUG);
+
+                            pt2++;
+                            if (pt2 == residedbrootConfigList.end())
+                                break;
+                            dbrootID = *pt2;
+                        }
+                    }
+                }
+            }
+        }
+
+        if (exceptionFailure)
+            exceptionControl("autoMovePmDbroot", API_FAILURE);
+
+        return 0;
+
+    }
 
     /********************************************************************
      *
      * Auto Move PM - DBRoot data
      *
      ********************************************************************/
-	bool Oam::autoUnMovePmDbroot(std::string toPM)
-	{
-		writeLog("autoUnMovePmDbroot: " + toPM, LOG_TYPE_DEBUG );
+    bool Oam::autoUnMovePmDbroot(std::string toPM) {
+        writeLog("autoUnMovePmDbroot: " + toPM, LOG_TYPE_DEBUG);
 
-		string residePM;
-		string fromPM;
-		string dbrootIDs;
+        string residePM;
+        string fromPM;
+        string dbrootIDs;
 
-		string DBRootStorageType;
-		try {
-			getSystemConfig("DBRootStorageType", DBRootStorageType);
-		}
-		catch(...) {}
+        string DBRootStorageType;
+        try {
+            getSystemConfig("DBRootStorageType", DBRootStorageType);
+        } catch (...) {}
 
-		string GlusterConfig = "n";
-		try {
-			getSystemConfig( "GlusterConfig", GlusterConfig);
-		}
-		catch(...)
-		{
-			GlusterConfig = "n";
-		}
+        string GlusterConfig = "n";
+        try {
+            getSystemConfig("GlusterConfig", GlusterConfig);
+        } catch (...) {
+            GlusterConfig = "n";
+        }
 
-		if (DBRootStorageType == "internal" && GlusterConfig == "n")
-			return 1;
+        if (DBRootStorageType == "internal" && GlusterConfig == "n")
+            return 1;
 
-		//store in move dbroot transaction file
-		string fileName = InstallDir + "/local/moveDbrootTransactionLog";
-	
-		ifstream oldFile (fileName.c_str());
-		if (!oldFile) {
-			ofstream newFile (fileName.c_str());	
-			int fd = open(fileName.c_str(), O_RDWR|O_CREAT, 0664);
-			newFile.close();
-			close(fd);
-		}
+        //store in move dbroot transaction file
+        string fileName = InstallDir + "/local/moveDbrootTransactionLog";
 
-		vector <string> lines;
-		char line[200];
-		string buf;
-		string newLine;
-		bool found = false;
-		while (oldFile.getline(line, 200))
-		{
-			buf = line;
-			writeLog("READ: " + buf, LOG_TYPE_DEBUG );
-			string::size_type pos = buf.find("|",0);
-			if (pos != string::npos)
-			{
-				residePM = buf.substr(0,pos);
-				if ( residePM == toPM ) {
-					string::size_type pos1 = buf.find("|",pos+1);
-					if (pos1 != string::npos)
-					{
-						fromPM = buf.substr(pos+1,pos1-pos-1);
-						dbrootIDs = buf.substr(pos1+1,80);
-						found = true;
+        ifstream oldFile(fileName.c_str());
+        if (!oldFile) {
+            ofstream newFile(fileName.c_str());
+            int fd = open(fileName.c_str(), O_RDWR | O_CREAT, 0664);
+            newFile.close();
+            close(fd);
+        }
 
-						try {
-							manualMovePmDbroot(fromPM, dbrootIDs, toPM);
-							writeLog("autoUnMovePmDbroot/manualMovePmDbroot : " + fromPM + ":" + dbrootIDs + ":" + toPM, LOG_TYPE_DEBUG);
-						}
-						catch (...)
-						{
-							writeLog("ERROR: manualMovePmDbroot failure: " + fromPM + ":" + dbrootIDs + ":" + toPM, LOG_TYPE_ERROR );
-							cout << "ERROR: manualMovePmDbroot failure" << endl;
-							exceptionControl("autoUnMovePmDbroot", API_FAILURE);
-						}
-					}
-				}
-				else
-					lines.push_back(buf);
-			}
-		}
+        vector <string> lines;
+        char line[200];
+        string buf;
+        string newLine;
+        bool found = false;
+        while (oldFile.getline(line, 200)) {
+            buf = line;
+            writeLog("READ: " + buf, LOG_TYPE_DEBUG);
+            string::size_type pos = buf.find("|", 0);
+            if (pos != string::npos) {
+                residePM = buf.substr(0, pos);
+                if (residePM == toPM) {
+                    string::size_type pos1 = buf.find("|", pos + 1);
+                    if (pos1 != string::npos) {
+                        fromPM = buf.substr(pos + 1, pos1 - pos - 1);
+                        dbrootIDs = buf.substr(pos1 + 1, 80);
+                        found = true;
 
-		if (!found) {
-			writeLog("ERROR: no dbroots found in ../erydb/local/moveDbrootTransactionLog", LOG_TYPE_ERROR );
-			cout << "ERROR: no dbroots found in " << fileName << endl;
-			exceptionControl("autoUnMovePmDbroot", API_FAILURE);
-		}
+                        try {
+                            manualMovePmDbroot(fromPM, dbrootIDs, toPM);
+                            writeLog("autoUnMovePmDbroot/manualMovePmDbroot : " + fromPM + ":" + dbrootIDs + ":" + toPM, LOG_TYPE_DEBUG);
+                        } catch (...) {
+                            writeLog("ERROR: manualMovePmDbroot failure: " + fromPM + ":" + dbrootIDs + ":" + toPM, LOG_TYPE_ERROR);
+                            cout << "ERROR: manualMovePmDbroot failure" << endl;
+                            exceptionControl("autoUnMovePmDbroot", API_FAILURE);
+                        }
+                    }
+                } else
+                    lines.push_back(buf);
+            }
+        }
 
-		oldFile.close();
-		unlink (fileName.c_str());
-		ofstream newFile (fileName.c_str());	
-		
-		//create new file
-		int fd = open(fileName.c_str(), O_RDWR|O_CREAT, 0664);
-		
-		copy(lines.begin(), lines.end(), ostream_iterator<string>(newFile, "\n"));
-		newFile.close();
-		
-		close(fd);
+        if (!found) {
+            writeLog("ERROR: no dbroots found in ../erydb/local/moveDbrootTransactionLog", LOG_TYPE_ERROR);
+            cout << "ERROR: no dbroots found in " << fileName << endl;
+            exceptionControl("autoUnMovePmDbroot", API_FAILURE);
+        }
 
-		return 0;
-	}
+        oldFile.close();
+        unlink(fileName.c_str());
+        ofstream newFile(fileName.c_str());
+
+        //create new file
+        int fd = open(fileName.c_str(), O_RDWR | O_CREAT, 0664);
+
+        copy(lines.begin(), lines.end(), ostream_iterator<string>(newFile, "\n"));
+        newFile.close();
+
+        close(fd);
+
+        return 0;
+    }
 
     /***************************************************************************
      *
@@ -5956,94 +5295,86 @@ namespace oam
      *
      ****************************************************************************/
 
-    	void Oam::addUMdisk(const int moduleID, std::string& volumeName, std::string& device, string EBSsize)
-	{
-		string UMVolumeSize = "10";
-		try{
-			getSystemConfig("UMVolumeSize", UMVolumeSize);
-		}
-		catch(...) {}
+    void Oam::addUMdisk(const int moduleID, std::string& volumeName, std::string& device, string EBSsize) {
+        string UMVolumeSize = "10";
+        try {
+            getSystemConfig("UMVolumeSize", UMVolumeSize);
+        } catch (...) {}
 
-		writeLog("addUMdisk - Create new Volume for um" + itoa(moduleID), LOG_TYPE_DEBUG);
+        writeLog("addUMdisk - Create new Volume for um" + itoa(moduleID), LOG_TYPE_DEBUG);
 
         cout << "  Create AWS Volume for UM #" << itoa(moduleID) << endl;
 
-       	int retry = 0;
-      	for ( ; retry < 5 ; retry++ )
-      	{
-         	volumeName = createEC2Volume(UMVolumeSize, "um");
+        int retry = 0;
+        for (; retry < 5; retry++) {
+            volumeName = createEC2Volume(UMVolumeSize, "um");
 
-           	if ( volumeName == "failed" || volumeName.empty() )
-             	retry = retry;
-          	else
-             	break;
+            if (volumeName == "failed" || volumeName.empty())
+                retry = retry;
+            else
+                break;
         }
 
-       	if ( retry >= 5 )
-       	{
-        	cout << " *** ERROR: Failed to create a Volume for um1 " << moduleID << endl;
-           	exceptionControl("addUMdisk", API_FAILURE);
+        if (retry >= 5) {
+            cout << " *** ERROR: Failed to create a Volume for um1 " << moduleID << endl;
+            exceptionControl("addUMdisk", API_FAILURE);
         }
 
-		//attach and format volumes
-		device = "/dev/xvdf";
+        //attach and format volumes
+        device = "/dev/xvdf";
 
-		string localInstance = getEC2LocalInstance();
+        string localInstance = getEC2LocalInstance();
 
-		//attach volumes to local instance
+        //attach volumes to local instance
         writeLog("addUMdisk - Attach new Volume to local instance: " + volumeName, LOG_TYPE_DEBUG);
 
-      	retry = 0;
-       	for ( ; retry < 5 ; retry++ )
-       	{
-        	if (!attachEC2Volume(volumeName, device, localInstance))
-            	detachEC2Volume(volumeName);
-           	else
-            	break;
+        retry = 0;
+        for (; retry < 5; retry++) {
+            if (!attachEC2Volume(volumeName, device, localInstance))
+                detachEC2Volume(volumeName);
+            else
+                break;
         }
 
-      	if ( retry >= 5 )
-       	{
-        	cout << " *** ERROR: Volume " << volumeName << " failed to attach to local instance" << endl;
+        if (retry >= 5) {
+            cout << " *** ERROR: Volume " << volumeName << " failed to attach to local instance" << endl;
             exceptionControl("addUMdisk", API_FAILURE);
-      	}
+        }
 
-		//format attached volume
-		writeLog("addUMdisk - Format new Volume for: " + volumeName, LOG_TYPE_DEBUG);
+        //format attached volume
+        writeLog("addUMdisk - Format new Volume for: " + volumeName, LOG_TYPE_DEBUG);
         cout << "  Formatting disk for UM #" << itoa(moduleID) << ", please wait..." << endl;
 
-		string cmd;
-       	int user;
+        string cmd;
+        int user;
         user = getuid();
         if (user == 0)
-			cmd = "mkfs.ext2 -F " + device + " > /dev/null 2>&1";
-		else
+            cmd = "mkfs.ext2 -F " + device + " > /dev/null 2>&1";
+        else
             cmd = "sudo mkfs.ext2 -F " + device + " > /dev/null 2>&1";
 
-		system(cmd.c_str());
+        system(cmd.c_str());
 
-		//detach volume
-		writeLog("addUMdisk - detach new Volume from local instance: " + volumeName, LOG_TYPE_DEBUG);
-		if (!detachEC2Volume(volumeName)) {
-			exceptionControl("addUMdisk", API_FAILURE);
-		}
+        //detach volume
+        writeLog("addUMdisk - detach new Volume from local instance: " + volumeName, LOG_TYPE_DEBUG);
+        if (!detachEC2Volume(volumeName)) {
+            exceptionControl("addUMdisk", API_FAILURE);
+        }
 
-		// add instance tag
-		string AmazonAutoTagging;
-		string systemName;
+        // add instance tag
+        string AmazonAutoTagging;
+        string systemName;
 
-		try {
-			getSystemConfig("AmazonAutoTagging", AmazonAutoTagging);
-			getSystemConfig("SystemName", systemName);
-		}
-		catch(...) {}
+        try {
+            getSystemConfig("AmazonAutoTagging", AmazonAutoTagging);
+            getSystemConfig("SystemName", systemName);
+        } catch (...) {}
 
-		if ( AmazonAutoTagging == "y" )
-		{
-			string tagValue = systemName + "-um" + itoa(moduleID);
-			createEC2tag( volumeName, "Name", tagValue );
-		}
-	}
+        if (AmazonAutoTagging == "y") {
+            string tagValue = systemName + "-um" + itoa(moduleID);
+            createEC2tag(volumeName, "Name", tagValue);
+        }
+    }
 
     /***************************************************************************
      *
@@ -6053,282 +5384,244 @@ namespace oam
      *
      ****************************************************************************/
 
-    	void Oam::addDbroot(const int dbrootNumber, DBRootConfigList& dbrootlist, string EBSsize)
-	{
-		int SystemDBRootCount = 0;
-		string cloud;
-		string DBRootStorageType;
-		string volumeSize;
-		Config* sysConfig = Config::makeConfig(erydbConfigFile.c_str());
-        	string Section = "SystemConfig";
+    void Oam::addDbroot(const int dbrootNumber, DBRootConfigList& dbrootlist, string EBSsize) {
+        int SystemDBRootCount = 0;
+        string cloud;
+        string DBRootStorageType;
+        string volumeSize;
+        Config* sysConfig = Config::makeConfig(erydbConfigFile.c_str());
+        string Section = "SystemConfig";
 
-		try {
-			getSystemConfig("DBRootCount", SystemDBRootCount);
-			getSystemConfig("Cloud", cloud);
-			getSystemConfig("DBRootStorageType", DBRootStorageType);
-			getSystemConfig("PMVolumeSize", volumeSize);
-		}
-		catch(...) {}
+        try {
+            getSystemConfig("DBRootCount", SystemDBRootCount);
+            getSystemConfig("Cloud", cloud);
+            getSystemConfig("DBRootStorageType", DBRootStorageType);
+            getSystemConfig("PMVolumeSize", volumeSize);
+        } catch (...) {}
 
-		int newSystemDBRootCount = SystemDBRootCount + dbrootNumber;
-		if ( newSystemDBRootCount > MAX_DBROOT )
-		{
-			cout << "ERROR: Failed add, total Number of DBRoots would be over maximum of " << MAX_DBROOT << endl;
-			exceptionControl("addDbroot", API_INVALID_PARAMETER);
-		}
+        int newSystemDBRootCount = SystemDBRootCount + dbrootNumber;
+        if (newSystemDBRootCount > MAX_DBROOT) {
+            cout << "ERROR: Failed add, total Number of DBRoots would be over maximum of " << MAX_DBROOT << endl;
+            exceptionControl("addDbroot", API_INVALID_PARAMETER);
+        }
 
-		if ( (cloud == "amazon-ec2" || cloud == "amazon-vpc") && 
-				DBRootStorageType == "external" )
-		{
-			if ( volumeSize == oam::UnassignedName ) 
-			{
-				if ( EBSsize != oam::UnassignedName ) {
-					volumeSize = EBSsize;
-					setSystemConfig("PMVolumeSize", volumeSize);
-				}
-			}
-			else
-			{
-				if ( EBSsize != oam::UnassignedName ) {
-					volumeSize = EBSsize;
-				}
-			}	
+        if ((cloud == "amazon-ec2" || cloud == "amazon-vpc") &&
+            DBRootStorageType == "external") {
+            if (volumeSize == oam::UnassignedName) {
+                if (EBSsize != oam::UnassignedName) {
+                    volumeSize = EBSsize;
+                    setSystemConfig("PMVolumeSize", volumeSize);
+                }
+            } else {
+                if (EBSsize != oam::UnassignedName) {
+                    volumeSize = EBSsize;
+                }
+            }
 
-			if ( newSystemDBRootCount > MAX_DBROOT_AMAZON )
-			{
-				cout << "ERROR: Failed add, total Number of DBRoots would be over maximum of " << MAX_DBROOT_AMAZON << endl;
-				exceptionControl("addDbroot", API_INVALID_PARAMETER);
-			}
-		}
+            if (newSystemDBRootCount > MAX_DBROOT_AMAZON) {
+                cout << "ERROR: Failed add, total Number of DBRoots would be over maximum of " << MAX_DBROOT_AMAZON << endl;
+                exceptionControl("addDbroot", API_INVALID_PARAMETER);
+            }
+        }
 
-		//get assigned DBRoots IDs
-		DBRootConfigList dbrootConfigList;
-		try {
-			getSystemDbrootConfig(dbrootConfigList);
-		}
-		catch(...) {}
+        //get assigned DBRoots IDs
+        DBRootConfigList dbrootConfigList;
+        try {
+            getSystemDbrootConfig(dbrootConfigList);
+        } catch (...) {}
 
-		//get unassigned DBRoots IDs
-		DBRootConfigList undbrootlist;
-		try {
-			getUnassignedDbroot(undbrootlist);
-		}
-		catch(...) {}
+        //get unassigned DBRoots IDs
+        DBRootConfigList undbrootlist;
+        try {
+            getUnassignedDbroot(undbrootlist);
+        } catch (...) {}
 
-		//combined list
-		DBRootConfigList::iterator pt1 = undbrootlist.begin();
-		for( ; pt1 != undbrootlist.end() ; pt1++)
-		{
-			dbrootConfigList.push_back(*pt1);
-		}
+        //combined list
+        DBRootConfigList::iterator pt1 = undbrootlist.begin();
+        for (; pt1 != undbrootlist.end(); pt1++) {
+            dbrootConfigList.push_back(*pt1);
+        }
 
-		if ( dbrootlist.empty() )
-		{
-			int newID = 1;
-			for ( int count = 0 ; count < dbrootNumber ; count++ )
-			{
-				//check for match
-				while (true)
-				{
-					bool found = false;
-					DBRootConfigList::iterator pt = dbrootConfigList.begin();
-					for( ; pt != dbrootConfigList.end() ; pt++)
-					{
-						if ( newID == *pt ) {
-							newID++;
-							found = true;
-							break;
-						}
-					}
-	
-					if (!found)
-					{
-						dbrootlist.push_back(newID);
-						newID++;
-						break;
-					}
-				}
-			}
-		}
+        if (dbrootlist.empty()) {
+            int newID = 1;
+            for (int count = 0; count < dbrootNumber; count++) {
+                //check for match
+                while (true) {
+                    bool found = false;
+                    DBRootConfigList::iterator pt = dbrootConfigList.begin();
+                    for (; pt != dbrootConfigList.end(); pt++) {
+                        if (newID == *pt) {
+                            newID++;
+                            found = true;
+                            break;
+                        }
+                    }
 
-		if ( dbrootlist.empty() )
-		{
-			cout << "ERROR: Failed add, No DBRoot IDs available" << endl;
-			exceptionControl("addDbroot", API_INVALID_PARAMETER);
-		}
+                    if (!found) {
+                        dbrootlist.push_back(newID);
+                        newID++;
+                        break;
+                    }
+                }
+            }
+        }
 
-		//if amazon cloud with external volumes, create AWS volumes
-		if ( (cloud == "amazon-ec2" || cloud == "amazon-vpc") && 
-				DBRootStorageType == "external" )
-		{
-			//get local instance name (pm1)
-			string localInstance = getEC2LocalInstance();
-			if ( localInstance == "failed" || localInstance.empty() || localInstance == "") 
-			{
-				cout << endl << "ERROR: Failed to get Instance ID" << endl;
-				exceptionControl("addDbroot", API_INVALID_PARAMETER);
-			}
+        if (dbrootlist.empty()) {
+            cout << "ERROR: Failed add, No DBRoot IDs available" << endl;
+            exceptionControl("addDbroot", API_INVALID_PARAMETER);
+        }
 
-			string Section = "Installation";
-	
-			DBRootConfigList::iterator pt1 = dbrootlist.begin();
-			for( ; pt1 != dbrootlist.end() ; pt1++)
-			{
-				cout << "  Create AWS Volume for DBRoot #" << itoa(*pt1) << endl;
-				//create volume
-				string volumeName;
-				int retry = 0;
-				for ( ; retry < 5 ; retry++ )
-				{
-					volumeName = createEC2Volume(volumeSize, "pm");
-				
-					if ( volumeName == "failed" || volumeName.empty() )
-						retry = retry;
-					else
-						break;
-				}
-			
-				if ( retry >= 5 )
-				{
-					cout << " *** ERROR: Failed to create a Volume for dbroot " << *pt1 << endl;
-					exceptionControl("addDbroot", API_FAILURE);
-				}
+        //if amazon cloud with external volumes, create AWS volumes
+        if ((cloud == "amazon-ec2" || cloud == "amazon-vpc") &&
+            DBRootStorageType == "external") {
+            //get local instance name (pm1)
+            string localInstance = getEC2LocalInstance();
+            if (localInstance == "failed" || localInstance.empty() || localInstance == "") {
+                cout << endl << "ERROR: Failed to get Instance ID" << endl;
+                exceptionControl("addDbroot", API_INVALID_PARAMETER);
+            }
 
-				string autoTagging;
-				string systemName;
-		
-				try {
-					getSystemConfig("AmazonAutoTagging", autoTagging);
-					getSystemConfig("SystemName", systemName);
-				}
-				catch(...) {}
+            string Section = "Installation";
 
-				if ( autoTagging == "y" ) {
-					string tagValue = systemName + "-dbroot" + itoa(*pt1);
-					createEC2tag( volumeName, "Name", tagValue );
-				}
+            DBRootConfigList::iterator pt1 = dbrootlist.begin();
+            for (; pt1 != dbrootlist.end(); pt1++) {
+                cout << "  Create AWS Volume for DBRoot #" << itoa(*pt1) << endl;
+                //create volume
+                string volumeName;
+                int retry = 0;
+                for (; retry < 5; retry++) {
+                    volumeName = createEC2Volume(volumeSize, "pm");
 
-				//get device name based on dbroot ID
-				storageID_t st;
-				try {
-					st = getAWSdeviceName( *pt1 );
-				}
-				catch(...) {}
+                    if (volumeName == "failed" || volumeName.empty())
+                        retry = retry;
+                    else
+                        break;
+                }
 
-				string deviceName = boost::get<0>(st);
-				string amazonDeviceName = boost::get<1>(st);
+                if (retry >= 5) {
+                    cout << " *** ERROR: Failed to create a Volume for dbroot " << *pt1 << endl;
+                    exceptionControl("addDbroot", API_FAILURE);
+                }
 
-				//attach volumes to local instance
-				retry = 0;
-				for ( ; retry < 5 ; retry++ )
-				{
-					if (!attachEC2Volume(volumeName, deviceName, localInstance)) {
-						detachEC2Volume(volumeName);
-					}
-					else
-						break;
-				}
+                string autoTagging;
+                string systemName;
 
-				if ( retry >= 5 )
-				{
-					cout << " *** ERROR: Volume " << volumeName << " failed to attach to local instance" << endl;
-					exceptionControl("addDbroot", API_FAILURE);
-				}
-			
-				//format attached volume
-				cout << "  Formatting DBRoot #" << itoa(*pt1) << ", please wait..." << endl;
-		        string cmd;
-        		int user;
-    		    user = getuid();
-     			if (user == 0)
-            		cmd = "mkfs.ext2 -F " + amazonDeviceName + " > /tmp/format.log 2>&1";
-        		else
-            		cmd = "sudo mkfs.ext2 -F " + amazonDeviceName + " > /tmp/format.log 2>&1";
+                try {
+                    getSystemConfig("AmazonAutoTagging", autoTagging);
+                    getSystemConfig("SystemName", systemName);
+                } catch (...) {}
 
-				writeLog("addDbroot format cmd: " + cmd, LOG_TYPE_DEBUG );
+                if (autoTagging == "y") {
+                    string tagValue = systemName + "-dbroot" + itoa(*pt1);
+                    createEC2tag(volumeName, "Name", tagValue);
+                }
 
-				system(cmd.c_str());
+                //get device name based on dbroot ID
+                storageID_t st;
+                try {
+                    st = getAWSdeviceName(*pt1);
+                } catch (...) {}
 
-				//detach
-				detachEC2Volume(volumeName);
+                string deviceName = boost::get<0>(st);
+                string amazonDeviceName = boost::get<1>(st);
 
-				string volumeNameID = "PMVolumeName" + itoa(*pt1);
-				string deviceNameID = "PMVolumeDeviceName" + itoa(*pt1);
-				string amazonDeviceNameID = "PMVolumeAmazonDeviceName" + itoa(*pt1);
+                //attach volumes to local instance
+                retry = 0;
+                for (; retry < 5; retry++) {
+                    if (!attachEC2Volume(volumeName, deviceName, localInstance)) {
+                        detachEC2Volume(volumeName);
+                    } else
+                        break;
+                }
 
-				//write volume and device name
-				try {
-					sysConfig->setConfig(Section, volumeNameID, volumeName);
-					sysConfig->setConfig(Section, deviceNameID, deviceName);
-					sysConfig->setConfig(Section, amazonDeviceNameID, amazonDeviceName);
-				}
-				catch(...)
-				{}
+                if (retry >= 5) {
+                    cout << " *** ERROR: Volume " << volumeName << " failed to attach to local instance" << endl;
+                    exceptionControl("addDbroot", API_FAILURE);
+                }
 
-				// fstabs
-				string entry = updateFstab( amazonDeviceName, itoa(*pt1));
+                //format attached volume
+                cout << "  Formatting DBRoot #" << itoa(*pt1) << ", please wait..." << endl;
+                string cmd;
+                int user;
+                user = getuid();
+                if (user == 0)
+                    cmd = "mkfs.ext2 -F " + amazonDeviceName + " > /tmp/format.log 2>&1";
+                else
+                    cmd = "sudo mkfs.ext2 -F " + amazonDeviceName + " > /tmp/format.log 2>&1";
 
-				//send update pms
-				if (entry != "" )
-					distributeFstabUpdates(entry);
-			}
-		}
-	
-		//update erydb.xml entries
-		DBRootConfigList::iterator pt2 = dbrootlist.begin();
-		for( ; pt2 != dbrootlist.end() ; pt2++)
-		{
-			string DBrootID = "DBRoot" + itoa(*pt2);
-			string pathID = InstallDir + "/data" + itoa(*pt2);
-	
-			try {
-				sysConfig->setConfig(Section, DBrootID, pathID);
-			}
-			catch(...)
-			{
-				cout << "ERROR: Problem setting DBRoot in the erydb System Configuration file" << endl;
-				exceptionControl("setConfig", API_FAILURE);
-			}
-		}
+                writeLog("addDbroot format cmd: " + cmd, LOG_TYPE_DEBUG);
 
-		try
-		{
-			sysConfig->write();
-		}
-		catch(...)
-		{
-			exceptionControl("sysConfig->write", API_FAILURE);
-		}
+                system(cmd.c_str());
 
-		if (!checkSystemRunFlag()||!checkSystemRunning())
-			return;
+                //detach
+                detachEC2Volume(volumeName);
 
-		//get updated erydb.xml distributed
-		distributeConfigFile("system");
+                string volumeNameID = "PMVolumeName" + itoa(*pt1);
+                string deviceNameID = "PMVolumeDeviceName" + itoa(*pt1);
+                string amazonDeviceNameID = "PMVolumeAmazonDeviceName" + itoa(*pt1);
 
-		//
-		//send message to Process Monitor to add new dbroot to shared memory
-		//
-		pt2 = dbrootlist.begin();
-		for( ; pt2 != dbrootlist.end() ; pt2++)
-		{
-			try
-			{
-				ByteStream obs;
-		
-				obs << (ByteStream::byte) ADD_DBROOT;
-				obs << itoa(*pt2);
-		
-				sendStatusUpdate(obs, ADD_DBROOT);
-			}
-			catch(...)
-			{
-				exceptionControl("setSystemConfig", API_INVALID_PARAMETER);
-			}
-		}
+                //write volume and device name
+                try {
+                    sysConfig->setConfig(Section, volumeNameID, volumeName);
+                    sysConfig->setConfig(Section, deviceNameID, deviceName);
+                    sysConfig->setConfig(Section, amazonDeviceNameID, amazonDeviceName);
+                } catch (...) {
+                }
 
-		return;
-	}
+                // fstabs
+                string entry = updateFstab(amazonDeviceName, itoa(*pt1));
+
+                //send update pms
+                if (entry != "")
+                    distributeFstabUpdates(entry);
+            }
+        }
+
+        //update erydb.xml entries
+        DBRootConfigList::iterator pt2 = dbrootlist.begin();
+        for (; pt2 != dbrootlist.end(); pt2++) {
+            string DBrootID = "DBRoot" + itoa(*pt2);
+            string pathID = InstallDir + "/data" + itoa(*pt2);
+
+            try {
+                sysConfig->setConfig(Section, DBrootID, pathID);
+            } catch (...) {
+                cout << "ERROR: Problem setting DBRoot in the erydb System Configuration file" << endl;
+                exceptionControl("setConfig", API_FAILURE);
+            }
+        }
+
+        try {
+            sysConfig->write();
+        } catch (...) {
+            exceptionControl("sysConfig->write", API_FAILURE);
+        }
+
+        if (!checkSystemRunFlag() || !checkSystemRunning())
+            return;
+
+        //get updated erydb.xml distributed
+        distributeConfigFile("system");
+
+        //
+        //send message to Process Monitor to add new dbroot to shared memory
+        //
+        pt2 = dbrootlist.begin();
+        for (; pt2 != dbrootlist.end(); pt2++) {
+            try {
+                ByteStream obs;
+
+                obs << (ByteStream::byte) ADD_DBROOT;
+                obs << itoa(*pt2);
+
+                sendStatusUpdate(obs, ADD_DBROOT);
+            } catch (...) {
+                exceptionControl("setSystemConfig", API_INVALID_PARAMETER);
+            }
+        }
+
+        return;
+    }
 
     /***************************************************************************
      *
@@ -6338,18 +5631,17 @@ namespace oam
      *
      ****************************************************************************/
 
-   	void Oam::distributeFstabUpdates(std::string entry, std::string toPM)
-	{
-		if (!checkSystemRunFlag() || !checkSystemRunning())
-			return;
+    void Oam::distributeFstabUpdates(std::string entry, std::string toPM) {
+        if (!checkSystemRunFlag() || !checkSystemRunning())
+            return;
 
-		ACK_FLAG ackflag = oam::ACK_YES;
-		// build and send msg
-		int returnStatus = sendMsgToProcMgr(FSTABUPDATE, toPM, FORCEFUL, ackflag, entry);
-	
-		if (returnStatus != API_SUCCESS)
-           		exceptionControl("distributeFstabUpdates", returnStatus);
-	}
+        ACK_FLAG ackflag = oam::ACK_YES;
+        // build and send msg
+        int returnStatus = sendMsgToProcMgr(FSTABUPDATE, toPM, FORCEFUL, ackflag, entry);
+
+        if (returnStatus != API_SUCCESS)
+            exceptionControl("distributeFstabUpdates", returnStatus);
+    }
 
     /***************************************************************************
      *
@@ -6359,217 +5651,183 @@ namespace oam
      *
      ****************************************************************************/
 
-    	void Oam::assignDbroot(std::string toPM, DBRootConfigList& dbrootlist)
-	{
-		//make sure this new DBroot IDs aren't being used already
-		try
-		{
-			systemStorageInfo_t t;
-			t = getStorageConfig();
+    void Oam::assignDbroot(std::string toPM, DBRootConfigList& dbrootlist) {
+        //make sure this new DBroot IDs aren't being used already
+        try {
+            systemStorageInfo_t t;
+            t = getStorageConfig();
 
-			DeviceDBRootList moduledbrootlist = boost::get<2>(t);
+            DeviceDBRootList moduledbrootlist = boost::get<2>(t);
 
-			DBRootConfigList::iterator pt3 = dbrootlist.begin();
-			for( ; pt3 != dbrootlist.end() ; pt3++)
-			{
-				DeviceDBRootList::iterator pt = moduledbrootlist.begin();
-				for( ; pt != moduledbrootlist.end() ; pt++)
-				{
-					string moduleID = itoa((*pt).DeviceID);
-					DBRootConfigList::iterator pt1 = (*pt).dbrootConfigList.begin();
-					for( ; pt1 != (*pt).dbrootConfigList.end() ; pt1++)
-					{
-						if ( *pt3 == *pt1) {
-							cout << endl << "**** assignPmDbrootConfig Failed : DBRoot ID " + itoa(*pt3) + " already assigned to 'pm" + moduleID << "'" << endl;
-							exceptionControl("assignPmDbrootConfig", API_INVALID_PARAMETER);
-						}
-					}
-				}
-			}
-		}
-		catch (exception& e)
-		{
-			cout << endl << "**** getStorageConfig Failed :  " << e.what() << endl;
-		}
+            DBRootConfigList::iterator pt3 = dbrootlist.begin();
+            for (; pt3 != dbrootlist.end(); pt3++) {
+                DeviceDBRootList::iterator pt = moduledbrootlist.begin();
+                for (; pt != moduledbrootlist.end(); pt++) {
+                    string moduleID = itoa((*pt).DeviceID);
+                    DBRootConfigList::iterator pt1 = (*pt).dbrootConfigList.begin();
+                    for (; pt1 != (*pt).dbrootConfigList.end(); pt1++) {
+                        if (*pt3 == *pt1) {
+                            cout << endl << "**** assignPmDbrootConfig Failed : DBRoot ID " + itoa(*pt3) + " already assigned to 'pm" + moduleID << "'" << endl;
+                            exceptionControl("assignPmDbrootConfig", API_INVALID_PARAMETER);
+                        }
+                    }
+                }
+            }
+        } catch (exception& e) {
+            cout << endl << "**** getStorageConfig Failed :  " << e.what() << endl;
+        }
 
-		//make sure it's exist and unassigned
-		DBRootConfigList undbrootlist;
-		try {
-			getUnassignedDbroot(undbrootlist);
-		}
-		catch(...) {}
+        //make sure it's exist and unassigned
+        DBRootConfigList undbrootlist;
+        try {
+            getUnassignedDbroot(undbrootlist);
+        } catch (...) {}
 
-		if ( undbrootlist.empty() )
-		{
-			cout << endl << "**** assignPmDbrootConfig Failed : no available dbroots are unassigned" << endl;
-			exceptionControl("assignPmDbrootConfig", API_INVALID_PARAMETER);
-		}
+        if (undbrootlist.empty()) {
+            cout << endl << "**** assignPmDbrootConfig Failed : no available dbroots are unassigned" << endl;
+            exceptionControl("assignPmDbrootConfig", API_INVALID_PARAMETER);
+        }
 
-		DBRootConfigList::iterator pt1 = dbrootlist.begin();
-		for( ; pt1 != dbrootlist.end() ; pt1++)
-		{
-			bool found = false;
-			DBRootConfigList::iterator pt2 = undbrootlist.begin();
-			for( ; pt2 != undbrootlist.end() ; pt2++)
-			{
-				if ( *pt1 == * pt2 ) {
-					found = true;
-					break;
-				}
-			}
+        DBRootConfigList::iterator pt1 = dbrootlist.begin();
+        for (; pt1 != dbrootlist.end(); pt1++) {
+            bool found = false;
+            DBRootConfigList::iterator pt2 = undbrootlist.begin();
+            for (; pt2 != undbrootlist.end(); pt2++) {
+                if (*pt1 == *pt2) {
+                    found = true;
+                    break;
+                }
+            }
 
-			if (!found)
-			{
-				cout << endl << "**** assignPmDbrootConfig Failed : dbroot "  << *pt1 << " doesn't exist" << endl;
-				exceptionControl("assignPmDbrootConfig", API_INVALID_PARAMETER);
-			}
-		}
+            if (!found) {
+                cout << endl << "**** assignPmDbrootConfig Failed : dbroot " << *pt1 << " doesn't exist" << endl;
+                exceptionControl("assignPmDbrootConfig", API_INVALID_PARAMETER);
+            }
+        }
 
-		string toPMID = toPM.substr(MAX_MODULE_TYPE_SIZE,MAX_MODULE_ID_SIZE);;
+        string toPMID = toPM.substr(MAX_MODULE_TYPE_SIZE, MAX_MODULE_ID_SIZE);;
 
-		//get dbroots ids for to PM
-		DBRootConfigList todbrootConfigList;
-		try
-		{
-			getPmDbrootConfig(atoi(toPMID.c_str()), todbrootConfigList);
+        //get dbroots ids for to PM
+        DBRootConfigList todbrootConfigList;
+        try {
+            getPmDbrootConfig(atoi(toPMID.c_str()), todbrootConfigList);
 
-			cout << "DBRoot IDs assigned to '" + toPM + "' = ";
+            cout << "DBRoot IDs assigned to '" + toPM + "' = ";
 
-			DBRootConfigList::iterator pt = todbrootConfigList.begin();
-			for( ; pt != todbrootConfigList.end() ;)
-			{
-				cout << itoa(*pt);
-				pt++;
-				if (pt != todbrootConfigList.end())
-					cout << ", ";
-			}
-			cout << endl;
-		}
-		catch (exception& e)
-		{
-			cout << endl << "**** getPmDbrootConfig Failed for '" << toPM << "' : " << e.what() << endl;
-			exceptionControl("assignPmDbrootConfig", API_FAILURE);
-		}
+            DBRootConfigList::iterator pt = todbrootConfigList.begin();
+            for (; pt != todbrootConfigList.end();) {
+                cout << itoa(*pt);
+                pt++;
+                if (pt != todbrootConfigList.end())
+                    cout << ", ";
+            }
+            cout << endl;
+        } catch (exception& e) {
+            cout << endl << "**** getPmDbrootConfig Failed for '" << toPM << "' : " << e.what() << endl;
+            exceptionControl("assignPmDbrootConfig", API_FAILURE);
+        }
 
-		cout << endl << "Changes being applied" << endl << endl;
+        cout << endl << "Changes being applied" << endl << endl;
 
-		//added entered dbroot IDs to to-PM list and do Gluster assign if needed
-		string GlusterConfig = "n";
-		try {
-			getSystemConfig( "GlusterConfig", GlusterConfig);
-		}
-		catch(...)
-		{
-			GlusterConfig = "n";
-		}
+        //added entered dbroot IDs to to-PM list and do Gluster assign if needed
+        string GlusterConfig = "n";
+        try {
+            getSystemConfig("GlusterConfig", GlusterConfig);
+        } catch (...) {
+            GlusterConfig = "n";
+        }
 
-		DBRootConfigList::iterator pt3 = dbrootlist.begin();
-		for( ; pt3 != dbrootlist.end() ; pt3++)
-		{
-			todbrootConfigList.push_back(*pt3);
+        DBRootConfigList::iterator pt3 = dbrootlist.begin();
+        for (; pt3 != dbrootlist.end(); pt3++) {
+            todbrootConfigList.push_back(*pt3);
 
-/*			if ( GlusterConfig == "y")
-			{
-				try {
-					string errmsg;
-					int ret = glusterctl(oam::GLUSTER_ASSIGN, itoa(*pt3), toPM, errmsg);
-					if ( ret != 0 )
-					{
-						cerr << "FAILURE: Error assigning gluster dbroot# " + itoa(*pt3) + " to pm" + toPMID + ", error: " + errmsg << endl;
-						exceptionControl("assignPmDbrootConfig", API_FAILURE);
-					}
-				}
-				catch (exception& e)
-				{
-					cout << endl << "**** glusterctl API exception:  " << e.what() << endl;
-					cerr << "FAILURE: Error assigning gluster dbroot# " + itoa(*pt3) + " to pm" + toPMID << endl;
-					exceptionControl("assignPmDbrootConfig", API_FAILURE);
-				}
-				catch (...)
-				{
-					cout << endl << "**** glusterctl API exception: UNKNOWN"  << endl;
-					cerr << "FAILURE: Error assigning gluster dbroot# " + itoa(*pt3) + " to pm" + toPMID << endl;
-					exceptionControl("assignPmDbrootConfig", API_FAILURE);
-				}
-			}
-*/		}
+            /*			if ( GlusterConfig == "y")
+                        {
+                            try {
+                                string errmsg;
+                                int ret = glusterctl(oam::GLUSTER_ASSIGN, itoa(*pt3), toPM, errmsg);
+                                if ( ret != 0 )
+                                {
+                                    cerr << "FAILURE: Error assigning gluster dbroot# " + itoa(*pt3) + " to pm" + toPMID + ", error: " + errmsg << endl;
+                                    exceptionControl("assignPmDbrootConfig", API_FAILURE);
+                                }
+                            }
+                            catch (exception& e)
+                            {
+                                cout << endl << "**** glusterctl API exception:  " << e.what() << endl;
+                                cerr << "FAILURE: Error assigning gluster dbroot# " + itoa(*pt3) + " to pm" + toPMID << endl;
+                                exceptionControl("assignPmDbrootConfig", API_FAILURE);
+                            }
+                            catch (...)
+                            {
+                                cout << endl << "**** glusterctl API exception: UNKNOWN"  << endl;
+                                cerr << "FAILURE: Error assigning gluster dbroot# " + itoa(*pt3) + " to pm" + toPMID << endl;
+                                exceptionControl("assignPmDbrootConfig", API_FAILURE);
+                            }
+                        }
+            */
+        }
 
-		try
-		{
-			setPmDbrootConfig(atoi(toPMID.c_str()), todbrootConfigList);
-		}
-		catch (exception& e)
-		{
-			cout << endl << "**** setPmDbrootConfig Failed for '" << toPM << "' : " << e.what() << endl;
-			exceptionControl("assignPmDbrootConfig", API_FAILURE);
-		}
+        try {
+            setPmDbrootConfig(atoi(toPMID.c_str()), todbrootConfigList);
+        } catch (exception& e) {
+            cout << endl << "**** setPmDbrootConfig Failed for '" << toPM << "' : " << e.what() << endl;
+            exceptionControl("assignPmDbrootConfig", API_FAILURE);
+        }
 
-		//get dbroots ids for to-PM
-		try
-		{
-			todbrootConfigList.clear();
-			getPmDbrootConfig(atoi(toPMID.c_str()), todbrootConfigList);
+        //get dbroots ids for to-PM
+        try {
+            todbrootConfigList.clear();
+            getPmDbrootConfig(atoi(toPMID.c_str()), todbrootConfigList);
 
-			cout << "DBRoot IDs assigned to '" + toPM + "' = ";
+            cout << "DBRoot IDs assigned to '" + toPM + "' = ";
 
-			DBRootConfigList::iterator pt = todbrootConfigList.begin();
-			for( ; pt != todbrootConfigList.end() ;)
-			{
-				cout << itoa(*pt);
-				pt++;
-				if (pt != todbrootConfigList.end())
-					cout << ", ";
-			}
-			cout << endl;
-		}
-		catch (exception& e)
-		{
-			cout << endl << "**** getPmDbrootConfig Failed for '" << toPM << "' : " << e.what() << endl;
-			exceptionControl("assignPmDbrootConfig", API_FAILURE);
-		}
+            DBRootConfigList::iterator pt = todbrootConfigList.begin();
+            for (; pt != todbrootConfigList.end();) {
+                cout << itoa(*pt);
+                pt++;
+                if (pt != todbrootConfigList.end())
+                    cout << ", ";
+            }
+            cout << endl;
+        } catch (exception& e) {
+            cout << endl << "**** getPmDbrootConfig Failed for '" << toPM << "' : " << e.what() << endl;
+            exceptionControl("assignPmDbrootConfig", API_FAILURE);
+        }
 
-		//get old System DBRoot Count
-		int oldSystemDbRootCount = 0;
-		try
-		{
-			getSystemConfig("DBRootCount", oldSystemDbRootCount);
-			if (oldSystemDbRootCount < 1)
-				throw runtime_error("SystemDbRootCount not > 0");
-		}
-		catch (exception& e)
-		{
-			cout << endl << "**** getSystemConfig for DBRootCount failed; " <<
-				e.what() << endl;
-			exceptionControl("assignPmDbrootConfig", API_FAILURE);
-		}
+        //get old System DBRoot Count
+        int oldSystemDbRootCount = 0;
+        try {
+            getSystemConfig("DBRootCount", oldSystemDbRootCount);
+            if (oldSystemDbRootCount < 1)
+                throw runtime_error("SystemDbRootCount not > 0");
+        } catch (exception& e) {
+            cout << endl << "**** getSystemConfig for DBRootCount failed; " <<
+                e.what() << endl;
+            exceptionControl("assignPmDbrootConfig", API_FAILURE);
+        }
 
-		//set new System DBRoot Count
-		try
-		{
-			setSystemDBrootCount();
-		}
-		catch (exception& )
-		{
-			cout << endl << "**** setSystemDBrootCount Failed" << endl;
-			exceptionControl("assignPmDbrootConfig", API_FAILURE);
-		}
+        //set new System DBRoot Count
+        try {
+            setSystemDBrootCount();
+        } catch (exception&) {
+            cout << endl << "**** setSystemDBrootCount Failed" << endl;
+            exceptionControl("assignPmDbrootConfig", API_FAILURE);
+        }
 
-		//set FilesPerColumnPartition
-		try
-		{
-			setFilesPerColumnPartition( oldSystemDbRootCount );
-		}
-		catch (exception& )
-		{
-			cout << endl << "**** setFilesPerColumnPartition Failed" << endl;
-			exceptionControl("assignPmDbrootConfig", API_FAILURE);
-		}
+        //set FilesPerColumnPartition
+        try {
+            setFilesPerColumnPartition(oldSystemDbRootCount);
+        } catch (exception&) {
+            cout << endl << "**** setFilesPerColumnPartition Failed" << endl;
+            exceptionControl("assignPmDbrootConfig", API_FAILURE);
+        }
 
-		//get updated erydb.xml distributed
-		distributeConfigFile("system");
+        //get updated erydb.xml distributed
+        distributeConfigFile("system");
 
-		return;
-	}
+        return;
+    }
 
     /***************************************************************************
      *
@@ -6579,163 +5837,135 @@ namespace oam
      *
      ****************************************************************************/
 
-    	void Oam::unassignDbroot(std::string residePM, DBRootConfigList& dbrootlist)
-	{
-		string residePMID = residePM.substr(MAX_MODULE_TYPE_SIZE,MAX_MODULE_ID_SIZE);;
+    void Oam::unassignDbroot(std::string residePM, DBRootConfigList& dbrootlist) {
+        string residePMID = residePM.substr(MAX_MODULE_TYPE_SIZE, MAX_MODULE_ID_SIZE);;
 
-		//get dbroots ids for reside PM
-		DBRootConfigList residedbrootConfigList;
-		try
-		{
-			getPmDbrootConfig(atoi(residePMID.c_str()), residedbrootConfigList);
+        //get dbroots ids for reside PM
+        DBRootConfigList residedbrootConfigList;
+        try {
+            getPmDbrootConfig(atoi(residePMID.c_str()), residedbrootConfigList);
 
-			cout << "DBRoot IDs assigned to '" + residePM + "' = ";
+            cout << "DBRoot IDs assigned to '" + residePM + "' = ";
 
-			DBRootConfigList::iterator pt = residedbrootConfigList.begin();
-			for( ; pt != residedbrootConfigList.end() ;)
-			{
-				cout << itoa(*pt);
-				pt++;
-				if (pt != residedbrootConfigList.end())
-					cout << ", ";
-			}
-			cout << endl;
-		}
-		catch (exception& e)
-		{
-			cout << endl << "**** getPmDbrootConfig Failed for '" << residePM << "' : " << e.what() << endl;
-			exceptionControl("unassignPmDbrootConfig", API_FAILURE);
-		}
+            DBRootConfigList::iterator pt = residedbrootConfigList.begin();
+            for (; pt != residedbrootConfigList.end();) {
+                cout << itoa(*pt);
+                pt++;
+                if (pt != residedbrootConfigList.end())
+                    cout << ", ";
+            }
+            cout << endl;
+        } catch (exception& e) {
+            cout << endl << "**** getPmDbrootConfig Failed for '" << residePM << "' : " << e.what() << endl;
+            exceptionControl("unassignPmDbrootConfig", API_FAILURE);
+        }
 
-		cout << endl << "Changes being applied" << endl << endl;
+        cout << endl << "Changes being applied" << endl << endl;
 
-		//remove entered dbroot IDs from reside PM list
-		DBRootConfigList::iterator pt1 = dbrootlist.begin();
-		for( ; pt1 != dbrootlist.end() ; pt1++)
-		{
-			DBRootConfigList::iterator pt2 = residedbrootConfigList.begin();
-			for( ; pt2 != residedbrootConfigList.end() ; pt2++)
-			{
-				if ( *pt2 == *pt1 ) {
+        //remove entered dbroot IDs from reside PM list
+        DBRootConfigList::iterator pt1 = dbrootlist.begin();
+        for (; pt1 != dbrootlist.end(); pt1++) {
+            DBRootConfigList::iterator pt2 = residedbrootConfigList.begin();
+            for (; pt2 != residedbrootConfigList.end(); pt2++) {
+                if (*pt2 == *pt1) {
 
-					dbrootList dbroot1;
-					dbroot1.push_back(itoa(*pt1));
+                    dbrootList dbroot1;
+                    dbroot1.push_back(itoa(*pt1));
 
-					//send msg to unmount dbroot if module is not offline
-					int opState;
-					bool degraded;
-					try {
-						getModuleStatus(residePM, opState, degraded);
-					}
-					catch(...)
-					{}
-		
-					if (opState != oam::AUTO_OFFLINE || opState != oam::AUTO_DISABLED) {
-						try
-						{
-							mountDBRoot(dbroot1, false);
-						}
-						catch (exception& )
-						{
-							writeLog("ERROR: dbroot failed to unmount", LOG_TYPE_ERROR );
-							cout << endl << "ERROR: umountDBRoot api failure" << endl;
-							exceptionControl("unassignPmDbrootConfig", API_FAILURE);
-						}
-					}
+                    //send msg to unmount dbroot if module is not offline
+                    int opState;
+                    bool degraded;
+                    try {
+                        getModuleStatus(residePM, opState, degraded);
+                    } catch (...) {
+                    }
 
-					//get volume name and detach it
+                    if (opState != oam::AUTO_OFFLINE || opState != oam::AUTO_DISABLED) {
+                        try {
+                            mountDBRoot(dbroot1, false);
+                        } catch (exception&) {
+                            writeLog("ERROR: dbroot failed to unmount", LOG_TYPE_ERROR);
+                            cout << endl << "ERROR: umountDBRoot api failure" << endl;
+                            exceptionControl("unassignPmDbrootConfig", API_FAILURE);
+                        }
+                    }
 
-					string volumeNameID = "PMVolumeName" + itoa(*pt1);
-					string volumeName = oam::UnassignedName;
-					try {
-						getSystemConfig( volumeNameID, volumeName);
-					}
-					catch(...)
-					{}
-	
-					if ( volumeName != oam::UnassignedName )
-						detachEC2Volume(volumeName);
+                    //get volume name and detach it
 
-					residedbrootConfigList.erase(pt2);
+                    string volumeNameID = "PMVolumeName" + itoa(*pt1);
+                    string volumeName = oam::UnassignedName;
+                    try {
+                        getSystemConfig(volumeNameID, volumeName);
+                    } catch (...) {
+                    }
 
-					break;
-				}
-			}
-		}
+                    if (volumeName != oam::UnassignedName)
+                        detachEC2Volume(volumeName);
 
-		try
-		{
-			setPmDbrootConfig(atoi(residePMID.c_str()), residedbrootConfigList);
-		}
-		catch (exception& e)
-		{
-			cout << endl << "**** setPmDbrootConfig Failed for '" << residePM << "' : " << e.what() << endl;
-			exceptionControl("unassignPmDbrootConfig", API_FAILURE);
-		}
+                    residedbrootConfigList.erase(pt2);
 
-		//get dbroots ids for reside-PM
-		try
-		{
-			residedbrootConfigList.clear();
-			getPmDbrootConfig(atoi(residePMID.c_str()), residedbrootConfigList);
+                    break;
+                }
+            }
+        }
 
-			cout << "DBRoot IDs assigned to '" + residePM + "' = ";
+        try {
+            setPmDbrootConfig(atoi(residePMID.c_str()), residedbrootConfigList);
+        } catch (exception& e) {
+            cout << endl << "**** setPmDbrootConfig Failed for '" << residePM << "' : " << e.what() << endl;
+            exceptionControl("unassignPmDbrootConfig", API_FAILURE);
+        }
 
-			DBRootConfigList::iterator pt = residedbrootConfigList.begin();
-			for( ; pt != residedbrootConfigList.end() ;)
-			{
-				cout << itoa(*pt);
-				pt++;
-				if (pt != residedbrootConfigList.end())
-					cout << ", ";
-			}
-			cout << endl;
-		}
-		catch (exception& e)
-		{
-			cout << endl << "**** getPmDbrootConfig Failed for '" << residePM << "' : " << e.what() << endl;
-			exceptionControl("unassignPmDbrootConfig", API_FAILURE);
-		}
+        //get dbroots ids for reside-PM
+        try {
+            residedbrootConfigList.clear();
+            getPmDbrootConfig(atoi(residePMID.c_str()), residedbrootConfigList);
 
-		//get old System DBRoot Count
-		int oldSystemDbRootCount = 0;
-		try
-		{
-			getSystemConfig("DBRootCount", oldSystemDbRootCount);
-			if (oldSystemDbRootCount < 1)
-				throw runtime_error("SystemDbRootCount not > 0");
-		}
-		catch (exception& e)
-		{
-			cout << endl << "**** getSystemConfig for DBRootCount failed; " <<
-				e.what() << endl;
-			exceptionControl("unassignPmDbrootConfig", API_FAILURE);
-		}
+            cout << "DBRoot IDs assigned to '" + residePM + "' = ";
 
-		//set new System DBRoot Count
-		try
-		{
-			setSystemDBrootCount();
-		}
-		catch (exception& )
-		{
-			cout << endl << "**** setSystemDBrootCount Failed" << endl;
-			exceptionControl("unassignPmDbrootConfig", API_FAILURE);
-		}
+            DBRootConfigList::iterator pt = residedbrootConfigList.begin();
+            for (; pt != residedbrootConfigList.end();) {
+                cout << itoa(*pt);
+                pt++;
+                if (pt != residedbrootConfigList.end())
+                    cout << ", ";
+            }
+            cout << endl;
+        } catch (exception& e) {
+            cout << endl << "**** getPmDbrootConfig Failed for '" << residePM << "' : " << e.what() << endl;
+            exceptionControl("unassignPmDbrootConfig", API_FAILURE);
+        }
 
-		//set FilesPerColumnPartition
-		try
-		{
-			setFilesPerColumnPartition( oldSystemDbRootCount );
-		}
-		catch (exception& )
-		{
-			cout << endl << "**** setFilesPerColumnPartition Failed" << endl;
-			exceptionControl("unassignPmDbrootConfig", API_FAILURE);
-		}
+        //get old System DBRoot Count
+        int oldSystemDbRootCount = 0;
+        try {
+            getSystemConfig("DBRootCount", oldSystemDbRootCount);
+            if (oldSystemDbRootCount < 1)
+                throw runtime_error("SystemDbRootCount not > 0");
+        } catch (exception& e) {
+            cout << endl << "**** getSystemConfig for DBRootCount failed; " <<
+                e.what() << endl;
+            exceptionControl("unassignPmDbrootConfig", API_FAILURE);
+        }
 
-		return;
-	}
+        //set new System DBRoot Count
+        try {
+            setSystemDBrootCount();
+        } catch (exception&) {
+            cout << endl << "**** setSystemDBrootCount Failed" << endl;
+            exceptionControl("unassignPmDbrootConfig", API_FAILURE);
+        }
+
+        //set FilesPerColumnPartition
+        try {
+            setFilesPerColumnPartition(oldSystemDbRootCount);
+        } catch (exception&) {
+            cout << endl << "**** setFilesPerColumnPartition Failed" << endl;
+            exceptionControl("unassignPmDbrootConfig", API_FAILURE);
+        }
+
+        return;
+    }
 
     /***************************************************************************
      *
@@ -6745,44 +5975,37 @@ namespace oam
      *
      ****************************************************************************/
 
-    void Oam::getUnassignedDbroot(DBRootConfigList& dbrootlist)
-	{
-		//get assigned dbroots IDs
-		DBRootConfigList dbrootConfigList;
-		try
-		{
-			getSystemDbrootConfig(dbrootConfigList);
-		}
-		catch(...) {}
+    void Oam::getUnassignedDbroot(DBRootConfigList& dbrootlist) {
+        //get assigned dbroots IDs
+        DBRootConfigList dbrootConfigList;
+        try {
+            getSystemDbrootConfig(dbrootConfigList);
+        } catch (...) {}
 
-        	// get string variables
-		Config* sysConfig = Config::makeConfig(erydbConfigFile.c_str());
-        	string Section = "SystemConfig";
-		for ( int dbrootID = 1 ; dbrootID < MAX_DBROOT ; dbrootID++)
-		{
-			string dbrootPath;
-			try
-			{
-				dbrootPath = sysConfig->getConfig(Section, "DBRoot" + itoa(dbrootID));
-			}
-			catch(...) {}
-			if (dbrootPath.empty() || dbrootPath == oam::UnassignedName)
-				continue;
+        // get string variables
+        Config* sysConfig = Config::makeConfig(erydbConfigFile.c_str());
+        string Section = "SystemConfig";
+        for (int dbrootID = 1; dbrootID < MAX_DBROOT; dbrootID++) {
+            string dbrootPath;
+            try {
+                dbrootPath = sysConfig->getConfig(Section, "DBRoot" + itoa(dbrootID));
+            } catch (...) {}
+            if (dbrootPath.empty() || dbrootPath == oam::UnassignedName)
+                continue;
 
-			bool found = false;
-			DBRootConfigList::iterator pt = dbrootConfigList.begin();
-			for( ; pt != dbrootConfigList.end() ; pt++)
-			{
-				if ( dbrootID == *pt ) {
-					found = true;
-					break;
-				}
-			}
-			if (!found)
-				dbrootlist.push_back(dbrootID);
-		}
-		return;
-	}
+            bool found = false;
+            DBRootConfigList::iterator pt = dbrootConfigList.begin();
+            for (; pt != dbrootConfigList.end(); pt++) {
+                if (dbrootID == *pt) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found)
+                dbrootlist.push_back(dbrootID);
+        }
+        return;
+    }
 
     /***************************************************************************
      *
@@ -6792,176 +6015,148 @@ namespace oam
      *
      ****************************************************************************/
 
-    	void Oam::removeDbroot(DBRootConfigList& dbrootlist)
-	{
-		int SystemDBRootCount = 0;
-		string cloud;
-		string DBRootStorageType;
-		string GlusterConfig = "n";
-		try {
-			getSystemConfig("DBRootCount", SystemDBRootCount);
-			getSystemConfig("Cloud", cloud);
-			getSystemConfig("DBRootStorageType", DBRootStorageType);
-			getSystemConfig("GlusterConfig", GlusterConfig);
-		}
-		catch(...) {}
+    void Oam::removeDbroot(DBRootConfigList& dbrootlist) {
+        int SystemDBRootCount = 0;
+        string cloud;
+        string DBRootStorageType;
+        string GlusterConfig = "n";
+        try {
+            getSystemConfig("DBRootCount", SystemDBRootCount);
+            getSystemConfig("Cloud", cloud);
+            getSystemConfig("DBRootStorageType", DBRootStorageType);
+            getSystemConfig("GlusterConfig", GlusterConfig);
+        } catch (...) {}
 
-		int dbrootNumber = dbrootlist.size();
+        int dbrootNumber = dbrootlist.size();
 
-		if ( dbrootNumber < 1 )
-		{
-			cout << "ERROR: Failed remove, total Number of DBRoots to remove is less than 1 " << endl;
-			exceptionControl("removeDbroot", API_INVALID_PARAMETER);
-		}
+        if (dbrootNumber < 1) {
+            cout << "ERROR: Failed remove, total Number of DBRoots to remove is less than 1 " << endl;
+            exceptionControl("removeDbroot", API_INVALID_PARAMETER);
+        }
 
-		Config* sysConfig = Config::makeConfig(erydbConfigFile.c_str());
-        	string Section = "SystemConfig";
+        Config* sysConfig = Config::makeConfig(erydbConfigFile.c_str());
+        string Section = "SystemConfig";
 
-		//check if dbroot requested to be removed is empty and dboot #1 is requested to be removed
-		DBRootConfigList::iterator pt = dbrootlist.begin();
-		for( ; pt != dbrootlist.end() ; pt++)
-		{
-			int dbrootID = *pt;
+        //check if dbroot requested to be removed is empty and dboot #1 is requested to be removed
+        DBRootConfigList::iterator pt = dbrootlist.begin();
+        for (; pt != dbrootlist.end(); pt++) {
+            int dbrootID = *pt;
 
-			//see if dbroot exist
-			string DBrootpath = "DBRoot" + itoa(dbrootID);
-			string dbrootdir;
-			try {
-				dbrootdir = sysConfig->getConfig(Section, DBrootpath);
-			}
-			catch(...)
-			{}
+            //see if dbroot exist
+            string DBrootpath = "DBRoot" + itoa(dbrootID);
+            string dbrootdir;
+            try {
+                dbrootdir = sysConfig->getConfig(Section, DBrootpath);
+            } catch (...) {
+            }
 
-			if ( dbrootdir.empty() || dbrootdir == oam::UnassignedName )
-			{
-				cout << "ERROR: DBRoot doesn't exist: " << itoa(dbrootID) << endl;
-				exceptionControl("removeDbroot", API_FAILURE);
-			}
+            if (dbrootdir.empty() || dbrootdir == oam::UnassignedName) {
+                cout << "ERROR: DBRoot doesn't exist: " << itoa(dbrootID) << endl;
+                exceptionControl("removeDbroot", API_FAILURE);
+            }
 
-			if ( dbrootID == 1 )
-			{
-				cout << "ERROR: Failed remove, can't remove dbroot #1" << endl;
-				exceptionControl("removeDbroot", API_INVALID_PARAMETER);
-			}
+            if (dbrootID == 1) {
+                cout << "ERROR: Failed remove, can't remove dbroot #1" << endl;
+                exceptionControl("removeDbroot", API_INVALID_PARAMETER);
+            }
 
-			//check if dbroot is empty
-			bool isEmpty = false;
-			string errMsg;
-			try {
-				BRM::DBRM dbrm;
-				if ( dbrm.isDBRootEmpty(dbrootID, isEmpty, errMsg) != 0) {
-					cout << "ERROR: isDBRootEmpty API error, dbroot #" << itoa(dbrootID) << " :" << errMsg << endl;
-					exceptionControl("removeDbroot", API_FAILURE);
-				}
-			}
-			catch (exception& )
-			{}
+            //check if dbroot is empty
+            bool isEmpty = false;
+            string errMsg;
+            try {
+                BRM::DBRM dbrm;
+                if (dbrm.isDBRootEmpty(dbrootID, isEmpty, errMsg) != 0) {
+                    cout << "ERROR: isDBRootEmpty API error, dbroot #" << itoa(dbrootID) << " :" << errMsg << endl;
+                    exceptionControl("removeDbroot", API_FAILURE);
+                }
+            } catch (exception&) {
+            }
 
-			if (!isEmpty)
-			{
-				cout << "ERROR: Failed remove, dbroot #" << itoa(dbrootID) << " is not empty" << endl;
-				exceptionControl("removeDbroot", API_FAILURE);
-			}
+            if (!isEmpty) {
+                cout << "ERROR: Failed remove, dbroot #" << itoa(dbrootID) << " is not empty" << endl;
+                exceptionControl("removeDbroot", API_FAILURE);
+            }
 
-			//check if dbroot is assigned to a pm and if so, unassign it
-			int pmid = 0;
-			try {
-				getDbrootPmConfig(dbrootID, pmid);
-			}
-			catch (exception& )
-			{}
+            //check if dbroot is assigned to a pm and if so, unassign it
+            int pmid = 0;
+            try {
+                getDbrootPmConfig(dbrootID, pmid);
+            } catch (exception&) {
+            }
 
-			if ( pmid > 0 )
-			{
-				//unassign dbroot from pm
-				DBRootConfigList pmdbrootlist;
-				pmdbrootlist.push_back(dbrootID);
+            if (pmid > 0) {
+                //unassign dbroot from pm
+                DBRootConfigList pmdbrootlist;
+                pmdbrootlist.push_back(dbrootID);
 
-				try {
-					unassignDbroot("pm" + itoa(pmid), pmdbrootlist);
-				}
-				catch (exception& )
-				{
-					cout << endl << "**** unassignDbroot Failed" << endl;
-					exceptionControl("removeDbroot", API_FAILURE);
-				}
-			}
+                try {
+                    unassignDbroot("pm" + itoa(pmid), pmdbrootlist);
+                } catch (exception&) {
+                    cout << endl << "**** unassignDbroot Failed" << endl;
+                    exceptionControl("removeDbroot", API_FAILURE);
+                }
+            }
 
-			// if gluster, request volume delete
-			if ( GlusterConfig == "y")
-			{
-				try {
-					string errmsg;
-					int ret = glusterctl(oam::GLUSTER_DELETE, itoa(dbrootID), errmsg, errmsg);
-					if ( ret != 0 )
-					{
-						cerr << "FAILURE: Error deleting gluster dbroot# " + itoa(dbrootID) + ", error: " + errmsg << endl;
-						exceptionControl("removeDbroot", API_FAILURE);
-					}
-				}
-				catch (exception& e)
-				{
-					cout << endl << "**** glusterctl API exception:  " << e.what() << endl;
-					cerr << "FAILURE: Error assigning gluster dbroot# " + itoa(dbrootID) << endl;
-					exceptionControl("removeDbroot", API_FAILURE);
-				}
-				catch (...)
-				{
-					cout << endl << "**** glusterctl API exception: UNKNOWN"  << endl;
-					cerr << "FAILURE: Error assigning gluster dbroot# " + itoa(dbrootID) << endl;
-					exceptionControl("removeDbroot", API_FAILURE);
-				}
-			}
+            // if gluster, request volume delete
+            if (GlusterConfig == "y") {
+                try {
+                    string errmsg;
+                    int ret = glusterctl(oam::GLUSTER_DELETE, itoa(dbrootID), errmsg, errmsg);
+                    if (ret != 0) {
+                        cerr << "FAILURE: Error deleting gluster dbroot# " + itoa(dbrootID) + ", error: " + errmsg << endl;
+                        exceptionControl("removeDbroot", API_FAILURE);
+                    }
+                } catch (exception& e) {
+                    cout << endl << "**** glusterctl API exception:  " << e.what() << endl;
+                    cerr << "FAILURE: Error assigning gluster dbroot# " + itoa(dbrootID) << endl;
+                    exceptionControl("removeDbroot", API_FAILURE);
+                } catch (...) {
+                    cout << endl << "**** glusterctl API exception: UNKNOWN" << endl;
+                    cerr << "FAILURE: Error assigning gluster dbroot# " + itoa(dbrootID) << endl;
+                    exceptionControl("removeDbroot", API_FAILURE);
+                }
+            }
 
-			try {
-				sysConfig->delConfig(Section, DBrootpath);
-			}
-			catch(...)
-			{
-				cout << "ERROR: Problem deleting DBRoot in the erydb System Configuration file" << endl;
-				exceptionControl("deleteConfig", API_FAILURE);
-			}
-		}
+            try {
+                sysConfig->delConfig(Section, DBrootpath);
+            } catch (...) {
+                cout << "ERROR: Problem deleting DBRoot in the erydb System Configuration file" << endl;
+                exceptionControl("deleteConfig", API_FAILURE);
+            }
+        }
 
-		try
-		{
-			sysConfig->write();
-		}
-		catch(...)
-		{
-			exceptionControl("sysConfig->write", API_FAILURE);
-		}
+        try {
+            sysConfig->write();
+        } catch (...) {
+            exceptionControl("sysConfig->write", API_FAILURE);
+        }
 
-		//get updated erydb.xml distributed
-		distributeConfigFile("system");
+        //get updated erydb.xml distributed
+        distributeConfigFile("system");
 
-		//
-		//send message to Process Monitor to remove dbroot to shared memory
-		//
-		pt = dbrootlist.begin();
-		for( ; pt != dbrootlist.end() ; pt++)
-		{
-			try
-			{
-				ByteStream obs;
-		
-				obs << (ByteStream::byte) REMOVE_DBROOT;
-				obs << itoa(*pt);
-		
-				sendStatusUpdate(obs, REMOVE_DBROOT);
-			}
-			catch(...)
-			{
-				exceptionControl("setSystemConfig", API_INVALID_PARAMETER);
-			}
-		}
+        //
+        //send message to Process Monitor to remove dbroot to shared memory
+        //
+        pt = dbrootlist.begin();
+        for (; pt != dbrootlist.end(); pt++) {
+            try {
+                ByteStream obs;
 
-		return;
-	}
+                obs << (ByteStream::byte) REMOVE_DBROOT;
+                obs << itoa(*pt);
 
-	//current amazon max dbroot id support = 190;
-	string PMdeviceName = "/dev/sd";
-	string deviceLetter[] = {"g","h","i","j","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z","end"};
+                sendStatusUpdate(obs, REMOVE_DBROOT);
+            } catch (...) {
+                exceptionControl("setSystemConfig", API_INVALID_PARAMETER);
+            }
+        }
+
+        return;
+    }
+
+    //current amazon max dbroot id support = 190;
+    string PMdeviceName = "/dev/sd";
+    string deviceLetter[] = { "g","h","i","j","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z","end" };
 
     /***************************************************************************
      *
@@ -6971,25 +6166,23 @@ namespace oam
      *
      ****************************************************************************/
 
-	storageID_t Oam::getAWSdeviceName( const int dbrootid)
-	{
-		string amazondeviceName = "/dev/xvd";
-		try {
-			getSystemConfig( "AmazonDeviceName", amazondeviceName );
-		}
-		catch(...)
-		{}
+    storageID_t Oam::getAWSdeviceName(const int dbrootid) {
+        string amazondeviceName = "/dev/xvd";
+        try {
+            getSystemConfig("AmazonDeviceName", amazondeviceName);
+        } catch (...) {
+        }
 
-		if ( amazondeviceName.empty() || amazondeviceName == "" )
-			amazondeviceName = "/dev/xvd";
+        if (amazondeviceName.empty() || amazondeviceName == "")
+            amazondeviceName = "/dev/xvd";
 
-		//calulate id numbers from DBRoot ID
+        //calulate id numbers from DBRoot ID
 //		int lid = (dbrootid-1) / 10;
 //		int did = dbrootid - (dbrootid * lid);
 
 //		return boost::make_tuple(PMdeviceName + deviceLetter[lid] + itoa(did), amazondeviceName + deviceLetter[lid] + itoa(did));
-		return boost::make_tuple(PMdeviceName + deviceLetter[dbrootid-1], amazondeviceName + deviceLetter[dbrootid-1]);
-	}
+        return boost::make_tuple(PMdeviceName + deviceLetter[dbrootid - 1], amazondeviceName + deviceLetter[dbrootid - 1]);
+    }
 
     /***************************************************************************
      *
@@ -6999,102 +6192,88 @@ namespace oam
      *
      ****************************************************************************/
 
-    	void Oam::setSystemDBrootCount()
-	{
-		sleep(1); //let other updates get applied to the config file
+    void Oam::setSystemDBrootCount() {
+        sleep(1); //let other updates get applied to the config file
 
-		//set the system dbroot number
-		try
-		{
-			DBRootConfigList dbrootConfigList;
-			getSystemDbrootConfig(dbrootConfigList);
+        //set the system dbroot number
+        try {
+            DBRootConfigList dbrootConfigList;
+            getSystemDbrootConfig(dbrootConfigList);
 
-			try {
-				setSystemConfig("DBRootCount", dbrootConfigList.size());
-			}
-			catch(...)
-			{
-				writeLog("ERROR: setSystemConfig DBRootCount " + dbrootConfigList.size() , LOG_TYPE_ERROR );
-				cout << endl << "ERROR: setSystemConfig DBRootCount " + dbrootConfigList.size() << endl;
-				exceptionControl("setSystemConfig", API_FAILURE);
-			}
-		}
-		catch(...)
-		{
-			writeLog("ERROR: getSystemDbrootConfig ", LOG_TYPE_ERROR );
-			cout << endl << "ERROR: getSystemDbrootConfig "  << endl;
-			exceptionControl("getSystemDbrootConfig", API_INVALID_PARAMETER);
-		}
+            try {
+                setSystemConfig("DBRootCount", dbrootConfigList.size());
+            } catch (...) {
+                writeLog("ERROR: setSystemConfig DBRootCount " + dbrootConfigList.size(), LOG_TYPE_ERROR);
+                cout << endl << "ERROR: setSystemConfig DBRootCount " + dbrootConfigList.size() << endl;
+                exceptionControl("setSystemConfig", API_FAILURE);
+            }
+        } catch (...) {
+            writeLog("ERROR: getSystemDbrootConfig ", LOG_TYPE_ERROR);
+            cout << endl << "ERROR: getSystemDbrootConfig " << endl;
+            exceptionControl("getSystemDbrootConfig", API_INVALID_PARAMETER);
+        }
 
-		return;
-	}
+        return;
+    }
 
     /***************************************************************************
      *
      * Function:  setFilesPerColumnPartition
      *
      * Purpose:   set FilesPerColumnPartition
-	 *            This function takes the old DBRootCount as an input arg
-	 *            and expects that the new DBRootCount has been set in the
-	 *            erydb.xml file.  Function assumes oldSystemDBRootCount
-	 *            has already been validated to be > 0 (else we could get a
-	 *            divide by 0 error).
+     *            This function takes the old DBRootCount as an input arg
+     *            and expects that the new DBRootCount has been set in the
+     *            erydb.xml file.  Function assumes oldSystemDBRootCount
+     *            has already been validated to be > 0 (else we could get a
+     *            divide by 0 error).
      *
      ****************************************************************************/
 
-    	void Oam::setFilesPerColumnPartition( int oldSystemDBRootCount )
-	{
-		int newSystemDBRootCount = 0;
-		int oldFilesPerColumnPartition = 4;
+    void Oam::setFilesPerColumnPartition(int oldSystemDBRootCount) {
+        int newSystemDBRootCount = 0;
+        int oldFilesPerColumnPartition = 4;
 
-		try {
-			getSystemConfig("DBRootCount", newSystemDBRootCount);
-		}
-		catch(...)
-		{
-			writeLog("ERROR: getSystemConfig DBRootCount ", LOG_TYPE_ERROR );
-			cout << endl << "ERROR: getSystemConfig DBRootCount"  << endl;
-			exceptionControl("setFilesPerColumnPartition", API_INVALID_PARAMETER);
-		}
+        try {
+            getSystemConfig("DBRootCount", newSystemDBRootCount);
+        } catch (...) {
+            writeLog("ERROR: getSystemConfig DBRootCount ", LOG_TYPE_ERROR);
+            cout << endl << "ERROR: getSystemConfig DBRootCount" << endl;
+            exceptionControl("setFilesPerColumnPartition", API_INVALID_PARAMETER);
+        }
 
-		try {
-			getSystemConfig("FilesPerColumnPartition", oldFilesPerColumnPartition);
-		}
-		catch(...)
-		{
-			writeLog("ERROR: getSystemConfig FilesPerColumnPartition ", LOG_TYPE_ERROR );
-			cout << endl << "ERROR: getSystemConfig FilesPerColumnPartition"  << endl;
-			exceptionControl("setFilesPerColumnPartition", API_INVALID_PARAMETER);
-		}
+        try {
+            getSystemConfig("FilesPerColumnPartition", oldFilesPerColumnPartition);
+        } catch (...) {
+            writeLog("ERROR: getSystemConfig FilesPerColumnPartition ", LOG_TYPE_ERROR);
+            cout << endl << "ERROR: getSystemConfig FilesPerColumnPartition" << endl;
+            exceptionControl("setFilesPerColumnPartition", API_INVALID_PARAMETER);
+        }
 
-		if ( oldFilesPerColumnPartition != oldSystemDBRootCount *
-			(oldFilesPerColumnPartition/oldSystemDBRootCount) ) {
-			writeLog("ERROR: old FilesPerColumnPartition not a multiple of DBRootCount", LOG_TYPE_ERROR );
-			cout << endl << "ERROR: old FilesPerColumnPartition not a multiple of DBRootCount " << endl;
-			exceptionControl("setFilesPerColumnPartition", API_INVALID_PARAMETER);
-		}
+        if (oldFilesPerColumnPartition != oldSystemDBRootCount *
+            (oldFilesPerColumnPartition / oldSystemDBRootCount)) {
+            writeLog("ERROR: old FilesPerColumnPartition not a multiple of DBRootCount", LOG_TYPE_ERROR);
+            cout << endl << "ERROR: old FilesPerColumnPartition not a multiple of DBRootCount " << endl;
+            exceptionControl("setFilesPerColumnPartition", API_INVALID_PARAMETER);
+        }
 
-		int newFilesPerColumnPartition = (oldFilesPerColumnPartition/oldSystemDBRootCount) * newSystemDBRootCount;
+        int newFilesPerColumnPartition = (oldFilesPerColumnPartition / oldSystemDBRootCount) * newSystemDBRootCount;
 
-		try {
-			setSystemConfig("FilesPerColumnPartition", newFilesPerColumnPartition);
-		}
-		catch(...)
-		{
-			writeLog("ERROR: setSystemConfig FilesPerColumnPartition " + newFilesPerColumnPartition , LOG_TYPE_ERROR );
-			cout << endl << "ERROR: setSystemConfig FilesPerColumnPartition " + newFilesPerColumnPartition << endl;
-			exceptionControl("setFilesPerColumnPartition", API_FAILURE);
-		}
-	}
+        try {
+            setSystemConfig("FilesPerColumnPartition", newFilesPerColumnPartition);
+        } catch (...) {
+            writeLog("ERROR: setSystemConfig FilesPerColumnPartition " + newFilesPerColumnPartition, LOG_TYPE_ERROR);
+            cout << endl << "ERROR: setSystemConfig FilesPerColumnPartition " + newFilesPerColumnPartition << endl;
+            exceptionControl("setFilesPerColumnPartition", API_FAILURE);
+        }
+    }
 
 #pragma pack(push,1)
-	struct NotifyMsgStruct
-	{
-		uint32_t magic;
-		uint32_t msgno;
-		char node[8];
-		uint32_t paylen;
-	};
+    struct NotifyMsgStruct {
+        uint32_t magic;
+        uint32_t msgno;
+        char node[8];
+        uint32_t paylen;
+    };
 #pragma pack(pop)
 
     /***************************************************************************
@@ -7105,79 +6284,67 @@ namespace oam
      *
      ****************************************************************************/
 
-    int Oam::sendDeviceNotification(std::string deviceName, NOTIFICATION_TYPE type, std::string payload)
-    {
-		//first check if there are any CMP entries configured
-		try {
-			Config* sysConfig = Config::makeConfig(erydbConfigFile.c_str());
-			string CMPsection = "CMP";
-			for ( int id = 1 ;; id++)
-			{
-				string CMP = CMPsection + itoa(id);
-				try {
-					string ipaddr = sysConfig->getConfig(CMP, "IPAddr");
-	
-					if (ipaddr.empty())
-						return API_SUCCESS;
+    int Oam::sendDeviceNotification(std::string deviceName, NOTIFICATION_TYPE type, std::string payload) {
+        //first check if there are any CMP entries configured
+        try {
+            Config* sysConfig = Config::makeConfig(erydbConfigFile.c_str());
+            string CMPsection = "CMP";
+            for (int id = 1;; id++) {
+                string CMP = CMPsection + itoa(id);
+                try {
+                    string ipaddr = sysConfig->getConfig(CMP, "IPAddr");
 
-					string port = sysConfig->getConfig(CMP, "Port");
+                    if (ipaddr.empty())
+                        return API_SUCCESS;
 
-					NotifyMsgStruct msg;
-					memset(&msg, 0, sizeof(msg));
-					msg.magic = NOTIFICATIONKEY;
-					msg.msgno = type;
-					strncpy(msg.node, deviceName.c_str(), 7);
-					if (!payload.empty())
-						msg.paylen = payload.length() + 1;
+                    string port = sysConfig->getConfig(CMP, "Port");
 
-					// send notification msg to this exchange
-					try
-					{
-						int ds = -1;
-						ds = ::socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
-						struct sockaddr_in serv_addr;
-						struct in_addr la;
-						::inet_aton(ipaddr.c_str(), &la);
-						memset(&serv_addr, 0, sizeof(serv_addr));
-						serv_addr.sin_family = AF_INET;
-						serv_addr.sin_addr.s_addr = la.s_addr;
-						serv_addr.sin_port = htons(atoi(port.c_str()));
-						int rc = -1;
-						rc = ::connect(ds, (struct sockaddr*)&serv_addr, sizeof(serv_addr));
-						if (rc < 0) throw runtime_error("socket connect error");
-						rc = ::write(ds, &msg, sizeof(msg));
-						if (rc < 0) throw runtime_error("socket write error");
-						if (msg.paylen > 0)
-						{
-							rc = ::write(ds, payload.c_str(), msg.paylen);
-							if (rc < 0) throw runtime_error("socket write error");
-						}
-						::shutdown(ds, SHUT_RDWR);
-						::close(ds);
-					}
-					catch (std::runtime_error&)
-					{
-						//There's other reasons, but this is the most likely...
-						return API_CONN_REFUSED;
-					}
-					catch (std::exception&)
-					{
-						return API_FAILURE;
-					}
-					catch (...)
-					{
-						return API_FAILURE;
-					}
-				}
-				catch (...) {
-					return API_SUCCESS;
-				}
-			}
-		}
-		catch (...) {}
-		
-		return API_SUCCESS;
-	}
+                    NotifyMsgStruct msg;
+                    memset(&msg, 0, sizeof(msg));
+                    msg.magic = NOTIFICATIONKEY;
+                    msg.msgno = type;
+                    strncpy(msg.node, deviceName.c_str(), 7);
+                    if (!payload.empty())
+                        msg.paylen = payload.length() + 1;
+
+                    // send notification msg to this exchange
+                    try {
+                        int ds = -1;
+                        ds = ::socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
+                        struct sockaddr_in serv_addr;
+                        struct in_addr la;
+                        ::inet_aton(ipaddr.c_str(), &la);
+                        memset(&serv_addr, 0, sizeof(serv_addr));
+                        serv_addr.sin_family = AF_INET;
+                        serv_addr.sin_addr.s_addr = la.s_addr;
+                        serv_addr.sin_port = htons(atoi(port.c_str()));
+                        int rc = -1;
+                        rc = ::connect(ds, (struct sockaddr*)&serv_addr, sizeof(serv_addr));
+                        if (rc < 0) throw runtime_error("socket connect error");
+                        rc = ::write(ds, &msg, sizeof(msg));
+                        if (rc < 0) throw runtime_error("socket write error");
+                        if (msg.paylen > 0) {
+                            rc = ::write(ds, payload.c_str(), msg.paylen);
+                            if (rc < 0) throw runtime_error("socket write error");
+                        }
+                        ::shutdown(ds, SHUT_RDWR);
+                        ::close(ds);
+                    } catch (std::runtime_error&) {
+                        //There's other reasons, but this is the most likely...
+                        return API_CONN_REFUSED;
+                    } catch (std::exception&) {
+                        return API_FAILURE;
+                    } catch (...) {
+                        return API_FAILURE;
+                    }
+                } catch (...) {
+                    return API_SUCCESS;
+                }
+            }
+        } catch (...) {}
+
+        return API_SUCCESS;
+    }
 
     /***************************************************************************
      *
@@ -7187,265 +6354,234 @@ namespace oam
      *
      ****************************************************************************/
 
-    	void Oam::actionMysqlerydb(MYSQLERYDB_ACTION action)
-	{
-		// check system type to see if mysqld should be accessed on this module
-		int serverTypeInstall = oam::INSTALL_NORMAL;
-		string moduleType;
-		string moduleName;
-		oamModuleInfo_t st;
-		try {
-			st = getModuleInfo();
-			moduleType = boost::get<1>(st);
-			serverTypeInstall = boost::get<5>(st);
-			moduleName = boost::get<0>(st);
-		}
-		catch (...) {}
+    void Oam::actionMysqlerydb(MYSQLERYDB_ACTION action) {
+        // check system type to see if mysqld should be accessed on this module
+        int serverTypeInstall = oam::INSTALL_NORMAL;
+        string moduleType;
+        string moduleName;
+        oamModuleInfo_t st;
+        try {
+            st = getModuleInfo();
+            moduleType = boost::get<1>(st);
+            serverTypeInstall = boost::get<5>(st);
+            moduleName = boost::get<0>(st);
+        } catch (...) {}
 
-		//PMwithUM config 
-		string PMwithUM = "n";
-		try {
-			getSystemConfig( "PMwithUM", PMwithUM);
-		}
-		catch(...) {
-			PMwithUM = "n";
-		}
+        //PMwithUM config 
+        string PMwithUM = "n";
+        try {
+            getSystemConfig("PMwithUM", PMwithUM);
+        } catch (...) {
+            PMwithUM = "n";
+        }
 
-		if ( ( serverTypeInstall == oam::INSTALL_NORMAL && moduleType == "um" ) ||
-			( serverTypeInstall == oam::INSTALL_NORMAL && moduleType == "pm" && PMwithUM == "y") ||
-		     	( serverTypeInstall == oam::INSTALL_COMBINE_DM_UM_PM ) )
-			PMwithUM = PMwithUM;
-		else
-			return;
+        if ((serverTypeInstall == oam::INSTALL_NORMAL && moduleType == "um") ||
+            (serverTypeInstall == oam::INSTALL_NORMAL && moduleType == "pm" && PMwithUM == "y") ||
+            (serverTypeInstall == oam::INSTALL_COMBINE_DM_UM_PM))
+            PMwithUM = PMwithUM;
+        else
+            return;
 
-		// check if mysql-Capont is installed
-		string mysqlscript = InstallDir + "/mysql/mysql-erydb";
-		if (access(mysqlscript.c_str(), X_OK) != 0)
-			return;
+        // check if mysql-Capont is installed
+        string mysqlscript = InstallDir + "/mysql/mysql-erydb";
+        if (access(mysqlscript.c_str(), X_OK) != 0)
+            return;
 
-		string command;
+        string command;
 
-		switch(action)
-		{
- 			case MYSQL_START:
-			{
-				command = "start > /tmp/actionMysqlerydb.log 2>&1";
-				break;
-			}
-			case MYSQL_STOP:
-			{
-				command = "stop > /tmp/actionMysqlerydb.log 2>&1";
+        switch (action) {
+            case MYSQL_START:
+            {
+                command = "start > /tmp/actionMysqlerydb.log 2>&1";
+                break;
+            }
+            case MYSQL_STOP:
+            {
+                command = "stop > /tmp/actionMysqlerydb.log 2>&1";
 
-				//set process status
-				try
-				{
-					setProcessStatus("mysqld", moduleName, MAN_OFFLINE, 0);
-				}
-				catch(...)
-				{}
+                //set process status
+                try {
+                    setProcessStatus("mysqld", moduleName, MAN_OFFLINE, 0);
+                } catch (...) {
+                }
 
-				break;
-			}
-			case MYSQL_RESTART:
-			{
-				command = "restart > /tmp/actionMysqlerydb.log 2>&1";
-				break;
-			}
-			case MYSQL_RELOAD:
-			{
-				command = "reload > /tmp/actionMysqlerydb.log 2>&1";
-				break;
-			}
-			case MYSQL_FORCE_RELOAD:
-			{
-				command = "force-reload > /tmp/actionMysqlerydb.log 2>&1";
-				break;
-			}
-			case MYSQL_STATUS:
-			{
-				command = "status > /tmp/mysql.status";
-				break;
-			}
+                break;
+            }
+            case MYSQL_RESTART:
+            {
+                command = "restart > /tmp/actionMysqlerydb.log 2>&1";
+                break;
+            }
+            case MYSQL_RELOAD:
+            {
+                command = "reload > /tmp/actionMysqlerydb.log 2>&1";
+                break;
+            }
+            case MYSQL_FORCE_RELOAD:
+            {
+                command = "force-reload > /tmp/actionMysqlerydb.log 2>&1";
+                break;
+            }
+            case MYSQL_STATUS:
+            {
+                command = "status > /tmp/mysql.status";
+                break;
+            }
 
-			default:
-			{
-				writeLog("***DEFAULT OPTION", LOG_TYPE_ERROR);
-            			exceptionControl("actionMysqlerydb", API_INVALID_PARAMETER);
-			}
-		}
+            default:
+            {
+                writeLog("***DEFAULT OPTION", LOG_TYPE_ERROR);
+                exceptionControl("actionMysqlerydb", API_INVALID_PARAMETER);
+            }
+        }
 
-		//RUN COMMAND
-		string cmd = mysqlscript + " " + command;
-		system(cmd.c_str());
+        //RUN COMMAND
+        string cmd = mysqlscript + " " + command;
+        system(cmd.c_str());
 
-		if (action == MYSQL_START || action == MYSQL_RESTART) {
-			//get pid
-			cmd = "cat " + InstallDir + "/mysql/db/*.pid > /tmp/mysql.pid";
-			system(cmd.c_str());
-			ifstream oldFile ("/tmp/mysql.pid");
+        if (action == MYSQL_START || action == MYSQL_RESTART) {
+            //get pid
+            cmd = "cat " + InstallDir + "/mysql/db/*.pid > /tmp/mysql.pid";
+            system(cmd.c_str());
+            ifstream oldFile("/tmp/mysql.pid");
 
-			//fail if file size 0
-			oldFile.seekg(0, std::ios::end);
-			int size = oldFile.tellg();
-			if ( size == 0 ) {
-				// mysql not started
-				writeLog("***mysql.pid FILE SIZE EQUALS ZERO", LOG_TYPE_ERROR);
-				exceptionControl("actionMysqlerydb", API_FAILURE);
-			}
+            //fail if file size 0
+            oldFile.seekg(0, std::ios::end);
+            int size = oldFile.tellg();
+            if (size == 0) {
+                // mysql not started
+                writeLog("***mysql.pid FILE SIZE EQUALS ZERO", LOG_TYPE_ERROR);
+                exceptionControl("actionMysqlerydb", API_FAILURE);
+            }
 
-			char line[400];
-			string pid;
-			while (oldFile.getline(line, 400))
-			{
-				pid = line;
-				string::size_type pos = pid.find("cat",0);
-				if (pos != string::npos) {
-					// mysql not started
-					writeLog("***mysql.pid FILE HAS CAT", LOG_TYPE_ERROR);
-					exceptionControl("actionMysqlerydb", API_FAILURE);
-				}
-				break;
-			}
-			oldFile.close();
+            char line[400];
+            string pid;
+            while (oldFile.getline(line, 400)) {
+                pid = line;
+                string::size_type pos = pid.find("cat", 0);
+                if (pos != string::npos) {
+                    // mysql not started
+                    writeLog("***mysql.pid FILE HAS CAT", LOG_TYPE_ERROR);
+                    exceptionControl("actionMysqlerydb", API_FAILURE);
+                }
+                break;
+            }
+            oldFile.close();
 
-			int PID = atoi(pid.c_str());
+            int PID = atoi(pid.c_str());
 
-			//set process status
-			try
-			{
-				setProcessStatus("mysqld", moduleName, ACTIVE, PID);
-			}
-			catch(...)
-			{}
-		}
+            //set process status
+            try {
+                setProcessStatus("mysqld", moduleName, ACTIVE, PID);
+            } catch (...) {
+            }
+        }
 
-		if (action == MYSQL_STATUS ) {
-			ProcessStatus procstat;
-			getProcessStatus("mysqld", moduleName, procstat);
-			int state = procstat.ProcessOpState;
-			pid_t pidStatus = procstat.ProcessID;
+        if (action == MYSQL_STATUS) {
+            ProcessStatus procstat;
+            getProcessStatus("mysqld", moduleName, procstat);
+            int state = procstat.ProcessOpState;
+            pid_t pidStatus = procstat.ProcessID;
 
-			if (checkLogStatus("/tmp/mysql.status", "MySQL running")) {
-				if ( state != ACTIVE )
-				{
-					//get pid
-					cmd = "cat " + InstallDir + "/mysql/db/*.pid > /tmp/mysql.pid";
-					system(cmd.c_str());
-					ifstream oldFile ("/tmp/mysql.pid");
-					char line[400];
-					string pid;
-					while (oldFile.getline(line, 400))
-					{
-						pid = line;
-						break;
-					}
-					oldFile.close();
+            if (checkLogStatus("/tmp/mysql.status", "MySQL running")) {
+                if (state != ACTIVE) {
+                    //get pid
+                    cmd = "cat " + InstallDir + "/mysql/db/*.pid > /tmp/mysql.pid";
+                    system(cmd.c_str());
+                    ifstream oldFile("/tmp/mysql.pid");
+                    char line[400];
+                    string pid;
+                    while (oldFile.getline(line, 400)) {
+                        pid = line;
+                        break;
+                    }
+                    oldFile.close();
 
-					//set process status
-					try
-					{
-						setProcessStatus("mysqld", moduleName, ACTIVE, atoi(pid.c_str()));
-					}
-					catch(...)
-					{}
+                    //set process status
+                    try {
+                        setProcessStatus("mysqld", moduleName, ACTIVE, atoi(pid.c_str()));
+                    } catch (...) {
+                    }
 
-					return;
-				}
-				else
-				{	//check if pid has changed
-					cmd = "cat " + InstallDir + "/mysql/db/*.pid > /tmp/mysql.pid";
-					system(cmd.c_str());
-					ifstream oldFile ("/tmp/mysql.pid");
-					char line[400];
-					string pid;
-					while (oldFile.getline(line, 400))
-					{
-						pid = line;
-						break;
-					}
-					oldFile.close();
+                    return;
+                } else {	//check if pid has changed
+                    cmd = "cat " + InstallDir + "/mysql/db/*.pid > /tmp/mysql.pid";
+                    system(cmd.c_str());
+                    ifstream oldFile("/tmp/mysql.pid");
+                    char line[400];
+                    string pid;
+                    while (oldFile.getline(line, 400)) {
+                        pid = line;
+                        break;
+                    }
+                    oldFile.close();
 
-					if ( pidStatus != atoi(pid.c_str()) )
-					{
-						//set process status
-						try
-						{
-							setProcessStatus("mysqld", moduleName, ACTIVE, atoi(pid.c_str()));
-						}
-						catch(...)
-						{}
-					}
-				}
+                    if (pidStatus != atoi(pid.c_str())) {
+                        //set process status
+                        try {
+                            setProcessStatus("mysqld", moduleName, ACTIVE, atoi(pid.c_str()));
+                        } catch (...) {
+                        }
+                    }
+                }
 
-				//check module status, if DEGRADED set to ACTIVE
-				int opState;
-				bool degraded;
-				try {
-					getModuleStatus(moduleName, opState, degraded);
-				}
-				catch(...)
-				{}
-		
-				if (opState == oam::DEGRADED) {
-					try
-					{
-						setModuleStatus(moduleName, ACTIVE);
-					}
-					catch(...)
-					{}
-				}
-			}
-			else
-			{
-				if ( state == ACTIVE )
-				{
-					//set process status
-					try
-					{
-						setProcessStatus("mysqld", moduleName, MAN_OFFLINE, 0);
-					}
-					catch(...)
-					{}
-				}
+                //check module status, if DEGRADED set to ACTIVE
+                int opState;
+                bool degraded;
+                try {
+                    getModuleStatus(moduleName, opState, degraded);
+                } catch (...) {
+                }
 
-				//check module status, if ACTIVE set to DEGRADED
-				int opState;
-				bool degraded;
-				try {
-					getModuleStatus(moduleName, opState, degraded);
-				}
-				catch(...)
-				{}
-		
-				if (opState == oam::ACTIVE) {
-					try
-					{
-						setModuleStatus(moduleName, DEGRADED);
-					}
-					catch(...)
-					{}
-				}
-				if (checkLogStatus("/tmp/mysql.status", "MySQL is not running, but PID file exists")) {
-				    //get pid
-					cmd = "cat " + InstallDir + "/mysql/db/*.pid > /tmp/mysql.pid";
-					system(cmd.c_str());
-					ifstream oldFile("/tmp/mysql.pid");
-					char line[400];
-					string pid;
-					while (oldFile.getline(line, 400))
-					{
-						pid = line;
-						break;
-					}
-					oldFile.close();
-				    kill(atoi(pid.c_str()), 0);
-				}
-				actionMysqlerydb(MYSQL_START);
-				return;
-			}
-		}
-		return;
-	}
+                if (opState == oam::DEGRADED) {
+                    try {
+                        setModuleStatus(moduleName, ACTIVE);
+                    } catch (...) {
+                    }
+                }
+            } else {
+                if (state == ACTIVE) {
+                    //set process status
+                    try {
+                        setProcessStatus("mysqld", moduleName, MAN_OFFLINE, 0);
+                    } catch (...) {
+                    }
+                }
+
+                //check module status, if ACTIVE set to DEGRADED
+                int opState;
+                bool degraded;
+                try {
+                    getModuleStatus(moduleName, opState, degraded);
+                } catch (...) {
+                }
+
+                if (opState == oam::ACTIVE) {
+                    try {
+                        setModuleStatus(moduleName, DEGRADED);
+                    } catch (...) {
+                    }
+                }
+                if (checkLogStatus("/tmp/mysql.status", "MySQL is not running, but PID file exists")) {
+                    //get pid
+                    cmd = "cat " + InstallDir + "/mysql/db/*.pid > /tmp/mysql.pid";
+                    system(cmd.c_str());
+                    ifstream oldFile("/tmp/mysql.pid");
+                    char line[400];
+                    string pid;
+                    while (oldFile.getline(line, 400)) {
+                        pid = line;
+                        break;
+                    }
+                    oldFile.close();
+                    kill(atoi(pid.c_str()), 0);
+                }
+                actionMysqlerydb(MYSQL_START);
+                return;
+            }
+        }
+        return;
+    }
 
     /******************************************************************************************
      * @brief	run DBHealth Check
@@ -7453,111 +6589,99 @@ namespace oam
      * purpose:	test the health of the DB
      *
      ******************************************************************************************/
-	void Oam::checkDBFunctional(bool action)
-	{
-		ByteStream msg;
+    void Oam::checkDBFunctional(bool action) {
+        ByteStream msg;
         ByteStream receivedMSG;
 
-		// only make call if system is active
-		SystemStatus systemstatus;
-		try {
-			getSystemStatus(systemstatus);
-		}
-		catch (exception& )
-		{}
-		
-		if (systemstatus.SystemOpState != oam::ACTIVE )
+        // only make call if system is active
+        SystemStatus systemstatus;
+        try {
+            getSystemStatus(systemstatus);
+        } catch (exception&) {
+        }
+
+        if (systemstatus.SystemOpState != oam::ACTIVE)
             exceptionControl("checkDBHealth", API_INVALID_STATE);
 
         SystemModuleTypeConfig systemmoduletypeconfig;
 
-        try
-        {
+        try {
             Oam::getSystemConfig(systemmoduletypeconfig);
-        }
-        catch(...)
-        {
+        } catch (...) {
             exceptionControl("checkDBHealth", API_FAILURE);
         }
 
-		// get Server Type Install ID
-		int serverTypeInstall = oam::INSTALL_NORMAL;
-		string OAMParentModuleName;
-		oamModuleInfo_t st;
-		try {
-			st = getModuleInfo();
-			OAMParentModuleName = boost::get<3>(st);
-			serverTypeInstall = boost::get<5>(st);
-		}
-		catch (...) {
-       		exceptionControl("getMyProcessStatus", API_FAILURE);
-		}
+        // get Server Type Install ID
+        int serverTypeInstall = oam::INSTALL_NORMAL;
+        string OAMParentModuleName;
+        oamModuleInfo_t st;
+        try {
+            st = getModuleInfo();
+            OAMParentModuleName = boost::get<3>(st);
+            serverTypeInstall = boost::get<5>(st);
+        } catch (...) {
+            exceptionControl("getMyProcessStatus", API_FAILURE);
+        }
 
-		string module;
-		switch ( serverTypeInstall ) {
-			case (oam::INSTALL_NORMAL):
-			case (oam::INSTALL_COMBINE_DM_UM):
-			{
-				module = "um1";
-				break;
-			}
-			case (oam::INSTALL_COMBINE_PM_UM):
-			case (oam::INSTALL_COMBINE_DM_UM_PM):
-			{
-				module = OAMParentModuleName;
-				break;
-			}
-		}
+        string module;
+        switch (serverTypeInstall) {
+            case (oam::INSTALL_NORMAL):
+            case (oam::INSTALL_COMBINE_DM_UM):
+            {
+                module = "um1";
+                break;
+            }
+            case (oam::INSTALL_COMBINE_PM_UM):
+            case (oam::INSTALL_COMBINE_DM_UM_PM):
+            {
+                module = OAMParentModuleName;
+                break;
+            }
+        }
 
-	// setup message
-	msg << (ByteStream::byte) RUN_DBHEALTH_CHECK;
-	msg << (ByteStream::byte) action;
+        // setup message
+        msg << (ByteStream::byte) RUN_DBHEALTH_CHECK;
+        msg << (ByteStream::byte) action;
 
-	try
-	{
-		//send the msg to Server Monitor
-		MessageQueueClient servermonitor(module + "_ServerMonitor");
-		servermonitor.write(msg);
+        try {
+            //send the msg to Server Monitor
+            MessageQueueClient servermonitor(module + "_ServerMonitor");
+            servermonitor.write(msg);
 
-		// wait 30 seconds for ACK from Server Monitor
-		struct timespec ts = { 30, 0 };
+            // wait 30 seconds for ACK from Server Monitor
+            struct timespec ts = { 30, 0 };
 
-		receivedMSG = servermonitor.read(&ts);
-		if (receivedMSG.length() > 0)
-		{
-			ByteStream::byte returnType;
-			receivedMSG >> returnType;
+            receivedMSG = servermonitor.read(&ts);
+            if (receivedMSG.length() > 0) {
+                ByteStream::byte returnType;
+                receivedMSG >> returnType;
 
-			if ( returnType == RUN_DBHEALTH_CHECK ) {
-				ByteStream::byte returnStatus;
-				receivedMSG >> returnStatus;
-				if ( returnStatus == oam::API_SUCCESS ) {
-					// succesfull
-					servermonitor.shutdown();
-					return;
-				}
-			}
-			// shutdown connection
-			servermonitor.shutdown();
-	
-			exceptionControl("checkDBHealth", API_FAILURE);
-		}
-		else
-		{ // timeout
-			// shutdown connection
-			servermonitor.shutdown();
-	
-			exceptionControl("checkDBHealth", API_TIMEOUT);
-		}
-	}
-	catch(...)
-	{
-		exceptionControl("checkDBHealth", API_FAILURE);
-		return;
-	}
+                if (returnType == RUN_DBHEALTH_CHECK) {
+                    ByteStream::byte returnStatus;
+                    receivedMSG >> returnStatus;
+                    if (returnStatus == oam::API_SUCCESS) {
+                        // succesfull
+                        servermonitor.shutdown();
+                        return;
+                    }
+                }
+                // shutdown connection
+                servermonitor.shutdown();
 
-	return;
-	}
+                exceptionControl("checkDBHealth", API_FAILURE);
+            } else { // timeout
+                // shutdown connection
+                servermonitor.shutdown();
+
+                exceptionControl("checkDBHealth", API_TIMEOUT);
+            }
+        } catch (...) {
+            exceptionControl("checkDBHealth", API_FAILURE);
+            return;
+        }
+
+        return;
+    }
 
     /***************************************************************************
      *
@@ -7567,42 +6691,36 @@ namespace oam
      *
      ****************************************************************************/
 
-    int Oam::validateModule(const std::string name)
-    {
-		if ( name.size() < 3 )
-			// invalid ID
+    int Oam::validateModule(const std::string name) {
+        if (name.size() < 3)
+            // invalid ID
             return API_INVALID_PARAMETER;
-		
-		string moduletype = name.substr(0,MAX_MODULE_TYPE_SIZE);
-		int moduleID = atoi(name.substr(MAX_MODULE_TYPE_SIZE,MAX_MODULE_ID_SIZE).c_str());
-		if ( moduleID < 1 )
-			// invalid ID
+
+        string moduletype = name.substr(0, MAX_MODULE_TYPE_SIZE);
+        int moduleID = atoi(name.substr(MAX_MODULE_TYPE_SIZE, MAX_MODULE_ID_SIZE).c_str());
+        if (moduleID < 1)
+            // invalid ID
             return API_INVALID_PARAMETER;
 
         SystemModuleTypeConfig systemmoduletypeconfig;
 
-        try
-        {
+        try {
             getSystemConfig(systemmoduletypeconfig);
-        }
-        catch(...)
-        {
+        } catch (...) {
             return API_INVALID_PARAMETER;
         }
 
-        for( unsigned int i = 0 ; i < systemmoduletypeconfig.moduletypeconfig.size(); i++)
-        {
-            if (systemmoduletypeconfig.moduletypeconfig[i].ModuleType == moduletype ) {
-				if (systemmoduletypeconfig.moduletypeconfig[i].ModuleCount == 0 )
-					return API_INVALID_PARAMETER;
+        for (unsigned int i = 0; i < systemmoduletypeconfig.moduletypeconfig.size(); i++) {
+            if (systemmoduletypeconfig.moduletypeconfig[i].ModuleType == moduletype) {
+                if (systemmoduletypeconfig.moduletypeconfig[i].ModuleCount == 0)
+                    return API_INVALID_PARAMETER;
 
-				DeviceNetworkList::iterator pt = systemmoduletypeconfig.moduletypeconfig[i].ModuleNetworkList.begin();
-				for( ; pt != systemmoduletypeconfig.moduletypeconfig[i].ModuleNetworkList.end() ; pt++)
-				{
-					if ( name == (*pt).DeviceName )
-						return API_SUCCESS;
-				}
-			}
+                DeviceNetworkList::iterator pt = systemmoduletypeconfig.moduletypeconfig[i].ModuleNetworkList.begin();
+                for (; pt != systemmoduletypeconfig.moduletypeconfig[i].ModuleNetworkList.end(); pt++) {
+                    if (name == (*pt).DeviceName)
+                        return API_SUCCESS;
+                }
+            }
         }
         return API_INVALID_PARAMETER;
     }
@@ -7615,34 +6733,32 @@ namespace oam
      *
      ****************************************************************************/
 
-    std::string Oam::getEC2InstanceIpAddress(std::string instanceName)
-	{
-		// run script to get Instance status and IP Address
-		string cmd = InstallDir + "/bin/ERYDBInstanceCmds.sh getPrivateIP " + instanceName + " > /tmp/getCloudIP_" + instanceName;
-		system(cmd.c_str());
+    std::string Oam::getEC2InstanceIpAddress(std::string instanceName) {
+        // run script to get Instance status and IP Address
+        string cmd = InstallDir + "/bin/ERYDBInstanceCmds.sh getPrivateIP " + instanceName + " > /tmp/getCloudIP_" + instanceName;
+        system(cmd.c_str());
 
-		if (checkLogStatus("/tmp/getCloudIP_" + instanceName, "stopped") )
-			return "stopped";
+        if (checkLogStatus("/tmp/getCloudIP_" + instanceName, "stopped"))
+            return "stopped";
 
-		if (checkLogStatus("/tmp/getCloudIP_" + instanceName, "terminated") )
-			return "terminated";
+        if (checkLogStatus("/tmp/getCloudIP_" + instanceName, "terminated"))
+            return "terminated";
 
-		// get IP Address
-		string IPAddr;
-		string file = "/tmp/getCloudIP_" + instanceName;
-		ifstream oldFile (file.c_str());
-		char line[400];
-		while (oldFile.getline(line, 400))
-		{
-			IPAddr = line;
-		}
-		oldFile.close();
+        // get IP Address
+        string IPAddr;
+        string file = "/tmp/getCloudIP_" + instanceName;
+        ifstream oldFile(file.c_str());
+        char line[400];
+        while (oldFile.getline(line, 400)) {
+            IPAddr = line;
+        }
+        oldFile.close();
 
-		if (isValidIP(IPAddr))
-			return IPAddr;
+        if (isValidIP(IPAddr))
+            return IPAddr;
 
-		return "terminated";
-	}
+        return "terminated";
+    }
 
     /***************************************************************************
      *
@@ -7652,28 +6768,26 @@ namespace oam
      *
      ****************************************************************************/
 
-    std::string Oam::getEC2LocalInstance(std::string name)
-	{
-		// run script to get Instance status and IP Address
-		string cmd = InstallDir + "/bin/ERYDBInstanceCmds.sh getInstance  > /tmp/getInstanceInfo_" + name;
-		int status = system(cmd.c_str());
-		if (WEXITSTATUS(status) != 0 )
-			return "failed";
+    std::string Oam::getEC2LocalInstance(std::string name) {
+        // run script to get Instance status and IP Address
+        string cmd = InstallDir + "/bin/ERYDBInstanceCmds.sh getInstance  > /tmp/getInstanceInfo_" + name;
+        int status = system(cmd.c_str());
+        if (WEXITSTATUS(status) != 0)
+            return "failed";
 
-		// get Instance Name
-		string instanceName;
-		string file = "/tmp/getInstanceInfo_" + name;
-		ifstream oldFile (file.c_str());
-		char line[400];
-		while (oldFile.getline(line, 400))
-		{
-			instanceName = line;
-		}
-		oldFile.close();
+        // get Instance Name
+        string instanceName;
+        string file = "/tmp/getInstanceInfo_" + name;
+        ifstream oldFile(file.c_str());
+        char line[400];
+        while (oldFile.getline(line, 400)) {
+            instanceName = line;
+        }
+        oldFile.close();
 
-		return instanceName;
+        return instanceName;
 
-	}
+    }
 
     /***************************************************************************
      *
@@ -7683,28 +6797,26 @@ namespace oam
      *
      ****************************************************************************/
 
-    std::string Oam::getEC2LocalInstanceType(std::string name)
-	{
-		// run script to get Instance status and IP Address
-		string cmd = InstallDir + "/bin/ERYDBInstanceCmds.sh getType  > /tmp/getInstanceType_" + name;
-		int status = system(cmd.c_str());
-		if (WEXITSTATUS(status) != 0 )
-			return "failed";
+    std::string Oam::getEC2LocalInstanceType(std::string name) {
+        // run script to get Instance status and IP Address
+        string cmd = InstallDir + "/bin/ERYDBInstanceCmds.sh getType  > /tmp/getInstanceType_" + name;
+        int status = system(cmd.c_str());
+        if (WEXITSTATUS(status) != 0)
+            return "failed";
 
-		// get Instance Name
-		string instanceType;
-		string file = "/tmp/getInstanceType_" + name;
-		ifstream oldFile (file.c_str());
-		char line[400];
-		while (oldFile.getline(line, 400))
-		{
-			instanceType = line;
-		}
-		oldFile.close();
+        // get Instance Name
+        string instanceType;
+        string file = "/tmp/getInstanceType_" + name;
+        ifstream oldFile(file.c_str());
+        char line[400];
+        while (oldFile.getline(line, 400)) {
+            instanceType = line;
+        }
+        oldFile.close();
 
-		return instanceType;
+        return instanceType;
 
-	}
+    }
 
     /***************************************************************************
      *
@@ -7714,28 +6826,26 @@ namespace oam
      *
      ****************************************************************************/
 
-    	std::string Oam::getEC2LocalInstanceSubnet(std::string name)
-	{
-		// run script to get Instance Subnet
-		string cmd = InstallDir + "/bin/ERYDBInstanceCmds.sh getSubnet  > /tmp/getInstanceSubnet_" + name;
-		int status = system(cmd.c_str());
-		if (WEXITSTATUS(status) != 0 )
-			return "failed";
+    std::string Oam::getEC2LocalInstanceSubnet(std::string name) {
+        // run script to get Instance Subnet
+        string cmd = InstallDir + "/bin/ERYDBInstanceCmds.sh getSubnet  > /tmp/getInstanceSubnet_" + name;
+        int status = system(cmd.c_str());
+        if (WEXITSTATUS(status) != 0)
+            return "failed";
 
-		// get Instance Name
-		string instanceSubnet;
-		string file = "/tmp/getInstanceSubnet_" + name;
-		ifstream oldFile (file.c_str());
-		char line[400];
-		while (oldFile.getline(line, 400))
-		{
-			instanceSubnet = line;
-		}
-		oldFile.close();
+        // get Instance Name
+        string instanceSubnet;
+        string file = "/tmp/getInstanceSubnet_" + name;
+        ifstream oldFile(file.c_str());
+        char line[400];
+        while (oldFile.getline(line, 400)) {
+            instanceSubnet = line;
+        }
+        oldFile.close();
 
-		return instanceSubnet;
+        return instanceSubnet;
 
-	}
+    }
 
 
     /***************************************************************************
@@ -7746,39 +6856,37 @@ namespace oam
      *
      ****************************************************************************/
 
-    std::string Oam::launchEC2Instance( const std::string name, const std::string IPAddress, const std::string type, const std::string group)
-	{
-		// run script to get Instance status and IP Address
-		string cmd = InstallDir + "/bin/ERYDBInstanceCmds.sh launchInstance " + IPAddress + " " + type + " " + group + " > /tmp/getInstance_" + name;
-		int status = system(cmd.c_str());
-		if (WEXITSTATUS(status) != 0 )
-			return "failed";
+    std::string Oam::launchEC2Instance(const std::string name, const std::string IPAddress, const std::string type, const std::string group) {
+        // run script to get Instance status and IP Address
+        string cmd = InstallDir + "/bin/ERYDBInstanceCmds.sh launchInstance " + IPAddress + " " + type + " " + group + " > /tmp/getInstance_" + name;
+        int status = system(cmd.c_str());
+        if (WEXITSTATUS(status) != 0)
+            return "failed";
 
-		if (checkLogStatus("/tmp/getInstance", "Required") )
-			return "failed";
+        if (checkLogStatus("/tmp/getInstance", "Required"))
+            return "failed";
 
-		// get Instance ID
-		string instance;
-		string file = "/tmp/getInstance_" + name;
-		ifstream oldFile (file.c_str());
-		char line[400];
-		while (oldFile.getline(line, 400))
-		{
-			instance = line;
-		}
-		oldFile.close();
+        // get Instance ID
+        string instance;
+        string file = "/tmp/getInstance_" + name;
+        ifstream oldFile(file.c_str());
+        char line[400];
+        while (oldFile.getline(line, 400)) {
+            instance = line;
+        }
+        oldFile.close();
 
-		if (instance.empty())
-			return "failed";
+        if (instance.empty())
+            return "failed";
 
-		if (instance == "unknown")
-			return "failed";
+        if (instance == "unknown")
+            return "failed";
 
-		if (instance.find("i-") == string::npos)
-			return "failed";
+        if (instance.find("i-") == string::npos)
+            return "failed";
 
-		return instance;
-	}
+        return instance;
+    }
 
     /***************************************************************************
      *
@@ -7788,14 +6896,13 @@ namespace oam
      *
      ****************************************************************************/
 
-    void Oam::terminateEC2Instance(std::string instanceName)
-	{
-		// run script to get Instance status and IP Address
-		string cmd = InstallDir + "/bin/ERYDBInstanceCmds.sh terminateInstance " + instanceName + " > /tmp/terminateEC2Instance_" + instanceName;
-		system(cmd.c_str());
+    void Oam::terminateEC2Instance(std::string instanceName) {
+        // run script to get Instance status and IP Address
+        string cmd = InstallDir + "/bin/ERYDBInstanceCmds.sh terminateInstance " + instanceName + " > /tmp/terminateEC2Instance_" + instanceName;
+        system(cmd.c_str());
 
-		return;
-	}
+        return;
+    }
 
     /***************************************************************************
      *
@@ -7805,14 +6912,13 @@ namespace oam
      *
      ****************************************************************************/
 
-    void Oam::stopEC2Instance(std::string instanceName)
-	{
-		// run script to get Instance status and IP Address
-		string cmd = InstallDir + "/bin/ERYDBInstanceCmds.sh stopInstance " + instanceName + " > /tmp/stopEC2Instance_" + instanceName;
-		system(cmd.c_str());
+    void Oam::stopEC2Instance(std::string instanceName) {
+        // run script to get Instance status and IP Address
+        string cmd = InstallDir + "/bin/ERYDBInstanceCmds.sh stopInstance " + instanceName + " > /tmp/stopEC2Instance_" + instanceName;
+        system(cmd.c_str());
 
-		return;
-	}
+        return;
+    }
 
     /***************************************************************************
      *
@@ -7822,16 +6928,15 @@ namespace oam
      *
      ****************************************************************************/
 
-    bool Oam::startEC2Instance(std::string instanceName)
-	{
-		// run script to get Instance status and IP Address
-		string cmd = InstallDir + "/bin/ERYDBInstanceCmds.sh startInstance " + instanceName + " > /tmp/startEC2Instance_" + instanceName;
-		int ret = system(cmd.c_str());
-		if (WEXITSTATUS(ret) != 0 )
-			return false;
+    bool Oam::startEC2Instance(std::string instanceName) {
+        // run script to get Instance status and IP Address
+        string cmd = InstallDir + "/bin/ERYDBInstanceCmds.sh startInstance " + instanceName + " > /tmp/startEC2Instance_" + instanceName;
+        int ret = system(cmd.c_str());
+        if (WEXITSTATUS(ret) != 0)
+            return false;
 
-		return true;
-	}
+        return true;
+    }
 
     /***************************************************************************
      *
@@ -7841,16 +6946,15 @@ namespace oam
      *
      ****************************************************************************/
 
-    bool Oam::assignElasticIP(std::string instanceName, std::string IpAddress)
-	{
-		// run script to get Instance status and IP Address
-		string cmd = InstallDir + "/bin/ERYDBInstanceCmds.sh assignElasticIP " + instanceName + " " + IpAddress + " > /tmp/assignElasticIP_" + instanceName;
-		int ret = system(cmd.c_str());
-		if (WEXITSTATUS(ret) != 0 )
+    bool Oam::assignElasticIP(std::string instanceName, std::string IpAddress) {
+        // run script to get Instance status and IP Address
+        string cmd = InstallDir + "/bin/ERYDBInstanceCmds.sh assignElasticIP " + instanceName + " " + IpAddress + " > /tmp/assignElasticIP_" + instanceName;
+        int ret = system(cmd.c_str());
+        if (WEXITSTATUS(ret) != 0)
             exceptionControl("assignElasticIP", oam::API_FAILURE);
 
-		return true;
-	}
+        return true;
+    }
 
     /***************************************************************************
      *
@@ -7860,16 +6964,15 @@ namespace oam
      *
      ****************************************************************************/
 
-    bool Oam::deassignElasticIP(std::string IpAddress)
-	{
-		// run script to get Instance status and IP Address
-		string cmd = InstallDir + "/bin/ERYDBInstanceCmds.sh deassignElasticIP " + IpAddress + " > /tmp/deassignElasticIP_" + IpAddress;
-		int ret = system(cmd.c_str());
-		if (WEXITSTATUS(ret) != 0 )
+    bool Oam::deassignElasticIP(std::string IpAddress) {
+        // run script to get Instance status and IP Address
+        string cmd = InstallDir + "/bin/ERYDBInstanceCmds.sh deassignElasticIP " + IpAddress + " > /tmp/deassignElasticIP_" + IpAddress;
+        int ret = system(cmd.c_str());
+        if (WEXITSTATUS(ret) != 0)
             exceptionControl("deassignElasticIP", oam::API_FAILURE);
 
-		return true;
-	}
+        return true;
+    }
 
     /***************************************************************************
      *
@@ -7879,40 +6982,36 @@ namespace oam
      *
      ****************************************************************************/
 
-	std::string Oam::getEC2VolumeStatus(std::string volumeName)
-	{
-		bool pass = true;
-		for ( int retry = 0 ; retry < 5 ; retry++ )
-		{
-		      // run script to get Volume Status
-			  string cmd = InstallDir + "/bin/ERYDBVolumeCmds.sh describe " + volumeName + " > /tmp/getVolumeStatus_" + volumeName;
-		      int ret = system(cmd.c_str());
-		      if (WEXITSTATUS(ret) == 0 )
-			      break;
-		      else
-		      {
-			  sleep(1);
-			  pass = false;
-		      }
-		}
-		
-		if (!pass)
-		  return "failed";
-		
-		// get status
-		string status;
-		string file = "/tmp/getVolumeStatus_" + volumeName;
-		ifstream oldFile (file.c_str());
-		char line[400];
-		while (oldFile.getline(line, 400))
-		{
-			status = line;
-			break;
-		}
-		oldFile.close();
+    std::string Oam::getEC2VolumeStatus(std::string volumeName) {
+        bool pass = true;
+        for (int retry = 0; retry < 5; retry++) {
+            // run script to get Volume Status
+            string cmd = InstallDir + "/bin/ERYDBVolumeCmds.sh describe " + volumeName + " > /tmp/getVolumeStatus_" + volumeName;
+            int ret = system(cmd.c_str());
+            if (WEXITSTATUS(ret) == 0)
+                break;
+            else {
+                sleep(1);
+                pass = false;
+            }
+        }
 
-		return status;
-	}
+        if (!pass)
+            return "failed";
+
+        // get status
+        string status;
+        string file = "/tmp/getVolumeStatus_" + volumeName;
+        ifstream oldFile(file.c_str());
+        char line[400];
+        while (oldFile.getline(line, 400)) {
+            status = line;
+            break;
+        }
+        oldFile.close();
+
+        return status;
+    }
 
     /***************************************************************************
      *
@@ -7922,36 +7021,34 @@ namespace oam
      *
      ****************************************************************************/
 
-	std::string Oam::createEC2Volume(std::string size, std::string name)
-	{
-		// run script to get Volume Status
-		string cmd = InstallDir + "/bin/ERYDBVolumeCmds.sh create " + size + " " + name + " > /tmp/createVolumeStatus_" + name;
-		int ret = system(cmd.c_str());
-		if (WEXITSTATUS(ret) != 0 )
-			return "failed";
+    std::string Oam::createEC2Volume(std::string size, std::string name) {
+        // run script to get Volume Status
+        string cmd = InstallDir + "/bin/ERYDBVolumeCmds.sh create " + size + " " + name + " > /tmp/createVolumeStatus_" + name;
+        int ret = system(cmd.c_str());
+        if (WEXITSTATUS(ret) != 0)
+            return "failed";
 
-		// get status
-		string volumeName;
-		string file = "/tmp/createVolumeStatus_" + name;
-		ifstream oldFile (file.c_str());
-		char line[400];
-		while (oldFile.getline(line, 400))
-		{
-			volumeName = line;
-		}
-		oldFile.close();
+        // get status
+        string volumeName;
+        string file = "/tmp/createVolumeStatus_" + name;
+        ifstream oldFile(file.c_str());
+        char line[400];
+        while (oldFile.getline(line, 400)) {
+            volumeName = line;
+        }
+        oldFile.close();
 
-		if ( volumeName == "unknown" )
-			return "failed";
+        if (volumeName == "unknown")
+            return "failed";
 
-		if ( volumeName == "unknown" )
-			return "failed";
+        if (volumeName == "unknown")
+            return "failed";
 
-		if (volumeName.find("vol-") == string::npos)
-			return "failed";
+        if (volumeName.find("vol-") == string::npos)
+            return "failed";
 
-		return volumeName;
-	}
+        return volumeName;
+    }
 
     /***************************************************************************
      *
@@ -7961,29 +7058,27 @@ namespace oam
      *
      ****************************************************************************/
 
-	bool Oam::attachEC2Volume(std::string volumeName, std::string deviceName, std::string instanceName)
-	{
-		// add 1 retry if it fails by dettaching then attaching
-		int ret = 0;
-		string status;
-		for ( int retry = 0 ; retry < 2 ; retry++ )
-		{
-			// run script to attach Volume
-			string cmd = InstallDir + "/bin/ERYDBVolumeCmds.sh attach " + volumeName + " " + instanceName + " " + deviceName + " > /tmp/attachVolumeStatus_" + volumeName;
-			ret = system(cmd.c_str());
+    bool Oam::attachEC2Volume(std::string volumeName, std::string deviceName, std::string instanceName) {
+        // add 1 retry if it fails by dettaching then attaching
+        int ret = 0;
+        string status;
+        for (int retry = 0; retry < 2; retry++) {
+            // run script to attach Volume
+            string cmd = InstallDir + "/bin/ERYDBVolumeCmds.sh attach " + volumeName + " " + instanceName + " " + deviceName + " > /tmp/attachVolumeStatus_" + volumeName;
+            ret = system(cmd.c_str());
 
-			if (WEXITSTATUS(ret) == 0 )
-				return true;
-			
-			//failing to attach, dettach and retry
-			detachEC2Volume(volumeName);
-		}
+            if (WEXITSTATUS(ret) == 0)
+                return true;
 
-		if (ret == 0 )
-			return true;
-		else
-			return false;
-	}
+            //failing to attach, dettach and retry
+            detachEC2Volume(volumeName);
+        }
+
+        if (ret == 0)
+            return true;
+        else
+            return false;
+    }
 
     /***************************************************************************
      *
@@ -7993,16 +7088,15 @@ namespace oam
      *
      ****************************************************************************/
 
-	bool Oam::detachEC2Volume(std::string volumeName)
-	{
-		// run script to attach Volume
-		string cmd = InstallDir + "/bin/ERYDBVolumeCmds.sh detach " + volumeName + " > /tmp/detachVolumeStatus_" + volumeName;
-		int ret = system(cmd.c_str());
-		if (WEXITSTATUS(ret) != 0 )
-			return false;
+    bool Oam::detachEC2Volume(std::string volumeName) {
+        // run script to attach Volume
+        string cmd = InstallDir + "/bin/ERYDBVolumeCmds.sh detach " + volumeName + " > /tmp/detachVolumeStatus_" + volumeName;
+        int ret = system(cmd.c_str());
+        if (WEXITSTATUS(ret) != 0)
+            return false;
 
-		return true;
-	}
+        return true;
+    }
 
     /***************************************************************************
      *
@@ -8012,16 +7106,15 @@ namespace oam
      *
      ****************************************************************************/
 
-	bool Oam::deleteEC2Volume(std::string volumeName)
-	{
-		// run script to delete Volume
-		string cmd = InstallDir + "/bin/ERYDBVolumeCmds.sh delete " + volumeName + " > /tmp/deleteVolumeStatus_" + volumeName;
-		int ret = system(cmd.c_str());
-		if (WEXITSTATUS(ret) != 0 )
-			return false;
+    bool Oam::deleteEC2Volume(std::string volumeName) {
+        // run script to delete Volume
+        string cmd = InstallDir + "/bin/ERYDBVolumeCmds.sh delete " + volumeName + " > /tmp/deleteVolumeStatus_" + volumeName;
+        int ret = system(cmd.c_str());
+        if (WEXITSTATUS(ret) != 0)
+            return false;
 
-		return true;
-	}
+        return true;
+    }
 
     /***************************************************************************
      *
@@ -8031,413 +7124,396 @@ namespace oam
      *
      ****************************************************************************/
 
-	bool Oam::createEC2tag(std::string resourceName, std::string tagName, std::string tagValue)
-	{
-		// run script to create a tag
-		string cmd = InstallDir + "/bin/ERYDBVolumeCmds.sh createTag " + resourceName + " " + tagName + " " + tagValue + " > /tmp/createTagStatus_" + resourceName;
-		int ret = system(cmd.c_str());
-		if (WEXITSTATUS(ret) != 0 )
-			return false;
+    bool Oam::createEC2tag(std::string resourceName, std::string tagName, std::string tagValue) {
+        // run script to create a tag
+        string cmd = InstallDir + "/bin/ERYDBVolumeCmds.sh createTag " + resourceName + " " + tagName + " " + tagValue + " > /tmp/createTagStatus_" + resourceName;
+        int ret = system(cmd.c_str());
+        if (WEXITSTATUS(ret) != 0)
+            return false;
 
-		return true;
-	}
+        return true;
+    }
 
-	/******************************************************************************************
-	* @brief	syslogAction
-	*
-	* purpose:	Take Action on Syslog Process
-	*
-	******************************************************************************************/
-    void Oam::syslogAction( std::string action)
-	{
+    /******************************************************************************************
+    * @brief	syslogAction
+    *
+    * purpose:	Take Action on Syslog Process
+    *
+    ******************************************************************************************/
+    void Oam::syslogAction(std::string action) {
 #ifndef _MSC_VER
-		writeLog("syslogAction: " + action, LOG_TYPE_DEBUG );
+        writeLog("syslogAction: " + action, LOG_TYPE_DEBUG);
 
-		string systemlog = "syslog";
-	
-		string fileName;
-		getSystemConfig("SystemLogConfigFile", fileName);
-		if (fileName == oam::UnassignedName ) {
-			return;
-		}
-	
-		string::size_type pos = fileName.find("syslog-ng",0);
-		if (pos != string::npos)
-			systemlog = "syslog-ng";
-		else
-		{
-			pos = fileName.find("rsyslog",0);
-			if (pos != string::npos)
-				systemlog = "rsyslog";	
-		}
-	
-		string cmd;
-		if ( action == "sighup" ) {
-			if ( systemlog == "syslog" || systemlog == "rsyslog")
-				systemlog = systemlog + "d";
-			cmd = "pkill -hup " + systemlog + " > /dev/null 2>&1";
-		}
-		else
-		{
-			int user;
-			user = getuid();
-			if (user == 0)
-				cmd = "systemctl " + action + " " + systemlog + ".service > /dev/null 2>&1";
-			else
-				cmd = "sudo systemctl " + action + " " + systemlog + ".service > /dev/null 2>&1";
+        string systemlog = "syslog";
 
-			system(cmd.c_str());
+        string fileName;
+        getSystemConfig("SystemLogConfigFile", fileName);
+        if (fileName == oam::UnassignedName) {
+            return;
+        }
 
-			if (user == 0)
-				cmd = "service " + systemlog + " " + action + " > /dev/null 2>&1";
-			else
-				cmd = "sudo service" + systemlog + " " + action + " > /dev/null 2>&1";
-		}
-		// take action on syslog service
-		writeLog("syslogAction cmd: " + cmd, LOG_TYPE_DEBUG );
-		system(cmd.c_str());
-	
-		// delay to give time for syslog to get up and going
-		sleep(2);
+        string::size_type pos = fileName.find("syslog-ng", 0);
+        if (pos != string::npos)
+            systemlog = "syslog-ng";
+        else {
+            pos = fileName.find("rsyslog", 0);
+            if (pos != string::npos)
+                systemlog = "rsyslog";
+        }
+
+        string cmd;
+        if (action == "sighup") {
+            if (systemlog == "syslog" || systemlog == "rsyslog")
+                systemlog = systemlog + "d";
+            cmd = "pkill -hup " + systemlog + " > /dev/null 2>&1";
+        } else {
+            int user;
+            user = getuid();
+            if (user == 0)
+                cmd = "systemctl " + action + " " + systemlog + ".service > /dev/null 2>&1";
+            else
+                cmd = "sudo systemctl " + action + " " + systemlog + ".service > /dev/null 2>&1";
+
+            system(cmd.c_str());
+
+            if (user == 0)
+                cmd = "service " + systemlog + " " + action + " > /dev/null 2>&1";
+            else
+                cmd = "sudo service" + systemlog + " " + action + " > /dev/null 2>&1";
+        }
+        // take action on syslog service
+        writeLog("syslogAction cmd: " + cmd, LOG_TYPE_DEBUG);
+        system(cmd.c_str());
+
+        // delay to give time for syslog to get up and going
+        sleep(2);
 #endif
-	}
+    }
 
-	/******************************************************************************************
-	* @brief	dbrmctl
-	*
-	* purpose:	call dbrm control
-	*
-	******************************************************************************************/
-	void Oam::dbrmctl(std::string command)
-	{
-		//reload DBRM with new configuration
-		string cmd = InstallDir + "/bin/dbrmctl " + command + " > /dev/null 2>&1";
-		system(cmd.c_str());
-	
-		return;
-	}
+    /******************************************************************************************
+    * @brief	dbrmctl
+    *
+    * purpose:	call dbrm control
+    *
+    ******************************************************************************************/
+    void Oam::dbrmctl(std::string command) {
+        //reload DBRM with new configuration
+        string cmd = InstallDir + "/bin/dbrmctl " + command + " > /dev/null 2>&1";
+        system(cmd.c_str());
+
+        return;
+    }
 
 
-	/******************************************************************************************
-	* @brief	glusterctl
-	*
-	* purpose:	gluster control and glusteradd
-	*
-	* commands:	status - Used to check status of kuster and disk good/bad 
-	*					 returns
-	*						NOTINSTALLED
-	*						OK
-	*						FAILED! erorrmsg
-	*			setddc	- Set Number of gluster disk copies
-	*					 argument = #
-	*					 returns
-	*						NOTINSTALLED
-	*						OK
-	*						FAILED! erorrmsg
-	*			assign - Used to assign a dbroot to a primary pm
-	*					 argument1 = dbroot#
-	*					 argument2 = pm#
-	*					 returns
-	*						NOTINSTALLED
-	*						OK
-	*						FAILED! erorrmsg
-	*			unassign - Used to assign a dbroot to a primary pm
-	*					 argument1 = dbroot#
-	*					 argument2 = pm#
-	*					 returns
-	*						NOTINSTALLED
-	*						OK
-	*						FAILED! erorrmsg
-	*			whohas - Used to get secondary pm for a dbroot for moving
-	*					  argument1 = dbroot#
-	*					return argument #2 - pm#
-	*					 returns
-	*						NOTINSTALLED
-	*						OK
-	*						FAILED! erorrmsg
-	*			add - Used to add new gluster pm and dbroot
-	*					  argument1 = firstnewpm#
-	*					  argument2 = firstnewdbroot#
-	*					 returns
-	*						NOTINSTALLED
-	*						OK
-	*						FAILED! erorrmsg
-	*			delete - Used to delete dbroot volumes
-	*					  argument1 = dbroot#
-	*					 returns
-	*						NOTINSTALLED
-	*						OK
-	*						FAILED! erorrmsg
-	*
- 	******************************************************************************************/
-	int Oam::glusterctl(GLUSTER_COMMANDS command, std::string argument1, std::string& argument2, std::string& errmsg)
-	{
+    /******************************************************************************************
+    * @brief	glusterctl
+    *
+    * purpose:	gluster control and glusteradd
+    *
+    * commands:	status - Used to check status of kuster and disk good/bad
+    *					 returns
+    *						NOTINSTALLED
+    *						OK
+    *						FAILED! erorrmsg
+    *			setddc	- Set Number of gluster disk copies
+    *					 argument = #
+    *					 returns
+    *						NOTINSTALLED
+    *						OK
+    *						FAILED! erorrmsg
+    *			assign - Used to assign a dbroot to a primary pm
+    *					 argument1 = dbroot#
+    *					 argument2 = pm#
+    *					 returns
+    *						NOTINSTALLED
+    *						OK
+    *						FAILED! erorrmsg
+    *			unassign - Used to assign a dbroot to a primary pm
+    *					 argument1 = dbroot#
+    *					 argument2 = pm#
+    *					 returns
+    *						NOTINSTALLED
+    *						OK
+    *						FAILED! erorrmsg
+    *			whohas - Used to get secondary pm for a dbroot for moving
+    *					  argument1 = dbroot#
+    *					return argument #2 - pm#
+    *					 returns
+    *						NOTINSTALLED
+    *						OK
+    *						FAILED! erorrmsg
+    *			add - Used to add new gluster pm and dbroot
+    *					  argument1 = firstnewpm#
+    *					  argument2 = firstnewdbroot#
+    *					 returns
+    *						NOTINSTALLED
+    *						OK
+    *						FAILED! erorrmsg
+    *			delete - Used to delete dbroot volumes
+    *					  argument1 = dbroot#
+    *					 returns
+    *						NOTINSTALLED
+    *						OK
+    *						FAILED! erorrmsg
+    *
+    ******************************************************************************************/
+    int Oam::glusterctl(GLUSTER_COMMANDS command, std::string argument1, std::string& argument2, std::string& errmsg) {
 #ifndef _MSC_VER
-		int user;
-		user = getuid();
-		string glustercmd = InstallDir + "/bin/glusterctl";
+        int user;
+        user = getuid();
+        string glustercmd = InstallDir + "/bin/glusterctl";
 
-		if (access(glustercmd.c_str(), X_OK) != 0 )
-			exceptionControl("glusterctl", API_DISABLED);
+        if (access(glustercmd.c_str(), X_OK) != 0)
+            exceptionControl("glusterctl", API_DISABLED);
 
-		errmsg = "";
+        errmsg = "";
 
-		switch ( command ) {
-			case (oam::GLUSTER_STATUS):
-			{
-				glustercmd = glustercmd + " status > /tmp/gluster_status.log 2>&1";
+        switch (command) {
+            case (oam::GLUSTER_STATUS):
+            {
+                glustercmd = glustercmd + " status > /tmp/gluster_status.log 2>&1";
 
-				int ret;
-				ret = system(glustercmd.c_str());
-				if ( WEXITSTATUS(ret) == 0 )
-					return 0;
+                int ret;
+                ret = system(glustercmd.c_str());
+                if (WEXITSTATUS(ret) == 0)
+                    return 0;
 
-            			ret = checkGlusterLog("/tmp/gluster_status.log", errmsg);
-				return ret;
-			}
+                ret = checkGlusterLog("/tmp/gluster_status.log", errmsg);
+                return ret;
+            }
 
-			case (oam::GLUSTER_SETDDC):
-			{
-				string copies = argument1;
+            case (oam::GLUSTER_SETDDC):
+            {
+                string copies = argument1;
 
-				writeLog("glusterctl: GLUSTER_SETDDC: " + copies, LOG_TYPE_DEBUG );
-				glustercmd = glustercmd + " setddc " + copies + " > /tmp/gluster_setddc.log 2>&1";
-				int ret;
-				ret = system(glustercmd.c_str());
-				if ( WEXITSTATUS(ret) == 0 )
-					return 0;
+                writeLog("glusterctl: GLUSTER_SETDDC: " + copies, LOG_TYPE_DEBUG);
+                glustercmd = glustercmd + " setddc " + copies + " > /tmp/gluster_setddc.log 2>&1";
+                int ret;
+                ret = system(glustercmd.c_str());
+                if (WEXITSTATUS(ret) == 0)
+                    return 0;
 
-            			ret = checkGlusterLog("/tmp/gluster_setddc.log", errmsg);
-				return ret;
-			}
+                ret = checkGlusterLog("/tmp/gluster_setddc.log", errmsg);
+                return ret;
+            }
 
-			case (oam::GLUSTER_ASSIGN):
-			{
-				string dbrootID = argument1;
-				string pm = argument2;
+            case (oam::GLUSTER_ASSIGN):
+            {
+                string dbrootID = argument1;
+                string pm = argument2;
 
-				// build and send msg
-				int returnStatus = sendMsgToProcMgr(GLUSTERASSIGN, pm, FORCEFUL, ACK_YES, dbrootID);
-			
-				if (returnStatus != API_SUCCESS)
-				exceptionControl("GLUSTER_ASSIGN", returnStatus);
-/*
-				writeLog("glusterctl call: GLUSTER_ASSIGN: dbroot = " + dbrootID + " pm = " + pmID, LOG_TYPE_DEBUG );
-				glustercmd = glustercmd + " assign " + dbrootID + " " + pmID + " > /tmp/gluster_assign.log 2>&1";
-				int ret;
-				ret = system(glustercmd.c_str());
-				writeLog("glusterctl return: GLUSTER_ASSIGN: dbroot = " + dbrootID + " pm = " + pmID, LOG_TYPE_DEBUG );
-				if ( WEXITSTATUS(ret) == 0 )
-					return 0;
+                // build and send msg
+                int returnStatus = sendMsgToProcMgr(GLUSTERASSIGN, pm, FORCEFUL, ACK_YES, dbrootID);
 
-            			ret = checkGlusterLog("/tmp/gluster_assign.log", errmsg);
-				return ret;
-*/
-				break;
-			}
+                if (returnStatus != API_SUCCESS)
+                    exceptionControl("GLUSTER_ASSIGN", returnStatus);
+                /*
+                                writeLog("glusterctl call: GLUSTER_ASSIGN: dbroot = " + dbrootID + " pm = " + pmID, LOG_TYPE_DEBUG );
+                                glustercmd = glustercmd + " assign " + dbrootID + " " + pmID + " > /tmp/gluster_assign.log 2>&1";
+                                int ret;
+                                ret = system(glustercmd.c_str());
+                                writeLog("glusterctl return: GLUSTER_ASSIGN: dbroot = " + dbrootID + " pm = " + pmID, LOG_TYPE_DEBUG );
+                                if ( WEXITSTATUS(ret) == 0 )
+                                    return 0;
 
-			case (oam::GLUSTER_UNASSIGN):
-			{
-				string dbrootID = argument1;
-				string pm = argument2;
+                                        ret = checkGlusterLog("/tmp/gluster_assign.log", errmsg);
+                                return ret;
+                */
+                break;
+            }
 
-				// build and send msg
-				int returnStatus = sendMsgToProcMgr(GLUSTERUNASSIGN, pm, FORCEFUL, ACK_YES, dbrootID);
-			
-				if (returnStatus != API_SUCCESS)
-					exceptionControl("GLUSTER_UNASSIGN", returnStatus);
+            case (oam::GLUSTER_UNASSIGN):
+            {
+                string dbrootID = argument1;
+                string pm = argument2;
 
-/*				writeLog("glusterctl: GLUSTER_UNASSIGN: dbroot = " + dbrootID + " pm = " + pmID, LOG_TYPE_DEBUG );
-				glustercmd = glustercmd + " unassign " + dbrootID + " " + pmID + " > /tmp/gluster_unassign.log 2>&1";
-				int ret;
-				ret = system(glustercmd.c_str());
-				if ( WEXITSTATUS(ret) == 0 )
-					return 0;
+                // build and send msg
+                int returnStatus = sendMsgToProcMgr(GLUSTERUNASSIGN, pm, FORCEFUL, ACK_YES, dbrootID);
 
-            			ret = checkGlusterLog("/tmp/gluster_unassign.log", errmsg);
-				return ret;
-*/
-				break;
-			}
+                if (returnStatus != API_SUCCESS)
+                    exceptionControl("GLUSTER_UNASSIGN", returnStatus);
 
-			case (oam::GLUSTER_WHOHAS):
-			{
-				string dbrootID = argument1;
-				string msg;
+                /*				writeLog("glusterctl: GLUSTER_UNASSIGN: dbroot = " + dbrootID + " pm = " + pmID, LOG_TYPE_DEBUG );
+                                glustercmd = glustercmd + " unassign " + dbrootID + " " + pmID + " > /tmp/gluster_unassign.log 2>&1";
+                                int ret;
+                                ret = system(glustercmd.c_str());
+                                if ( WEXITSTATUS(ret) == 0 )
+                                    return 0;
 
-				for ( int retry = 0 ; retry < 5 ; retry++ )
-				{
-					writeLog("glusterctl: GLUSTER_WHOHAS for dbroot : " + dbrootID, LOG_TYPE_DEBUG );
-					glustercmd = glustercmd + " whohas " + dbrootID + " > /tmp/gluster_howhas.log 2>&1";
-					system(glustercmd.c_str());
-	
-					int ret;
-					ret = checkGlusterLog("/tmp/gluster_howhas.log", msg);
-	
-					if ( ret == 0 )
-					{ // OK return, get pm list
-						if ( msg.empty() )
-						{
-							writeLog("glusterctl: GLUSTER_WHOHAS: empty pm list", LOG_TYPE_ERROR );
-							exceptionControl("glusterctl", API_FAILURE);
-						}
-						else
-						{
-							writeLog("glusterctl: GLUSTER_WHOHAS: pm list = " + msg, LOG_TYPE_DEBUG );
-							argument2 = msg;
-							return 0;
-						}
-					}
+                                        ret = checkGlusterLog("/tmp/gluster_unassign.log", errmsg);
+                                return ret;
+                */
+                break;
+            }
 
-					// retry failure
-					writeLog("glusterctl: GLUSTER_WHOHAS: failure, retrying (restarting gluster) " + msg, LOG_TYPE_ERROR );
+            case (oam::GLUSTER_WHOHAS):
+            {
+                string dbrootID = argument1;
+                string msg;
 
-					string cmd = "service glusterd restart > /dev/null 2>&1";
-					if (user != 0)
-						cmd = "sudo " + cmd;
+                for (int retry = 0; retry < 5; retry++) {
+                    writeLog("glusterctl: GLUSTER_WHOHAS for dbroot : " + dbrootID, LOG_TYPE_DEBUG);
+                    glustercmd = glustercmd + " whohas " + dbrootID + " > /tmp/gluster_howhas.log 2>&1";
+                    system(glustercmd.c_str());
 
-					system(cmd.c_str());
+                    int ret;
+                    ret = checkGlusterLog("/tmp/gluster_howhas.log", msg);
 
-					cmd = "systemctrl restart glusterd > /dev/null 2>&1";
-					if (user != 0)
-						cmd = "sudo " + cmd;
+                    if (ret == 0) { // OK return, get pm list
+                        if (msg.empty()) {
+                            writeLog("glusterctl: GLUSTER_WHOHAS: empty pm list", LOG_TYPE_ERROR);
+                            exceptionControl("glusterctl", API_FAILURE);
+                        } else {
+                            writeLog("glusterctl: GLUSTER_WHOHAS: pm list = " + msg, LOG_TYPE_DEBUG);
+                            argument2 = msg;
+                            return 0;
+                        }
+                    }
 
-					system(cmd.c_str());
-					sleep(1);
-				}
+                    // retry failure
+                    writeLog("glusterctl: GLUSTER_WHOHAS: failure, retrying (restarting gluster) " + msg, LOG_TYPE_ERROR);
 
-				break;
-			}
+                    string cmd = "service glusterd restart > /dev/null 2>&1";
+                    if (user != 0)
+                        cmd = "sudo " + cmd;
 
-			case (oam::GLUSTER_ADD):
-			{
-				string pmID = argument1;
-				string dbrootID = argument2;
+                    system(cmd.c_str());
 
-				string glustercmd = InstallDir + "/bin/glusteradd";
-				writeLog("glusterctl: GLUSTER_ADD: dbroot = " + dbrootID + " pm = " + pmID, LOG_TYPE_DEBUG );
-				glustercmd = glustercmd + " " + pmID  + " " + dbrootID + " > /tmp/gluster_add.log 2>&1";
-				int ret;
-				//writeLog("glusterctl: cmd = " + glustercmd, LOG_TYPE_DEBUG );
-				ret = system(glustercmd.c_str());
-				if ( WEXITSTATUS(ret) == 0 )
-					return 0;
+                    cmd = "systemctrl restart glusterd > /dev/null 2>&1";
+                    if (user != 0)
+                        cmd = "sudo " + cmd;
 
-            			ret = checkGlusterLog("/tmp/gluster_add.log", errmsg);
-				return ret;
+                    system(cmd.c_str());
+                    sleep(1);
+                }
 
-				break;
-			}
+                break;
+            }
 
-			case (oam::GLUSTER_DELETE):
-			{
-				string dbrootID = argument1;
+            case (oam::GLUSTER_ADD):
+            {
+                string pmID = argument1;
+                string dbrootID = argument2;
 
-				writeLog("glusterctl: GLUSTER_DELETE: dbroot = " + dbrootID, LOG_TYPE_DEBUG );
-				glustercmd = glustercmd + " delete " + dbrootID  +  " > /tmp/gluster_delete.log 2>&1";
-				int ret;
-				//writeLog("glusterctl: cmd = " + glustercmd, LOG_TYPE_DEBUG );
-				ret = system(glustercmd.c_str());
-				if ( WEXITSTATUS(ret) == 0 )
-					return 0;
+                string glustercmd = InstallDir + "/bin/glusteradd";
+                writeLog("glusterctl: GLUSTER_ADD: dbroot = " + dbrootID + " pm = " + pmID, LOG_TYPE_DEBUG);
+                glustercmd = glustercmd + " " + pmID + " " + dbrootID + " > /tmp/gluster_add.log 2>&1";
+                int ret;
+                //writeLog("glusterctl: cmd = " + glustercmd, LOG_TYPE_DEBUG );
+                ret = system(glustercmd.c_str());
+                if (WEXITSTATUS(ret) == 0)
+                    return 0;
 
-            			ret = checkGlusterLog("/tmp/gluster_delete.log", errmsg);
-				return ret;
+                ret = checkGlusterLog("/tmp/gluster_add.log", errmsg);
+                return ret;
 
-				break;
-			}
+                break;
+            }
 
-			default:
-				break;
-		}
+            case (oam::GLUSTER_DELETE):
+            {
+                string dbrootID = argument1;
+
+                writeLog("glusterctl: GLUSTER_DELETE: dbroot = " + dbrootID, LOG_TYPE_DEBUG);
+                glustercmd = glustercmd + " delete " + dbrootID + " > /tmp/gluster_delete.log 2>&1";
+                int ret;
+                //writeLog("glusterctl: cmd = " + glustercmd, LOG_TYPE_DEBUG );
+                ret = system(glustercmd.c_str());
+                if (WEXITSTATUS(ret) == 0)
+                    return 0;
+
+                ret = checkGlusterLog("/tmp/gluster_delete.log", errmsg);
+                return ret;
+
+                break;
+            }
+
+            default:
+                break;
+        }
 #endif
-		return 0;
-	}
+        return 0;
+    }
 
-	/******************************************************************************************
-	* @brief	changeMyCnf
-	*
-	* purpose:	change my.cnf
-	*
-	******************************************************************************************/
-	bool Oam::changeMyCnf( std::string paramater, std::string value )
-	{
-		string mycnfFile = startup::StartUp::installDir() + "/mysql/my.cnf";
-		ifstream file (mycnfFile.c_str());
-		if (!file) {
-			cout << "File not found: " << mycnfFile << endl;
-			return false;
-		}
-	
-		vector <string> lines;
-		char line[4096];
-		string buf;
-		while (file.getline(line, 4096))
-		{
-			buf = line;
-			// change port
-			if ( paramater == "port" )
-			{
-				string::size_type pos = buf.find(paramater,0);
-				if ( pos == 0 ) {
-					string::size_type pos = buf.find("=",0);
-					if ( pos != string::npos )
-						buf = "port = " + value;
-				}
-			}
-	
-			//output to temp file
-			lines.push_back(buf);
-		}
-	
-		file.close();
-		unlink (mycnfFile.c_str());
-		ofstream newFile (mycnfFile.c_str());	
-		
-		//create new file
-		int fd = open(mycnfFile.c_str(), O_RDWR|O_CREAT, 0664);
-		
-		copy(lines.begin(), lines.end(), ostream_iterator<string>(newFile, "\n"));
-		newFile.close();
-		
-		close(fd);
-	
-		return true;
-	}
+    /******************************************************************************************
+    * @brief	changeMyCnf
+    *
+    * purpose:	change my.cnf
+    *
+    ******************************************************************************************/
+    bool Oam::changeMyCnf(std::string paramater, std::string value) {
+        string mycnfFile = startup::StartUp::installDir() + "/mysql/my.cnf";
+        ifstream file(mycnfFile.c_str());
+        if (!file) {
+            cout << "File not found: " << mycnfFile << endl;
+            return false;
+        }
 
-	/******************************************************************************************
-	* @brief	enableMySQLRep
-	*
-	* purpose:	enable MySQL Replication on the system
-	*
-	******************************************************************************************/
-	bool Oam::enableMySQLRep( std::string password )
-	{
-		// build and send msg
-		int returnStatus = sendMsgToProcMgr(ENABLEMYSQLREP, password, FORCEFUL, ACK_YES);
-	
-		if (returnStatus != API_SUCCESS)
-			exceptionControl("enableMySQLRep", returnStatus);
+        vector <string> lines;
+        char line[4096];
+        string buf;
+        while (file.getline(line, 4096)) {
+            buf = line;
+            // change port
+            if (paramater == "port") {
+                string::size_type pos = buf.find(paramater, 0);
+                if (pos == 0) {
+                    string::size_type pos = buf.find("=", 0);
+                    if (pos != string::npos)
+                        buf = "port = " + value;
+                }
+            }
 
-		return true;
-	}
+            //output to temp file
+            lines.push_back(buf);
+        }
 
-	/******************************************************************************************
-	* @brief	disableMySQLRep
-	*
-	* purpose:	enable MySQL Replication on the system
-	*
-	******************************************************************************************/
-	bool Oam::disableMySQLRep()
-	{
-		// build and send msg
-		int returnStatus = sendMsgToProcMgr(DISABLEMYSQLREP, oam::UnassignedName, FORCEFUL, ACK_YES);
-	
-		if (returnStatus != API_SUCCESS)
-			exceptionControl("disableMySQLRep", returnStatus);
+        file.close();
+        unlink(mycnfFile.c_str());
+        ofstream newFile(mycnfFile.c_str());
 
-		return true;
-	}
+        //create new file
+        int fd = open(mycnfFile.c_str(), O_RDWR | O_CREAT, 0664);
+
+        copy(lines.begin(), lines.end(), ostream_iterator<string>(newFile, "\n"));
+        newFile.close();
+
+        close(fd);
+
+        return true;
+    }
+
+    /******************************************************************************************
+    * @brief	enableMySQLRep
+    *
+    * purpose:	enable MySQL Replication on the system
+    *
+    ******************************************************************************************/
+    bool Oam::enableMySQLRep(std::string password) {
+        // build and send msg
+        int returnStatus = sendMsgToProcMgr(ENABLEMYSQLREP, password, FORCEFUL, ACK_YES);
+
+        if (returnStatus != API_SUCCESS)
+            exceptionControl("enableMySQLRep", returnStatus);
+
+        return true;
+    }
+
+    /******************************************************************************************
+    * @brief	disableMySQLRep
+    *
+    * purpose:	enable MySQL Replication on the system
+    *
+    ******************************************************************************************/
+    bool Oam::disableMySQLRep() {
+        // build and send msg
+        int returnStatus = sendMsgToProcMgr(DISABLEMYSQLREP, oam::UnassignedName, FORCEFUL, ACK_YES);
+
+        if (returnStatus != API_SUCCESS)
+            exceptionControl("disableMySQLRep", returnStatus);
+
+        return true;
+    }
 
     /***************************************************************************
      *
@@ -8446,197 +7522,180 @@ namespace oam
      * Purpose:   check Gluster Log after a Gluster control call
      *
      ****************************************************************************/
-    int Oam::checkGlusterLog(std::string logFile, std::string& msg)
-    {
-		if (checkLogStatus(logFile, "OK")) 
-		{
-			if ( logFile == "/tmp/gluster_howhas.log" )
-			{
-				ifstream File(logFile.c_str());
-	
-				char line[100];
-				string buf;
-				while (File.getline(line, 100))
-				{
-					buf = line;
-					string::size_type pos = buf.find("OK",0);
-					if (pos != string::npos)
-					{
-						msg = buf.substr(3,100);
-						return 0;
-					}
-				}
-	
-				msg = "";
-				return 1;
-			}
+    int Oam::checkGlusterLog(std::string logFile, std::string& msg) {
+        if (checkLogStatus(logFile, "OK")) {
+            if (logFile == "/tmp/gluster_howhas.log") {
+                ifstream File(logFile.c_str());
 
-			msg = "";
-			return 0;
-		}
+                char line[100];
+                string buf;
+                while (File.getline(line, 100)) {
+                    buf = line;
+                    string::size_type pos = buf.find("OK", 0);
+                    if (pos != string::npos) {
+                        msg = buf.substr(3, 100);
+                        return 0;
+                    }
+                }
 
-		if (checkLogStatus(logFile, "NOTINSTALLED")) {
-			writeLog("checkGlusterLog: NOTINSTALLED", LOG_TYPE_DEBUG );
-			exceptionControl("glusterctl", API_DISABLED);
-		}
+                msg = "";
+                return 1;
+            }
 
-		if (checkLogStatus(logFile, "FAILED"))
-		{
-			ifstream File(logFile.c_str());
+            msg = "";
+            return 0;
+        }
 
-			char line[100];
-			string buf;
-			while (File.getline(line, 100))
-			{
-				buf = line;
-				string::size_type pos = buf.find("FAILED",0);
-				if (pos != string::npos)
-				{
-					msg = buf.substr(7,100);
-					writeLog("checkGlusterLog: " + buf, LOG_TYPE_ERROR);
-					return 1;
-				}
-			}
+        if (checkLogStatus(logFile, "NOTINSTALLED")) {
+            writeLog("checkGlusterLog: NOTINSTALLED", LOG_TYPE_DEBUG);
+            exceptionControl("glusterctl", API_DISABLED);
+        }
 
-			writeLog("checkGlusterLog: FAILURE", LOG_TYPE_ERROR);
+        if (checkLogStatus(logFile, "FAILED")) {
+            ifstream File(logFile.c_str());
 
-			if ( logFile == "/tmp/gluster_howhas.log" )
-				return 2;
-			else
-				exceptionControl("glusterctl", API_FAILURE);
-		}
+            char line[100];
+            string buf;
+            while (File.getline(line, 100)) {
+                buf = line;
+                string::size_type pos = buf.find("FAILED", 0);
+                if (pos != string::npos) {
+                    msg = buf.substr(7, 100);
+                    writeLog("checkGlusterLog: " + buf, LOG_TYPE_ERROR);
+                    return 1;
+                }
+            }
 
-		writeLog("checkGlusterLog: FAILURE - no log file match: " + logFile, LOG_TYPE_ERROR);
-		exceptionControl("glusterctl", API_FAILURE);
+            writeLog("checkGlusterLog: FAILURE", LOG_TYPE_ERROR);
 
-		return 1;
-	}
+            if (logFile == "/tmp/gluster_howhas.log")
+                return 2;
+            else
+                exceptionControl("glusterctl", API_FAILURE);
+        }
+
+        writeLog("checkGlusterLog: FAILURE - no log file match: " + logFile, LOG_TYPE_ERROR);
+        exceptionControl("glusterctl", API_FAILURE);
+
+        return 1;
+    }
 
 
-	/******************************************************************************************
-	* @brief	getMySQLPassword
-	*
-	* purpose:	check and get mysql user password
-	*
-	******************************************************************************************/
-	std::string Oam::getMySQLPassword(bool bypassConfig)
-	{
-		if ( !bypassConfig )
-		{
-			string MySQLPasswordConfig;
-			try {
-				getSystemConfig("MySQLPasswordConfig", MySQLPasswordConfig);
-			}
-			catch(...) {
-				MySQLPasswordConfig = "n";
-			}
-		
-			if ( MySQLPasswordConfig == "n" )
-				return oam::UnassignedName;
-		}
+    /******************************************************************************************
+    * @brief	getMySQLPassword
+    *
+    * purpose:	check and get mysql user password
+    *
+    ******************************************************************************************/
+    std::string Oam::getMySQLPassword(bool bypassConfig) {
+        if (!bypassConfig) {
+            string MySQLPasswordConfig;
+            try {
+                getSystemConfig("MySQLPasswordConfig", MySQLPasswordConfig);
+            } catch (...) {
+                MySQLPasswordConfig = "n";
+            }
 
-		string USER = "root";
-		char* p= getenv("USER");
-		if (p && *p)
-			USER = p;
+            if (MySQLPasswordConfig == "n")
+                return oam::UnassignedName;
+        }
 
-		string HOME = "/root";
-		p= getenv("HOME");
-		if (p && *p)
-			HOME = p;
+        string USER = "root";
+        char* p = getenv("USER");
+        if (p && *p)
+            USER = p;
 
-		string fileName = HOME + "/.my.cnf";
-		
-		ifstream file (fileName.c_str());
+        string HOME = "/root";
+        p = getenv("HOME");
+        if (p && *p)
+            HOME = p;
 
-		if (!file)
-			exceptionControl("getMySQLPassword", API_FILE_OPEN_ERROR);
-	
-		char line[400];
-		string buf;
-	
-		while (file.getline(line, 400))
-		{
-			buf = line;
-	
-			string::size_type pos = buf.find(USER,0);
-			if (pos != string::npos)
-			{
-				file.getline(line, 400);
-				buf = line;
+        string fileName = HOME + "/.my.cnf";
 
-				pos = buf.find("password",0);
-				if (pos != string::npos)
-				{
-					string::size_type pos1 = buf.find("=",pos);
-					if (pos1 != string::npos) {
-						//password found
-						if ( bypassConfig )
-						{
-							try {
-								setSystemConfig("MySQLPasswordConfig", "y");
-							}
-							catch(...) {}
-						}
+        ifstream file(fileName.c_str());
 
-						string password = buf.substr(pos1+2, 80);
+        if (!file)
+            exceptionControl("getMySQLPassword", API_FILE_OPEN_ERROR);
 
-						return password;
-					}
-				}
-			}
-		}
-		file.close();
+        char line[400];
+        string buf;
 
-		exceptionControl("getMySQLPassword", API_FAILURE);
-		return oam::UnassignedName;
-	}
+        while (file.getline(line, 400)) {
+            buf = line;
+
+            string::size_type pos = buf.find(USER, 0);
+            if (pos != string::npos) {
+                file.getline(line, 400);
+                buf = line;
+
+                pos = buf.find("password", 0);
+                if (pos != string::npos) {
+                    string::size_type pos1 = buf.find("=", pos);
+                    if (pos1 != string::npos) {
+                        //password found
+                        if (bypassConfig) {
+                            try {
+                                setSystemConfig("MySQLPasswordConfig", "y");
+                            } catch (...) {}
+                        }
+
+                        string password = buf.substr(pos1 + 2, 80);
+
+                        return password;
+                    }
+                }
+            }
+        }
+        file.close();
+
+        exceptionControl("getMySQLPassword", API_FAILURE);
+        return oam::UnassignedName;
+    }
 
 
-	/******************************************************************************************
-	* @brief	updateFstab
-	*
-	* purpose:	check and get mysql user password
-	*
-	******************************************************************************************/
-	std::string Oam::updateFstab(std::string device, std::string dbrootID)
-	{
-		writeLog("updateFstab called: " + device + ":" + dbrootID, LOG_TYPE_DEBUG );
+    /******************************************************************************************
+    * @brief	updateFstab
+    *
+    * purpose:	check and get mysql user password
+    *
+    ******************************************************************************************/
+    std::string Oam::updateFstab(std::string device, std::string dbrootID) {
+        writeLog("updateFstab called: " + device + ":" + dbrootID, LOG_TYPE_DEBUG);
 
-		//check if entry already exist
+        //check if entry already exist
         int user;
         user = getuid();
 
-		string cmd;
-		if (user == 0)
-			cmd = "grep /data" + dbrootID + " /etc/fstab > /dev/null 2>&1";
-		else
+        string cmd;
+        if (user == 0)
+            cmd = "grep /data" + dbrootID + " /etc/fstab > /dev/null 2>&1";
+        else
             cmd = "sudo grep /data" + dbrootID + " /etc/fstab > /dev/null 2>&1";
 
-		int status = system(cmd.c_str());
-		if (WEXITSTATUS(status) == 0 )
-			return "";
+        int status = system(cmd.c_str());
+        if (WEXITSTATUS(status) == 0)
+            return "";
 
-		//update /etc/fstab with mount
-		string entry;
-		if (user == 0)
-			entry = device + " " + InstallDir + "/data" + dbrootID + " ext2 noatime,nodiratime,noauto 0 0";
-		else
+        //update /etc/fstab with mount
+        string entry;
+        if (user == 0)
+            entry = device + " " + InstallDir + "/data" + dbrootID + " ext2 noatime,nodiratime,noauto 0 0";
+        else
             entry = device + " " + InstallDir + "/data" + dbrootID + " ext2 noatime,nodiratime,noauto,user 0 0";
 
-		//update local fstab
+        //update local fstab
         if (user == 0)
-			cmd = "echo " + entry + " >> /etc/fstab";
+            cmd = "echo " + entry + " >> /etc/fstab";
         else
-			cmd = "sudo echo " + entry + " >> /etc/fstab";
-		system(cmd.c_str());
+            cmd = "sudo echo " + entry + " >> /etc/fstab";
+        system(cmd.c_str());
 
-		//use from addmodule later
-		cmd = "touch " + InstallDir + "/local/etc/pm1/fstab;echo " + entry + " >> " + InstallDir + "/local/etc/pm1/fstab";
-		system(cmd.c_str());
+        //use from addmodule later
+        cmd = "touch " + InstallDir + "/local/etc/pm1/fstab;echo " + entry + " >> " + InstallDir + "/local/etc/pm1/fstab";
+        system(cmd.c_str());
 
-		return entry;
-	}
+        return entry;
+    }
 
 
     /***************************************************************************
@@ -8644,19 +7703,17 @@ namespace oam
      ***************************************************************************/
 
 
-    /***************************************************************************
-     *
-     * Function:  exceptionControl
-     *
-     * Purpose:   exception control function
-     *
-     ****************************************************************************/
+     /***************************************************************************
+      *
+      * Function:  exceptionControl
+      *
+      * Purpose:   exception control function
+      *
+      ****************************************************************************/
 
-    void Oam::exceptionControl(std::string function, int returnStatus, const char* extraMsg)
-    {
-		std::string msg;
-        switch(returnStatus)
-        {
+    void Oam::exceptionControl(std::string function, int returnStatus, const char* extraMsg) {
+        std::string msg;
+        switch (returnStatus) {
             case API_INVALID_PARAMETER:
             {
                 msg = "Invalid Parameter passed in ";
@@ -8719,11 +7776,11 @@ namespace oam
                 msg = "Connection refused";
             }
             break;
-			case API_CANCELLED:
-			{
-				msg = "Operation Cancelled";
-			}
-			break;
+            case API_CANCELLED:
+            {
+                msg = "Operation Cancelled";
+            }
+            break;
 
             default:
             {
@@ -8731,14 +7788,13 @@ namespace oam
                 msg.append(function);
                 msg.append(" API");
             }
-			break;
+            break;
         } // end of switch
 
-		if (extraMsg)
-		{
-			msg.append(":\n    ");
-			msg.append(extraMsg);
-		}
+        if (extraMsg) {
+            msg.append(":\n    ");
+            msg.append(extraMsg);
+        }
         throw runtime_error(msg);
     }
 
@@ -8749,24 +7805,20 @@ namespace oam
      * Purpose:   get free disk space in bytes
      *
      ****************************************************************************/
-    double Oam::getFreeSpace(std::string path)
-    {
+    double Oam::getFreeSpace(std::string path) {
         double free_space = 0.0;
 #ifdef _MSC_VER
-		ULARGE_INTEGER freeBytesAvail;
-		if (GetDiskFreeSpaceEx(path.c_str(), &freeBytesAvail, 0, 0) != 0)
-			free_space = (double)freeBytesAvail.QuadPart;
+        ULARGE_INTEGER freeBytesAvail;
+        if (GetDiskFreeSpaceEx(path.c_str(), &freeBytesAvail, 0, 0) != 0)
+            free_space = (double)freeBytesAvail.QuadPart;
 #else
         struct statfs statBuf;
 
-        if ( statfs(path.c_str(), &statBuf) == 0)
-        {
-            free_space  = ((double)statBuf.f_bavail) * ((double)statBuf.f_bsize);
+        if (statfs(path.c_str(), &statBuf) == 0) {
+            free_space = ((double)statBuf.f_bavail) * ((double)statBuf.f_bsize);
             return free_space;
-        }
-        else
-        {
-            exceptionControl("statvfs failed", API_FAILURE );
+        } else {
+            exceptionControl("statvfs failed", API_FAILURE);
         }
 
 #endif
@@ -8781,8 +7833,7 @@ namespace oam
      *
      ****************************************************************************/
 
-    std::string Oam::itoa(const int i)
-    {
+    std::string Oam::itoa(const int i) {
         stringstream ss;
         ss << i;
         return ss.str();
@@ -8798,10 +7849,9 @@ namespace oam
 
     int Oam::sendMsgToProcMgr(messageqcpp::ByteStream::byte requestType, const std::string name,
         GRACEFUL_FLAG gracefulflag, ACK_FLAG ackflag, const std::string argument1,
-        const std::string argument2, int timeout)
-    {
-		if (!checkSystemRunFlag() || !checkSystemRunning())
-			return API_CONN_REFUSED;
+        const std::string argument2, int timeout) {
+        if (!checkSystemRunFlag() || !checkSystemRunning())
+            return API_CONN_REFUSED;
 
         int returnStatus = API_SUCCESS;           //default
         ByteStream msg;
@@ -8811,17 +7861,16 @@ namespace oam
         string target;
         ByteStream::byte status;
 
-	// get current requesting process, an error will occur if process is a UI tool (not kept in Status Table)
-	// this will be used to determine if this is a manually or auto request down within Process-Monitor
-	bool requestManual;
-	myProcessStatus_t t;
-	try {
-		t = getMyProcessStatus();
-		requestManual = false;	// set to auto
-	}
-	catch (...) {
-		requestManual = true;	// set to manual
-	}
+        // get current requesting process, an error will occur if process is a UI tool (not kept in Status Table)
+        // this will be used to determine if this is a manually or auto request down within Process-Monitor
+        bool requestManual;
+        myProcessStatus_t t;
+        try {
+            t = getMyProcessStatus();
+            requestManual = false;	// set to auto
+        } catch (...) {
+            requestManual = true;	// set to manual
+        }
 
         // setup message
         msg << (ByteStream::byte) REQUEST;
@@ -8836,53 +7885,41 @@ namespace oam
         if (!argument2.empty())
             msg << argument2;
 
-        try
-        {
+        try {
             //send the msg to Process Manager
             MessageQueueClient procmgr("ProcMgr");
             procmgr.write(msg);
 
             // check for Ack msg if needed
-            if ( ackflag == ACK_YES )
-            {
-				// wait for ACK from Process Manager
-				struct timespec ts = { timeout, 0 };
+            if (ackflag == ACK_YES) {
+                // wait for ACK from Process Manager
+                struct timespec ts = { timeout, 0 };
 
-				receivedMSG = procmgr.read(&ts);
-				if (receivedMSG.length() > 0)
-				{
-					receivedMSG >> msgType;
-					receivedMSG >> actionType;
-					receivedMSG >> target;
-					receivedMSG >> status;
+                receivedMSG = procmgr.read(&ts);
+                if (receivedMSG.length() > 0) {
+                    receivedMSG >> msgType;
+                    receivedMSG >> actionType;
+                    receivedMSG >> target;
+                    receivedMSG >> status;
 
-					if ( msgType == oam::ACK &&  actionType == requestType && target == name)
-					{
-						// ACK for this request
-						returnStatus = status;
-					}
-				}
-				else	// timeout
-					returnStatus = API_TIMEOUT;
-            }
-            else
+                    if (msgType == oam::ACK &&  actionType == requestType && target == name) {
+                        // ACK for this request
+                        returnStatus = status;
+                    }
+                } else	// timeout
+                    returnStatus = API_TIMEOUT;
+            } else
                 // No ACK, assume write success
                 returnStatus = API_SUCCESS;
 
             // shutdown connection
             procmgr.shutdown();
-        }
-        catch (std::runtime_error&)
-        {
-			//There's other reasons, but this is the most likely...
+        } catch (std::runtime_error&) {
+            //There's other reasons, but this is the most likely...
             returnStatus = API_CONN_REFUSED;
-        }
-        catch (std::exception&)
-        {
+        } catch (std::exception&) {
             returnStatus = API_FAILURE;
-        }
-        catch (...)
-        {
+        } catch (...) {
             returnStatus = API_FAILURE;
         }
 
@@ -8899,10 +7936,9 @@ namespace oam
      ****************************************************************************/
 
     int Oam::sendMsgToProcMgr2(messageqcpp::ByteStream::byte requestType, DeviceNetworkList devicenetworklist,
-        GRACEFUL_FLAG gracefulflag, ACK_FLAG ackflag, const std::string password, const std::string mysqlpw)
-    {
-		if (!checkSystemRunFlag() || !checkSystemRunning())
-			return API_CONN_REFUSED;
+        GRACEFUL_FLAG gracefulflag, ACK_FLAG ackflag, const std::string password, const std::string mysqlpw) {
+        if (!checkSystemRunFlag() || !checkSystemRunning())
+            return API_CONN_REFUSED;
 
         int returnStatus = API_TIMEOUT;           //default
         ByteStream msg;
@@ -8911,17 +7947,16 @@ namespace oam
         ByteStream::byte actionType;
         ByteStream::byte status;
 
-		// get current requesting process, an error will occur if process is a UI tool (not kept in Status Table)
-		// this will be used to determine if this is a manually or auto request down within Process-Monitor
-		bool requestManual;
-		myProcessStatus_t t;
-		try {
-			t = getMyProcessStatus();
-			requestManual = false;	// set to auto
-		}
-		catch (...) {
-			requestManual = true;	// set to manual
-		}
+        // get current requesting process, an error will occur if process is a UI tool (not kept in Status Table)
+        // this will be used to determine if this is a manually or auto request down within Process-Monitor
+        bool requestManual;
+        myProcessStatus_t t;
+        try {
+            t = getMyProcessStatus();
+            requestManual = false;	// set to auto
+        } catch (...) {
+            requestManual = true;	// set to manual
+        }
 
         // setup message
         msg << (ByteStream::byte) REQUEST;
@@ -8931,74 +7966,64 @@ namespace oam
         msg << (ByteStream::byte) ackflag;
         msg << (ByteStream::byte) requestManual;
 
-        msg << (uint16_t) devicenetworklist.size();
+        msg << (uint16_t)devicenetworklist.size();
 
-		DeviceNetworkList::iterator pt = devicenetworklist.begin();
-		for( ; pt != devicenetworklist.end() ; pt++)
-		{
-			msg << (*pt).DeviceName;
+        DeviceNetworkList::iterator pt = devicenetworklist.begin();
+        for (; pt != devicenetworklist.end(); pt++) {
+            msg << (*pt).DeviceName;
 
-			if ( (*pt).UserTempDeviceName.empty() )
-				msg << " ";
-			else
-				msg << (*pt).UserTempDeviceName;
+            if ((*pt).UserTempDeviceName.empty())
+                msg << " ";
+            else
+                msg << (*pt).UserTempDeviceName;
 
-			if ( (*pt).DisableState.empty() )
-				msg << " ";
-			else
-				msg << (*pt).DisableState;
+            if ((*pt).DisableState.empty())
+                msg << " ";
+            else
+                msg << (*pt).DisableState;
 
-	        msg << (uint16_t) (*pt).hostConfigList.size();
+            msg << (uint16_t)(*pt).hostConfigList.size();
 
-			HostConfigList::iterator pt1 = (*pt).hostConfigList.begin();
-			for( ; pt1 != (*pt).hostConfigList.end() ; pt1++)
-			{
-				msg << (*pt1).IPAddr;
-				msg << (*pt1).HostName;
-				msg << (*pt1).NicID;
-			}
-		}
+            HostConfigList::iterator pt1 = (*pt).hostConfigList.begin();
+            for (; pt1 != (*pt).hostConfigList.end(); pt1++) {
+                msg << (*pt1).IPAddr;
+                msg << (*pt1).HostName;
+                msg << (*pt1).NicID;
+            }
+        }
 
         msg << password;
-        msg <<mysqlpw;
+        msg << mysqlpw;
 
-        try
-        {
+        try {
             //send the msg to Process Manager
             MessageQueueClient procmgr("ProcMgr");
             procmgr.write(msg);
 
             // check for Ack msg if needed
-            if ( ackflag == ACK_YES )
-            {
+            if (ackflag == ACK_YES) {
                 // wait 15 minutes for ACK from Process Manager
-				struct timespec ts = { 900, 0 };
+                struct timespec ts = { 900, 0 };
 
-				receivedMSG = procmgr.read(&ts);
-				if (receivedMSG.length() > 0)
-				{
-					receivedMSG >> msgType;
-					receivedMSG >> actionType;
-					receivedMSG >> status;
+                receivedMSG = procmgr.read(&ts);
+                if (receivedMSG.length() > 0) {
+                    receivedMSG >> msgType;
+                    receivedMSG >> actionType;
+                    receivedMSG >> status;
 
-					if ( msgType == oam::ACK &&  actionType == requestType)
-					{
-						// ACK for this request
-						returnStatus = status;
-					}
-				}
-				else	// timeout
-            		returnStatus = API_TIMEOUT;
-            }
-            else
+                    if (msgType == oam::ACK &&  actionType == requestType) {
+                        // ACK for this request
+                        returnStatus = status;
+                    }
+                } else	// timeout
+                    returnStatus = API_TIMEOUT;
+            } else
                 // No ACK, assume write success
                 returnStatus = API_SUCCESS;
 
             // shutdown connection
             procmgr.shutdown();
-        }
-        catch(...)
-        {
+        } catch (...) {
             returnStatus = API_FAILURE;
         }
 
@@ -9013,10 +8038,9 @@ namespace oam
      *
      ****************************************************************************/
 
-    int Oam::sendMsgToProcMgr3(messageqcpp::ByteStream::byte requestType, AlarmList& alarmlist, const std::string date)
-    {
-		if (!checkSystemRunFlag() || !checkSystemRunning())
-			return API_CONN_REFUSED;
+    int Oam::sendMsgToProcMgr3(messageqcpp::ByteStream::byte requestType, AlarmList& alarmlist, const std::string date) {
+        if (!checkSystemRunFlag() || !checkSystemRunning())
+            return API_CONN_REFUSED;
 
         int returnStatus = API_SUCCESS;           //default
         ByteStream msg;
@@ -9029,238 +8053,206 @@ namespace oam
         msg << requestType;
         msg << date;
 
-        try
-        {
+        try {
             //send the msg to Process Manager
             MessageQueueClient procmgr("ProcMgr");
             procmgr.write(msg);
 
-			// wait 30 seconds for ACK from Process Manager
-			struct timespec ts = { 30, 0 };
+            // wait 30 seconds for ACK from Process Manager
+            struct timespec ts = { 30, 0 };
 
-			receivedMSG = procmgr.read(&ts);
-			if (receivedMSG.length() > 0)
-			{
-				receivedMSG >> msgType;
-				receivedMSG >> actionType;
-				receivedMSG >> status;
+            receivedMSG = procmgr.read(&ts);
+            if (receivedMSG.length() > 0) {
+                receivedMSG >> msgType;
+                receivedMSG >> actionType;
+                receivedMSG >> status;
 
-				if ( msgType == oam::ACK &&  actionType == requestType && status == API_SUCCESS )
-				{
-					ByteStream::byte numAlarms;
+                if (msgType == oam::ACK &&  actionType == requestType && status == API_SUCCESS) {
+                    ByteStream::byte numAlarms;
 
-					while(true)
-					{
-						//number of alarms
-						receivedMSG >> numAlarms;
+                    while (true) {
+                        //number of alarms
+                        receivedMSG >> numAlarms;
 
-						//check for end-of-list
-						if ( numAlarms == 0)
-							break;
+                        //check for end-of-list
+                        if (numAlarms == 0)
+                            break;
 
-						for ( int i = 0 ; i < numAlarms ; i++ )
-						{
-							Alarm alarm;
-							ByteStream::doublebyte value;
-							string svalue;
-	
-							receivedMSG >> value;
-							alarm.setAlarmID(value);
-							receivedMSG >> svalue;
-							alarm.setDesc(svalue);
-							receivedMSG >> value;
-							alarm.setSeverity(value);
-							receivedMSG >> svalue;
-							alarm.setTimestamp(svalue);
-							receivedMSG >> svalue;
-							alarm.setSname(svalue);
-							receivedMSG >> svalue;
-							alarm.setPname(svalue);
-							receivedMSG >> svalue;
-							alarm.setComponentID(svalue);
-	
-							alarmlist.insert (AlarmList::value_type(alarm.getTimestampSeconds(), alarm));
-						}
-						break;
-					}
-				}
-				else
-					returnStatus = API_FAILURE;
-			}
-			else	// timeout
-				returnStatus = API_TIMEOUT;
+                        for (int i = 0; i < numAlarms; i++) {
+                            Alarm alarm;
+                            ByteStream::doublebyte value;
+                            string svalue;
+
+                            receivedMSG >> value;
+                            alarm.setAlarmID(value);
+                            receivedMSG >> svalue;
+                            alarm.setDesc(svalue);
+                            receivedMSG >> value;
+                            alarm.setSeverity(value);
+                            receivedMSG >> svalue;
+                            alarm.setTimestamp(svalue);
+                            receivedMSG >> svalue;
+                            alarm.setSname(svalue);
+                            receivedMSG >> svalue;
+                            alarm.setPname(svalue);
+                            receivedMSG >> svalue;
+                            alarm.setComponentID(svalue);
+
+                            alarmlist.insert(AlarmList::value_type(alarm.getTimestampSeconds(), alarm));
+                        }
+                        break;
+                    }
+                } else
+                    returnStatus = API_FAILURE;
+            } else	// timeout
+                returnStatus = API_TIMEOUT;
 
             // shutdown connection
             procmgr.shutdown();
-        }
-        catch(...)
-        {
+        } catch (...) {
             returnStatus = API_FAILURE;
         }
 
         return returnStatus;
     }
 
-	/***************************************************************************
-	 *
-	 * Function:  sendMsgToProcMgrWithStatus
-	 *
-	 * Purpose:   Build and send a request message to Process Manager
-	 * Check for status messages and display on stdout.
-	 * 
-	 * This is used only in manual mode.
-	 *
-	 ****************************************************************************/
+    /***************************************************************************
+     *
+     * Function:  sendMsgToProcMgrWithStatus
+     *
+     * Purpose:   Build and send a request message to Process Manager
+     * Check for status messages and display on stdout.
+     *
+     * This is used only in manual mode.
+     *
+     ****************************************************************************/
 
-	int Oam::sendMsgToProcMgrWithStatus(messageqcpp::ByteStream::byte requestType, const std::string name,
-		GRACEFUL_FLAG gracefulflag, ACK_FLAG ackflag,
-        const std::string argument1, const std::string argument2, int timeout)
-	{
-		if (!checkSystemRunFlag() || !checkSystemRunning())
-			return API_CONN_REFUSED;
+    int Oam::sendMsgToProcMgrWithStatus(messageqcpp::ByteStream::byte requestType, const std::string name,
+        GRACEFUL_FLAG gracefulflag, ACK_FLAG ackflag,
+        const std::string argument1, const std::string argument2, int timeout) {
+        if (!checkSystemRunFlag() || !checkSystemRunning())
+            return API_CONN_REFUSED;
 
-		int returnStatus = API_STILL_WORKING;
-		ByteStream msg;
-		ByteStream receivedMSG;
-		ByteStream::byte msgType;
-		ByteStream::byte actionType;
-		string target;
-		ByteStream::byte status;
-		struct timespec ts = {timeout, 0};
-		bool requestManual = true;
-		std::stringstream buffer; 
-		BRM::DBRM dbrm;
+        int returnStatus = API_STILL_WORKING;
+        ByteStream msg;
+        ByteStream receivedMSG;
+        ByteStream::byte msgType;
+        ByteStream::byte actionType;
+        string target;
+        ByteStream::byte status;
+        struct timespec ts = { timeout, 0 };
+        bool requestManual = true;
+        std::stringstream buffer;
+        BRM::DBRM dbrm;
 #ifndef _MSC_VER
-		struct sigaction ctrlcHandler;
-		struct sigaction oldCtrlcHandler;
-		memset(&ctrlcHandler, 0, sizeof(ctrlcHandler));
+        struct sigaction ctrlcHandler;
+        struct sigaction oldCtrlcHandler;
+        memset(&ctrlcHandler, 0, sizeof(ctrlcHandler));
 #endif
-		// setup message
-		msg << (ByteStream::byte) REQUEST;
-		msg << requestType;
-		msg << name;
-		msg << (ByteStream::byte) gracefulflag;
-		msg << (ByteStream::byte) ackflag;
-		msg << (ByteStream::byte) requestManual;
+        // setup message
+        msg << (ByteStream::byte) REQUEST;
+        msg << requestType;
+        msg << name;
+        msg << (ByteStream::byte) gracefulflag;
+        msg << (ByteStream::byte) ackflag;
+        msg << (ByteStream::byte) requestManual;
 
-		if (!argument1.empty())
-			msg << argument1;
-		if (!argument2.empty())
-			msg << argument2;
+        if (!argument1.empty())
+            msg << argument1;
+        if (!argument2.empty())
+            msg << argument2;
 
-		if (gracefulflag == GRACEFUL_WAIT)
-		{
-			// Control-C signal to terminate the shutdown command
-			ctrlc = 0;
+        if (gracefulflag == GRACEFUL_WAIT) {
+            // Control-C signal to terminate the shutdown command
+            ctrlc = 0;
 #ifdef _MSC_VER
-			//FIXME:
+            //FIXME:
 #else
-			ctrlcHandler.sa_handler = handleControlC;
-			sigaction(SIGINT, &ctrlcHandler, &oldCtrlcHandler);
+            ctrlcHandler.sa_handler = handleControlC;
+            sigaction(SIGINT, &ctrlcHandler, &oldCtrlcHandler);
 #endif
-		}
-		try
-		{
-			//send the msg to Process Manager
-			MessageQueueClient procmgr("ProcMgr");
-			procmgr.write(msg);
+        }
+        try {
+            //send the msg to Process Manager
+            MessageQueueClient procmgr("ProcMgr");
+            procmgr.write(msg);
 
-			// check for Ack msg if needed
-			if (ackflag == ACK_YES)
-			{
-				while (returnStatus == API_STILL_WORKING)
-				{
-					// wait for ACK from Process Manager
-					receivedMSG = procmgr.read(&ts);
+            // check for Ack msg if needed
+            if (ackflag == ACK_YES) {
+                while (returnStatus == API_STILL_WORKING) {
+                    // wait for ACK from Process Manager
+                    receivedMSG = procmgr.read(&ts);
 
-					// If user hit ctrl-c, we've been cancelled
-					if (ctrlc == 1)
-					{
-						writeLog("Clearing System Shutdown pending", LOG_TYPE_INFO );
-						dbrm.setSystemShutdownPending(false);
-						dbrm.setSystemSuspendPending(false);
-						returnStatus = API_CANCELLED;
-						break;
-					}
+                    // If user hit ctrl-c, we've been cancelled
+                    if (ctrlc == 1) {
+                        writeLog("Clearing System Shutdown pending", LOG_TYPE_INFO);
+                        dbrm.setSystemShutdownPending(false);
+                        dbrm.setSystemSuspendPending(false);
+                        returnStatus = API_CANCELLED;
+                        break;
+                    }
 
-					if (receivedMSG.length() > 0)
-					{
-						receivedMSG >> msgType;
-						receivedMSG >> actionType;
-						receivedMSG >> target;
-						receivedMSG >> status;
+                    if (receivedMSG.length() > 0) {
+                        receivedMSG >> msgType;
+                        receivedMSG >> actionType;
+                        receivedMSG >> target;
+                        receivedMSG >> status;
 
-						if ( msgType == oam::ACK &&  actionType == requestType && target == name)
-						{
-							if (status == API_TRANSACTIONS_COMPLETE)
-							{
-								cout << endl << "   System being " << name << ", please wait..." << flush;
-								// More work to wait on....
-								// At this point, the requirement is to have ctrl-c drop us out of erydb console
-								// so we'll restore the handler to default.
-								if (gracefulflag == GRACEFUL_WAIT)
-								{
+                        if (msgType == oam::ACK &&  actionType == requestType && target == name) {
+                            if (status == API_TRANSACTIONS_COMPLETE) {
+                                cout << endl << "   System being " << name << ", please wait..." << flush;
+                                // More work to wait on....
+                                // At this point, the requirement is to have ctrl-c drop us out of erydb console
+                                // so we'll restore the handler to default.
+                                if (gracefulflag == GRACEFUL_WAIT) {
 #ifdef _MSC_VER
-									//FIXME:
+                                    //FIXME:
 #else
-									sigaction(SIGINT, &oldCtrlcHandler, NULL);
+                                    sigaction(SIGINT, &oldCtrlcHandler, NULL);
 #endif
-								}
-							}
-							else
-							{
-								returnStatus = status;
-							}
-						}
+                                }
+                            } else {
+                                returnStatus = status;
+                            }
+                        }
 
-						if (returnStatus == API_STILL_WORKING)
-						{
-							cout << "." << flush;
-						}
-					}
-					else	// timeout
-					{
-						returnStatus = API_TIMEOUT;
-					}
-				}
-			}
-			else
-			{
-				// No ACK, assume write success
-				returnStatus = API_SUCCESS;
-			}
+                        if (returnStatus == API_STILL_WORKING) {
+                            cout << "." << flush;
+                        }
+                    } else	// timeout
+                    {
+                        returnStatus = API_TIMEOUT;
+                    }
+                }
+            } else {
+                // No ACK, assume write success
+                returnStatus = API_SUCCESS;
+            }
 
-			// shutdown connection
-			procmgr.shutdown();
-		}
-		catch (std::runtime_error&)
-		{
-			//There's other reasons, but this is the most likely...
-			returnStatus = API_CONN_REFUSED;
-		}
-		catch (std::exception&)
-		{
-			returnStatus = API_FAILURE;
-		}
-		catch (...)
-		{
-			returnStatus = API_FAILURE;
-		}
+            // shutdown connection
+            procmgr.shutdown();
+        } catch (std::runtime_error&) {
+            //There's other reasons, but this is the most likely...
+            returnStatus = API_CONN_REFUSED;
+        } catch (std::exception&) {
+            returnStatus = API_FAILURE;
+        } catch (...) {
+            returnStatus = API_FAILURE;
+        }
 
-		if (gracefulflag == GRACEFUL_WAIT)
-		{
-			// Just in case we errored out and bypassed the normal restore, 
-			// restore ctrl-c to previous handler.
+        if (gracefulflag == GRACEFUL_WAIT) {
+            // Just in case we errored out and bypassed the normal restore, 
+            // restore ctrl-c to previous handler.
 #ifdef _MSC_VER
-			//FIXME:
+            //FIXME:
 #else
-			sigaction(SIGINT, &oldCtrlcHandler, NULL);
+            sigaction(SIGINT, &oldCtrlcHandler, NULL);
 #endif
-		}
-		return returnStatus;
-	}
+        }
+        return returnStatus;
+    }
 
-	/***************************************************************************
+    /***************************************************************************
      *
      * Function:  validateProcess
      *
@@ -9268,28 +8260,23 @@ namespace oam
      *
      ****************************************************************************/
 
-    int Oam::validateProcess(const std::string moduleName, std::string processName)
-    {
-		SystemProcessStatus systemprocessstatus;
-		ProcessStatus processstatus;
-	
-		try
-		{
-			getProcessStatus(systemprocessstatus);
-	
-			for( unsigned int i = 0 ; i < systemprocessstatus.processstatus.size(); i++)
-			{
-				if ( systemprocessstatus.processstatus[i].Module == moduleName  &&
-						systemprocessstatus.processstatus[i].ProcessName == processName)
-					// found it
-					return API_SUCCESS;
-			}
-		}
-		catch(...)
-		{
-			return API_INVALID_PARAMETER;
-		}
-		return API_INVALID_PARAMETER;
+    int Oam::validateProcess(const std::string moduleName, std::string processName) {
+        SystemProcessStatus systemprocessstatus;
+        ProcessStatus processstatus;
+
+        try {
+            getProcessStatus(systemprocessstatus);
+
+            for (unsigned int i = 0; i < systemprocessstatus.processstatus.size(); i++) {
+                if (systemprocessstatus.processstatus[i].Module == moduleName  &&
+                    systemprocessstatus.processstatus[i].ProcessName == processName)
+                    // found it
+                    return API_SUCCESS;
+            }
+        } catch (...) {
+            return API_INVALID_PARAMETER;
+        }
+        return API_INVALID_PARAMETER;
     }
 
     /***************************************************************************
@@ -9300,63 +8287,58 @@ namespace oam
      *
      ****************************************************************************/
 
-    void Oam::sendStatusUpdate(ByteStream obs, ByteStream::byte returnRequestType)
-    {
-		if (!checkSystemRunFlag() || !checkSystemRunning())
-			return;
+    void Oam::sendStatusUpdate(ByteStream obs, ByteStream::byte returnRequestType) {
+        if (!checkSystemRunFlag() || !checkSystemRunning())
+            return;
 
-	for ( int i = 0 ; i < 5 ; i ++)
-	{
-		try
-		{
-			MessageQueueClient processor("ProcStatusControl");
-//			processor.syncProto(false);
-			ByteStream ibs;
-
-			try {
-				struct timespec ts = { 3, 0 };
-				processor.write(obs, &ts);
-			}
-			catch(...)
-			{
-				processor.shutdown();
-				throw std::runtime_error("write error");
-			}
-			
-
-			try {
-				struct timespec ts1 = { 15, 0 };
-				ibs = processor.read(&ts1);
-			}
-			catch(...)
-			{
-				processor.shutdown();
-				throw std::runtime_error("read error");
-			}
-
-			ByteStream::byte returnRequestType;
-
-			if (ibs.length() > 0) {
-				ibs >> returnRequestType;
-
-				if ( returnRequestType == returnRequestType ) {
-					processor.shutdown();
-					return;
-				}
-			}
-			else
-			{
-				// timeout occurred, shutdown connection and retry
-				processor.shutdown();
-				throw std::runtime_error("timeout");
-				return;
-			}
-		}
-		catch(...)
-		{}
-	}
-	return;
-}
+        for (int i = 0; i < 5; i++) {
+            try {
+                MessageQueueClient processor("ProcStatusControl");
+                //			processor.syncProto(false);
+                ByteStream ibs;
+                try {
+                    struct timespec ts = { 3, 0 };
+                    processor.write(obs, &ts);
+                } catch (...) {
+                    processor.shutdown();
+                    throw std::runtime_error("write error");
+                }
+                try {
+                    struct timespec ts1 = { 15, 0 };
+                    ibs = processor.read(&ts1);
+                } catch (...) {
+                    processor.shutdown();
+                    throw std::runtime_error("read error");
+                }
+                ByteStream::byte returnRequestType;
+                if (ibs.length() > 0) {
+                    ibs >> returnRequestType;
+                    if (returnRequestType == returnRequestType) {
+                        processor.shutdown();
+                        try { //请求同步到备
+                            Config* sysConfig = Config::makeConfig(erydbConfigFile.c_str());
+                            if (sysConfig->getConfig("ProcStatusControlStandby", "IPAddr") != oam::UnassignedIpAddr)                                 {
+                                MessageQueueClient processor("ProcStatusControlStandby");
+                                ByteStream ibs;
+                                processor.write(obs);
+                                processor.shutdown();
+                            }
+                        } catch (...) {
+                            writeLog("sendStatusUpdate to ProcStatusControlStandby error" , LOG_TYPE_ERROR);
+                        }
+                        return;
+                    }
+                } else {
+                    // timeout occurred, shutdown connection and retry
+                    processor.shutdown();
+                    throw std::runtime_error("timeout");
+                    return;
+                }
+            } catch (...) {
+            }
+        }
+        return;
+    }
 
     /***************************************************************************
      *
@@ -9366,90 +8348,80 @@ namespace oam
      *
      ****************************************************************************/
 
-    void Oam::amazonReattach(std::string toPM, dbrootList dbrootConfigList, bool attach)
-    {
-		//if amazon cloud with external volumes, do the detach/attach moves
-		string cloud;
-		string DBRootStorageType;
-		try {
-			getSystemConfig("Cloud", cloud);
-			getSystemConfig("DBRootStorageType", DBRootStorageType);
-		}
-		catch(...) {}
+    void Oam::amazonReattach(std::string toPM, dbrootList dbrootConfigList, bool attach) {
+        //if amazon cloud with external volumes, do the detach/attach moves
+        string cloud;
+        string DBRootStorageType;
+        try {
+            getSystemConfig("Cloud", cloud);
+            getSystemConfig("DBRootStorageType", DBRootStorageType);
+        } catch (...) {}
 
-		if ( (cloud == "amazon-ec2" || cloud == "amazon-vpc") && 
-			DBRootStorageType == "external" )
-		{
-			writeLog("amazonReattach function started ", LOG_TYPE_DEBUG );
+        if ((cloud == "amazon-ec2" || cloud == "amazon-vpc") &&
+            DBRootStorageType == "external") {
+            writeLog("amazonReattach function started ", LOG_TYPE_DEBUG);
 
-			//get Instance Name for to-pm
-			string toInstanceName = oam::UnassignedName;
-			try
-			{
-				ModuleConfig moduleconfig;
-				getSystemConfig(toPM, moduleconfig);
-				HostConfigList::iterator pt1 = moduleconfig.hostConfigList.begin();
-				toInstanceName = (*pt1).HostName;
-			}
-			catch(...)
-			{}
+            //get Instance Name for to-pm
+            string toInstanceName = oam::UnassignedName;
+            try {
+                ModuleConfig moduleconfig;
+                getSystemConfig(toPM, moduleconfig);
+                HostConfigList::iterator pt1 = moduleconfig.hostConfigList.begin();
+                toInstanceName = (*pt1).HostName;
+            } catch (...) {
+            }
 
-			if ( toInstanceName == oam::UnassignedName || toInstanceName.empty() )
-			{
-				cout << "   ERROR: amazonReattach, invalid Instance Name for " << toPM << endl;
-				writeLog("ERROR: amazonReattach, invalid Instance Name " + toPM, LOG_TYPE_ERROR );
-				exceptionControl("amazonReattach", API_INVALID_PARAMETER);
-			}
+            if (toInstanceName == oam::UnassignedName || toInstanceName.empty()) {
+                cout << "   ERROR: amazonReattach, invalid Instance Name for " << toPM << endl;
+                writeLog("ERROR: amazonReattach, invalid Instance Name " + toPM, LOG_TYPE_ERROR);
+                exceptionControl("amazonReattach", API_INVALID_PARAMETER);
+            }
 
-			dbrootList::iterator pt3 = dbrootConfigList.begin();
-			for( ; pt3 != dbrootConfigList.end() ; pt3++)
-			{
-				string dbrootid = *pt3;
-				string volumeNameID = "PMVolumeName" + dbrootid;
-				string volumeName = oam::UnassignedName;
-				string deviceNameID = "PMVolumeDeviceName" + dbrootid;
-				string deviceName = oam::UnassignedName;
-				try {
-					getSystemConfig( volumeNameID, volumeName);
-					getSystemConfig( deviceNameID, deviceName);
-				}
-				catch(...)
-				{}
+            dbrootList::iterator pt3 = dbrootConfigList.begin();
+            for (; pt3 != dbrootConfigList.end(); pt3++) {
+                string dbrootid = *pt3;
+                string volumeNameID = "PMVolumeName" + dbrootid;
+                string volumeName = oam::UnassignedName;
+                string deviceNameID = "PMVolumeDeviceName" + dbrootid;
+                string deviceName = oam::UnassignedName;
+                try {
+                    getSystemConfig(volumeNameID, volumeName);
+                    getSystemConfig(deviceNameID, deviceName);
+                } catch (...) {
+                }
 
-				if ( volumeName == oam::UnassignedName || deviceName == oam::UnassignedName )
-				{
-					cout << "   ERROR: amazonReattach, invalid configure " + volumeName + ":" + deviceName << endl;
-					writeLog("ERROR: amazonReattach, invalid configure " + volumeName + ":" + deviceName, LOG_TYPE_ERROR );
-					exceptionControl("amazonReattach", API_INVALID_PARAMETER);
-				}
+                if (volumeName == oam::UnassignedName || deviceName == oam::UnassignedName) {
+                    cout << "   ERROR: amazonReattach, invalid configure " + volumeName + ":" + deviceName << endl;
+                    writeLog("ERROR: amazonReattach, invalid configure " + volumeName + ":" + deviceName, LOG_TYPE_ERROR);
+                    exceptionControl("amazonReattach", API_INVALID_PARAMETER);
+                }
 
-				if (!attach)
-				{
-					//send msg to to-pm to umount volume
-					int returnStatus = sendMsgToProcMgr(UNMOUNT, dbrootid, FORCEFUL, ACK_YES);
-					if (returnStatus != API_SUCCESS) {
-						writeLog("ERROR: amazonReattach, umount failed on " + dbrootid, LOG_TYPE_ERROR );
-					}
-				}
+                if (!attach) {
+                    //send msg to to-pm to umount volume
+                    int returnStatus = sendMsgToProcMgr(UNMOUNT, dbrootid, FORCEFUL, ACK_YES);
+                    if (returnStatus != API_SUCCESS) {
+                        writeLog("ERROR: amazonReattach, umount failed on " + dbrootid, LOG_TYPE_ERROR);
+                    }
+                }
 
-				if (!detachEC2Volume(volumeName)) {
-					cout << "   ERROR: amazonReattach, detachEC2Volume failed on " + volumeName << endl;
-					writeLog("ERROR: amazonReattach, detachEC2Volume failed on " + volumeName , LOG_TYPE_ERROR );
-					exceptionControl("amazonReattach", API_FAILURE);
-				}
+                if (!detachEC2Volume(volumeName)) {
+                    cout << "   ERROR: amazonReattach, detachEC2Volume failed on " + volumeName << endl;
+                    writeLog("ERROR: amazonReattach, detachEC2Volume failed on " + volumeName, LOG_TYPE_ERROR);
+                    exceptionControl("amazonReattach", API_FAILURE);
+                }
 
-				writeLog("amazonReattach, detachEC2Volume passed on " + volumeName , LOG_TYPE_DEBUG );
+                writeLog("amazonReattach, detachEC2Volume passed on " + volumeName, LOG_TYPE_DEBUG);
 
-				if (!attachEC2Volume(volumeName, deviceName, toInstanceName)) {
-					cout << "   ERROR: amazonReattach, attachEC2Volume failed on " + volumeName + ":" + deviceName + ":" + toInstanceName << endl;
-					writeLog("ERROR: amazonReattach, attachEC2Volume failed on " + volumeName + ":" + deviceName + ":" + toInstanceName, LOG_TYPE_ERROR );
-					exceptionControl("amazonReattach", API_FAILURE);
-				}
+                if (!attachEC2Volume(volumeName, deviceName, toInstanceName)) {
+                    cout << "   ERROR: amazonReattach, attachEC2Volume failed on " + volumeName + ":" + deviceName + ":" + toInstanceName << endl;
+                    writeLog("ERROR: amazonReattach, attachEC2Volume failed on " + volumeName + ":" + deviceName + ":" + toInstanceName, LOG_TYPE_ERROR);
+                    exceptionControl("amazonReattach", API_FAILURE);
+                }
 
-				writeLog("amazonReattach, attachEC2Volume passed on " + volumeName + ":" + toPM, LOG_TYPE_DEBUG );
-			}
-		}
-	}
+                writeLog("amazonReattach, attachEC2Volume passed on " + volumeName + ":" + toPM, LOG_TYPE_DEBUG);
+            }
+        }
+    }
 
     /***************************************************************************
      *
@@ -9459,461 +8431,404 @@ namespace oam
      *
      ****************************************************************************/
 
-    void Oam::mountDBRoot(dbrootList dbrootConfigList, bool mount)
-    {
-		//if external volumes, mount to device
-		string DBRootStorageType;
-		try {
-			getSystemConfig("DBRootStorageType", DBRootStorageType);
-		}
-		catch(...) {}
+    void Oam::mountDBRoot(dbrootList dbrootConfigList, bool mount) {
+        //if external volumes, mount to device
+        string DBRootStorageType;
+        try {
+            getSystemConfig("DBRootStorageType", DBRootStorageType);
+        } catch (...) {}
 
-		string GlusterConfig = "n";
-		try {
-			getSystemConfig( "GlusterConfig", GlusterConfig);
-		}
-		catch(...)
-		{
-			GlusterConfig = "n";
-		}
+        string GlusterConfig = "n";
+        try {
+            getSystemConfig("GlusterConfig", GlusterConfig);
+        } catch (...) {
+            GlusterConfig = "n";
+        }
 
-		if ( (DBRootStorageType == "external" && GlusterConfig == "n") 
-			||
-			(GlusterConfig == "y" && !mount) )
-		{
-			dbrootList::iterator pt3 = dbrootConfigList.begin();
-			for( ; pt3 != dbrootConfigList.end() ; pt3++)
-			{
-				string dbrootid = *pt3;
+        if ((DBRootStorageType == "external" && GlusterConfig == "n")
+            ||
+            (GlusterConfig == "y" && !mount)) {
+            dbrootList::iterator pt3 = dbrootConfigList.begin();
+            for (; pt3 != dbrootConfigList.end(); pt3++) {
+                string dbrootid = *pt3;
 
-				int mountCmd = oam::MOUNT;
-				if (!mount) {
-					mountCmd = oam::UNMOUNT;
-					writeLog("mountDBRoot api, umount dbroot" + dbrootid, LOG_TYPE_DEBUG);
-				}
-				else
-					writeLog("mountDBRoot api, mount dbroot" + dbrootid, LOG_TYPE_DEBUG);
+                int mountCmd = oam::MOUNT;
+                if (!mount) {
+                    mountCmd = oam::UNMOUNT;
+                    writeLog("mountDBRoot api, umount dbroot" + dbrootid, LOG_TYPE_DEBUG);
+                } else
+                    writeLog("mountDBRoot api, mount dbroot" + dbrootid, LOG_TYPE_DEBUG);
 
-				//send msg to to-pm to umount volume
-				int returnStatus = sendMsgToProcMgr(mountCmd, dbrootid, FORCEFUL, ACK_YES);
-		
-				if (returnStatus != API_SUCCESS) {
-					if ( mountCmd == oam::MOUNT ) {
-						writeLog("ERROR: mount failed on dbroot" + dbrootid, LOG_TYPE_ERROR );
-						cout << "   ERROR: mount failed on dbroot" + dbrootid << endl;
-					}
-					else
-					{
-						writeLog("ERROR: unmount failed on dbroot" + dbrootid, LOG_TYPE_ERROR );
-						cout << "   ERROR: unmount failed on dbroot" + dbrootid << endl;
-						exceptionControl("mountDBRoot", API_FAILURE);
-					}
-				}
-			}
-		}
+                //send msg to to-pm to umount volume
+                int returnStatus = sendMsgToProcMgr(mountCmd, dbrootid, FORCEFUL, ACK_YES);
 
-		return;
-	}
+                if (returnStatus != API_SUCCESS) {
+                    if (mountCmd == oam::MOUNT) {
+                        writeLog("ERROR: mount failed on dbroot" + dbrootid, LOG_TYPE_ERROR);
+                        cout << "   ERROR: mount failed on dbroot" + dbrootid << endl;
+                    } else {
+                        writeLog("ERROR: unmount failed on dbroot" + dbrootid, LOG_TYPE_ERROR);
+                        cout << "   ERROR: unmount failed on dbroot" + dbrootid << endl;
+                        exceptionControl("mountDBRoot", API_FAILURE);
+                    }
+                }
+            }
+        }
 
-	/******************************************************************************************
-	* @brief	writeLog
-	*
-	* purpose:	Write the message to the log
-	*
-	******************************************************************************************/
-	void Oam::writeLog(const string logContent, const LOG_TYPE logType)
-	{
-		LoggingID lid(8);
-		MessageLog ml(lid);
-		Message msg;
-		Message::Args args;
-		args.add(logContent);
-		msg.format(args);
-	
-		switch(logType) {
-			case LOG_TYPE_DEBUG:
-				ml.logDebugMessage(msg);
-				break;
-			case LOG_TYPE_INFO:
-				ml.logInfoMessage(msg);
-				break;
-			case LOG_TYPE_WARNING:
-				ml.logWarningMessage(msg);
-				break;
-			case LOG_TYPE_ERROR:
-				ml.logErrorMessage(msg);
-				break;
-			case LOG_TYPE_CRITICAL:
-				ml.logCriticalMessage(msg);
-				break;
-		}
-		return;
-	}
+        return;
+    }
 
-	/***************************************************************************
-	 *
-	 * Function:  waitForSystem
-	 *
-	 * Purpose:   When a Shutdown, stop, restart or suspend
-	 *  		  operation is requested but there are active
-	 *  		  transactions of some sort, We wait for all
-	 *  		  transactions to close before performing the
-	 *  		  action.
-	 ****************************************************************************/
-	bool Oam::waitForSystem(PROC_MGT_MSG_REQUEST request, messageqcpp::IOSocket& ios, messageqcpp::ByteStream& stillWorkingMsg)
-	{
-		// Use ios to send back periodic still working messages
-		BRM::DBRM dbrm;
-		execplan::SessionManager sessionManager; 
-		bool bIsDbrmUp;
-		BRM::SIDTIDEntry blockingsid;
-		std::vector<BRM::TableLockInfo> tableLocks;
-		bool bActiveTransactions = true;
-		bool bRollback;
-		bool bForce;
-		bool ret = false;
-		size_t idx;
+    /******************************************************************************************
+    * @brief	writeLog
+    *
+    * purpose:	Write the message to the log
+    *
+    ******************************************************************************************/
+    void Oam::writeLog(const string logContent, const LOG_TYPE logType) {
+        LoggingID lid(8);
+        MessageLog ml(lid);
+        Message msg;
+        Message::Args args;
+        args.add(logContent);
+        msg.format(args);
 
-		try
-		{
-			while (bActiveTransactions)
-			{
-				sleep(3);
-				ios.write(stillWorkingMsg);
+        switch (logType) {
+            case LOG_TYPE_DEBUG:
+                ml.logDebugMessage(msg);
+                break;
+            case LOG_TYPE_INFO:
+                ml.logInfoMessage(msg);
+                break;
+            case LOG_TYPE_WARNING:
+                ml.logWarningMessage(msg);
+                break;
+            case LOG_TYPE_ERROR:
+                ml.logErrorMessage(msg);
+                break;
+            case LOG_TYPE_CRITICAL:
+                ml.logCriticalMessage(msg);
+                break;
+        }
+        return;
+    }
 
-				bActiveTransactions = false;
-				// Any table locks still set?
-				tableLocks = dbrm.getAllTableLocks();
-				for (idx = 0; idx < tableLocks.size(); ++idx)
-				{
-					if (dbrm.checkOwner(tableLocks[idx].id))
-					{
-						bActiveTransactions = true;
-						break;
-					}
-				}
-				// Any active transactions?
-				if (sessionManager.checkActiveTransaction(0, bIsDbrmUp, blockingsid))
-				{
-					bActiveTransactions = true;
-				}
+    /***************************************************************************
+     *
+     * Function:  waitForSystem
+     *
+     * Purpose:   When a Shutdown, stop, restart or suspend
+     *  		  operation is requested but there are active
+     *  		  transactions of some sort, We wait for all
+     *  		  transactions to close before performing the
+     *  		  action.
+     ****************************************************************************/
+    bool Oam::waitForSystem(PROC_MGT_MSG_REQUEST request, messageqcpp::IOSocket& ios, messageqcpp::ByteStream& stillWorkingMsg) {
+        // Use ios to send back periodic still working messages
+        BRM::DBRM dbrm;
+        execplan::SessionManager sessionManager;
+        bool bIsDbrmUp;
+        BRM::SIDTIDEntry blockingsid;
+        std::vector<BRM::TableLockInfo> tableLocks;
+        bool bActiveTransactions = true;
+        bool bRollback;
+        bool bForce;
+        bool ret = false;
+        size_t idx;
 
-				// check to see if the user canceled the request.
-				if (request == SUSPENDWRITES)
-				{
-					if (dbrm.getSystemSuspendPending(bRollback) == 0)	// Means we no longer are going to suspend
-					{
-						writeLog("System Suspend Canceled in wait", LOG_TYPE_INFO );
-						break;
-					}
-				}
-				else
-				{
-					if (dbrm.getSystemShutdownPending(bRollback, bForce) == 0)	// Means we no longer are going to shutdown
-					{
-						writeLog("System Shutdown Canceled in wait", LOG_TYPE_INFO );
-						break;
-					}
-				}
+        try {
+            while (bActiveTransactions) {
+                sleep(3);
+                ios.write(stillWorkingMsg);
 
-				if (!bActiveTransactions)
-				{
-					ret =  true;
-				}
-			}
-		}
-		catch (...)
-		{
-			writeLog("Communication with erydb console failed while waiting for transactions", LOG_TYPE_ERROR);
-		}
-//		writeLog("Returning from wait with value " + itoa(ret), LOG_TYPE_INFO );
-		return ret;
-	}
+                bActiveTransactions = false;
+                // Any table locks still set?
+                tableLocks = dbrm.getAllTableLocks();
+                for (idx = 0; idx < tableLocks.size(); ++idx) {
+                    if (dbrm.checkOwner(tableLocks[idx].id)) {
+                        bActiveTransactions = true;
+                        break;
+                    }
+                }
+                // Any active transactions?
+                if (sessionManager.checkActiveTransaction(0, bIsDbrmUp, blockingsid)) {
+                    bActiveTransactions = true;
+                }
 
-	int Oam::readHdfsActiveAlarms(AlarmList& alarmList)
-	{
-		int returnStatus = API_FAILURE;
-		Alarm alarm;
+                // check to see if the user canceled the request.
+                if (request == SUSPENDWRITES) {
+                    if (dbrm.getSystemSuspendPending(bRollback) == 0)	// Means we no longer are going to suspend
+                    {
+                        writeLog("System Suspend Canceled in wait", LOG_TYPE_INFO);
+                        break;
+                    }
+                } else {
+                    if (dbrm.getSystemShutdownPending(bRollback, bForce) == 0)	// Means we no longer are going to shutdown
+                    {
+                        writeLog("System Shutdown Canceled in wait", LOG_TYPE_INFO);
+                        break;
+                    }
+                }
 
-		// the alarm file will be pushed to all nodes every 10 seconds, retry 1 second
-		for (int i = 0; i < 10 && returnStatus != API_SUCCESS; i++)
-		{
-			try
-			{
-				ifstream activeAlarm(ACTIVE_ALARM_FILE.c_str(), ios::in);
-				if (!activeAlarm.is_open())
-				{
-					// file may be temporary not available due to dpcp.
-					usleep(10000);
+                if (!bActiveTransactions) {
+                    ret = true;
+                }
+            }
+        } catch (...) {
+            writeLog("Communication with erydb console failed while waiting for transactions", LOG_TYPE_ERROR);
+        }
+        //		writeLog("Returning from wait with value " + itoa(ret), LOG_TYPE_INFO );
+        return ret;
+    }
 
-					activeAlarm.open(ACTIVE_ALARM_FILE.c_str(), ios::in);
-					if (!activeAlarm.is_open())
-					{
-						// still cannot open, treat as no activeAlarms file.
-						returnStatus = API_SUCCESS;
-						continue;
-					}
-				}
+    int Oam::readHdfsActiveAlarms(AlarmList& alarmList) {
+        int returnStatus = API_FAILURE;
+        Alarm alarm;
 
-				// read from opened file.
-				while (!activeAlarm.eof() && activeAlarm.good())
-				{
-					activeAlarm >> alarm;
-					if (alarm.getAlarmID() != INVALID_ALARM_ID)
-						alarmList.insert (AlarmList::value_type(INVALID_ALARM_ID, alarm));
-				}
-				activeAlarm.close();
+        // the alarm file will be pushed to all nodes every 10 seconds, retry 1 second
+        for (int i = 0; i < 10 && returnStatus != API_SUCCESS; i++) {
+            try {
+                ifstream activeAlarm(ACTIVE_ALARM_FILE.c_str(), ios::in);
+                if (!activeAlarm.is_open()) {
+                    // file may be temporary not available due to dpcp.
+                    usleep(10000);
 
-				returnStatus = API_SUCCESS;
-			}
-			catch (...)
-			{
-			}
+                    activeAlarm.open(ACTIVE_ALARM_FILE.c_str(), ios::in);
+                    if (!activeAlarm.is_open()) {
+                        // still cannot open, treat as no activeAlarms file.
+                        returnStatus = API_SUCCESS;
+                        continue;
+                    }
+                }
 
-			// wait a second and try again
-			if (returnStatus != API_SUCCESS)
-				usleep (100000);
-		}
+                // read from opened file.
+                while (!activeAlarm.eof() && activeAlarm.good()) {
+                    activeAlarm >> alarm;
+                    if (alarm.getAlarmID() != INVALID_ALARM_ID)
+                        alarmList.insert(AlarmList::value_type(INVALID_ALARM_ID, alarm));
+                }
+                activeAlarm.close();
 
-		return returnStatus;
-	}
+                returnStatus = API_SUCCESS;
+            } catch (...) {
+            }
 
-	bool Oam::checkSystemRunning()
-	{
-		// string cmd = startup::StartUp::installDir() + "/bin/erydb status > /tmp/status.log";
-		// system(cmd.c_str());
-		struct stat st;
-		if (stat("/var/lock/subsys/erydb", &st) == 0)
-		{
-			return true;
-		}
-		if (geteuid() != 0)
-		{
-			// not root user
-			// The stat above may fail for non-root because of permissions
-			// This is a non-optimal solution
-			string cmd = "pgrep ProcMon > /dev/null 2>&1";
-			if (system(cmd.c_str()) == 0)
-			{
-				return true;
-			}
-		}
-      	writeLog("checkSystemRunning - system reported down", LOG_TYPE_DEBUG );
+            // wait a second and try again
+            if (returnStatus != API_SUCCESS)
+                usleep(100000);
+        }
 
-		return false;
-	}
+        return returnStatus;
+    }
+
+    bool Oam::checkSystemRunning() {
+        // string cmd = startup::StartUp::installDir() + "/bin/erydb status > /tmp/status.log";
+        // system(cmd.c_str());
+        struct stat st;
+        if (stat("/var/lock/subsys/erydb", &st) == 0) {
+            return true;
+        }
+        if (geteuid() != 0) {
+            // not root user
+            // The stat above may fail for non-root because of permissions
+            // This is a non-optimal solution
+            string cmd = "pgrep ProcMon > /dev/null 2>&1";
+            if (system(cmd.c_str()) == 0) {
+                return true;
+            }
+        }
+        writeLog("checkSystemRunning - system reported down", LOG_TYPE_DEBUG);
+
+        return false;
+    }
 } //namespace oam
 
 
 namespace procheartbeat
 {
-	/*
-	ProcHeartbeat::ProcHeartbeat()
-	{}
+    /*
+    ProcHeartbeat::ProcHeartbeat()
+    {}
 
-	ProcHeartbeat::~ProcHeartbeat()
-	{}
-	*/
-	/********************************************************************
-	*
-	* Register for Proc Heartbeat
-	*
-	********************************************************************/
-	 
-	void ProcHeartbeat::registerHeartbeat(int ID)
-	{
-	Oam oam;
-	// get current Module name
-	string Module;
-	oamModuleInfo_t st;
-	try {
-		st = oam.getModuleInfo();
-	Module = boost::get<0>(st);
-	}
-	catch (...) {
-		oam.exceptionControl("registerHeartbeat", API_FAILURE);
-	}
+    ProcHeartbeat::~ProcHeartbeat()
+    {}
+    */
+    /********************************************************************
+    *
+    * Register for Proc Heartbeat
+    *
+    ********************************************************************/
 
-	// get current process Name
-	string processName;
-	myProcessStatus_t t;
-	try {
-		t = oam.getMyProcessStatus();
-	processName = boost::get<1>(t);
-	}
-	catch (...) {
-		oam.exceptionControl("registerHeartbeat", API_FAILURE);
-	}
+    void ProcHeartbeat::registerHeartbeat(int ID) {
+        Oam oam;
+        // get current Module name
+        string Module;
+        oamModuleInfo_t st;
+        try {
+            st = oam.getModuleInfo();
+            Module = boost::get<0>(st);
+        } catch (...) {
+            oam.exceptionControl("registerHeartbeat", API_FAILURE);
+        }
 
-	ByteStream msg;
+        // get current process Name
+        string processName;
+        myProcessStatus_t t;
+        try {
+            t = oam.getMyProcessStatus();
+            processName = boost::get<1>(t);
+        } catch (...) {
+            oam.exceptionControl("registerHeartbeat", API_FAILURE);
+        }
 
-	// setup message
-	msg << (ByteStream::byte) HEARTBEAT_REGISTER;
-	msg << Module;
-	msg << processName;
-	msg << (ByteStream::byte) ID;
+        ByteStream msg;
 
-	try
-	{
-	//send the msg to Process Manager
-	MessageQueueClient procmgr("ProcHeartbeatControl");
-	procmgr.write(msg);
-	procmgr.shutdown();
-	}
-	catch(...)
-	{
-		oam.exceptionControl("registerHeartbeat", API_FAILURE);
-	}
+        // setup message
+        msg << (ByteStream::byte) HEARTBEAT_REGISTER;
+        msg << Module;
+        msg << processName;
+        msg << (ByteStream::byte) ID;
 
-	}
-	 
-	/********************************************************************
-	*
-	* De-Register for Proc Heartbeat
-	*
-	********************************************************************/
-	 
-	void ProcHeartbeat::deregisterHeartbeat(int ID)
-	{
-	Oam oam;
-	// get current Module name
-	string Module;
-	oamModuleInfo_t st;
-	try {
-		st = oam.getModuleInfo();
-	Module = boost::get<0>(st);
-	}
-	catch (...) {
-		oam.exceptionControl("deregisterHeartbeat", API_FAILURE);
-	}
+        try {
+            //send the msg to Process Manager
+            MessageQueueClient procmgr("ProcHeartbeatControl");
+            procmgr.write(msg);
+            procmgr.shutdown();
+        } catch (...) {
+            oam.exceptionControl("registerHeartbeat", API_FAILURE);
+        }
 
-	// get current process Name
-	string processName;
-	myProcessStatus_t t;
-	try {
-		t = oam.getMyProcessStatus();
-	processName = boost::get<1>(t);
-	}
-	catch (...) {
-		oam.exceptionControl("deregisterHeartbeat", API_FAILURE);
-	}
+    }
 
-	ByteStream msg;
+    /********************************************************************
+    *
+    * De-Register for Proc Heartbeat
+    *
+    ********************************************************************/
 
-	// setup message
-	msg << (ByteStream::byte) HEARTBEAT_DEREGISTER;
-	msg << Module;
-	msg << processName;
-	msg << (ByteStream::byte) ID;
+    void ProcHeartbeat::deregisterHeartbeat(int ID) {
+        Oam oam;
+        // get current Module name
+        string Module;
+        oamModuleInfo_t st;
+        try {
+            st = oam.getModuleInfo();
+            Module = boost::get<0>(st);
+        } catch (...) {
+            oam.exceptionControl("deregisterHeartbeat", API_FAILURE);
+        }
 
-	try
-	{
-	//send the msg to Process Manager
-	MessageQueueClient procmgr("ProcHeartbeatControl");
-	procmgr.write(msg);
-	procmgr.shutdown();
-	}
-	catch(...)
-	{
-		oam.exceptionControl("deregisterHeartbeat", API_FAILURE);
-	}
+        // get current process Name
+        string processName;
+        myProcessStatus_t t;
+        try {
+            t = oam.getMyProcessStatus();
+            processName = boost::get<1>(t);
+        } catch (...) {
+            oam.exceptionControl("deregisterHeartbeat", API_FAILURE);
+        }
 
-	}
-	 
-	/********************************************************************
-	*
-	* Send Proc Heartbeat
-	*
-	********************************************************************/
-	 
-	void ProcHeartbeat::sendHeartbeat(int ID, oam::ACK_FLAG ackFlag)
-	{
-	Oam oam;
+        ByteStream msg;
 
-	// get process heartbeat period
-	int processHeartbeatPeriod = 60;	//default
+        // setup message
+        msg << (ByteStream::byte) HEARTBEAT_DEREGISTER;
+        msg << Module;
+        msg << processName;
+        msg << (ByteStream::byte) ID;
 
-	try {
-		oam.getSystemConfig("ProcessHeartbeatPeriod", processHeartbeatPeriod);
-	}
-	catch(...)
-	{
-	}
+        try {
+            //send the msg to Process Manager
+            MessageQueueClient procmgr("ProcHeartbeatControl");
+            procmgr.write(msg);
+            procmgr.shutdown();
+        } catch (...) {
+            oam.exceptionControl("deregisterHeartbeat", API_FAILURE);
+        }
 
-	//skip sending if Heartbeat is disable
-	if( processHeartbeatPeriod == -1 )
-		oam.exceptionControl("sendHeartbeat", API_DISABLED);
+    }
 
-	// get current Module name
-	string Module;
-	oamModuleInfo_t st;
-	try {
-		st = oam.getModuleInfo();
-	Module = boost::get<0>(st);
-	}
-	catch (...) {
-		oam.exceptionControl("sendHeartbeat", API_FAILURE);
-	}
+    /********************************************************************
+    *
+    * Send Proc Heartbeat
+    *
+    ********************************************************************/
 
-	// get current process Name
-	string processName;
-	myProcessStatus_t t;
-	try {
-		t = oam.getMyProcessStatus();
-	processName = boost::get<1>(t);
-	}
-	catch (...) {
-		oam.exceptionControl("sendHeartbeat", API_FAILURE);
-	}
+    void ProcHeartbeat::sendHeartbeat(int ID, oam::ACK_FLAG ackFlag) {
+        Oam oam;
 
-	ByteStream msg;
+        // get process heartbeat period
+        int processHeartbeatPeriod = 60;	//default
 
-	// setup message
-	msg << (ByteStream::byte) HEARTBEAT_SEND;
-	msg << Module;
-	msg << processName;
-	msg << oam.getCurrentTime();
-	msg << (ByteStream::byte) ID;
-	msg << (ByteStream::byte) ackFlag;
+        try {
+            oam.getSystemConfig("ProcessHeartbeatPeriod", processHeartbeatPeriod);
+        } catch (...) {
+        }
 
-	try
-	{
-	//send the msg to Process Manager
-	MessageQueueClient procmgr("ProcHeartbeatControl");
-	procmgr.write(msg);
+        //skip sending if Heartbeat is disable
+        if (processHeartbeatPeriod == -1)
+            oam.exceptionControl("sendHeartbeat", API_DISABLED);
 
-	//check for ACK
-	if ( ackFlag == oam::ACK_YES ) {
-	ByteStream ackMsg;
-	ByteStream::byte type;
-	// wait for ACK from Process Manager
-	struct timespec ts = { processHeartbeatPeriod, 0 };
+        // get current Module name
+        string Module;
+        oamModuleInfo_t st;
+        try {
+            st = oam.getModuleInfo();
+            Module = boost::get<0>(st);
+        } catch (...) {
+            oam.exceptionControl("sendHeartbeat", API_FAILURE);
+        }
 
-	ackMsg = procmgr.read(&ts);
+        // get current process Name
+        string processName;
+        myProcessStatus_t t;
+        try {
+            t = oam.getMyProcessStatus();
+            processName = boost::get<1>(t);
+        } catch (...) {
+            oam.exceptionControl("sendHeartbeat", API_FAILURE);
+        }
 
-	if (ackMsg.length() > 0)
-	{
-	ackMsg >> type;
-	if ( type != HEARTBEAT_SEND ) {
-	//Ack not received
-	procmgr.shutdown();
-	oam.exceptionControl("sendHeartbeat", API_TIMEOUT);
-	}
-	}
-	else
-	{
-	procmgr.shutdown();
-	oam.exceptionControl("sendHeartbeat", API_TIMEOUT);
-	}
-	}
-	procmgr.shutdown();
-	}
-	catch(...)
-	{
-		oam.exceptionControl("sendHeartbeat", API_FAILURE);
-	}
-	}
-	 
+        ByteStream msg;
+
+        // setup message
+        msg << (ByteStream::byte) HEARTBEAT_SEND;
+        msg << Module;
+        msg << processName;
+        msg << oam.getCurrentTime();
+        msg << (ByteStream::byte) ID;
+        msg << (ByteStream::byte) ackFlag;
+
+        try {
+            //send the msg to Process Manager
+            MessageQueueClient procmgr("ProcHeartbeatControl");
+            procmgr.write(msg);
+
+            //check for ACK
+            if (ackFlag == oam::ACK_YES) {
+                ByteStream ackMsg;
+                ByteStream::byte type;
+                // wait for ACK from Process Manager
+                struct timespec ts = { processHeartbeatPeriod, 0 };
+
+                ackMsg = procmgr.read(&ts);
+
+                if (ackMsg.length() > 0) {
+                    ackMsg >> type;
+                    if (type != HEARTBEAT_SEND) {
+                        //Ack not received
+                        procmgr.shutdown();
+                        oam.exceptionControl("sendHeartbeat", API_TIMEOUT);
+                    }
+                } else {
+                    procmgr.shutdown();
+                    oam.exceptionControl("sendHeartbeat", API_TIMEOUT);
+                }
+            }
+            procmgr.shutdown();
+        } catch (...) {
+            oam.exceptionControl("sendHeartbeat", API_FAILURE);
+        }
+    }
+
 } // end of namespace
 // vim:ts=4 sw=4:
 

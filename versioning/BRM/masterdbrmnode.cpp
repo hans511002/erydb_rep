@@ -364,7 +364,7 @@ void MasterDBRMNode::msgProcessor()
 			case GETREADONLY: doGetReadOnly(p->sock); continue;
 		}
 
-		/* Process SessionManager calls */
+		/* Process SessionManager calls 需要同步到热备节点 TxnIDFile dbrm/SMTxnID */
 		switch (cmd) {
 			case VER_ID: doVerID(msg, p); continue;
 			case SYSCAT_VER_ID: doSysCatVerID(msg, p); continue;
@@ -381,7 +381,7 @@ void MasterDBRMNode::msgProcessor()
 			case SM_RESET: doSessionManagerReset(msg, p); continue;
 		}
 
-		/* Process TableLock calls */
+		/* Process TableLock calls  需要同步到热备节点 TableLockSaveFile dbrm/tablelocks */
 		switch (cmd) {
 			case GET_TABLE_LOCK: doGetTableLock(msg, p); continue;
 			case RELEASE_TABLE_LOCK: doReleaseTableLock(msg, p); continue;
@@ -393,7 +393,7 @@ void MasterDBRMNode::msgProcessor()
 			case OWNER_CHECK: doOwnerCheck(msg, p); continue;
 		}
 
-		/* Process OIDManager calls */
+		/* Process OIDManager calls 需要同步到热备节点 OERYDBitmapFile dbrm/oerydbitmap */
 		switch (cmd) {
 			case ALLOC_OIDS: doAllocOIDs(msg, p); continue;
 			case RETURN_OIDS: doReturnOIDs(msg, p); continue;
@@ -404,7 +404,7 @@ void MasterDBRMNode::msgProcessor()
 			case GETVBOIDTODBROOTMAP: doGetVBOIDToDBRootMap(msg, p); continue;
 		}
 
-		/* Process Autoincrement calls */
+		/* Process Autoincrement calls 需要同步到热备节点,需要持久到文件  只存在于当前内存中*/
 		switch (cmd) {
 			case START_AI_SEQUENCE: doStartAISequence(msg, p); continue;
 			case GET_AI_RANGE: doGetAIRange(msg, p); continue;
