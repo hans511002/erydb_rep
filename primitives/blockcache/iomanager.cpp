@@ -162,7 +162,7 @@ public:
 		oid(o), dbroot(d), partNum(p), segNum(s), fp(f), c(0), inUse(0), compType(0)
 	{
 		cmpMTime = 0;
-		if (oid >= 1000)
+		if (oid >= MAX_DBROOT)
 			compType = ct;
 	}
 
@@ -184,7 +184,7 @@ public:
 
 	int compType;
 	bool isCompressed() const {
-		return (oid >= 1000 && compType != 0);
+		return (oid >= MAX_DBROOT && compType != 0);
 	}
 	time_t cmpMTime;
 	friend ostream& operator<<(ostream& out, const FdEntry& o)
