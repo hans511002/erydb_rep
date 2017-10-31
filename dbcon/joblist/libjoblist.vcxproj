@@ -96,6 +96,7 @@
     <ClCompile Include="joblistfactory.cpp" />
     <ClCompile Include="jobstep.cpp" />
     <ClCompile Include="jobstepassociation.cpp" />
+    <ClCompile Include="largehashjoin.cpp" />
     <ClCompile Include="lbidlist.cpp" />
     <ClCompile Include="limitedorderby.cpp" />
     <ClCompile Include="passthrucommand-jl.cpp" />

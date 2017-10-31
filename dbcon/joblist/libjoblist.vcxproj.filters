@@ -168,6 +168,9 @@
     <ClCompile Include="jobstepassociation.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="largehashjoin.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="batchprimitiveprocessor-jl.h">

@@ -139,7 +139,7 @@ void FilterStep::doFilter()
 //	ss << "Filter step id " << fStepId << " threw an exception";
 //	throw runtime_error(ss.str());
 //	resultCount = 0;
-//	if (fTableOID >= 3000 && dlTimes.FirstReadTime().tv_sec==0)
+//	if (fTableOID >= USER_OBJECT_ID && dlTimes.FirstReadTime().tv_sec==0)
 //	{
 //		dlTimes.setFirstReadTime();
 //	}
@@ -189,10 +189,10 @@ void FilterStep::doFilter()
 //}
 //
 //
-//	if (fTableOID >= 3000)
+//	if (fTableOID >= USER_OBJECT_ID)
 //		dlTimes.setEndOfInputTime();
 //	//...Print job step completion information
-//	if (fTableOID >= 3000 && traceOn())
+//	if (fTableOID >= USER_OBJECT_ID && traceOn())
 //	{
 //		time_t finTime = time(0);
 //		char finTimeString[50];
