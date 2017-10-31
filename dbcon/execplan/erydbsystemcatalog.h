@@ -44,7 +44,7 @@
 #include "bytestream.h"
 #include "joblisttypes.h"
 #include "stdexcept"
-#include "liboam.h"
+#include "liboam.h" 
 
 #undef min
 #undef max
