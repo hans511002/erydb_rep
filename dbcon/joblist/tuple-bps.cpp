@@ -327,7 +327,7 @@ TupleBPS::TupleBPS(const pColScanStep& rhs, const JobInfo& jobInfo) :
 	fBPP->setTxnID(fTxnId);
 	fTraceFlags = rhs.fTraceFlags;
 	fBPP->setTraceFlags(fTraceFlags);
-//	if (fOid>=3000)
+//	if (fOid>=USER_OBJECT_ID)
 //		cout << "BPS:initalized from pColScanStep. fSessionId=" << fSessionId << endl;
 	fBPP->setStepID(fStepId);
 	fBPP->setOutputType(ROW_GROUP);
@@ -396,7 +396,7 @@ TupleBPS::TupleBPS(const PassThruStep& rhs, const JobInfo& jobInfo) :
 	fTraceFlags = rhs.fTraceFlags;
 	fBPP->setTraceFlags(fTraceFlags);
 	fBPP->setOutputType(ROW_GROUP);
-//	if (fOid>=3000)
+//	if (fOid>=USER_OBJECT_ID)
 //		cout << "BPS:initalized from PassThruStep. fSessionId=" << fSessionId << endl;
 
 	finishedSending = sendWaiting = false;
@@ -463,7 +463,7 @@ TupleBPS::TupleBPS(const pDictionaryStep& rhs, const JobInfo& jobInfo) :
 	fBPP.reset(new BatchPrimitiveProcessorJL(fRm));
 	initializeConfigParms();
 	fBPP->setSessionID(fSessionId);
-//	if (fOid>=3000)
+//	if (fOid>=USER_OBJECT_ID)
 //		cout << "BPS:initalized from DictionaryStep. fSessionId=" << fSessionId << endl;
 	fBPP->setStepID(fStepId);
 	fBPP->setQueryContext(fVerId);
@@ -630,7 +630,7 @@ void TupleBPS::setProjectBPP(JobStep* jobStep1, JobStep* jobStep2)
 				fBPP->setNeedRidsAtDelivery(true);
 			colWidth = (pcsp->colType()).colWidth;
 			projectOids.push_back(jobStep1->oid());
-//			if (fOid>=3000)
+//			if (fOid>=USER_OBJECT_ID)
 //				cout << "Adding project step pColStep and pDictionaryStep to BPS" << endl;
 		}
 		else
@@ -645,7 +645,7 @@ void TupleBPS::setProjectBPP(JobStep* jobStep1, JobStep* jobStep2)
 					fBPP->setNeedRidsAtDelivery(true);
 				projectOids.push_back(jobStep1->oid());
 				colWidth = (psth->colType()).colWidth;
-//				if (fOid>=3000)
+//				if (fOid>=USER_OBJECT_ID)
 //					cout << "Adding project step PassThruStep and pDictionaryStep to BPS" << endl;
 			}
 		}
@@ -868,7 +868,7 @@ void TupleBPS::prepCasualPartitioning()
 	mutex::scoped_lock lk(cpMutex);
 
 	for (i = 0; i < scannedExtents.size(); i++) {
-		if (fOid >= 3000) {
+		if (fOid >= USER_OBJECT_ID) {
 			//if (scanFlags[i] && !runtimeCPFlags[i])
 			//	cout << "runtime flags eliminated an extent!\n";
 			scanFlags[i] = scanFlags[i] && runtimeCPFlags[i];
@@ -1560,7 +1560,7 @@ void TupleBPS::makeJobs(vector<Job> *jobs)
 
 	erydbassert(ffirstStepType == SCAN);
 
-	if (fOid >= 3000 && bop == BOP_AND)
+	if (fOid >= USER_OBJECT_ID && bop == BOP_AND)
 		storeCasualPartitionInfo(false);
 
 	totalMsgs = 0;
@@ -1884,10 +1884,10 @@ try
 		size = bsv.size();
 
 		// @bug 4562
-		if (traceOn() && fOid>=3000 && dlTimes.FirstReadTime().tv_sec==0)
+		if (traceOn() && fOid>=USER_OBJECT_ID && dlTimes.FirstReadTime().tv_sec==0)
 			dlTimes.setFirstReadTime();
 
-		if (fOid>=3000 && threadID == 0 && sts.msg_type == StepTeleStats::ST_INVALID && size > 0)
+		if (fOid>=USER_OBJECT_ID && threadID == 0 && sts.msg_type == StepTeleStats::ST_INVALID && size > 0)
 		{
 			sts.msg_type = StepTeleStats::ST_START;
 			sts.total_units_of_work = totalMsgs;
@@ -2113,7 +2113,7 @@ try
 				cachedIO_Thread += cachedIO;
 				physIO_Thread += physIO;
 				touchedBlocks_Thread += touchedBlocks;
-				if (fOid >= 3000 && ffirstStepType == SCAN && bop == BOP_AND)
+				if (fOid >= USER_OBJECT_ID && ffirstStepType == SCAN && bop == BOP_AND)
 					cpv.push_back(_CPInfo(min, max, lbid, validCPData));
 			}  // end of the per-rowgroup processing loop
 
@@ -2127,7 +2127,7 @@ try
 		}  // end of the per-bytestream loop
 
 		// @bug 4562
-		if (traceOn() && fOid>=3000)
+		if (traceOn() && fOid>=USER_OBJECT_ID)
 			dlTimes.setFirstInsertTime();
 
 		//update casual partition
@@ -2144,7 +2144,7 @@ try
 
 		tplLock.lock();
 
-		if (fOid >= 3000)
+		if (fOid >= USER_OBJECT_ID)
 		{
 			uint64_t progress = msgsRecvd * 100 / totalMsgs;
 			bool postProgress = (progress > fProgress);
@@ -2236,7 +2236,7 @@ out:
 			tplLock.lock();
 		}
 
-		if (traceOn() && fOid>=3000) {
+		if (traceOn() && fOid>=USER_OBJECT_ID) {
 			//...Casual partitioning could cause us to do no processing.  In that
 			//...case these time stamps did not get set.  So we set them here.
 			if (dlTimes.FirstReadTime().tv_sec==0) {
@@ -2283,7 +2283,7 @@ out:
 	fBlockTouched += touchedBlocks_Thread;
 	tplLock.unlock();
 
-	if (fTableOid >= 3000 && lastThread)
+	if (fTableOid >= USER_OBJECT_ID && lastThread)
 	{
 		struct timeval tvbuf;
 		gettimeofday(&tvbuf, 0);
@@ -2364,7 +2364,7 @@ out:
 			formatMiniStats();
 		}
 
-		if (lastThread && fOid >= 3000)
+		if (lastThread && fOid >= USER_OBJECT_ID)
 		{
 			sts.msg_type = StepTeleStats::ST_SUMMARY;
 			sts.phy_io = fPhysicalIO;
@@ -2449,7 +2449,7 @@ inline bool TupleBPS::scanit(uint64_t rid)
 	uint64_t fbo;
 	uint32_t extentIndex;
 
-	if (fOid < 3000)
+	if (fOid < USER_OBJECT_ID)
 		return true;
 	fbo = rid >> rpbShift;
 	extentIndex = fbo >> divShift;
@@ -2886,7 +2886,7 @@ void TupleBPS::setJoinFERG(const RowGroup &rg)
 void TupleBPS::addCPPredicates(uint32_t OID, const vector<int64_t> &vals, bool isRange)
 {
 
-	if (fTraceFlags & erydbSelectExecutionPlan::IGNORE_CP || fOid < 3000)
+	if (fTraceFlags & erydbSelectExecutionPlan::IGNORE_CP || fOid < USER_OBJECT_ID)
 		return;
 
 	uint32_t i, j, k;

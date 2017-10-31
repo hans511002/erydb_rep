@@ -639,7 +639,7 @@ void addProjectStepsToBps(TableInfoMap::iterator& mit, BatchPrimitive* bps, JobI
 			tokenOnly = toIt->second;
 		if (it->get()->isDictCol() && !tokenOnly)
 		{
-//			if (jobInfo.trace && bps->tableOid() >= 3000)
+//			if (jobInfo.trace && bps->tableOid() >= USER_OBJECT_ID)
 //				cout << "1 setting project BPP for " << tbps->toString() << " with " <<
 //					it->get()->toString() << " and " << (it+1)->get()->toString() << endl;
 			bps->setProjectBPP(it->get(),(it+1)->get());
@@ -663,7 +663,7 @@ void addProjectStepsToBps(TableInfoMap::iterator& mit, BatchPrimitive* bps, JobI
 		}
 		else
 		{
-//			if (jobInfo.trace && bps->tableOid() >= 3000)
+//			if (jobInfo.trace && bps->tableOid() >= USER_OBJECT_ID)
 //				cout << "2 setting project BPP for " << tbps->toString() << " with " <<
 //					it->get()->toString() << " and " << "NULL" << endl;
 			bps->setProjectBPP(it->get(), NULL);
@@ -1840,7 +1840,7 @@ uint32_t getLargestTable(JobInfo& jobInfo, TableInfoMap& tableInfoMap, bool over
 {
 	// Subquery in FROM clause assumptions:
 	//   hint will be ignored, if the 1st table in FROM clause is a derived table.
-	if (jobInfo.keyInfo->tupleKeyVec[jobInfo.tableList[0]].fId < 3000)
+	if (jobInfo.keyInfo->tupleKeyVec[jobInfo.tableList[0]].fId < USER_OBJECT_ID)
 		overrideLargeSideEstimate = false;
 
 	// Bug 2123. Added logic to dynamically determine the large side table unless the SQL statement

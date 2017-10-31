@@ -719,7 +719,7 @@ void DDLPackageProcessor::flushPrimprocCache(std::vector<execplan::erydbSystemCa
 		while (iter != oidList.end())
 		{
 			WriteEngine::OID oid = *iter;
-			if (oid < 3000)
+			if (oid < USER_OBJECT_ID)
 			{
 				++iter;
 			   continue;
@@ -849,7 +849,7 @@ void DDLPackageProcessor::createFiles(erydbSystemCatalog::TableName aTableName, 
 		bytestream << (uint32_t) colType.colWidth;
 		bytestream << (uint16_t) useDBRoot;
 		bytestream << (uint32_t) colType.compressionType;
-		if (colType.ddn.dictOID > 3000)
+		if (colType.ddn.dictOID >= USER_OBJECT_ID)
 		{
 			bytestream << (uint32_t) colType.ddn.dictOID;
 			bytestream << (uint8_t) colType.colDataType;
@@ -1364,7 +1364,7 @@ void DDLPackageProcessor::removeIndexFiles(execplan::erydbSystemCatalog::SCN txn
 		while(iter != idxOIDList.end())
 		{
 			idxOID = *iter;
-			if (idxOID.objnum < 3000 || idxOID.listOID < 3000)
+			if (idxOID.objnum < USER_OBJECT_ID || idxOID.listOID < USER_OBJECT_ID)
 			{
 				++iter;
 				continue;
@@ -1457,7 +1457,7 @@ void DDLPackageProcessor::returnOIDs(execplan::erydbSystemCatalog::RIDList& ridL
 		while (col_iter != ridList.end())
 		{
 			roPair = *col_iter;
-			if (roPair.objnum < 3000)
+			if (roPair.objnum < USER_OBJECT_ID)
 			{
 				++col_iter;
 				continue;
@@ -1472,7 +1472,7 @@ void DDLPackageProcessor::returnOIDs(execplan::erydbSystemCatalog::RIDList& ridL
 		while (dict_iter != dictOIDList.end())
 		{
 			dictOID = *dict_iter;
-			if (dictOID.dictOID < 3000)
+			if (dictOID.dictOID < USER_OBJECT_ID)
 			{
 				++dict_iter;
 				continue;

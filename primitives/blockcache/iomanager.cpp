@@ -628,7 +628,7 @@ void* thr_popper(ioManager *arg) {
 				strcpy(ptr, ".cmp");
 			}
 #endif
-			if (oid > 3000)
+			if (oid >= USER_OBJECT_ID)
 			{
 				//TODO: should syscat columns be considered when reducing open file count
 				//  They are always needed why should they be closed?
@@ -709,7 +709,7 @@ void* thr_popper(ioManager *arg) {
 					fdCountSort.clear();
 
 				} // if (fdcache.size()...
-			} // if (oid > 3000)
+			} // if (oid >= USER_OBJECT_ID)
 
 			int opts = primitiveprocessor::directIOFlag ? ERYDBDataFile::USE_ODIRECT : 0;
 			fp = NULL;

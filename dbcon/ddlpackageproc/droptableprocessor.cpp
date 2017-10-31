@@ -267,12 +267,12 @@ DropTableProcessor::DDLResult DropTableProcessor::processPackage(ddlpackage::Dro
 		//Save qualified tablename, all column, dictionary OIDs, and transaction ID into a file in ASCII format
 		for ( unsigned i=0; i < tableColRidList.size(); i++ )
 		{
-			if ( tableColRidList[i].objnum > 3000 )
+			if ( tableColRidList[i].objnum >= USER_OBJECT_ID )
 				oidList.push_back( tableColRidList[i].objnum );
 		}
 		for ( unsigned i=0; i < dictOIDList.size(); i++ )
 		{
-			if (  dictOIDList[i].dictOID > 3000 )
+			if (  dictOIDList[i].dictOID >= USER_OBJECT_ID )
 				oidList.push_back( dictOIDList[i].dictOID );
 		}
 		
@@ -841,7 +841,7 @@ TruncTableProcessor::DDLResult TruncTableProcessor::processPackage(ddlpackage::T
 		dictOIDList = systemCatalogPtr->dictOIDs( userTableName );
 		for ( unsigned i=0; i < tableColRidList.size(); i++ )
 		{
-			if ( tableColRidList[i].objnum > 3000 )
+			if ( tableColRidList[i].objnum >= USER_OBJECT_ID )
 			{
 				columnOidList.push_back( tableColRidList[i].objnum );
 				allOidList.push_back( tableColRidList[i].objnum );
@@ -849,7 +849,7 @@ TruncTableProcessor::DDLResult TruncTableProcessor::processPackage(ddlpackage::T
 		}
 		for ( unsigned i=0; i < dictOIDList.size(); i++ )
 		{
-			if (  dictOIDList[i].dictOID > 3000 )
+			if (  dictOIDList[i].dictOID >= USER_OBJECT_ID )
 				allOidList.push_back( dictOIDList[i].dictOID );
 		}
 		//Check whether the table has autoincrement column

@@ -393,7 +393,7 @@ namespace BRM {
             master.write(reply);
 
         // see bug 3596.  Need to make sure a snapshot file exists.
-        if ((cols.size() > 0) && (cols[0].oid < 3000))
+        if ((cols.size() > 0) && (cols[0].oid < USER_OBJECT_ID))
             takeSnapshot = true;
         else
             doSaveDelta = true;
@@ -459,7 +459,7 @@ namespace BRM {
 #endif
         if (!standalone)
             master.write(reply);
-        if (oid < 3000)  // see bug 3596.  Need to make sure a snapshot file exists.
+        if (oid < USER_OBJECT_ID)  // see bug 3596.  Need to make sure a snapshot file exists.
             takeSnapshot = true;
         else
             doSaveDelta = true;
@@ -525,7 +525,7 @@ namespace BRM {
 #endif
         if (!standalone)
             master.write(reply);
-        if (oid < 3000)  // see bug 3596.  Need to make sure a snapshot file exists.
+        if (oid < USER_OBJECT_ID)  // see bug 3596.  Need to make sure a snapshot file exists.
             takeSnapshot = true;
         else
             doSaveDelta = true;

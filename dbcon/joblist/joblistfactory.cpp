@@ -1167,7 +1167,7 @@ void convertPColStepInProjectToPassThru(JobStepVector& psv, JobInfo& jobInfo)
 
 			if (fifoDlp)
 			{
-				if (iter->get()->oid() >= 3000 && iter->get()->oid() == fifoDlp->OID())
+				if (iter->get()->oid() >= USER_OBJECT_ID && iter->get()->oid() == fifoDlp->OID())
 				{
 					PassThruStep* pts = 0;
 					pts = new PassThruStep(*colStep);

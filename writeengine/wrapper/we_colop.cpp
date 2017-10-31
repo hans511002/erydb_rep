@@ -35,6 +35,7 @@ using namespace std;
 #include "erydbcompress.h"
 #include "writeengine.h"
 #include "cacheutils.h"
+#include "liboamcpp.h"
 
 using namespace execplan;
 
@@ -199,7 +200,7 @@ int ColumnOp::allocRowId(const TxnID& txnid, bool useStartingExtent,
 			 rowsLeft = 0;
 			 int		allocSize = 0;
 			 newExtent = true;
-			 if ((column.dataFile.fid < 3000) || (!isBatchInsert)) //systables or single insert
+			 if ((column.dataFile.fid < USER_OBJECT_ID) || (!isBatchInsert)) //systables or single insert
 			 {
 				dbRoot = column.dataFile.fDbRoot;
 			 }
@@ -668,7 +669,7 @@ int ColumnOp::fillColumn(const TxnID& txnid, Column& column, Column& refCol, voi
 					aEntry.segmentNum = segment = 0;
 					aEntry.dbRoot = rootList[i];
 					newEntries.push_back(aEntry);
-					if (dictOid >3000)  //Create dictionary file if needed
+					if (dictOid >= USER_OBJECT_ID)  //Create dictionary file if needed
 					{
 						rc = dctnry->createDctnry(dictOid, dictColWidth,
 							rootList[i], partition, segment, startLbid, newFile);
@@ -737,7 +738,7 @@ int ColumnOp::fillColumn(const TxnID& txnid, Column& column, Column& refCol, voi
 						aEntry.segmentNum = segment;
 						aEntry.dbRoot = rootList[i];
 						newEntries.push_back(aEntry);
-						if ((dictOid >3000) && newFile) //Create dictionary file if needed
+						if ((dictOid >= USER_OBJECT_ID) && newFile) //Create dictionary file if needed
 						{
 							rc = dctnry->createDctnry(dictOid, dictColWidth,
 								rootList[i], partition, segment, startLbid, newFile);

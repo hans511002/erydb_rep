@@ -440,7 +440,7 @@ void BatchPrimitiveProcessorJL::getElementTypes(ByteStream &in,
 
 	for (i = 0; i < l_count; ++i) {
 		(*out)[i].first = rids[i] + l_baseRid;
-// 		if (tableOID >= 3000)
+// 		if (tableOID >= USER_OBJECT_ID)
 // 			erydbassert((*out)[i].first > 1023);
 		(*out)[i].second = vals[i];
 	}

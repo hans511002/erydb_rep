@@ -2766,7 +2766,7 @@ uint8_t WE_DMLCommandProc::processFlushFiles(messageqcpp::ByteStream& bs, std::s
    // execplan::erydbSystemCatalog::ColType colType;
 	erydbSystemCatalog::DictOIDList dictOids;
 
-	if (tableOid >= 3000)
+	if (tableOid >= USER_OBJECT_ID)
 	{
 		try
 		{

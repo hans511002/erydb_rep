@@ -120,7 +120,7 @@ namespace ddlpackageprocessor
 			tableName.table = dropPartitionStmt.fTableName->fName;
 			roPair = systemCatalogPtr->tableRID( tableName );
 			//@Bug 3054 check for system catalog
-			if ( roPair.objnum < 3000 )
+			if ( roPair.objnum < USER_OBJECT_ID )
 			{
 				throw std::runtime_error("Drop partition cannot be operated on erydb system catalog.");
 			}
@@ -227,12 +227,12 @@ namespace ddlpackageprocessor
 			//Save qualified tablename, all column, dictionary OIDs, and transaction ID into a file in ASCII format
 			for ( unsigned i=0; i < tableColRidList.size(); i++ )
 			{
-				if ( tableColRidList[i].objnum > 3000 )
+				if ( tableColRidList[i].objnum >= USER_OBJECT_ID )
 					oidList.push_back( tableColRidList[i].objnum );
 			}
 			for ( unsigned i=0; i < dictOIDList.size(); i++ )
 			{
-				if (  dictOIDList[i].dictOID > 3000 )
+				if (  dictOIDList[i].dictOID >= USER_OBJECT_ID )
 					oidList.push_back( dictOIDList[i].dictOID );
 			}
 		

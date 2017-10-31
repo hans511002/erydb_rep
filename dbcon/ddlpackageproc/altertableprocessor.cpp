@@ -1258,7 +1258,7 @@ cout << "Alter table drop column got unknown exception" << endl;
 	bytestream.restart();
 	bytestream << (ByteStream::byte)WE_SVR_WRITE_DROPFILES;
 	bytestream << uniqueId;
-	if (colType.ddn.dictOID > 3000)  //@bug 4847. need to take care varchar(8)
+	if (colType.ddn.dictOID >= USER_OBJECT_ID)  //@bug 4847. need to take care varchar(8)
 	{
 		bytestream << (uint32_t) 2;
 		bytestream << (uint32_t) oid;
@@ -1667,7 +1667,7 @@ void AlterTableProcessor::renameTable (uint32_t sessionID, execplan::erydbSystem
 		roPair.objnum = 0;
 	}
 	
-	if (roPair.objnum >= 3000)
+	if (roPair.objnum >= USER_OBJECT_ID)
 		throw std::runtime_error("The new tablename is already in use.");
 	
 	ByteStream bytestream;

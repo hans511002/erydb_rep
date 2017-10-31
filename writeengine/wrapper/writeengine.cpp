@@ -2887,7 +2887,7 @@ namespace WriteEngine
                   }
             */
             //Mark extents invalid
-          //if (colStructList[0].dataOid < 3000) {
+          //if (colStructList[0].dataOid < USER_OBJECT_ID) {
             vector<BRM::LBID_t> lbids;
             vector<erydbSystemCatalog::ColDataType> colDataTypes;
             bool successFlag = true;
@@ -2943,7 +2943,7 @@ namespace WriteEngine
         const int32_t tableOid) {
         //Mark extents invalid
         //int rc = 0;
-        //if (colExtentsStruct[0].dataOid < 3000) 
+        //if (colExtentsStruct[0].dataOid < USER_OBJECT_ID) 
         //{
         vector<BRM::LBID_t> lbids;
         vector<erydbSystemCatalog::ColDataType> colDataTypes;

@@ -288,7 +288,7 @@ void TupleHashJoinStep::smallRunnerFcn(uint32_t index)
 			it did before.  If it will be converted, it should just return. */
 			if (UNLIKELY(!gotMem)) {
 				if (isDML || !allowDJS || (fSessionId & 0x80000000) ||
-						(tableOid() < 3000 && tableOid() >= 1000)) {
+						(tableOid() < USER_OBJECT_ID && tableOid() >= MAX_DBROOT)) {
 					joinIsTooBig = true;
 					fLogger->logMessage(logging::LOG_TYPE_INFO, logging::ERR_JOIN_TOO_BIG);
 					errorMessage(logging::ERYDBErrorInfo::instance()->errorMsg(logging::ERR_JOIN_TOO_BIG));
@@ -504,7 +504,7 @@ void TupleHashJoinStep::hjRunner()
 	}
 
 	StepTeleStats sts;
-	if (fTableOID1 >= 3000)
+	if (fTableOID1 >= USER_OBJECT_ID)
 	{
 		sts.query_uuid = fQueryUuid;
 		sts.step_uuid = fStepUuid;
@@ -788,7 +788,7 @@ void TupleHashJoinStep::hjRunner()
 		// this clause starts the THJS join threads.
 		startJoinThreads();
 
-	if (fTableOID1 >= 3000)
+	if (fTableOID1 >= USER_OBJECT_ID)
 	{
 		sts.msg_type = StepTeleStats::ST_SUMMARY;
 		sts.end_time = QueryTeleClient::timeNowms();
@@ -1038,7 +1038,7 @@ void TupleHashJoinStep::formatMiniStats(uint32_t index)
 	else
 		oss << "PM ";
 	oss << alias() << "-" << joiners[index]->getTableName() << " ";
-	if (fTableOID2 >= 3000)
+	if (fTableOID2 >= USER_OBJECT_ID)
 		oss << fTableOID2;
 	else
 		oss << "- ";
@@ -1585,7 +1585,7 @@ void TupleHashJoinStep::segregateJoiners()
 
 	/* When DDL updates syscat, the syscat checks here are necessary */
 	if (isDML || !allowDJS || (fSessionId & 0x80000000) ||
-		(tableOid() < 3000 && tableOid() >= 1000)) {
+		(tableOid() < USER_OBJECT_ID && tableOid() >= MAX_DBROOT)) {
 		if (anyTooLarge) {
 			joinIsTooBig = true;
 			abort();

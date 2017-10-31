@@ -420,7 +420,7 @@ void pDictionaryScan::sendPrimitiveMessages()
 	mutex.unlock();
 
 #ifdef DEBUG2
-	if (fOid >= 3000)
+	if (fOid >= USER_OBJECT_ID)
 	{
 		time_t t = time(0);
 		char timeString[50];
@@ -501,7 +501,7 @@ void pDictionaryScan::sendAPrimitiveMessage(
 	//	<< " hdr.Count " << hdr.Count
 	//	<< " filterCount " << fFilterCount << endl;
 #ifdef DEBUG2
-    if (fOid >= 3000)
+    if (fOid >= USER_OBJECT_ID)
         cout << "pDictionaryScan producer st: " << fStepId <<
             ": sending req for lbid start "     << msgLbidStart <<
             "; lbid count " << msgLbidCount     << endl;
@@ -549,7 +549,7 @@ void pDictionaryScan::receivePrimitiveMessages()
 	StepTeleStats sts;
 	sts.query_uuid = fQueryUuid;
 	sts.step_uuid = fStepUuid;
-	if (fOid >= 3000)
+	if (fOid >= USER_OBJECT_ID)
 	{
 		sts.msg_type = StepTeleStats::ST_START;
 		sts.total_units_of_work = fMsgsExpect;
@@ -581,9 +581,9 @@ void pDictionaryScan::receivePrimitiveMessages()
 			mutex.unlock();
 
 			fDec->read(uniqueID, bs);
-			if (fOid>=3000 && traceOn() && dlTimes.FirstReadTime().tv_sec==0)
+			if (fOid>=USER_OBJECT_ID && traceOn() && dlTimes.FirstReadTime().tv_sec==0)
 				dlTimes.setFirstReadTime();
-			if (fOid>=3000 && traceOn()) dlTimes.setLastReadTime();
+			if (fOid>=USER_OBJECT_ID && traceOn()) dlTimes.setLastReadTime();
 
 			if (bs->length() == 0)
 			{
@@ -614,7 +614,7 @@ void pDictionaryScan::receivePrimitiveMessages()
 #ifdef DEBUG
 				cout << "dict step " << fStepId << "  NVALS = " << crh->NVALS << endl;
 #endif
-				if (fOid>=3000 && traceOn() && dlTimes.FirstInsertTime().tv_sec==0)
+				if (fOid>=USER_OBJECT_ID && traceOn() && dlTimes.FirstInsertTime().tv_sec==0)
 					dlTimes.setFirstInsertTime();
 
 				for(int j = 0; j < crh->NVALS && !cancelled(); j++)
@@ -642,7 +642,7 @@ void pDictionaryScan::receivePrimitiveMessages()
 				mutex.lock();
 				msgsRecvd++;
 
-				if (fOid >= 3000)
+				if (fOid >= USER_OBJECT_ID)
 				{
 					uint64_t progress = msgsRecvd * 100 / fMsgsExpect;
 					if (progress > fProgress)
@@ -661,7 +661,7 @@ void pDictionaryScan::receivePrimitiveMessages()
 					 ( (msgsSent - msgsRecvd) < fScanLbidReqThreshold ) )
 				{
 #ifdef DEBUG2
-					if (fOid >= 3000)
+					if (fOid >= USER_OBJECT_ID)
 						cout << "pDictionaryScan consumer signaling producer for "
 							"more data: "  <<
 							"st:"          << fStepId   <<
@@ -728,7 +728,7 @@ void pDictionaryScan::receivePrimitiveMessages()
 	//@bug 699: Reset StepMsgQueue
 	fDec->removeQueue(uniqueID);
 
-	if (fTableOid >= 3000)
+	if (fTableOid >= USER_OBJECT_ID)
 	{
 		//...Construct timestamp using ctime_r() instead of ctime() not
 		//...necessarily due to re-entrancy, but because we want to strip

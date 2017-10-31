@@ -61,6 +61,7 @@
 
 #define BRMOIDSVR_DLLEXPORT
 #include "oidserver.h"
+#include "liboamcpp.h"
 #undef BRMOIDSVR_DLLEXPORT
 
 #include "configcpp.h"
@@ -257,7 +258,7 @@ namespace BRM {
         int i;
         struct FEntry *h1;
         string stmp;
-        int64_t ltmp;
+        int64_t ltmp= USER_OBJECT_ID;
         int firstOID;
         config::Config *conf;
         conf = config::Config::makeConfig();
@@ -265,10 +266,11 @@ namespace BRM {
             stmp = conf->getConfig("OIDManager", "FirstOID");
         } catch (exception&) {
         }
-        if (stmp.empty()) stmp = "3000";
-        ltmp = config::Config::fromText(stmp);
-        if (ltmp > numeric_limits<int32_t>::max() || ltmp < 0) {
-            ltmp = config::Config::fromText("3000");
+        if (!stmp.empty())
+            ltmp = config::Config::fromText(stmp);
+       
+        if (ltmp > numeric_limits<int32_t>::max() || ltmp < USER_OBJECT_ID) {
+            ltmp = USER_OBJECT_ID;
         }
         firstOID = static_cast<int>(ltmp);
         boost::mutex::scoped_lock lk(fMutex);

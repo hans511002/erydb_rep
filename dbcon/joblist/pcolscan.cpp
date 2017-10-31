@@ -200,7 +200,7 @@ pColScanStep::pColScanStep(
 	numExtents = extents.size();
 	extentSize = (fRm.getExtentRows()*fColType.colWidth)/BLOCK_SIZE;
 
-	if (fOid>3000) {
+	if (fOid>=USER_OBJECT_ID) {
 		lbidList.reset(new LBIDList(fOid, 0));
 	}
 
@@ -321,7 +321,7 @@ void pColScanStep::sendPrimitiveMessages()
 //  if (fInputJobStepAssociation.outSize() > 0)
 //  {
 //    addFilters();
-//    if (fTableOid >= 3000)
+//    if (fTableOid >= USER_OBJECT_ID)
 //      cout << toString() << endl;
 //    //If we got no input rids (as opposed to no input DL at all) then there were no matching rows from
 //    //  the previous step, so this step should not return any rows either. This would be the case, for
@@ -365,7 +365,7 @@ void pColScanStep::sendPrimitiveMessages()
 //	if (hwm < fbo)
 //		continue;
 //
-//    if (fOid >= 3000 && lbidList->CasualPartitionDataType(fColType.colDataType, fColType.colWidth) )
+//    if (fOid >= USER_OBJECT_ID && lbidList->CasualPartitionDataType(fColType.colDataType, fColType.colWidth) )
 //    {
 //  		int64_t Min=0;
 //  		int64_t Max=0;
@@ -432,7 +432,7 @@ void pColScanStep::sendPrimitiveMessages()
 //			{
 //				sendWaiting = true;
 //#ifdef DEBUG2
-//				if (fOid >= 3000)
+//				if (fOid >= USER_OBJECT_ID)
 //					cout << "pColScanStep producer WAITING: " <<
 //						"st:"          << fStepId   <<
 //						"; sentCount-" << sentCount <<
@@ -441,7 +441,7 @@ void pColScanStep::sendPrimitiveMessages()
 //#endif
 //				condvarWakeupProducer.wait(mutex); //pthread_cond_wait ( &condvarWakeupProducer, &mutex );
 //#ifdef DEBUG2
-//				if (fOid >= 3000)
+//				if (fOid >= USER_OBJECT_ID)
 //					cout << "pColScanStep producer RESUMING: " <<
 //						"st:" << fStepId << endl;
 //#endif
@@ -497,7 +497,7 @@ void pColScanStep::sendPrimitiveMessages()
 //// 	cerr << "send side exiting" << endl;
 //
 //#ifdef DEBUG2
-//	if (fOid >= 3000)
+//	if (fOid >= USER_OBJECT_ID)
 //	{
 //		time_t t = time(0);
 //		char timeString[50];
@@ -547,7 +547,7 @@ void pColScanStep::sendAPrimitiveMessage(
 //  	bs += fFilterString;
 //
 //#ifdef DEBUG2
-//	if (fOid >= 3000)
+//	if (fOid >= USER_OBJECT_ID)
 //		cout << "pColScanStep producer st: " << fStepId <<
 //			": sending req for lbid start "  << msgLbidStart <<
 //			"; lbid count " << msgLbidCount  << endl;
@@ -624,9 +624,9 @@ void pColScanStep::receivePrimitiveMessages(uint64_t tid)
 //			continue;
 //		}
 //
-//		if (fOid>=3000 && dlTimes.FirstReadTime().tv_sec==0)
+//		if (fOid>=USER_OBJECT_ID && dlTimes.FirstReadTime().tv_sec==0)
 //			dlTimes.setFirstReadTime();
-//		if (fOid>=3000) dlTimes.setLastReadTime();
+//		if (fOid>=USER_OBJECT_ID) dlTimes.setLastReadTime();
 //
 //// 		cerr << "got a response of " << size << " msgs\n";
 //
@@ -680,7 +680,7 @@ void pColScanStep::receivePrimitiveMessages(uint64_t tid)
 //					v.push_back(ElementType(rid, dv));
 //					++l_ridsReturned;
 //#ifdef DEBUG
-////					if (fOid >=3000)
+////					if (fOid >=USER_OBJECT_ID)
 ////						cout << "  -- inserting <" << rid << ", " << dv << ">" << endl;
 //#endif
 //					// per row operations...
@@ -696,7 +696,7 @@ void pColScanStep::receivePrimitiveMessages(uint64_t tid)
 //						<< " nvals " << crh->NVALS
 //						<< "/" << l_ridsReturned << endl;
 //#endif
-//				if (fOid >= 3000 && crh->ValidMinMax)
+//				if (fOid >= USER_OBJECT_ID && crh->ValidMinMax)
 //					cpv.push_back(CPInfo(crh->Min, crh->Max, crh->LBID));
 //			}
 //				// per ByteStream operations...
@@ -704,7 +704,7 @@ void pColScanStep::receivePrimitiveMessages(uint64_t tid)
 //			// per read operations....
 //
 //		if (bucket) {
-//			if (fOid>=3000 && dlTimes.FirstInsertTime().tv_sec==0)
+//			if (fOid>=USER_OBJECT_ID && dlTimes.FirstInsertTime().tv_sec==0)
 //			    dlTimes.setFirstInsertTime();
 //
 //			bucket->insert(v);
@@ -715,7 +715,7 @@ void pColScanStep::receivePrimitiveMessages(uint64_t tid)
 //		else {
 //			size = v.size();
 //			if (size>0)
-//				if (fOid>=3000 && dlTimes.FirstInsertTime().tv_sec==0)
+//				if (fOid>=USER_OBJECT_ID && dlTimes.FirstInsertTime().tv_sec==0)
 //					dlTimes.setFirstInsertTime();
 //
 //			dlMutex.lock(); //pthread_mutex_lock(&dlMutex);
@@ -756,7 +756,7 @@ void pColScanStep::receivePrimitiveMessages(uint64_t tid)
 //		if ( (sendWaiting) && ( (sentCount - recvCount) < fScanLbidReqThreshold ) )
 //		{
 //#ifdef DEBUG2
-//			if (fOid >= 3000)
+//			if (fOid >= USER_OBJECT_ID)
 //			cout << "pColScanStep consumer signaling producer for more data: "<<
 //				"st:"          << fStepId   <<
 //				"; sentCount-" << sentCount <<
@@ -774,12 +774,12 @@ void pColScanStep::receivePrimitiveMessages(uint64_t tid)
 //	if (++recvExited == fNumThreads) {
 //		//...Casual partitioning could cause us to do no processing.  In that
 //		//...case these time stamps did not get set.  So we set them here.
-//		if (fOid>=3000 && dlTimes.FirstReadTime().tv_sec==0) {
+//		if (fOid>=USER_OBJECT_ID && dlTimes.FirstReadTime().tv_sec==0) {
 //			dlTimes.setFirstReadTime();
 //			dlTimes.setLastReadTime();
 //			dlTimes.setFirstInsertTime();
 //		}
-//		if (fOid>=3000) dlTimes.setEndOfInputTime();
+//		if (fOid>=USER_OBJECT_ID) dlTimes.setEndOfInputTime();
 //
 //		//@bug 699: Reset StepMsgQueue
 //		fDec->removeQueue(uniqueID);
@@ -793,7 +793,7 @@ void pColScanStep::receivePrimitiveMessages(uint64_t tid)
 //
 //	mutex.unlock(); //pthread_mutex_unlock(&mutex);
 //
-//	if (fTableOid >= 3000 && lastThread)
+//	if (fTableOid >= USER_OBJECT_ID && lastThread)
 //	{
 //		//...Construct timestamp using ctime_r() instead of ctime() not
 //		//...necessarily due to re-entrancy, but because we want to strip
@@ -877,7 +877,7 @@ void pColScanStep::receivePrimitiveMessages(uint64_t tid)
 //
 //	}
 //
-// 	if (fOid >=3000 && lastThread)
+// 	if (fOid >=USER_OBJECT_ID && lastThread)
 // 		lbidList->UpdateAllPartitionInfo();
 //
 //// 	cerr << "recv thread exiting" << endl;

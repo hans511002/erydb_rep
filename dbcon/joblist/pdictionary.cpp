@@ -341,9 +341,9 @@ void pDictionaryStep::receivePrimitiveMessages()
 //
 //		ByteStream bs = fDec->read(uniqueID);
 //		fMsgBytesIn += bs.lengthWithHdrOverhead();
-//		if (fOid>=3000 && dlTimes.FirstReadTime().tv_sec==0)
+//		if (fOid>=USER_OBJECT_ID && dlTimes.FirstReadTime().tv_sec==0)
 //			dlTimes.setFirstReadTime();
-//		if (fOid>=3000) dlTimes.setLastReadTime();
+//		if (fOid>=USER_OBJECT_ID) dlTimes.setLastReadTime();
 //
 //		msgsRecvd++;
 //		if (bs.length() == 0)
@@ -364,7 +364,7 @@ void pDictionaryStep::receivePrimitiveMessages()
 //
 //		char d[8192];
 //// 		memset(d, 0, 8192);
-//		if (fOid>=3000 && dlTimes.FirstInsertTime().tv_sec==0)
+//		if (fOid>=USER_OBJECT_ID && dlTimes.FirstInsertTime().tv_sec==0)
 //			dlTimes.setFirstInsertTime();
 //		for(int j = 0; j < drh->NVALS; j++)
 //		{
@@ -382,7 +382,7 @@ void pDictionaryStep::receivePrimitiveMessages()
 //				strcpy(d, CPNULLSTRMARK.c_str());
 //			}
 //#ifdef FIFO_SINK
-//			if (fOid < 3000)
+//			if (fOid < USER_OBJECT_ID)
 //#endif
 //				if (fifo)
 //				{
@@ -414,10 +414,10 @@ void pDictionaryStep::receivePrimitiveMessages()
 //	//@bug 699: Reset StepMsgQueue
 //	fDec->removeQueue(uniqueID);
 //
-//	if (fOid>=3000) dlTimes.setEndOfInputTime();
+//	if (fOid>=USER_OBJECT_ID) dlTimes.setEndOfInputTime();
 //	dlp->endOfInput();
 //
-//	if (fTableOid >= 3000)
+//	if (fTableOid >= USER_OBJECT_ID)
 //	{
 //		//...Construct timestamp using ctime_r() instead of ctime() not
 //		//...necessarily due to re-entrancy, but because we want to strip
@@ -524,7 +524,7 @@ const string pDictionaryStep::toString() const
 		oss << fInputJobStepAssociation.outAt(i) << ", ";
 	}
 #ifdef FIFO_SINK
-	if (fOid < 3000))
+	if (fOid < USER_OBJECT_ID))
 		oss << " (sink)";
 #endif
 	return oss.str();

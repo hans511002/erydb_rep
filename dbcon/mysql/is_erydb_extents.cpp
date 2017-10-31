@@ -69,7 +69,7 @@ static int is_erydb_extents_fill(THD *thd, TABLE_LIST *tables, COND *cond)
     execplan::ObjectIDManager oidm;
     BRM::OID_t MaxOID = oidm.size();
 
-    for(BRM::OID_t oid = 3000; oid <= MaxOID; oid++)
+    for(BRM::OID_t oid = USER_OBJECT_ID; oid <= MaxOID; oid++)
     {
         emp->getExtents(oid, entries, false, false, true);
         if (entries.size() == 0)

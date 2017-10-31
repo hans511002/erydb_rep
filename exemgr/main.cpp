@@ -902,7 +902,7 @@ new_plan:
 							{
 								// Skip the write to the front end until the last empty band.  Used to time queries
 								// through without any front end waiting.
-								if(tableOID < 3000 || rowCount == 0)
+								if(tableOID < USER_OBJECT_ID || rowCount == 0)
 									fIos.write(bs);
 							}
 							else

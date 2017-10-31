@@ -80,7 +80,7 @@ CreateIndexProcessor::DDLResult CreateIndexProcessor::processPackage(ddlpackage:
     {
         return result;
     }
-    if ( roPair.objnum < 3000 )
+    if ( roPair.objnum < USER_OBJECT_ID )
     {
     	return result;
     }

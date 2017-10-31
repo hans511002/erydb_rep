@@ -263,7 +263,7 @@ CommandPackageProcessor::processPackage(dmlpackage::erydbDMLPackage& cpackage)
 					}
 					else
 					{
-						if (tableOid >= 3000)
+						if (tableOid >= USER_OBJECT_ID)
 						{
 							tableName = systemCatalogPtr->tableName(tableOid);
                             try 

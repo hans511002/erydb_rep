@@ -292,7 +292,7 @@ try
 		if(hashIt != ht->end())
 		{
 #ifdef DEBUG
-			if(hjPtr->SearchResult(thrIdx)->OID() >= 3000)
+			if(hjPtr->SearchResult(thrIdx)->OID() >= USER_OBJECT_ID)
 			cout << "JoinByBucket() SearchResult add " << bucketIdx
 				<< " [" << e.first << "][" << e.second << "]" << endl;
 			uint32_t a=0;
@@ -578,7 +578,7 @@ void LargeHashJoin::doHashJoin()
 	BDLWrapper< ElementType > setB(Bp);
 
 	hj = new HashJoin<ElementType>(setA, setB, resultA, resultB, fJoinType, &dlTimes, fOutputJobStepAssociation.statusPtr(), sessionId(), &die);
-	if (fTableOID2 >= 3000)
+	if (fTableOID2 >= USER_OBJECT_ID)
 	{
 		ostringstream logStr2;
    		logStr2 << "LargeHashJoin::run: ses:" << fSessionId <<
@@ -589,7 +589,7 @@ void LargeHashJoin::doHashJoin()
 
 	currentAction = "performing join";
 
-	if (fTableOID2 >= 3000)
+	if (fTableOID2 >= USER_OBJECT_ID)
 	{
 		dlTimes.setFirstReadTime();
 		dlTimes.setEndOfInputTime( dlTimes.FirstReadTime() );
@@ -638,7 +638,7 @@ void LargeHashJoin::doHashJoin()
 
 	} // (fInputJobStepAssociation.status() == 0)
 
-	if (fTableOID2 >= 3000 && traceOn())
+	if (fTableOID2 >= USER_OBJECT_ID && traceOn())
 	{
 		time_t finTime = time(0);
 		char finTimeString[50];
@@ -862,7 +862,7 @@ void StringHashJoinStep::doStringHashJoin()
 	}
 
 	// leave this in
-	if (fTableOID2 >= 3000)
+	if (fTableOID2 >= USER_OBJECT_ID)
 	{
 		ostringstream logStr2;
 		logStr2 << "StringHashJoinStep::run: ses:" << fSessionId <<
@@ -873,7 +873,7 @@ void StringHashJoinStep::doStringHashJoin()
 
 	currentAction = "performing join";
 
-	if (fTableOID2 >= 3000)
+	if (fTableOID2 >= USER_OBJECT_ID)
 	{
 		dlTimes.setFirstReadTime();
 		dlTimes.setEndOfInputTime( dlTimes.FirstReadTime() );
@@ -993,7 +993,7 @@ void StringHashJoinStep::doStringHashJoin()
 		dlB->endOfInput();
 	}
 	gettimeofday(&end_time, 0);
-	if (fTableOID2 >= 3000) dlTimes.setEndOfInputTime();
+	if (fTableOID2 >= USER_OBJECT_ID) dlTimes.setEndOfInputTime();
 
 	if (hj)
 	{
@@ -1011,7 +1011,7 @@ void StringHashJoinStep::doStringHashJoin()
 
 	} // (fInputJobStepAssociation.status() == 0)
 
-	if (fTableOID2 >= 3000 && traceOn())
+	if (fTableOID2 >= USER_OBJECT_ID && traceOn())
 	{
 		time_t finTime = time(0);
 		char finTimeString[50];
