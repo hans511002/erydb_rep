@@ -407,7 +407,7 @@ cout << fTxnid.id << " Create table We_SVR_WRITE_CREATETABLEFILES: " << errorMsg
 		tableDef.serialize(bytestream);
 		pmNum = (*dbRootPMMap)[dbRoot];
 		try
-		{			
+		{
 #ifdef ERYDB_DDL_DEBUG
 cout << fTxnid.id << " create table sending WE_SVR_WRITE_CREATE_SYSCOLUMN to pm " << pmNum << endl;
 #endif	

@@ -4335,7 +4335,7 @@ namespace oam
 
     /********************************************************************
      *
-     * Switch Parent OAM Module
+     * Switch Parent OAM Module stopsystem, changeoam master ,restartsystem
      *
      ********************************************************************/
     bool Oam::switchParentOAMModule(std::string moduleName, GRACEFUL_FLAG gracefulflag) {

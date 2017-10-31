@@ -143,7 +143,7 @@ pColStep::pColStep(
 	else
 		fOutputType = OT_TOKEN;
 
-	if (fOid < 1000)
+	if (fOid <= MAX_DBROOT)
 		throw runtime_error("pColStep: invalid column");
 
 	compress::ERYDBCompressInterface cmpif;
@@ -235,7 +235,7 @@ pColStep::pColStep(
 		throw runtime_error(os.str());
 	}
 
-	if (fOid>3000) {
+	if (fOid>=USER_OBJECT_ID) {
 		lbidList.reset(new LBIDList(fOid, 0));
 	}
 	sort(extents.begin(), extents.end(), ExtentSorter());
@@ -280,7 +280,7 @@ pColStep::pColStep(const pColScanStep& rhs) :
 	if (fTableOid == 0)  // cross engine support
 		return;
 
-	if (fOid < 1000)
+	if (fOid <= MAX_DBROOT)
 		throw runtime_error("pColStep: invalid column");
 
 	ridsPerBlock = rhs.getRidsPerBlock();
@@ -375,7 +375,7 @@ pColStep::pColStep(const PassThruStep& rhs) :
 	if (fTableOid == 0)  // cross engine support
 		return;
 
-	if (fOid < 1000)
+	if (fOid <= MAX_DBROOT)
 		throw runtime_error("pColStep: invalid column");
 
 	ridsPerBlock = BLOCK_SIZE/fColType.colWidth;
@@ -640,7 +640,7 @@ void pColStep::sendPrimitiveMessages()
 //	if (fInputJobStepAssociation.outSize() > 1)
 //	{
 //		addFilters();
-//		if (fTableOid >= 3000)
+//		if (fTableOid >= USER_OBJECT_ID)
 //			cout << toString() << endl;
 //		//If we got no input rids (as opposed to no input DL at all) then there were no matching rows from
 //		//  the previous step, so this step should not return any rows either. This would be the case, for
@@ -654,7 +654,7 @@ void pColStep::sendPrimitiveMessages()
 //	// determine which ranges/extents to eliminate from this step
 //
 //#ifdef DEBUG
-//	if (fOid>=3000)
+//	if (fOid>=USER_OBJECT_ID)
 //		cout << "oid " << fOid << endl;
 //#endif
 //
@@ -677,7 +677,7 @@ void pColStep::sendPrimitiveMessages()
 //                                            fBOP) || ignoreCP;
 //		scanFlags[idx]=flag;
 //#ifdef DEBUG
-//		if (fOid >= 3000 && flushInterval == 0)
+//		if (fOid >= USER_OBJECT_ID && flushInterval == 0)
 //			cout << (flag ? "  will scan " : "  will not scan ")
 //				<< "extent with range " << extents[idx].partition.cprange.lo_val
 //				<< "-" << extents[idx].partition.cprange.hi_val << endl;
@@ -685,7 +685,7 @@ void pColStep::sendPrimitiveMessages()
 //
 //		}
 //
-////		if (fOid>=3000)
+////		if (fOid>=USER_OBJECT_ID)
 ////		cout << " " << scanFlags[idx];
 //	}
 ////	if (scanFlags.size()>0)
@@ -725,7 +725,7 @@ void pColStep::sendPrimitiveMessages()
 //		if (fifo)
 //		{
 //			more = fifo->next(it, &rw);
-//			if (fOid>=3000 && dlTimes.FirstReadTime().tv_sec==0) {
+//			if (fOid>=USER_OBJECT_ID && dlTimes.FirstReadTime().tv_sec==0) {
 //		    	dlTimes.setFirstReadTime();
 //	   	 	}
 //			absoluteRID = rw.et[0].first;
@@ -733,7 +733,7 @@ void pColStep::sendPrimitiveMessages()
 //		else
 //		{
 //			more = ridList->next(it, &e);
-//			if (fOid>=3000 && dlTimes.FirstReadTime().tv_sec==0) {
+//			if (fOid>=USER_OBJECT_ID && dlTimes.FirstReadTime().tv_sec==0) {
 //		    	dlTimes.setFirstReadTime();
 //	   		}
 //			absoluteRID = e.first;
@@ -745,7 +745,7 @@ void pColStep::sendPrimitiveMessages()
 //		if (strFifo)
 //		{
 //			more = strFifo->next(it, &strRw);
-//			if (fOid>=3000 && dlTimes.FirstReadTime().tv_sec==0) {
+//			if (fOid>=USER_OBJECT_ID && dlTimes.FirstReadTime().tv_sec==0) {
 //		    	dlTimes.setFirstReadTime();
 //	   	 	}
 //			absoluteRID = strRw.et[0].first;
@@ -753,7 +753,7 @@ void pColStep::sendPrimitiveMessages()
 //		else
 //		{
 //			more = strRidList->next(it, &strE);
-//			if (fOid>=3000 && dlTimes.FirstReadTime().tv_sec==0) {
+//			if (fOid>=USER_OBJECT_ID && dlTimes.FirstReadTime().tv_sec==0) {
 //		    	dlTimes.setFirstReadTime();
 //	   		}
 //			absoluteRID = strE.first;
@@ -839,7 +839,7 @@ void pColStep::sendPrimitiveMessages()
 //					++sentBlockCount;
 //
 //#ifdef DEBUG
-//					if (flushInterval == 0 && fOid >= 3000)
+//					if (flushInterval == 0 && fOid >= USER_OBJECT_ID)
 //						cout << "sending a prim msg for LBID " << msgLBID << endl;
 //#endif
 //					++msgCount;
@@ -930,7 +930,7 @@ void pColStep::sendPrimitiveMessages()
 //		}
 //	}
 //
-//	if (fOid>=3000) dlTimes.setLastReadTime();
+//	if (fOid>=USER_OBJECT_ID) dlTimes.setLastReadTime();
 //
 //done:
 //	mutex.lock(); //pthread_mutex_lock(&mutex);
@@ -940,7 +940,7 @@ void pColStep::sendPrimitiveMessages()
 //	mutex.unlock(); //pthread_mutex_unlock(&mutex);
 //
 //#ifdef DEBUG
-//	if (fOid >=3000)
+//	if (fOid >=USER_OBJECT_ID)
 //		cout << "pColStep msgSent "
 //			<< msgsSent << "/" << msgsSkip
 //			<< " rids " << ridCount
@@ -1056,7 +1056,7 @@ void pColStep::receivePrimitiveMessages()
 //			*/
 //			else if (fOutputType == OT_TOKEN && fFlushInterval > 0 && !fIsDict) {
 //
-//				if (fOid>=3000 && dlTimes.FirstInsertTime().tv_sec==0)
+//				if (fOid>=USER_OBJECT_ID && dlTimes.FirstInsertTime().tv_sec==0)
 //					dlTimes.setFirstInsertTime();
 //				ridResults += crh->NVALS;
 //
@@ -1083,7 +1083,7 @@ void pColStep::receivePrimitiveMessages()
 //				uint64_t dv;
 //				uint64_t rid;
 //
-//				if (fOid>=3000 && dlTimes.FirstInsertTime().tv_sec==0)
+//				if (fOid>=USER_OBJECT_ID && dlTimes.FirstInsertTime().tv_sec==0)
 //					dlTimes.setFirstInsertTime();
 //				ridResults += crh->NVALS;
 //				for(int j = 0; j < crh->NVALS; ++j)
@@ -1147,7 +1147,7 @@ void pColStep::receivePrimitiveMessages()
 //						// @bug 663 - Don't output any rows if fSwallowRows (caltraceon(16)) is on.
 //						// 	      This options swallows rows in the project steps.
 //   					if (!fSwallowRows) {
-//						if (fOid>=3000 && dlTimes.FirstInsertTime().tv_sec==0)
+//						if (fOid>=USER_OBJECT_ID && dlTimes.FirstInsertTime().tv_sec==0)
 //							dlTimes.setFirstInsertTime();
 //						if(fifo)
 //						{
@@ -1191,12 +1191,12 @@ void pColStep::receivePrimitiveMessages()
 //
 //	//...Casual partitioning could cause us to do no processing.  In that
 //	//...case these time stamps did not get set.  So we set them here.
-//	if (fOid>=3000 && dlTimes.FirstReadTime().tv_sec==0) {
+//	if (fOid>=USER_OBJECT_ID && dlTimes.FirstReadTime().tv_sec==0) {
 //		dlTimes.setFirstReadTime();
 //		dlTimes.setLastReadTime();
 //		dlTimes.setFirstInsertTime();
 //	}
-//	if (fOid>=3000) dlTimes.setEndOfInputTime();
+//	if (fOid>=USER_OBJECT_ID) dlTimes.setEndOfInputTime();
 //
 //	//@bug 699: Reset StepMsgQueue
 //	fDec->removeQueue(uniqueID);
@@ -1206,7 +1206,7 @@ void pColStep::receivePrimitiveMessages()
 //	else
 //		dlp->endOfInput();
 //
-//	if (fTableOid >= 3000)
+//	if (fTableOid >= USER_OBJECT_ID)
 //	{
 //		//...Construct timestamp using ctime_r() instead of ctime() not
 //		//...necessarily due to re-entrancy, but because we want to strip

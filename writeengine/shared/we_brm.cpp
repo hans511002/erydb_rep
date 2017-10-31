@@ -761,7 +761,7 @@ ERYDBDataFile* BRMWrapper::openFile(const File& fileInfo, const char* mode, cons
         return m_curVBFile;
 
     FileOp fileOp;
-    if (fileInfo.oid < 1000){ //Cannot have more than 999 version buffer files tp prevent oid collision
+    if (fileInfo.oid < MAX_DBROOT){ //Cannot have more than 999 version buffer files tp prevent oid collision
         RETURN_ON_WE_ERROR(fileOp.getVBFileName (fileInfo.oid, fileName),NULL);
     }
     else {
@@ -1593,8 +1593,7 @@ int BRMWrapper::writeVB(ERYDBDataFile* pSourceFile, const VER_t transID, const O
         {
             // This call to copyVBBlock will consume whole of the freeList[i]
 			k = 0;
-            rc = copyVBBlock(pSourceFile, weOid, pTargetFile, fileInfo.oid,
-                fboList, freeList[i], k, pFileOp, rangeListCount);
+            rc = copyVBBlock(pSourceFile, weOid, pTargetFile, fileInfo.oid, fboList, freeList[i], k, pFileOp, rangeListCount);
 			//cout << "processedBlocks:k = " << processedBlocks <<":"<<k << endl;	
 
             if (rc != NO_ERROR)

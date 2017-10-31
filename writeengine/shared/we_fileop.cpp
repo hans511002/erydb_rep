@@ -2086,7 +2086,7 @@ int FileOp::oid2FileName( FID fid,
 #endif
 
     /* If is a version buffer file, the format is different. */
-    if (fid < 1000) {
+    if (fid < MAX_DBROOT) {
         /* Get the dbroot #
          * Get the root of that dbroot
          * Add "/versionbuffer.cdf"
@@ -2211,7 +2211,7 @@ int FileOp::oid2DirName( FID fid, char* oidDirName ) const
     char dbDir[MAX_DB_DIR_LEVEL][MAX_DB_DIR_NAME_SIZE];
 
     /* If is a version buffer file, the format is different. */
-    if (fid < 1000) {
+    if (fid < MAX_DBROOT) {
         /* Get the dbroot #
          * Get the root of that dbroot
          */
@@ -2350,7 +2350,7 @@ ERYDBDataFile* FileOp::openFile( const char* fileName,
         dbRoot, partition, segment ) ), NULL );
 
     // disable buffering for versionbuffer file
-    if (fid < 1000)
+    if (fid < MAX_DBROOT)
         ioColSize = 0;
 
     ERYDBDataFile* pF = openFile( fileName, mode, ioColSize, useTmpSuffix );

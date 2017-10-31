@@ -936,9 +936,7 @@ static void sigchldHandleThread() {
 
 static void	SIGCHLDHandler(int signal_number) {
     int status;
-
     waitpid(-1, &status, WNOHANG);
-
     return;
 }
 

@@ -2124,9 +2124,9 @@ namespace processmonitor {
             if ((gOAMParentModuleFlag && processName == "DBRMControllerNode") ||
                 (!gOAMParentModuleFlag && processName == "DBRMWorkerNode")) {
                 string DBRMDir;
-                //			string tempDBRMDir = startup::StartUp::installDir() + "/data/dbrm";
+                //string tempDBRMDir = startup::StartUp::installDir() + "/data/dbrm";
 
-                            // get DBRMroot config setting
+                // get DBRMroot config setting
                 string DBRMroot;
                 oam.getSystemConfig("DBRMRoot", DBRMroot);
 
@@ -2175,7 +2175,6 @@ namespace processmonitor {
                 // remove all files for temp directory
 //				cmd = "rm -f " + DBRMDir + "/*";
 //				system(cmd.c_str());
-
                 // go request files from parent OAM module
                     if (getDBRMdata() != oam::API_SUCCESS) {
                         log.writeLog(__LINE__, "Error: getDBRMdata failed", LOG_TYPE_ERROR);

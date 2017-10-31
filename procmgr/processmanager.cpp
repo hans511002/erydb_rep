@@ -5071,7 +5071,6 @@ namespace processmanager {
                 for (; listPT != devicenetworklist.end(); listPT++) {
                     obs << (*listPT).DeviceName;
                 }
-
                 sendStatusUpdate(obs, REMOVE_MODULE);
                 log.writeLog(__LINE__, "removeModule - Updated Shared Memory", LOG_TYPE_DEBUG);
             } catch (...) {
@@ -8377,14 +8376,10 @@ namespace processmanager {
         try {
             MessageQueueClient processor("ProcStatusControl");
             ByteStream ibs;
-
             processor.write(obs);
-
             // wait 10 seconds for ACK from Process Monitor
             struct timespec ts = { 10, 0 };
-
             ibs = processor.read(&ts);
-
             if (ibs.length() > 0) {
                 ByteStream::byte status;
                 ibs >> status;
@@ -8403,25 +8398,18 @@ namespace processmanager {
         } catch (...) {
             throw std::runtime_error("timeout");
         }
-
         Configuration config;
         Config* sysConfig5 = Config::makeConfig();
-
         if (sysConfig5->getConfig("ProcStatusControlStandby", "IPAddr") == oam::UnassignedIpAddr)
             return;
-
         try {
             MessageQueueClient processor("ProcStatusControlStandby");
             ByteStream ibs;
-
             processor.write(obs);
-
             processor.shutdown();
         } catch (...) {
         }
-
         return;
-
     }
 
     /******************************************************************************************

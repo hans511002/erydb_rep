@@ -1035,7 +1035,7 @@ int processCommand(string* arguments)
 			for (unsigned int i = 0; i < columnOids.size(); ++i)
 			{
 				oid = columnOids[i];
-				if (oid < 1000)
+				if (oid <= MAX_DBROOT)
 				{
 					rc = fileOp.getVBFileName(oid, fileName);
 				}
