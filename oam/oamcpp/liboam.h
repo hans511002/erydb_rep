@@ -1308,7 +1308,7 @@ namespace oam
 }	// end of namespace
  
 #undef EXPORT
-
+using namespace oam;
 #endif
 // vim:ts=4 sw=4:
 
