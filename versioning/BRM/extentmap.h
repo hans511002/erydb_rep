@@ -125,7 +125,7 @@ struct EMEntry {
 	uint32_t	partitionNum; // starts at 0  //32
 	uint16_t	segmentNum;   // starts at 0
 	uint16_t	dbRoot;       // starts at 1 to match erydb.xml 
-    EMBackRoot  bakRoot;//4
+    EMBackRoot  repDBRoot;//4
 	uint16_t	colWid;  //
 	int16_t 	status;       //extent avail for query or not, or out of service 40
 	EMPartition_t partition; //24
