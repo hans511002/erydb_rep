@@ -39,6 +39,7 @@
 #endif
 #include <fcntl.h>
 
+#include "boost/tuple/tuple.hpp"
 
 #if defined(_MSC_VER) && defined(xxxLIBOAM_DLLEXPORT)
 #define EXPORT __declspec(dllexport)
