@@ -62,7 +62,9 @@ namespace oam
      */
     const int MAX_DBROOT = 10240;
     const int MAX_DBROOT_AMAZON = 190;	//DUE TO DEVICE NAME LIMIT
-
+ 
+    /** @brief default and min first user object id 
+    */
     const int USER_OBJECT_ID = MAX_DBROOT + 2000;
 
    /** @brief Maximum Number of Modules Types within the erydb System
