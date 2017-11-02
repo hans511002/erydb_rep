@@ -1718,7 +1718,7 @@ int ExtentMap::lookupLocal(LBID_t lbid, int& OID, uint16_t& dbRoot, uint32_t& pa
 #ifdef EM_AS_A_TABLE_POC__
 	if (lbid >= (1LL << 54))
 	{
-		OID = 1084;
+		OID = EM_AS_A_TABLE_POC_ID;
 		dbRoot = 1;
 		partitionNum = 0;
 		segmentNum = 0;
@@ -3978,7 +3978,7 @@ HWM_t ExtentMap::getLocalHWM(int OID, uint32_t partitionNum,
 #endif
 
 #ifdef EM_AS_A_TABLE_POC__
-	if (OID == 1084)
+	if (OID == EM_AS_A_TABLE_POC_ID)
 	{
 		return 0;
 	}
@@ -4236,12 +4236,12 @@ void ExtentMap::getExtents_dbroot(int OID, vector<struct EMEntry>& entries, cons
 #endif
 
 #ifdef EM_AS_A_TABLE_POC__
-	if (OID == 1084)
+	if (OID == EM_AS_A_TABLE_POC_ID)
 	{
 		EMEntry fakeEntry;
 		fakeEntry.range.start = (1LL << 54);
 		fakeEntry.range.size = 4;
-		fakeEntry.fileID = 1084;
+		fakeEntry.fileID = EM_AS_A_TABLE_POC_ID;
 		fakeEntry.blockOffset = 0;
 		fakeEntry.HWM = 1;
 		fakeEntry.partitionNum = 0;
@@ -4806,13 +4806,13 @@ void ExtentMap::lookup(OID_t OID, LBIDRange_v& ranges)
 #endif
 
 #ifdef EM_AS_A_TABLE_POC__
-	if (OID == 1084)
+	if (OID == EM_AS_A_TABLE_POC_ID)
 	{
 		EMEntry fakeEntry;
 		fakeEntry.range.start = (1LL << 54);
 		fakeEntry.range.size = 4;
 #if 0
-		fakeEntry.fileID = 1084;
+		fakeEntry.fileID = EM_AS_A_TABLE_POC_ID;
 		fakeEntry.blockOffset = 0;
 		fakeEntry.HWM = 1;
 		fakeEntry.partitionNum = 0;

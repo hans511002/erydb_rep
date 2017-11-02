@@ -63,6 +63,8 @@ namespace oam
     /** @brief default and min first user object id 
     */
     const int USER_OBJECT_ID = MAX_DBROOT + 2000;
+    const int SHARED_NOTHING_DEMO_ID = MAX_DBROOT + 10000;
+    
 
    /** @brief Maximum Number of Modules Types within the erydb System
      */

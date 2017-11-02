@@ -120,13 +120,13 @@ void BCTest::setUp()
 {
 	LBIDRange_v r;
 	HWM_t hwm;
-	OID_t oid=1000;
+	OID_t oid=SYSTABLE_BASE;
 	extentSize = dbrm.getExtentSize();
 	maxBlocksAvailable=0;
 	int i=0;
 	fExtentSize=dbrm.getExtentSize();
 
-	while ( oid < 5000 )
+	while ( oid < SYSTABLE_BASE+5000 )
 	{
 		int ret=0;
 		ret = dbrm.lookup(oid, r);

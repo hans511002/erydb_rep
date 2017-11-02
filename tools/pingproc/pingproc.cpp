@@ -1530,7 +1530,7 @@ void doListOp(const OID_t o=0)
 	DBRM dbrm;
 	BRM::LBIDRange_v lbidRanges;
   	LBIDRange_v::iterator it;
-	OID_t oid=3000;
+	OID_t oid=USER_OBJECT_ID;
 	HWM_t hwm=0;
 
 	if (o!=0) {

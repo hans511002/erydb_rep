@@ -778,7 +778,7 @@ void* thr_popper(ioManager *arg) {
 		// change offset if it's shared nothing
 		/* Get the extent #, divide by # of PMs, calculate base offset for the new extent #,
 			add extent offset */
-		if (oid >= 10000)
+		if (oid >= SHARED_NOTHING_DEMO_ID)
 			offset = (((offset/extentSize)/iom->pmCount) * extentSize) + (offset % extentSize);
 #endif
 
@@ -818,7 +818,7 @@ decompRetry:
 			acc = 0;
 			while (acc < readSize) {
 #if defined(EM_AS_A_TABLE_POC__)
-				if (oid == 1084)
+				if (oid == EM_AS_A_TABLE_POC_ID)
 				{
 					uint32_t h;
 					int32_t o = 0;
@@ -826,7 +826,7 @@ decompRetry:
 					ip = (int32_t*)(&alignedbuff[acc]);
 					for (o = 0; o < 2048; o++)
 					{
-						if (iom->dbrm()->getHWM(o+3000, h) == 0)
+						if (iom->dbrm()->getHWM(o+USER_OBJECT_ID, h) == 0)
 							*ip++ = h;
 						else
 							*ip++ = numeric_limits<int32_t>::min() + 1;

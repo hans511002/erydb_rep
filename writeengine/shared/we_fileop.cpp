@@ -2077,7 +2077,7 @@ int FileOp::oid2FileName( FID fid,
     uint16_t segment) const
 {
 #ifdef SHARED_NOTHING_DEMO_2
-    if (fid >= 10000) {
+    if (fid >= SHARED_NOTHING_DEMO_ID) {
         char root[FILE_NAME_SIZE];
         Config::getSharedNothingRoot(root);
         sprintf(fullFileName, "%s/FILE%d", root, fid);

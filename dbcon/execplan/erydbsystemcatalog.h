@@ -1129,6 +1129,8 @@ const int   SYSTABLE_BASE = MAX_DBROOT + 1;		  /** @brief SYSTABLE table base */
 const int   SYSTABLE_DICT_BASE	   = SYSTABLE_BASE + 40;		  /** @brief SYSTABLE table dictionary files base */
 const int   SYSCOLUMN_BASE		   = SYSTABLE_BASE + 60;		  /** @brief SYSCOLUMN table base */
 const int   SYSCOLUMN_DICT_BASE	  = SYSTABLE_BASE + 100;		  /** @brief SYSCOLUMN table dictionary files base */
+const int   EM_AS_A_TABLE_POC_ID	  = SYSTABLE_BASE + 99;		  /** @brief SYSCOLUMN table dictionary files base */
+
 
    /*****************************************************
    * SYSTABLE columns OID definition
