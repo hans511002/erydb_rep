@@ -1511,7 +1511,7 @@ uint8_t WE_DDLCommandProc::deleteSystable(ByteStream& bs, std::string & err)
 	systemCatalogPtr->identity(erydbSystemCatalog::EC);
 
 	uint16_t  dbRoot;
-	BRM::OID_t sysOid = 1001;
+	BRM::OID_t sysOid = OID_SYSTABLE_TABLENAME;
 
 	//Find out where systcolumn is
 	rc = fDbrm.getSysCatDBRoot(sysOid, dbRoot);

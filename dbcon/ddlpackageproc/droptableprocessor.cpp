@@ -289,7 +289,7 @@ cout << fTxnid.id << " Removing the SYSTABLEs meta data" << endl;
 		bytestream << dropTableStmt.fTableName->fName;
 		
 		//Find out where systable is
-		BRM::OID_t sysOid = 1001;
+		BRM::OID_t sysOid = OID_SYSTABLE_TABLENAME;
 		ByteStream::byte rc = 0;
 		
 		uint16_t  dbRoot;

@@ -275,7 +275,7 @@ cout << fTxnid.id << " Create table allocOIDs got the starting oid " << fStartin
 		bytestream << (uint32_t)fStartingColOID;
 		bytestream << (uint32_t)createTableStmt.fTableWithAutoi;
 		uint16_t  dbRoot;
-		BRM::OID_t sysOid = 1001;
+		BRM::OID_t sysOid = OID_SYSTABLE_TABLENAME;
 		//Find out where systable is
 		rc = fDbrm->getSysCatDBRoot(sysOid, dbRoot); 
 		if (rc != 0)

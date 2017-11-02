@@ -440,9 +440,7 @@ void SystemCatalog::build() {
 void SystemCatalog::remove() {
     ColumnOpCompress0 colOp;
 
-    for (int c = 1001; c <= 1074; c++)
+    for (int c = OID_SYSTABLE_TABLENAME; c <= OID_SYSTABLE_TABLENAME + 1000; c++)
         colOp.deleteFile(c);
-    for (int d = 2001; d <= 2312; d++)
-        colOp.deleteFile(d);
 
 }

@@ -718,7 +718,7 @@ void AlterTableProcessor::addColumn (uint32_t sessionID, execplan::erydbSystemCa
 		if ((columnDefPtr->fType->fAutoincrement).compare("y") == 0)
 		{
 			//update systable autoincrement column
-			sysOid = 1001;
+			sysOid = OID_SYSTABLE_TABLENAME;
 			//Find out where systable is
 			rc = fDbrm->getSysCatDBRoot(sysOid, dbRoot);
 			if (rc != 0)
@@ -1123,7 +1123,7 @@ cout << "Alter table drop column got unknown exception" << endl;
 	//Update SYSTABLE 
 	if (colType.autoincrement)
 	{
-		sysOid = 1001;
+		sysOid = OID_SYSTABLE_TABLENAME;
 		//Find out where systable is
 		rc = fDbrm->getSysCatDBRoot(sysOid, dbRoot);  
 		if (rc != 0)
@@ -1681,7 +1681,7 @@ void AlterTableProcessor::renameTable (uint32_t sessionID, execplan::erydbSystem
 	
 	std::string errorMsg;
 	uint16_t  dbRoot;
-	BRM::OID_t sysOid = 1001;
+	BRM::OID_t sysOid = OID_SYSTABLE_TABLENAME;
 	ByteStream::byte rc = 0;
 	//Find out where systable is
 	rc = fDbrm->getSysCatDBRoot(sysOid, dbRoot);   
@@ -1804,7 +1804,7 @@ void AlterTableProcessor::tableComment(uint32_t sessionID, execplan::erydbSystem
     // Currently only process autoincrement values in table comments during alter
     SUMMARY_INFO("AlterTableProcessor::tableComment");
     uint64_t nextVal;
-    BRM::OID_t sysOid = 1001;
+    BRM::OID_t sysOid = OID_SYSTABLE_TABLENAME;
     ByteStream::byte rc = 0;
     boost::shared_ptr<messageqcpp::ByteStream> bsIn;
     uint16_t dbRoot;
@@ -1980,7 +1980,7 @@ void AlterTableProcessor::renameColumn(uint32_t sessionID, execplan::erydbSystem
 	ByteStream bs;
 	std::string errorMsg;
 	uint16_t  dbRoot;
-	BRM::OID_t sysOid = 1001;
+	BRM::OID_t sysOid = OID_SYSTABLE_TABLENAME;
 	ByteStream::byte rc = 0;
 	//Find out where systable is
 	rc = fDbrm->getSysCatDBRoot(sysOid, dbRoot);  

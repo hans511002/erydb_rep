@@ -86,7 +86,7 @@ public:
         // SYSTABLE
 
         // TableName
-        rc = colOp.createColumn( curCol, 0, 8, WriteEngine::VARCHAR, WriteEngine::WR_CHAR, 1001 );
+        rc = colOp.createColumn( curCol, 0, 8, WriteEngine::VARCHAR, WriteEngine::WR_CHAR, OID_SYSTABLE_TABLENAME );
         CPPUNIT_ASSERT( rc == NO_ERROR );
 
         cout << "Creating Dictionary..." << endl;
@@ -412,7 +412,7 @@ public:
     {
         ColumnOp colOp;
 
-        for ( int i = 1001; i <= 1057; i++ )
+        for ( int i = OID_SYSTABLE_TABLENAME; i <= 1057; i++ )
             colOp.deleteFile( i );
     }
 

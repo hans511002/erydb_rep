@@ -168,7 +168,7 @@ int main(int argc, char* argv[]) {
             canWrite = false;
 
         try {
-            if (checkNotThere(1001) != 0) {
+            if (checkNotThere(OID_SYSTABLE_TABLENAME) != 0) {
                 string cmd = "echo 'FAILED: buildOption=" +
                     oam.itoa(buildOption) +
                     "' > /tmp/dbbuilder.status";
