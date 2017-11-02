@@ -42,6 +42,8 @@ namespace fs = boost::filesystem;
 #include "cacheutils.h"
 #include "ERYDBDataFile.h"
 #include "ERYDBPolicy.h"
+#include "erydbsystemcatalog.h"
+
 using namespace erydbdatafile;
 
 using namespace execplan;
@@ -80,7 +82,7 @@ namespace WriteEngine
 		bs >> nextVal;
 		bs >> sessionID;
 		uint16_t dbRoot;
-		BRM::OID_t oid = 1021;
+		BRM::OID_t oid = OID_SYSCOLUMN_SCHEMA;
 		fDbrm.getSysCatDBRoot(oid, dbRoot);
 		std::map<uint32_t,uint32_t> oids;
 		//std::vector<BRM::OID_t>  oidsToFlush;
@@ -845,7 +847,7 @@ uint8_t WE_DDLCommandProc::writeSyscolumn(ByteStream& bs, std::string & err)
 
 		unsigned int i = 0;
 		uint16_t  dbRoot;
-		BRM::OID_t sysOid = 1021;
+		BRM::OID_t sysOid = OID_SYSCOLUMN_SCHEMA;
 		//Find out where syscolumn is
 		rc = fDbrm.getSysCatDBRoot(sysOid, dbRoot);
 		column_iterator = columns.begin();
@@ -1259,7 +1261,7 @@ uint8_t WE_DDLCommandProc::deleteSyscolumn(ByteStream& bs, std::string & err)
 	systemCatalogPtr = erydbSystemCatalog::makeerydbSystemCatalog(sessionID);
 	systemCatalogPtr->identity(erydbSystemCatalog::EC);
 	uint16_t  dbRoot;
-	BRM::OID_t sysOid = 1021;
+	BRM::OID_t sysOid = OID_SYSCOLUMN_SCHEMA;
 	//Find out where syscolumn is
 	rc = fDbrm.getSysCatDBRoot(sysOid, dbRoot);
 	fWEWrapper.setTransId(txnID);
@@ -1386,7 +1388,7 @@ uint8_t WE_DDLCommandProc::deleteSyscolumnRow(ByteStream& bs, std::string & err)
 	systemCatalogPtr = erydbSystemCatalog::makeerydbSystemCatalog(sessionID);
 	systemCatalogPtr->identity(erydbSystemCatalog::EC);
 	uint16_t  dbRoot;
-	BRM::OID_t sysOid = 1021;
+	BRM::OID_t sysOid = OID_SYSCOLUMN_SCHEMA;
 	//Find out where syscolumn is
 	rc = fDbrm.getSysCatDBRoot(sysOid, dbRoot);
 	fWEWrapper.setTransId(txnID);
@@ -1731,7 +1733,7 @@ uint8_t WE_DDLCommandProc::deleteSystables(ByteStream& bs, std::string & err)
 	//deleting from SYSCOLUMN
 	sysCatalogTableName.fSchema = ERYDB_SCHEMA;
 	sysCatalogTableName.fName  = SYSCOLUMN_TABLE;
-	sysOid = 1021;
+	sysOid = OID_SYSCOLUMN_SCHEMA;
 	//Find out where syscolumn is
 	rc = fDbrm.getSysCatDBRoot(sysOid, dbRoot);
 
@@ -1937,7 +1939,7 @@ uint8_t WE_DDLCommandProc::updateSyscolumnAuto(ByteStream& bs, std::string & err
 	std::vector<WriteEngine::DctnryStructList> dctnryExtentsStruct;
 	std::vector<extentInfo> extentsinfo;
 	extentInfo aExtentinfo;
-	erydbSystemCatalog::OID oid = 1021;
+	erydbSystemCatalog::OID oid = OID_SYSCOLUMN_SCHEMA;
 	fWEWrapper.setIsInsert(false);
 	fWEWrapper.setBulkFlag(false);
 	fWEWrapper.setTransId(txnID);
@@ -2110,7 +2112,7 @@ uint8_t WE_DDLCommandProc::updateSyscolumnNextvalCol(ByteStream& bs, std::string
 
 	//oam.getDbroots(PMNum);
 	//dbRoot will be the first dbroot on this pm. dbrootCnt will be how many dbroots on this PM.
-	erydbSystemCatalog::OID oid = 1021;
+	erydbSystemCatalog::OID oid = OID_SYSCOLUMN_SCHEMA;
 	for (unsigned int i = 0; i < roList.size(); i++)
 	{
 		convertRidToColumn(roList[i].rid, dbRoot, partition, segment, oid);
@@ -2299,7 +2301,7 @@ uint8_t WE_DDLCommandProc::updateSyscolumnTablename(ByteStream& bs, std::string 
 	dctColList = dictTuple;
 	dctRowList.push_back(dctColList);
 	dctnryValueList.push_back(dctRowList);
-	erydbSystemCatalog::OID oid = 1021;
+	erydbSystemCatalog::OID oid = OID_SYSCOLUMN_SCHEMA;
 	std::vector<extentInfo> extentsinfo;
 	extentInfo aExtentinfo;
 	std::vector<WriteEngine::ColStructList> colExtentsStruct;
@@ -3075,7 +3077,7 @@ uint8_t WE_DDLCommandProc::updateSystablesTablename(ByteStream& bs, std::string 
 	extentsinfo.clear();
 	colExtentsStruct.clear();
 	dctnryExtentsStruct.clear();
-	oid = 1021;
+	oid = OID_SYSCOLUMN_SCHEMA;
 	for (unsigned int i = 0; i < roList.size(); i++)
 	{
 		convertRidToColumn(roList[i].rid, dbRoot, partition, segment, oid);
@@ -3215,7 +3217,7 @@ uint8_t WE_DDLCommandProc::updateSyscolumnColumnposCol(messageqcpp::ByteStream& 
 	}
 	colValuesList.push_back(colTuples);
 	uint16_t  dbRoot;
-	BRM::OID_t sysOid = 1021;
+	BRM::OID_t sysOid = OID_SYSCOLUMN_SCHEMA;
 	//Find out where systable is
 	rc = fDbrm.getSysCatDBRoot(sysOid, dbRoot);
 	fWEWrapper.setTransId(txnID);
@@ -3975,7 +3977,7 @@ uint8_t WE_DDLCommandProc::updateSyscolumnSetDefault(messageqcpp::ByteStream& bs
 	std::vector<extentInfo> extentsinfo;
 	extentInfo aExtentinfo;
 
-	convertRidToColumn(ropair.rid, dbRoot, partition, segment, 1021);
+	convertRidToColumn(ropair.rid, dbRoot, partition, segment, OID_SYSCOLUMN_SCHEMA);
 
 	aExtentinfo.dbRoot = dbRoot;
 	aExtentinfo.partition = partition;
@@ -4440,7 +4442,7 @@ uint8_t WE_DDLCommandProc::updateSyscolumnRenameColumn(messageqcpp::ByteStream& 
 	std::vector<extentInfo> extentsinfo;
 	extentInfo aExtentinfo;
 
-	convertRidToColumn(ropair.rid, dbRoot, partition, segment, 1021);
+	convertRidToColumn(ropair.rid, dbRoot, partition, segment, OID_SYSCOLUMN_SCHEMA);
 
 	aExtentinfo.dbRoot = dbRoot;
 	aExtentinfo.partition = partition;

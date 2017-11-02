@@ -44,6 +44,8 @@ using namespace execplan;
 #include "sqllogger.h"
 #include "messagelog.h"
 using namespace logging;
+#include "erydbsystemcatalog.h"
+using namespace execplan;
 
 namespace ddlpackageprocessor
 {
@@ -386,7 +388,7 @@ cout << fTxnid.id << " Create table We_SVR_WRITE_CREATETABLEFILES: " << errorMsg
 		bytestream << (ByteStream::byte)alterFlag;
 		bytestream << (uint32_t)colPos;
 				
-		sysOid = 1021;
+		sysOid = OID_SYSCOLUMN_SCHEMA;
 		//Find out where syscolumn is
 		rc = fDbrm->getSysCatDBRoot(sysOid, dbRoot); 
 		if (rc != 0)

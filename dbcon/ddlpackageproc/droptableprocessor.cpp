@@ -378,7 +378,7 @@ cout << fTxnid.id << " Drop table got unknown exception" << endl;
 		bytestream << dropTableStmt.fTableName->fName;
 		
 		//Find out where syscolumn is
-		sysOid = 1021;
+		sysOid = OID_SYSCOLUMN_SCHEMA;
 		rc = fDbrm->getSysCatDBRoot(sysOid, dbRoot);  
 		if (rc != 0)
 		{

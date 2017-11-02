@@ -31,6 +31,8 @@ using namespace ddlpackage;
 using namespace ddlpackageprocessor;
 
 #include "we_ddlcommandclient.h"
+#include "erydbsystemcatalog.h"
+using namespace execplan;
 
 namespace WriteEngine {
 	WE_DDLCommandClient::WE_DDLCommandClient()
@@ -56,7 +58,7 @@ namespace WriteEngine {
 		command << nextVal;
 		command << sessionID;
 		uint16_t dbRoot;	
-		BRM::OID_t oid = 1021;
+		BRM::OID_t oid = OID_SYSCOLUMN_SCHEMA;
 		fDbrm.getSysCatDBRoot(oid, dbRoot); 
 		int pmNum = 1; 
 		boost::shared_ptr<messageqcpp::ByteStream> bsIn;

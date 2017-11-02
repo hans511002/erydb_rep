@@ -524,7 +524,7 @@ void AlterTableProcessor::addColumn (uint32_t sessionID, execplan::erydbSystemCa
 	int rc = 0;
 	std::string errorMsg;
 	uint16_t  dbRoot;
-	BRM::OID_t sysOid = 1021;
+	BRM::OID_t sysOid = OID_SYSCOLUMN_SCHEMA;
 	bool isDict = false;
 	//@Bug 4111. Check whether the column exists in erydb systable
 	boost::shared_ptr<erydbSystemCatalog> systemCatalogPtr =
@@ -1060,7 +1060,7 @@ void AlterTableProcessor::dropColumn (uint32_t sessionID, execplan::erydbSystemC
 	
 	std::string errorMsg;
 	uint16_t  dbRoot;
-	BRM::OID_t sysOid = 1021;
+	BRM::OID_t sysOid = OID_SYSCOLUMN_SCHEMA;
 	ByteStream::byte rc = 0;
 	//Find out where syscolumn is
 	rc = fDbrm->getSysCatDBRoot(sysOid, dbRoot);  
@@ -1191,7 +1191,7 @@ cout << "Alter table drop column got unknown exception" << endl;
 	bytestream << fTableName.fSchema;
 	bytestream << fTableName.fName;
 	bytestream << (uint32_t) colPos;
-	sysOid = 1021;
+	sysOid = OID_SYSCOLUMN_SCHEMA;
 	//Find out where syscolumn is
 	rc = fDbrm->getSysCatDBRoot(sysOid, dbRoot);  
 	if (rc != 0)
@@ -1416,7 +1416,7 @@ void AlterTableProcessor::setColumnDefault (uint32_t sessionID, execplan::erydbS
 	ByteStream bs;
 	std::string errorMsg;
 	uint16_t  dbRoot;
-	BRM::OID_t sysOid = 1021;
+	BRM::OID_t sysOid = OID_SYSCOLUMN_SCHEMA;
 	ByteStream::byte rc = 0;
 	//Find out where syscolumns
 	rc = fDbrm->getSysCatDBRoot(sysOid, dbRoot);  
@@ -1495,7 +1495,7 @@ void AlterTableProcessor::dropColumnDefault (uint32_t sessionID, execplan::erydb
 	ByteStream bs;
 	std::string errorMsg;
 	uint16_t  dbRoot;
-	BRM::OID_t sysOid = 1021;
+	BRM::OID_t sysOid = OID_SYSCOLUMN_SCHEMA;
 	ByteStream::byte rc = 0;
 	//Find out where syscolumn is
 	rc = fDbrm->getSysCatDBRoot(sysOid, dbRoot);  
@@ -1746,7 +1746,7 @@ cout << "create table got unknown exception" << endl;
 	bytestream << fTableName.fSchema;
 	bytestream << fTableName.fName;
 	bytestream << ataRenameTable.fQualifiedName->fName;
-	sysOid = 1021;
+	sysOid = OID_SYSCOLUMN_SCHEMA;
 	//Find out where syscolumn is
 	rc = fDbrm->getSysCatDBRoot(sysOid, dbRoot);   
 	if (rc != 0)
@@ -2147,7 +2147,7 @@ void AlterTableProcessor::renameColumn(uint32_t sessionID, execplan::erydbSystem
 			defaultValue = ataRenameColumn.fDefaultValue->fValue;
 			 
 		bs << defaultValue;
-		sysOid = 1021;
+		sysOid = OID_SYSCOLUMN_SCHEMA;
 		//Find out where syscolumn is
 		rc = fDbrm->getSysCatDBRoot(sysOid, dbRoot);  
 		if (rc != 0)
