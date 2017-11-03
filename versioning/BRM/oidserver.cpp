@@ -380,6 +380,7 @@ namespace BRM {
                 throw ios_base::failure(os.str());
             }
         }
+        readData((uint8_t *)&currentOID, 0, 2);
 //        loadVBOIDs();
     }
 
