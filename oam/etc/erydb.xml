@@ -537,7 +537,7 @@
 		<Port>0</Port>
 	</QueryTele>
 	<MessageLog>
-	    <MessageLogType>syslog</MessageLogType>
+	    <MessageLogType>userlog</MessageLogType>
 	    <MessageLogDir>/var/log/erydb</MessageLogDir>
 	</MessageLog>
 </erydb>
