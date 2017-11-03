@@ -220,7 +220,7 @@ namespace BRM {
 
     //assumes write lock is held
     // Right now, adding a file and growing are mutually exclusive ops.
-    void VBBM::growVBBM(bool addAFile) {
+    void VBBM::growVBBM(int addAFile) {
         int allocSize;
         int nFiles = -1;
         key_t newshmkey;
@@ -238,8 +238,8 @@ namespace BRM {
             if (!addAFile)
                 allocSize = vbbmShminfo->allocdSize + VBBM_INCREMENT;
             else {
-                vbbm->nFiles++;
-                allocSize = vbbmShminfo->allocdSize + sizeof(VBFileMetadata);
+                vbbm->nFiles+= addAFile;
+                allocSize = vbbmShminfo->allocdSize + sizeof(VBFileMetadata)*addAFile;
             }
         }
 
@@ -902,7 +902,7 @@ namespace BRM {
         clear();
 
         while (vbbm->nFiles < nFiles)
-            growVBBM(true);  // this allocates one file, doesn't grow the main storage
+            growVBBM(1);  // this allocates one file, doesn't grow the main storage
 
         growForLoad(vbbmEntries);
 
@@ -1027,24 +1027,36 @@ namespace BRM {
     }
 
     uint32_t VBBM::addVBFileIfNotExists(OID_t vbOID) {
-        int i;
-
-        /* Check if vbOID exists,
-         * 	add it if not, init to pos=0
-         */
-
-        for (i = 0; i < vbbm->nFiles; i++)
-            if (files[i].OID == vbOID)
-                break;
-
-        if (i == vbbm->nFiles) {
+        if (vbbm->nFiles < vbOID) {
+            int len = vbOID - vbbm->nFiles;
             setCurrentFileSize();
-            growVBBM(true);
-            files[i].OID = vbOID;
-            files[i].fileSize = currentFileSize;
-            files[i].nextOffset = 0;
+            growVBBM(vbOID - vbbm->nFiles);
+            for (int i = len; i < vbOID; i++) {
+                files[i].OID = vbOID;
+                files[i].fileSize = currentFileSize;
+                files[i].nextOffset = 0;
+            }
         }
-        return i;
+        return vbOID - 1;
+
+        //int i;
+
+        ///* Check if vbOID exists,
+        // * 	add it if not, init to pos=0
+        // */
+
+        //for (i = 0; i < vbbm->nFiles; i++)
+        //    if (files[i].OID == vbOID)
+        //        break;
+
+        //if (i == vbbm->nFiles) {
+        //    setCurrentFileSize();
+        //    growVBBM(true);
+        //    files[i].OID = vbOID;
+        //    files[i].fileSize = currentFileSize;
+        //    files[i].nextOffset = 0;
+        //}
+        //return i;
     }
 
     void VBBM::setCurrentFileSize() {

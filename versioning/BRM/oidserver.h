@@ -120,7 +120,7 @@ private:
     int currentOID;
 	erydbdatafile::ERYDBDataFile* fFp;
 	int fFd;  /// file descriptor referencing the bitmap file
-	std::vector<uint16_t> vbOidDBRootMap;
+	//std::vector<uint16_t> vbOidDBRootMap;
 
 	/** @brief Grab the file lock
 	 *
@@ -159,7 +159,7 @@ private:
 	 */
 	void initializeBitmap() const;
  
-	void loadVBOIDs();
+	//void loadVBOIDs();
 };
 
 }	// namespace

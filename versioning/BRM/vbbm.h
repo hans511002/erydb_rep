@@ -212,7 +212,7 @@ class VBBM : public Undoable {
 		static const int MAX_IO_RETRIES=10;
 
 		key_t chooseShmkey() const;
-		void growVBBM(bool addAFile = false);
+		void growVBBM(int addAFile = 0);
 		void growForLoad(int count);
 		void copyVBBM(VBShmsegHeader *dest);
 		void initShmseg(int nFiles);

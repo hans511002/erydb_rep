@@ -275,9 +275,9 @@ namespace BRM {
         firstOID = static_cast<int>(ltmp);
         boost::mutex::scoped_lock lk(fMutex);
         writeData((uint8_t*)&firstOID, 0, HeaderSize);
-        short sz = 0;
-        /* append a 16-bit 0 to indicate 0 entries in the vboid->dbroot mapping */
-        writeData((uint8_t*)&sz, HeaderSize, 2);
+        //short sz = 0;
+        ///* append a 16-bit 0 to indicate 0 entries in the vboid->dbroot mapping */
+        //writeData((uint8_t*)&sz, HeaderSize, 2);
     }
 
     OIDServer::OIDServer() : fFp(NULL), fFd(-1) , currentOID(0){
@@ -392,68 +392,68 @@ namespace BRM {
         fFp = NULL;
     }
 
-    void OIDServer::loadVBOIDs() {
-        uint16_t size;
-        try {
-            readData((uint8_t *)&currentOID, 0, 2);
-            readData((uint8_t *)&size, HeaderSize, 2);
-        } catch (EOFException &e) {
-            /* convert old OID bitmap */
-            size = 0;
-            writeData((uint8_t *)&size, HeaderSize, 2);
-        }
+    //void OIDServer::loadVBOIDs() {
+    //    uint16_t size;
+    //    try {
+    //        readData((uint8_t *)&currentOID, 0, 2);
+    //        readData((uint8_t *)&size, HeaderSize, 2);
+    //    } catch (EOFException &e) {
+    //        /* convert old OID bitmap */
+    //        size = 0;
+    //        writeData((uint8_t *)&size, HeaderSize, 2);
+    //    }
 
-        if (size == 0)
-            return;
-        vbOidDBRootMap.resize(size);
-        readData((uint8_t *)&vbOidDBRootMap[0], HeaderSize + 2, size * 2);
+    //    if (size == 0)
+    //        return;
+    //    vbOidDBRootMap.resize(size);
+    //    readData((uint8_t *)&vbOidDBRootMap[0], HeaderSize + 2, size * 2);
 
-        //cout << "loaded " << size << " vboids: ";
-        //for (uint32_t i = 0; i < size; i++)
-        //	cout << (int) vbOidDBRootMap[i] << " ";
-        //cout << endl;
-    }
+    //    //cout << "loaded " << size << " vboids: ";
+    //    //for (uint32_t i = 0; i < size; i++)
+    //    //	cout << (int) vbOidDBRootMap[i] << " ";
+    //    //cout << endl;
+    //}
 
 
-    int OIDServer::allocVBOID(uint16_t dbroot) {
-        int ret;
-        uint32_t offset;
-        ret = vbOidDBRootMap.size();
-        offset = HeaderSize + 2 + (vbOidDBRootMap.size() * sizeof(short));
-        vbOidDBRootMap.push_back(dbroot);
-        try {
-            uint16_t size = vbOidDBRootMap.size();
-            boost::mutex::scoped_lock lk(fMutex);
-            writeData((uint8_t *)&size, HeaderSize, sizeof(short));
-            writeData((uint8_t *)&dbroot, offset, sizeof(short));
-        } catch (...) {
-            vbOidDBRootMap.pop_back();
-            throw;
-        }
-        if (ERYDBPolicy::useHdfs())
-            fFp->flush();
-        return ret;
-    }
+    //int OIDServer::allocVBOID(uint16_t dbroot) {
+    //    int ret;
+    //    uint32_t offset;
+    //    ret = vbOidDBRootMap.size();
+    //    offset = HeaderSize + 2 + (vbOidDBRootMap.size() * sizeof(short));
+    //    vbOidDBRootMap.push_back(dbroot);
+    //    try {
+    //        uint16_t size = vbOidDBRootMap.size();
+    //        boost::mutex::scoped_lock lk(fMutex);
+    //        writeData((uint8_t *)&size, HeaderSize, sizeof(short));
+    //        writeData((uint8_t *)&dbroot, offset, sizeof(short));
+    //    } catch (...) {
+    //        vbOidDBRootMap.pop_back();
+    //        throw;
+    //    }
+    //    if (ERYDBPolicy::useHdfs())
+    //        fFp->flush();
+    //    return ret;
+    //}
 
-    int OIDServer::getDBRootOfVBOID(uint32_t vbOID) {
-        //cout << "getDBRootOfVBOID, vbOID = " << vbOID << " size = " << vbOidDBRootMap.size() << endl;
-        if (vbOID >= vbOidDBRootMap.size())
-            return -1;
-        return vbOidDBRootMap[vbOID];
-    }
+    //int OIDServer::getDBRootOfVBOID(uint32_t vbOID) {
+    //    //cout << "getDBRootOfVBOID, vbOID = " << vbOID << " size = " << vbOidDBRootMap.size() << endl;
+    //    if (vbOID >= vbOidDBRootMap.size())
+    //        return -1;
+    //    return vbOidDBRootMap[vbOID];
+    //}
 
-    const vector<uint16_t> & OIDServer::getVBOIDToDBRootMap() {
-        return vbOidDBRootMap;
-    }
+    //const vector<uint16_t> & OIDServer::getVBOIDToDBRootMap() {
+    //    return vbOidDBRootMap;
+    //}
 
-    int OIDServer::getVBOIDOfDBRoot(uint32_t dbRoot) {
-        uint32_t i;
+    //int OIDServer::getVBOIDOfDBRoot(uint32_t dbRoot) {
+    //    uint32_t i;
 
-        for (i = 0; i < vbOidDBRootMap.size(); i++)
-            if (vbOidDBRootMap[i] == dbRoot)
-                return i;
-        return -1;
-    }
+    //    for (i = 0; i < vbOidDBRootMap.size(); i++)
+    //        if (vbOidDBRootMap[i] == dbRoot)
+    //            return i;
+    //    return -1;
+    //}
 
     int OIDServer::allocOIDs(int num) {
         int bestMatchBegin = this->currentOID;
