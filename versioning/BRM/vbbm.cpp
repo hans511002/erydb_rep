@@ -1028,7 +1028,7 @@ namespace BRM {
 
     uint32_t VBBM::addVBFileIfNotExists(OID_t vbOID) {
         if (vbbm->nFiles < vbOID) {
-            int len = vbOID - vbbm->nFiles;
+            int len = vbbm->nFiles;
             setCurrentFileSize();
             growVBBM(vbOID - vbbm->nFiles);
             for (int i = len; i < vbOID; i++) {
