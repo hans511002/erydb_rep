@@ -1135,7 +1135,7 @@ namespace oam
                 }
 
                 //set entries no longer configured to unsassigned
-                for (int extraid = id; id < MAX_DBROOT; extraid++) {
+                for (int extraid = id; id <= MAX_DBROOT; extraid++) {
                     string ModuleDBrootID = MODULE_DBROOTID + itoa(moduleID) + "-" + itoa((extraid)) + "-" + itoa(moduleTypeID);
                     if (sysConfig100->getConfig(Section, ModuleDBrootID).empty() ||
                         sysConfig100->getConfig(Section, ModuleDBrootID) == oam::UnassignedName)
@@ -5985,7 +5985,7 @@ namespace oam
         // get string variables
         Config* sysConfig = Config::makeConfig(erydbConfigFile.c_str());
         string Section = "SystemConfig";
-        for (int dbrootID = 1; dbrootID < MAX_DBROOT; dbrootID++) {
+        for (int dbrootID = 1; dbrootID <= MAX_DBROOT; dbrootID++) {
             string dbrootPath;
             try {
                 dbrootPath = sysConfig->getConfig(Section, "DBRoot" + itoa(dbrootID));

@@ -116,13 +116,13 @@ namespace execplan {
         return allocOIDs(1);
     }
 
-    int ObjectIDManager::allocVBOID(uint32_t dbroot) {
-        return dbrm.allocVBOID(dbroot);
-    }
+//    int ObjectIDManager::allocVBOID(uint32_t dbroot) {
+//        return dbrm.allocVBOID(dbroot);
+//    }
 
-    int ObjectIDManager::getDBRootOfVBOID(uint32_t vboid) {
-        return dbrm.getDBRootOfVBOID(vboid);
-    }
+//    int ObjectIDManager::getDBRootOfVBOID(uint32_t vboid) {
+//        return dbrm.getDBRootOfVBOID(vboid);
+//    }
 
     int ObjectIDManager::allocOIDs(int num) {
         return dbrm.allocOIDs(num);
@@ -145,9 +145,9 @@ namespace execplan {
         return dbrm.oidm_size();
     }
 
-    vector<uint16_t> ObjectIDManager::getVBOIDToDBRootMap() {
-        return dbrm.getVBOIDToDBRootMap();
-    }
+//    vector<uint16_t> ObjectIDManager::getVBOIDToDBRootMap() {
+//        return dbrm.getVBOIDToDBRootMap();
+//    }
 
 
 }  // namespace

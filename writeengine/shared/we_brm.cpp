@@ -761,7 +761,7 @@ ERYDBDataFile* BRMWrapper::openFile(const File& fileInfo, const char* mode, cons
         return m_curVBFile;
 
     FileOp fileOp;
-    if (fileInfo.oid < MAX_DBROOT){ //Cannot have more than 999 version buffer files tp prevent oid collision
+    if (fileInfo.oid <= MAX_DBROOT){ //Cannot have more than 999 version buffer files tp prevent oid collision
         RETURN_ON_WE_ERROR(fileOp.getVBFileName (fileInfo.oid, fileName),NULL);
     }
     else {

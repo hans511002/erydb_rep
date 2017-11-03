@@ -2086,17 +2086,18 @@ int FileOp::oid2FileName( FID fid,
 #endif
 
     /* If is a version buffer file, the format is different. */
-    if (fid < MAX_DBROOT) {
+    if (fid <= MAX_DBROOT) {
         /* Get the dbroot #
          * Get the root of that dbroot
          * Add "/versionbuffer.cdf"
          */
-        BRM::DBRM dbrm;
-        int _dbroot = dbrm.getDBRootOfVBOID(fid);
-        if (_dbroot < 0)
-            return ERR_INVALID_VBOID;
-        snprintf(fullFileName, FILE_NAME_SIZE,
-            "%s/versionbuffer.cdf", Config::getDBRootByNum(_dbroot).c_str());
+       //BRM::DBRM dbrm;
+       //int _dbroot = dbrm.getDBRootOfVBOID(fid);
+       //if (_dbroot < 0)
+       //    return ERR_INVALID_VBOID;
+       //snprintf(fullFileName, FILE_NAME_SIZE,
+       //    "%s/versionbuffer.cdf", Config::getDBRootByNum(_dbroot).c_str());
+        snprintf(fullFileName, FILE_NAME_SIZE,"%s/versionbuffer.cdf", Config::getDBRootByNum(fid).c_str());       
         return NO_ERROR;
     }
 
@@ -2211,16 +2212,16 @@ int FileOp::oid2DirName( FID fid, char* oidDirName ) const
     char dbDir[MAX_DB_DIR_LEVEL][MAX_DB_DIR_NAME_SIZE];
 
     /* If is a version buffer file, the format is different. */
-    if (fid < MAX_DBROOT) {
+    if (fid <= MAX_DBROOT) {
         /* Get the dbroot #
          * Get the root of that dbroot
          */
-        BRM::DBRM dbrm;
-        int _dbroot = dbrm.getDBRootOfVBOID(fid);
-        if (_dbroot < 0)
-            return ERR_INVALID_VBOID;
-        snprintf(oidDirName, FILE_NAME_SIZE, "%s",
-            Config::getDBRootByNum(_dbroot).c_str());
+        //BRM::DBRM dbrm;
+        //int _dbroot = dbrm.getDBRootOfVBOID(fid);
+        //if (_dbroot < 0)
+        //    return ERR_INVALID_VBOID;
+        //snprintf(oidDirName, FILE_NAME_SIZE, "%s",Config::getDBRootByNum(_dbroot).c_str());
+        snprintf(oidDirName, FILE_NAME_SIZE, "%s",Config::getDBRootByNum(fid).c_str());
         return NO_ERROR;
     }
 
@@ -2350,7 +2351,7 @@ ERYDBDataFile* FileOp::openFile( const char* fileName,
         dbRoot, partition, segment ) ), NULL );
 
     // disable buffering for versionbuffer file
-    if (fid < MAX_DBROOT)
+    if (fid <= MAX_DBROOT)
         ioColSize = 0;
 
     ERYDBDataFile* pF = openFile( fileName, mode, ioColSize, useTmpSuffix );

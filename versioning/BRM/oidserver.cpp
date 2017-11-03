@@ -380,8 +380,7 @@ namespace BRM {
                 throw ios_base::failure(os.str());
             }
         }
-
-        loadVBOIDs();
+//        loadVBOIDs();
     }
 
     OIDServer::~OIDServer() {

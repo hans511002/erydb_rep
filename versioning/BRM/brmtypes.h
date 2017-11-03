@@ -444,9 +444,9 @@ const uint8_t CLEAR_SYSTEM_STATE = 57;
 const uint8_t ALLOC_OIDS = 60;
 const uint8_t RETURN_OIDS = 61;
 const uint8_t OIDM_SIZE = 62;
-const uint8_t ALLOC_VBOID = 63;
-const uint8_t GETDBROOTOFVBOID = 64;
-const uint8_t GETVBOIDTODBROOTMAP = 65;
+//const uint8_t ALLOC_VBOID = 63;
+//const uint8_t GETDBROOTOFVBOID = 64;
+//const uint8_t GETVBOIDTODBROOTMAP = 65;
 
 /* New Table lock interface */
 const uint8_t GET_TABLE_LOCK = 70;

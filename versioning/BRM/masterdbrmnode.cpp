@@ -83,7 +83,7 @@
 	} \
 	catch (...) { }
 #else
-#define SEND_ALARM 
+#define SEND_ALARM
 #define CLEAR_ALARM
 #endif
 
@@ -97,9 +97,9 @@ MasterDBRMNode::MasterDBRMNode()
 	config::Config *config;
 
 	config = config::Config::makeConfig();
-	if (config == NULL) 
+	if (config == NULL)
 		throw invalid_argument("MasterDBRMNode: Configuration error.");
-	
+
 	runners = 0;
 	die = false;
 	reloadCmd = false;
@@ -122,7 +122,7 @@ MasterDBRMNode::MasterDBRMNode()
 MasterDBRMNode::~MasterDBRMNode()
 {
  	die = true;
- 	finalCleanup();	
+ 	finalCleanup();
 }
 
 MasterDBRMNode::MasterDBRMNode(const MasterDBRMNode &m)
@@ -141,13 +141,13 @@ void MasterDBRMNode::initMsgQueues(config::Config *config)
 	int ltmp;
 	char ctmp[50];
 	int i;
-	
+
 	stmp = config->getConfig("DBRM_Controller", "NumWorkers");
-	if (stmp.length() == 0) 
+	if (stmp.length() == 0)
 		throw runtime_error("MasterDBRMNode::initMsgQueues(): config file error looking for <DBRM_Controller><NumWorkers>");
-	
+
 	ltmp = static_cast<int>(config::Config::fromText(stmp));
-	if (ltmp < 1) 
+	if (ltmp < 1)
 		throw runtime_error("MasterDBRMNode::initMsgQueues(): Bad NumWorkers value");
 
 	NumWorkers = ltmp;
@@ -276,7 +276,7 @@ void MasterDBRMNode::run()
 		cerr << "DBRM Controller: starting another thread" << endl;
 #endif
 		mutex2.lock();
-		
+
 		try {
 			reader = new boost::thread(MsgProcessor(this));
 		}
@@ -295,7 +295,7 @@ void MasterDBRMNode::run()
 			mutex.unlock();
 			continue;
 		}
-	
+
 		params->t = reader;
 		params->sock = s;
 		mutex2.unlock();
@@ -339,7 +339,7 @@ void MasterDBRMNode::msgProcessor()
 
 		if (die) // || msg.length() == 0)
 			break;
-  		
+
  		else if (msg.length() == 0)
    			continue;
 
@@ -351,8 +351,8 @@ void MasterDBRMNode::msgProcessor()
 		switch (cmd) {
 			case HALT: doHalt(p->sock); continue;
 			case RESUME: doResume(p->sock); continue;
-			case RELOAD: 
-				try { 
+			case RELOAD:
+				try {
 					doReload(p->sock);
 				}
 				catch (exception &e) {
@@ -399,9 +399,9 @@ void MasterDBRMNode::msgProcessor()
 			case RETURN_OIDS: doReturnOIDs(msg, p); continue;
 			case OIDM_SIZE: doOidmSize(msg, p); continue;
 
-			case ALLOC_VBOID: doAllocVBOID(msg, p); continue;
-			case GETDBROOTOFVBOID: doGetDBRootOfVBOID(msg, p); continue;
-			case GETVBOIDTODBROOTMAP: doGetVBOIDToDBRootMap(msg, p); continue;
+			//case ALLOC_VBOID: //doAllocVBOID(msg, p); continue;
+			//case GETDBROOTOFVBOID: // doGetDBRootOfVBOID(msg, p);continue;
+			//case GETVBOIDTODBROOTMAP: //doGetVBOIDToDBRootMap(msg, p);    continue;
 		}
 
 		/* Process Autoincrement calls 需要同步到热备节点,需要持久到文件  只存在于当前内存中*/
@@ -415,7 +415,7 @@ void MasterDBRMNode::msgProcessor()
 		}
 
         switch (cmd) {
-            case SAVE_DBRM_STATE: 
+            case SAVE_DBRM_STATE:
                 distributeMsgNoCommit(msg, p);
                 continue;
         }
@@ -430,13 +430,13 @@ retrycmd:
 		if (haltloops == FIVE_MIN_TIMEOUT.tv_sec) {
 			ostringstream os;
 			os << "A node is unresponsive for cmd = " << (uint32_t)cmd <<
-				", no reconfigure in at least " << 
+				", no reconfigure in at least " <<
 				FIVE_MIN_TIMEOUT.tv_sec << " seconds.  Setting read-only mode.";
 			log(os.str());
 			readOnly = true;
 			halting = false;
-		}	
-	
+		}
+
 		if (readOnly) {
 			SEND_ALARM
 			slaveLock.unlock();
@@ -455,15 +455,15 @@ retrycmd:
 				// dbroot is currently after the cmd and transid
 				uint16_t *dbRoot = (uint16_t *) &buf[1+4];
 
-				// If that dbroot has no vboid, create one
-				int16_t err;
-				err = oids.getVBOIDOfDBRoot(*dbRoot);
-				//cout << "dbRoot " << *dbRoot << " -> vbOID " << err << endl;
-				if (err < 0) {
-					err = oids.allocVBOID(*dbRoot);
-				//	cout << "  - allocated oid " << err << endl;
-				}
-				*dbRoot = err;
+				//// If that dbroot has no vboid, create one
+				//int16_t err;
+				//err = oids.getVBOIDOfDBRoot(*dbRoot);
+				////cout << "dbRoot " << *dbRoot << " -> vbOID " << err << endl;
+				//if (err < 0) {
+				//	err = oids.allocVBOID(*dbRoot);
+				////	cout << "  - allocated oid " << err << endl;
+				//}
+				//*dbRoot = err;
 			}
 			catch (exception& ex) {
 				ostringstream os;
@@ -515,7 +515,7 @@ retrycmd:
 	/* XXXPAT: If beginVBCopy, vbRollback, or vbCommit fail for some reason,
 	   the resource graph will be out of sync with the copylocks and/or vss.
 	   There are 2 reasons they might fail:
-			1) logical inconsistency between the resource graph and the 
+			1) logical inconsistency between the resource graph and the
 			copylocks & vss
 			2) "out of band" failures, like a network problem
 	*/
@@ -552,18 +552,18 @@ retrycmd:
 					goto out;
 				}
 			}
-	
+
 #ifdef BRM_VERBOSE
 			cerr << "DBRM Controller: distributed msg" << endl;
 #endif
-	
+
 			bool readErrFlag; // ignore this flag in this case
 			err = gatherResponses(cmd, msg.length(), &responses, readErrFlag);
-			
+
 #ifdef BRM_VERBOSE
 			cerr << "DBRM Controller: got responses" << endl;
 #endif
-	
+
 			CHECK_ERROR1(err)
 			err = compareResponses(cmd, msg.length(), responses);
 #ifdef BRM_VERBOSE
@@ -575,7 +575,7 @@ retrycmd:
 			}
 			else
 			{
-				if ( retry > 1 ) 
+				if ( retry > 1 )
 				{
 					readOnly = true;
 					ostringstream ostr;
@@ -593,17 +593,17 @@ retrycmd:
 #endif
 
 		// these command will have error message carried in the response
-		if (!responses.empty() && (cmd == DELETE_PARTITION || cmd == MARK_PARTITION_FOR_DELETION || cmd == RESTORE_PARTITION) 
+		if (!responses.empty() && (cmd == DELETE_PARTITION || cmd == MARK_PARTITION_FOR_DELETION || cmd == RESTORE_PARTITION)
 			 && err)
 		{
-			if (err != ERR_PARTITION_DISABLED && err != ERR_PARTITION_ENABLED && 
+			if (err != ERR_PARTITION_DISABLED && err != ERR_PARTITION_ENABLED &&
 				  err != ERR_INVALID_OP_LAST_PARTITION && err != ERR_NOT_EXIST_PARTITION &&
 				  err != ERR_NO_PARTITION_PERFORMED)
 				undo();
 			//goto no_confirm;
 		}
-		else 
-		{ 
+		else
+		{
             CHECK_ERROR1(err)
         }
 
@@ -617,7 +617,7 @@ retrycmd:
 		try {
 			confirm();
 		}
-		catch (...) { 
+		catch (...) {
 			if (!halting) {
 				SEND_ALARM
 				ostringstream ostr;
@@ -667,7 +667,7 @@ retrycmd:
             if (!halting) {
                 SEND_ALARM
                     undo();
-                readOnly = true; 
+                readOnly = true;
                 ostringstream ostr;
                 ostr << "DBRM Controller: Caught network error.  "
                     "Sending command " << (uint32_t)cmd <<
@@ -828,7 +828,7 @@ int MasterDBRMNode::gatherResponses(uint8_t cmd,
     else
         return ERR_OK;
 }
-	
+
 int MasterDBRMNode::compareResponses(uint8_t cmd,
 	uint32_t cmdMsgLength,
 	const vector<ByteStream *>& responses) const
@@ -837,7 +837,7 @@ int MasterDBRMNode::compareResponses(uint8_t cmd,
 	uint8_t errCode;
 	ByteStream *first;
 	int i;
-	
+
 	first = responses.front();
 	try {
 		first->peek(errCode);
@@ -868,7 +868,7 @@ int MasterDBRMNode::compareResponses(uint8_t cmd,
 			cerr << "DBRM Controller: error: response from node " << i << " is different" << endl;
 #endif
 // 			readOnly = true;
-			ostr << "DBRM Controller: image inconsistency detected at node " << i << 
+			ostr << "DBRM Controller: image inconsistency detected at node " << i <<
 				".  Verifying response to command " << (uint32_t)cmd <<
 				", length " << cmdMsgLength;
 			log(ostr.str());
@@ -877,7 +877,7 @@ int MasterDBRMNode::compareResponses(uint8_t cmd,
 	//return ERR_OK;
 	return errCode;
 }
-		
+
 void MasterDBRMNode::undo() throw()
 {
 	vector<MessageQueueClient *>::iterator it, lastSlave;
@@ -890,7 +890,7 @@ void MasterDBRMNode::undo() throw()
 
 	undoMsg << (uint8_t) BRM_UNDO;
 	if (iSlave != slaves.end())
-		lastSlave = iSlave + 1; //@Bug 2258 
+		lastSlave = iSlave + 1; //@Bug 2258
 	else
 		lastSlave = iSlave;
 
@@ -904,7 +904,7 @@ void MasterDBRMNode::undo() throw()
 		catch (...) {
 			ostringstream ostr;
 
-			ostr << "DBRM Controller: undo(): warning, could not contact worker number " 
+			ostr << "DBRM Controller: undo(): warning, could not contact worker number "
 				<< i << endl;
 			log(ostr.str());
 		}
@@ -930,11 +930,11 @@ void MasterDBRMNode::finalCleanup()
 	rg = NULL;
 
 	// XXXPAT: assumption here: join_all() blocks until all threads are joined
-	// which implies the case where all threads are removed from the group.  
+	// which implies the case where all threads are removed from the group.
 	// We're relying on that second condition for synchronization here.
 	// Problem: it looks as if join_all holds a mutex which prevents other calls
 	// on dbrmSessions, so threads can't be removed from the group.
-//  	dbrmSessions.join_all();  
+//  	dbrmSessions.join_all();
 	// blah: busy wait for now, max 15 seconds, then assume everything's dead.
 	// @bug 1381: change retry from 15 to 5 more than the socket read() timeout.
 	while (runners > 0 && retry++ < (MSG_TIMEOUT.tv_sec + 5))
@@ -953,7 +953,7 @@ void MasterDBRMNode::finalCleanup()
 	*/
 
 #if 0    // if we see instances of blockage here flip this switch
-	int tmp; 
+	int tmp;
 	tmp = pthread_mutex_trylock(&mutex);
 	if (tmp != 0) {   // try one more time then steal the lock TODO: why is this necessary?
 		sleep(1);
@@ -1000,7 +1000,7 @@ void MasterDBRMNode::sendError(IOSocket *caller, uint8_t err) const throw()
 	msg << err;
 	try {
 		caller->write(msg);
-	} 
+	}
 	catch (exception&) {
 		log("DBRM Controller: failed to send return code", logging::LOG_TYPE_WARNING);
 #ifdef BRM_VERBOSE
@@ -1022,7 +1022,7 @@ void MasterDBRMNode::doHalt(messageqcpp::IOSocket *sock)
 		sock->write(reply);
 	}
 	catch (exception&) { }
-}	
+}
 
 void MasterDBRMNode::doResume(messageqcpp::IOSocket *sock)
 {
@@ -1110,7 +1110,7 @@ void MasterDBRMNode::doReload(messageqcpp::IOSocket *sock)
         std::string module(ctmp);
 		slaves.push_back(MessageQueueClientPool::getInstance(module));
 	}
-	
+
 	iSlave = slaves.end();
 	undo();
 
@@ -1134,7 +1134,7 @@ void MasterDBRMNode::doReload(messageqcpp::IOSocket *sock)
 
 	reloadCmd = true;
 */
-}	
+}
 
 void MasterDBRMNode::doVerID(ByteStream &msg, ThreadParams *p)
 {
@@ -1178,7 +1178,7 @@ void MasterDBRMNode::doNewTxnID(ByteStream &msg, ThreadParams *p)
 	TxnID txnid;
 	uint32_t sessionID;
 	uint8_t block, cmd, isDDL;
-	
+
 	try {
 		msg >> cmd;
 		msg >> sessionID;
@@ -1220,7 +1220,7 @@ void MasterDBRMNode::doCommitted(ByteStream &msg, ThreadParams *p)
 		msg >> tmp32;
 		txnid.id = tmp32;
 		msg >> tmp;
-		txnid.valid = (tmp != 0 ? true : false);	
+		txnid.valid = (tmp != 0 ? true : false);
 #ifdef BRM_VERBOSE
 		cerr << "doCommitted" << endl;
 #endif
@@ -1234,7 +1234,7 @@ void MasterDBRMNode::doCommitted(ByteStream &msg, ThreadParams *p)
 		catch (...) { }
 		return;
 	}
-	
+
 	reply << (uint8_t) ERR_OK;
 	try {
 		p->sock->write(reply);
@@ -1291,7 +1291,7 @@ void MasterDBRMNode::doGetTxnID(ByteStream &msg, ThreadParams *p)
 
 		txnid = sm.getTxnID(sid);
 #ifdef BRM_VERBOSE
-		cerr << "doGetTxnID returning id=" << txnid.id << " valid=" << 
+		cerr << "doGetTxnID returning id=" << txnid.id << " valid=" <<
 			txnid.valid << endl;
 #endif
 	}
@@ -1324,7 +1324,7 @@ void MasterDBRMNode::doSIDTIDMap(ByteStream &msg, ThreadParams *p)
 	}
 	catch (exception&) {
 		reply << (uint8_t) ERR_FAILURE;
-		try { 
+		try {
 			p->sock->write(reply);
 		}
 		catch (...) { }
@@ -1339,14 +1339,14 @@ void MasterDBRMNode::doSIDTIDMap(ByteStream &msg, ThreadParams *p)
 #endif
 	for (i = 0; i < len; i++) {
 #ifdef BRM_VERBOSE
-		cerr << "   " << i << ": txnid=" << entries[i].txnid.id << " valid=" 
-			<< entries[i].txnid.valid << " sessionid=" << entries[i].sessionid 
+		cerr << "   " << i << ": txnid=" << entries[i].txnid.id << " valid="
+			<< entries[i].txnid.valid << " sessionid=" << entries[i].sessionid
 			<< endl;
 #endif
-		reply << (uint32_t) entries[i].txnid.id << (uint8_t) entries[i].txnid.valid << 
+		reply << (uint32_t) entries[i].txnid.id << (uint8_t) entries[i].txnid.valid <<
 			(uint32_t) entries[i].sessionid;
 	}
-	
+
 	try {
 		p->sock->write(reply);
 	}
@@ -1613,90 +1613,90 @@ void MasterDBRMNode::doOidmSize(ByteStream &msg, ThreadParams *p)
 	}
 }
 
-void MasterDBRMNode::doAllocVBOID(ByteStream &msg, ThreadParams *p)
-{
-	ByteStream reply;
-	uint32_t dbroot;
-	uint32_t ret;
-	uint8_t cmd;
-
-	msg >> cmd;
-	try {
-		boost::mutex::scoped_lock lk(oidsMutex);
-
-		msg >> dbroot;
-		ret = oids.allocVBOID(dbroot);
-		reply << (uint8_t) ERR_OK;
-		reply << ret;
-		p->sock->write(reply);
-	}
-	catch (exception& ex) {
-		ostringstream os;
-		os << "DBRM Controller: VB OID allocation failure. " << ex.what();
-		log(os.str());
-		reply.restart();
-		reply << (uint8_t) ERR_FAILURE;
-		try {
-			p->sock->write(reply);
-		} catch (...) { }
-	}
-}
-
-void MasterDBRMNode::doGetDBRootOfVBOID(ByteStream &msg, ThreadParams *p)
-{
-	ByteStream reply;
-	uint32_t vbOID;
-	uint32_t ret;
-	uint8_t cmd;
-
-	msg >> cmd;
-	try {
-		boost::mutex::scoped_lock lk(oidsMutex);
-
-		msg >> vbOID;
-		ret = oids.getDBRootOfVBOID(vbOID);
-		reply << (uint8_t) ERR_OK;
-		reply << ret;
-		p->sock->write(reply);
-	}
-	catch (exception& ex) {
-		ostringstream os;
-		os << "DBRM Controller: Get DBRoot of VB OID failure. " << ex.what();
-		log(os.str());
-		reply.restart();
-		reply << (uint8_t) ERR_FAILURE;
-		try {
-			p->sock->write(reply);
-		} catch (...) { }
-	}
-}
-
-void MasterDBRMNode::doGetVBOIDToDBRootMap(ByteStream &msg, ThreadParams *p)
-{
-	ByteStream reply;
-	uint8_t cmd;
-
-	msg >> cmd;
-	try {
-		boost::mutex::scoped_lock lk(oidsMutex);
-
-		const vector<uint16_t> &ret = oids.getVBOIDToDBRootMap();
-		reply << (uint8_t) ERR_OK;
-		serializeInlineVector<uint16_t>(reply, ret);
-		p->sock->write(reply);
-	}
-	catch (exception& ex) {
-		ostringstream os;
-		os << "DBRM Controller: Get VB OID DBRoot map failure. " << ex.what();
-		log(os.str());
-		reply.restart();
-		reply << (uint8_t) ERR_FAILURE;
-		try {
-			p->sock->write(reply);
-		} catch (...) { }
-	}
-}
-
+//void MasterDBRMNode::doAllocVBOID(ByteStream &msg, ThreadParams *p)
+//{
+//	ByteStream reply;
+//	uint32_t dbroot;
+//	uint32_t ret;
+//	uint8_t cmd;
+//
+//	msg >> cmd;
+//	try {
+//		boost::mutex::scoped_lock lk(oidsMutex);
+//
+//		msg >> dbroot;
+//		ret = oids.allocVBOID(dbroot);
+//		reply << (uint8_t) ERR_OK;
+//		reply << ret;
+//		p->sock->write(reply);
+//	}
+//	catch (exception& ex) {
+//		ostringstream os;
+//		os << "DBRM Controller: VB OID allocation failure. " << ex.what();
+//		log(os.str());
+//		reply.restart();
+//		reply << (uint8_t) ERR_FAILURE;
+//		try {
+//			p->sock->write(reply);
+//		} catch (...) { }
+//	}
+//}
+//
+//void MasterDBRMNode::doGetDBRootOfVBOID(ByteStream &msg, ThreadParams *p)
+//{
+//	ByteStream reply;
+//	uint32_t vbOID;
+//	uint32_t ret;
+//	uint8_t cmd;
+//
+//	msg >> cmd;
+//	try {
+//		boost::mutex::scoped_lock lk(oidsMutex);
+//
+//		msg >> vbOID;
+//		ret = oids.getDBRootOfVBOID(vbOID);
+//		reply << (uint8_t) ERR_OK;
+//		reply << ret;
+//		p->sock->write(reply);
+//	}
+//	catch (exception& ex) {
+//		ostringstream os;
+//		os << "DBRM Controller: Get DBRoot of VB OID failure. " << ex.what();
+//		log(os.str());
+//		reply.restart();
+//		reply << (uint8_t) ERR_FAILURE;
+//		try {
+//			p->sock->write(reply);
+//		} catch (...) { }
+//	}
+//}
+//
+//void MasterDBRMNode::doGetVBOIDToDBRootMap(ByteStream &msg, ThreadParams *p)
+//{
+//	ByteStream reply;
+//	uint8_t cmd;
+//
+//	msg >> cmd;
+//	try {
+//		boost::mutex::scoped_lock lk(oidsMutex);
+//
+//		const vector<uint16_t> &ret = oids.getVBOIDToDBRootMap();
+//		reply << (uint8_t) ERR_OK;
+//		serializeInlineVector<uint16_t>(reply, ret);
+//		p->sock->write(reply);
+//	}
+//	catch (exception& ex) {
+//		ostringstream os;
+//		os << "DBRM Controller: Get VB OID DBRoot map failure. " << ex.what();
+//		log(os.str());
+//		reply.restart();
+//		reply << (uint8_t) ERR_FAILURE;
+//		try {
+//			p->sock->write(reply);
+//		} catch (...) { }
+//	}
+//}
+//
 
 void MasterDBRMNode::doGetTableLock(ByteStream &msg, ThreadParams *p)
 {
@@ -2190,7 +2190,7 @@ void MasterDBRMNode::MsgProcessor::operator()()
 		cerr << e.what() << endl;
 #endif
 	}
-	catch (...) { 
+	catch (...) {
 		log("caught something that's not an exception", logging::LOG_TYPE_WARNING);
 		cerr << "DBRM Controller: caught something that's not an exception" << endl;
 	}

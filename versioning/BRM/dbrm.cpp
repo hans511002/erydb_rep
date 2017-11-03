@@ -1855,14 +1855,15 @@ namespace BRM {
 
             // get the dbroots
             for (vbIt = vbOIDs.begin(); vbIt != vbOIDs.end(); ++vbIt) {
-                err = getDBRootOfVBOID(*vbIt);
-                if (err) {
-                    ostringstream os;
-                    os << "DBRM::getDBRootOfVBOID() returned an error looking for vbOID " << *vbIt;
-                    log(os.str());
-                    return ERR_FAILURE;
-                }
-                dbroots->push_back((uint16_t)err);
+                dbroots->push_back(*vbIt);    
+                //err = getDBRootOfVBOID(*vbIt);
+                //if (err) {
+                //    ostringstream os;
+                //    os << "DBRM::getDBRootOfVBOID() returned an error looking for vbOID " << *vbIt;
+                //    log(os.str());
+                //    return ERR_FAILURE;
+                //}
+                //dbroots->push_back((uint16_t)err);
             }
 
             vss->release(VSS::READ);
@@ -3135,88 +3136,88 @@ namespace BRM {
         }
     }
 
-    int DBRM::allocVBOID(uint32_t dbroot) {
-        ByteStream command, response;
-        uint8_t err;
-        uint32_t ret;
-
-        command << ALLOC_VBOID << (uint32_t)dbroot;
-        err = send_recv(command, response);
-        if (err != ERR_OK) {
-            cerr << "DBRM: OIDManager::allocVBOID(): network error" << endl;
-            log("DBRM: OIDManager::allocVBOID(): network error", logging::LOG_TYPE_CRITICAL);
-            return -1;
-        }
-
-        try {
-            response >> err;
-            if (err == ERR_OK) {
-                response >> ret;
-                CHECK_EMPTY(response);
-                return ret;
-            }
-            CHECK_EMPTY(response);
-            return -1;
-        } catch (...) {
-            log("DBRM: OIDManager::allocVBOID(): bad response", logging::LOG_TYPE_CRITICAL);
-            return -1;
-        }
-    }
-
-    int DBRM::getDBRootOfVBOID(uint32_t vbOID) {
-        ByteStream command, response;
-        uint8_t err;
-        uint32_t ret;
-
-        command << GETDBROOTOFVBOID << (uint32_t)vbOID;
-        err = send_recv(command, response);
-        if (err != ERR_OK) {
-            cerr << "DBRM: OIDManager::getDBRootOfVBOID(): network error" << endl;
-            log("DBRM: OIDManager::getDBRootOfVBOID(): network error", logging::LOG_TYPE_CRITICAL);
-            return -1;
-        }
-
-        try {
-            response >> err;
-            if (err == ERR_OK) {
-                response >> ret;
-                CHECK_EMPTY(response);
-                return (int)ret;
-            }
-            CHECK_EMPTY(response);
-            return -1;
-        } catch (...) {
-            log("DBRM: OIDManager::getDBRootOfVBOID(): bad response", logging::LOG_TYPE_CRITICAL);
-            return -1;
-        }
-    }
-
-    vector<uint16_t> DBRM::getVBOIDToDBRootMap() {
-        ByteStream command, response;
-        uint8_t err;
-        vector<uint16_t> ret;
-
-        command << GETVBOIDTODBROOTMAP;
-        err = send_recv(command, response);
-        if (err != ERR_OK) {
-            log("DBRM: OIDManager::getVBOIDToDBRootMap(): network error", logging::LOG_TYPE_CRITICAL);
-            throw runtime_error("DBRM: OIDManager::getVBOIDToDBRootMap(): network error");
-        }
-
-        try {
-            response >> err;
-            if (err != ERR_OK) {
-                log("DBRM: OIDManager::getVBOIDToDBRootMap(): processing error", logging::LOG_TYPE_CRITICAL);
-                throw runtime_error("DBRM: OIDManager::getVBOIDToDBRootMap(): processing error");
-            }
-            deserializeInlineVector<uint16_t>(response, ret);
-            CHECK_EMPTY(response);
-            return ret;
-        } catch (...) {
-            log("DBRM: OIDManager::getVBOIDToDBRootMap(): bad response", logging::LOG_TYPE_CRITICAL);
-            throw runtime_error("DBRM: OIDManager::getVBOIDToDBRootMap(): bad response");
-        }
-    }
+//    int DBRM::allocVBOID(uint32_t dbroot) {
+//        ByteStream command, response;
+//        uint8_t err;
+//        uint32_t ret;
+//
+//        command << ALLOC_VBOID << (uint32_t)dbroot;
+//        err = send_recv(command, response);
+//        if (err != ERR_OK) {
+//            cerr << "DBRM: OIDManager::allocVBOID(): network error" << endl;
+//            log("DBRM: OIDManager::allocVBOID(): network error", logging::LOG_TYPE_CRITICAL);
+//            return -1;
+//        }
+//
+//        try {
+//            response >> err;
+//            if (err == ERR_OK) {
+//                response >> ret;
+//                CHECK_EMPTY(response);
+//                return ret;
+//            }
+//            CHECK_EMPTY(response);
+//            return -1;
+//        } catch (...) {
+//            log("DBRM: OIDManager::allocVBOID(): bad response", logging::LOG_TYPE_CRITICAL);
+//            return -1;
+//        }
+//    }
+//
+//    int DBRM::getDBRootOfVBOID(uint32_t vbOID) {
+//        ByteStream command, response;
+//        uint8_t err;
+//        uint32_t ret;
+//
+//        command << GETDBROOTOFVBOID << (uint32_t)vbOID;
+//        err = send_recv(command, response);
+//        if (err != ERR_OK) {
+//            cerr << "DBRM: OIDManager::getDBRootOfVBOID(): network error" << endl;
+//            log("DBRM: OIDManager::getDBRootOfVBOID(): network error", logging::LOG_TYPE_CRITICAL);
+//            return -1;
+//        }
+//
+//        try {
+//            response >> err;
+//            if (err == ERR_OK) {
+//                response >> ret;
+//                CHECK_EMPTY(response);
+//                return (int)ret;
+//            }
+//            CHECK_EMPTY(response);
+//            return -1;
+//        } catch (...) {
+//            log("DBRM: OIDManager::getDBRootOfVBOID(): bad response", logging::LOG_TYPE_CRITICAL);
+//            return -1;
+//        }
+//    }
+//
+//    vector<uint16_t> DBRM::getVBOIDToDBRootMap() {
+//        ByteStream command, response;
+//        uint8_t err;
+//        vector<uint16_t> ret;
+//
+//        command << GETVBOIDTODBROOTMAP;
+//        err = send_recv(command, response);
+//        if (err != ERR_OK) {
+//            log("DBRM: OIDManager::getVBOIDToDBRootMap(): network error", logging::LOG_TYPE_CRITICAL);
+//            throw runtime_error("DBRM: OIDManager::getVBOIDToDBRootMap(): network error");
+//        }
+//
+//        try {
+//            response >> err;
+//            if (err != ERR_OK) {
+//                log("DBRM: OIDManager::getVBOIDToDBRootMap(): processing error", logging::LOG_TYPE_CRITICAL);
+//                throw runtime_error("DBRM: OIDManager::getVBOIDToDBRootMap(): processing error");
+//            }
+//            deserializeInlineVector<uint16_t>(response, ret);
+//            CHECK_EMPTY(response);
+//            return ret;
+//        } catch (...) {
+//            log("DBRM: OIDManager::getVBOIDToDBRootMap(): bad response", logging::LOG_TYPE_CRITICAL);
+//            throw runtime_error("DBRM: OIDManager::getVBOIDToDBRootMap(): bad response");
+//        }
+//    }
 
     uint64_t DBRM::getTableLock(const vector<uint32_t> &pmList, uint32_t tableOID,
         string *ownerName, uint32_t *ownerPID, int32_t *ownerSessionID, int32_t *ownerTxnID, LockState state) {

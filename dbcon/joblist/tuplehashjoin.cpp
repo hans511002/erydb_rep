@@ -288,7 +288,7 @@ void TupleHashJoinStep::smallRunnerFcn(uint32_t index)
 			it did before.  If it will be converted, it should just return. */
 			if (UNLIKELY(!gotMem)) {
 				if (isDML || !allowDJS || (fSessionId & 0x80000000) ||
-						(tableOid() < USER_OBJECT_ID && tableOid() >= MAX_DBROOT)) {
+						(tableOid() < USER_OBJECT_ID && tableOid() > MAX_DBROOT)) {
 					joinIsTooBig = true;
 					fLogger->logMessage(logging::LOG_TYPE_INFO, logging::ERR_JOIN_TOO_BIG);
 					errorMessage(logging::ERYDBErrorInfo::instance()->errorMsg(logging::ERR_JOIN_TOO_BIG));
@@ -1585,7 +1585,7 @@ void TupleHashJoinStep::segregateJoiners()
 
 	/* When DDL updates syscat, the syscat checks here are necessary */
 	if (isDML || !allowDJS || (fSessionId & 0x80000000) ||
-		(tableOid() < USER_OBJECT_ID && tableOid() >= MAX_DBROOT)) {
+		(tableOid() < USER_OBJECT_ID && tableOid() > MAX_DBROOT)) {
 		if (anyTooLarge) {
 			joinIsTooBig = true;
 			abort();
