@@ -1199,12 +1199,12 @@ int main(int argc, char *argv[]) {
                 int PMreplicateSize = atoi(oldRepSize.c_str());
                 if (pmNumber < PMreplicateSize) {
                     try {
-                        cout << "warning:replicateCount lage than PM count,set replicateCount to PM count " << endl;
+                        cout << "warning:replicateCount["<<PMreplicateSize<<"] lage than PM count["<<pmNumber <<"],set replicateCount to PM count " << endl;
                         PMreplicateSize = pmNumber;
-                        sysConfig->setConfig(SystemSection, "PMreplicateCount", oam.itoa(PMreplicateSize));
+                        // sysConfig->setConfig(SystemSection, "PMreplicateCount", oam.itoa(PMreplicateSize));
                     } catch (...) {
-                        cout << "ERROR: Problem setting PMreplicateCount in the erydb System Configuration file" << endl;
-                        exit(1);
+                        // cout << "ERROR: Problem setting PMreplicateCount in the erydb System Configuration file" << endl;
+                        // exit(1);
                     }
                 } 
             }
