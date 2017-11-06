@@ -667,7 +667,7 @@ int ColumnOp::fillColumn(const TxnID& txnid, Column& column, Column& refCol, voi
 					BRM::EMEntry aEntry;
 					aEntry.partitionNum = partition = 0;
 					aEntry.segmentNum = segment = 0;
-					aEntry.dbRoot = rootList[i];
+					aEntry.dbRoots[0] = rootList[i];
 					newEntries.push_back(aEntry);
 					if (dictOid >= USER_OBJECT_ID)  //Create dictionary file if needed
 					{
@@ -736,7 +736,7 @@ int ColumnOp::fillColumn(const TxnID& txnid, Column& column, Column& refCol, voi
 						BRM::EMEntry aEntry;
 						aEntry.partitionNum = partition;
 						aEntry.segmentNum = segment;
-						aEntry.dbRoot = rootList[i];
+						aEntry.dbRoots[0] = rootList[i];
 						newEntries.push_back(aEntry);
 						if ((dictOid >= USER_OBJECT_ID) && newFile) //Create dictionary file if needed
 						{

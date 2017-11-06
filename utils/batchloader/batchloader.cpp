@@ -123,8 +123,7 @@ void BatchLoader::selectFirstPM ( uint32_t& PMId)
 	for (unsigned i = 0; i < fDbRoots.size(); i++)
 	{
 		uint64_t numExtents;
-		dbrmp->getExtentCount_dbroot((ridList[0].objnum), fDbRoots[i],
-			false, numExtents);
+		dbrmp->getExtentCount_dbroot((ridList[0].objnum), fDbRoots[i], false, numExtents);
 		rootExtents[fDbRoots[i]] = numExtents;
 	}
 		

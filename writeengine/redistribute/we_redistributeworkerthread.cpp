@@ -349,7 +349,7 @@ int RedistributeWorkerThread::buildEntryList()
 
 			for (vector<EMEntry>::iterator j = entries.begin(); j != entries.end(); j++)
 			{
-				if (j->dbRoot == source && j->partitionNum == partition)
+				if (j->dbRoots[0] == source && j->partitionNum == partition)
 				{
 					fUpdateRtEntries.push_back(BulkUpdateDBRootArg(j->range.start, target));
 
@@ -357,7 +357,7 @@ int RedistributeWorkerThread::buildEntryList()
 						fSegments.insert(j->segmentNum);
 				}
 #if 0
-				else if (j->dbRoot == target && j->partitionNum == partition)
+				else if (j->dbRoots[0] == target && j->partitionNum == partition)
 				{
 					// the partition already exists on the target dbroot
 					fErrorCode = RED_EC_PART_EXIST_ON_TARGET;
@@ -370,7 +370,7 @@ int RedistributeWorkerThread::buildEntryList()
 				}
 #endif
 				// workaround for HWM_0 of highest extents of the oid on target dbroot.
-				if (j->dbRoot == target)
+				if (j->dbRoots[0] == target)
 				{
 					if (targetHwmEntry == entries.end())
 					{

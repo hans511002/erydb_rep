@@ -184,7 +184,7 @@ void ColumnCommandJL::setLBID(uint64_t rid, uint32_t dbRoot)
 	rowgroup::getLocationFromRid(rid, &partNum, &segNum, &extentNum, &blockNum);
 
 	for (i = 0; i < extents.size(); i++) {
-		if (extents[i].dbRoot == dbRoot &&
+		if (extents[i].dbRoots[0] == dbRoot &&
 		  extents[i].partitionNum == partNum &&
 		  extents[i].segmentNum == segNum &&
 		  extents[i].blockOffset == (extentNum * colWidth * 1024)) {

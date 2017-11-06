@@ -247,13 +247,13 @@ int RedistributeControlThread::makeRedistributePlan()
 			{
 				RedistributeExtentEntry redEntry;
 				redEntry.oid = cols[0].objnum;
-				redEntry.dbroot = j->dbRoot;
+				redEntry.dbroot = j->dbRoots[0]; // 可取备节点进行拷贝
 				redEntry.partition = j->partitionNum;
 				redEntry.segment = j->segmentNum;
 				redEntry.lbid = j->range.start;
 				redEntry.range = j->range.size * 1024;
 
-				PartitionInfo partInfo(j->dbRoot, j->partitionNum);
+				PartitionInfo partInfo(j->dbRoots[0], j->partitionNum);
 				partitionMap.insert(make_pair(partInfo, redEntry));
 			}
 

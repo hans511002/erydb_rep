@@ -112,7 +112,11 @@ struct EMPartition_struct {
 	EMCasualPartition_t		cprange;
 };
 typedef EMPartition_struct EMPartition_t;
-
+struct DBROOTS_struct {
+    uint16_t	dbRoots[MAX_DATA_REPLICATESIZE];  
+	EXPORT DBROOTS_struct();
+    EXPORT inline uint16_t & operator [](int i){return dbRoots[i];};
+};
 struct EMEntry {
 	InlineLBIDRange range; //16 
 	int         fileID; //
@@ -120,11 +124,10 @@ struct EMEntry {
 	HWM_t       HWM;
 	uint32_t	partitionNum; // starts at 0  //32
 	uint16_t	segmentNum;   // starts at 0
-	uint16_t	dbRoot;       // starts at 1 to match erydb.xml  // 36
+	DBROOTS_struct	dbRoots;       // starts at 1 to match erydb.xml  // 3-5
 	uint16_t	colWid;  //
 	int16_t 	status;       //extent avail for query or not, or out of service 40
 	EMPartition_t partition; //24
-    uint16_t  repDBRoot[4];//8
 	EXPORT EMEntry();
 	EXPORT EMEntry(const EMEntry&);
 	EXPORT EMEntry& operator= (const EMEntry&);
@@ -134,15 +137,15 @@ struct EMEntry {
 // Bug 2989, moved from joblist
 struct ExtentSorter
 {
-	bool operator()(const EMEntry &e1, const EMEntry &e2)
+	bool operator()(EMEntry &e1, EMEntry &e2)
 	{
-		if (e1.dbRoot < e2.dbRoot)
+		if (e1.dbRoots[0] < e2.dbRoots[0])
 			return true;
-		if (e1.dbRoot == e2.dbRoot && e1.partitionNum < e2.partitionNum)
+		if (e1.dbRoots[0] == e2.dbRoots[0] && e1.partitionNum < e2.partitionNum)
 			return true;
-		if (e1.dbRoot == e2.dbRoot && e1.partitionNum == e2.partitionNum && e1.blockOffset < e2.blockOffset)
+		if (e1.dbRoots[0] == e2.dbRoots[0] && e1.partitionNum == e2.partitionNum && e1.blockOffset < e2.blockOffset)
 			return true;
-		if (e1.dbRoot == e2.dbRoot && e1.partitionNum == e2.partitionNum && e1.blockOffset == e2.blockOffset && e1.segmentNum < e2.segmentNum)
+		if (e1.dbRoots[0] == e2.dbRoots[0] && e1.partitionNum == e2.partitionNum && e1.blockOffset == e2.blockOffset && e1.segmentNum < e2.segmentNum)
 			return true;
 
 		return false;
@@ -807,7 +810,8 @@ public:
 	EXPORT void printEM(const EMEntry& em) const;
 	EXPORT void printFL() const;
 #endif
-
+    /** 为一个em分配备份dbroot */
+    int getMinDataDBRoots( uint16_t dbroots[5],int repSize,const OID_t& oid);
 private:
 	static const size_t EM_INCREMENT_ROWS = 100;
 	static const size_t EM_INITIAL_SIZE = EM_INCREMENT_ROWS * 10 * sizeof(EMEntry);

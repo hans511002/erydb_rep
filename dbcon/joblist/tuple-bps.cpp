@@ -933,19 +933,19 @@ void TupleBPS::initExtentMarkers()
 		lastExtent[i] = -1;
 
 	for (uint32_t i = 0; i < scannedExtents.size(); i++) {
-		uint32_t dbRoot = scannedExtents[i].dbRoot - 1;
+		uint32_t dbrIdx = scannedExtents[i].dbRoots[0] - 1;
 
 		/* Kludge to account for gaps in the dbroot mapping. */
-		if (scannedExtents[i].dbRoot > numDBRoots) {
-			lastExtent.resize(scannedExtents[i].dbRoot);
-			lastScannedLBID.resize(scannedExtents[i].dbRoot);
-			for (uint32_t z = numDBRoots; z < scannedExtents[i].dbRoot; z++)
+		if (scannedExtents[i].dbRoots[0] > numDBRoots) {
+			lastExtent.resize(scannedExtents[i].dbRoots[0]);
+			lastScannedLBID.resize(scannedExtents[i].dbRoots[0]);
+			for (uint32_t z = numDBRoots; z < scannedExtents[i].dbRoots[0]; z++)
 				lastExtent[z] = -1;
-			numDBRoots = scannedExtents[i].dbRoot;
+			numDBRoots = scannedExtents[i].dbRoots[0];
 		}
 
-		if ((scannedExtents[i].status == EXTENTAVAILABLE) && (lastExtent[dbRoot] < (int) i))
-			lastExtent[dbRoot] = i;
+		if ((scannedExtents[i].status == EXTENTAVAILABLE) && (lastExtent[dbrIdx] < (int) i))
+			lastExtent[dbrIdx] = i;
 
 		//@bug 5322: 0 HWM may not mean full extent if 1 extent in file.
 		// Use special status (EXTENTSTATUSMAX+1) to denote a single extent
@@ -1517,9 +1517,9 @@ bool TupleBPS::processPseudoColFilters(uint32_t extentIndex, boost::shared_ptr<m
 
 	if (bop == BOP_AND) {
 		/* All Pseudocolumns have been promoted to 8-bytes except the casual partitioning filters */
-		return (!hasPMFilter || processOneFilterType(8, (*dbRootPMMap)[emEntry.dbRoot], PSEUDO_PM))
+		return (!hasPMFilter || processOneFilterType(8, (*dbRootPMMap)[emEntry.dbRoots[0]], PSEUDO_PM))
 			&& (!hasSegmentFilter || processOneFilterType(8, emEntry.segmentNum, PSEUDO_SEGMENT))
-			&& (!hasDBRootFilter || processOneFilterType(8, emEntry.dbRoot, PSEUDO_DBROOT))
+			&& (!hasDBRootFilter || processOneFilterType(8, emEntry.dbRoots[0], PSEUDO_DBROOT))
 			&& (!hasSegmentDirFilter || processOneFilterType(8, emEntry.partitionNum, PSEUDO_SEGMENTDIR))
 			&& (!hasExtentIDFilter || processOneFilterType(8, emEntry.range.start, PSEUDO_EXTENTID))
 			&& (!hasMaxFilter || (emEntry.partition.cprange.isValid == BRM::CP_VALID ?
@@ -1530,9 +1530,9 @@ bool TupleBPS::processPseudoColFilters(uint32_t extentIndex, boost::shared_ptr<m
 			;
 	}
 	else {
-		return (hasPMFilter && processOneFilterType(8, (*dbRootPMMap)[emEntry.dbRoot], PSEUDO_PM))
+		return (hasPMFilter && processOneFilterType(8, (*dbRootPMMap)[emEntry.dbRoots[0]], PSEUDO_PM))
 			|| (hasSegmentFilter && processOneFilterType(8, emEntry.segmentNum, PSEUDO_SEGMENT))
-			|| (hasDBRootFilter && processOneFilterType(8, emEntry.dbRoot, PSEUDO_DBROOT))
+			|| (hasDBRootFilter && processOneFilterType(8, emEntry.dbRoots[0], PSEUDO_DBROOT))
 			|| (hasSegmentDirFilter && processOneFilterType(8, emEntry.partitionNum, PSEUDO_SEGMENTDIR))
 			|| (hasExtentIDFilter && processOneFilterType(8, emEntry.range.start, PSEUDO_EXTENTID))
 			|| (hasMaxFilter && (emEntry.partition.cprange.isValid == BRM::CP_VALID ?
@@ -1569,7 +1569,7 @@ void TupleBPS::makeJobs(vector<Job> *jobs)
 		// the # of LBIDs to scan in this extent, if it will be scanned.
 		//@bug 5322: status EXTENTSTATUSMAX+1 means single block extent.
 		if ((scannedExtents[i].HWM == 0) &&
-			((int) i < lastExtent[scannedExtents[i].dbRoot-1]) &&
+			((int) i < lastExtent[scannedExtents[i].dbRoots[0]-1]) &&
 			(scannedExtents[i].status <= EXTENTSTATUSMAX))
 			lbidsToScan = scannedExtents[i].range.size * 1024;
 		else
@@ -1580,7 +1580,7 @@ void TupleBPS::makeJobs(vector<Job> *jobs)
 		// be read yet).  Also skip if there's a pseudocolumn with a filter that would
 		// eliminate this extent
 
-		bool inBounds = ((int)i <= lastExtent[scannedExtents[i].dbRoot-1]);
+		bool inBounds = ((int)i <= lastExtent[scannedExtents[i].dbRoots[0]-1]);
 
 		if (!inBounds) {
 			//cout << "out of bounds" << endl;
@@ -1615,19 +1615,19 @@ void TupleBPS::makeJobs(vector<Job> *jobs)
 			{
 				throw ERYDBExcept(ERR_LOCAL_QUERY_UM);
 			}
-			if (dbRootPMMap->find(scannedExtents[i].dbRoot)->second != localPMId)
+			if (dbRootPMMap->find(scannedExtents[i].dbRoots[0])->second != localPMId)
 				continue;
 		}
 
 		// a necessary DB root is offline
-		if (dbRootConnectionMap->find(scannedExtents[i].dbRoot) == dbRootConnectionMap->end())
+		if (dbRootConnectionMap->find(scannedExtents[i].dbRoots[0]) == dbRootConnectionMap->end())
         {
             // MCOL-259 force a reload of the xml. This usualy fixes it.
 			Logger log;
 			log.logMessage(logging::LOG_TYPE_WARNING, "forcing reload of erydb.xml for dbRootConnectionMap");
             oamCache->forceReload();
             dbRootConnectionMap = oamCache->getDBRootToConnectionMap();
-            if (dbRootConnectionMap->find(scannedExtents[i].dbRoot) == dbRootConnectionMap->end())
+            if (dbRootConnectionMap->find(scannedExtents[i].dbRoots[0]) == dbRootConnectionMap->end())
             {
 				log.logMessage(logging::LOG_TYPE_WARNING, "dbroot still not in dbRootConnectionMap");
                 throw ERYDBExcept(ERR_DATA_OFFLINE);
@@ -1663,9 +1663,9 @@ void TupleBPS::makeJobs(vector<Job> *jobs)
 			fBPP->setLBID(startingLBID, scannedExtents[i]);
 			fBPP->setCount(blocksThisJob);
 			bs.reset(new ByteStream());
-			fBPP->runBPP(*bs, (*dbRootConnectionMap)[scannedExtents[i].dbRoot]);
+			fBPP->runBPP(*bs, (*dbRootConnectionMap)[scannedExtents[i].dbRoots[0]]);
 			//cout << "making job for connection # " << (*dbRootConnectionMap)[scannedExtents[i].dbRoot] << endl;
-			jobs->push_back(Job(scannedExtents[i].dbRoot, (*dbRootConnectionMap)[scannedExtents[i].dbRoot],
+			jobs->push_back(Job(scannedExtents[i].dbRoots[0], (*dbRootConnectionMap)[scannedExtents[i].dbRoots[0]],
 						blocksThisJob, bs));
 			blocksToScan -= blocksThisJob;
 			startingLBID += fColType.colWidth * blocksThisJob;

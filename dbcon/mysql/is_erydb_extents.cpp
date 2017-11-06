@@ -116,7 +116,7 @@ static int is_erydb_extents_fill(THD *thd, TABLE_LIST *tables, COND *cond)
             table->field[2]->store(iter->range.start);
             table->field[3]->store(iter->range.start + (iter->range.size * 1024) - 1);
 
-            table->field[7]->store(iter->dbRoot);
+            table->field[7]->store(iter->dbRoots[0]);
             table->field[8]->store(iter->partitionNum);
             table->field[9]->store(iter->segmentNum);
             table->field[10]->store(iter->blockOffset);
