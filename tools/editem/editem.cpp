@@ -736,6 +736,8 @@ int main(int argc, char** argv)
 	unsigned int sortOrder = 0; // value of 0 means no sorting
 
 	opterr = 0;
+	cerr<<"InlineLBIDRange size=" << sizeof(InlineLBIDRange) << endl;
+	cerr<<"EMEntry size=" << sizeof(EMEntry) << endl;
 
 	while ((c = getopt(argc, argv, "dzCc:o:tsxue:r:fvhw:lb:aimp:S:")) != EOF)
 		switch (c)

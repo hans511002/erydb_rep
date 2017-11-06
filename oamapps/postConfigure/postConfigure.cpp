@@ -1151,12 +1151,14 @@ int main(int argc, char *argv[]) {
                 oldRepSize = "3";
             }
             int PMreplicateSize = atoi(oldRepSize.c_str());
-            if(PMreplicateSize<1)PMreplicateSize=1;
+            if(PMreplicateSize<1)
+                PMreplicateSize=1;
             if (PMreplicateSize > moduleCount) {
                 PMreplicateSize = moduleCount;
             }
-            int maxRep=3;
-            if(moduleCount<maxRep)maxRep=moduleCount;
+            int maxRep=MAX_DATA_REPLICATESIZE;
+            if(moduleCount<maxRep)
+                maxRep=moduleCount;
             while (true) {
                 prompt = "Enter number of PM storage copies [1," + oam.itoa(maxRep) + "] (" + oam.itoa(PMreplicateSize) + ") > ";
                 pcommand = callReadline(prompt.c_str());
