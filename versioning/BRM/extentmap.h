@@ -120,11 +120,11 @@ struct DBROOTS_struct {
 struct EMEntry {
 	InlineLBIDRange range; //16 
 	int         fileID; //
+	DBROOTS_struct	dbRoots;       // starts at 1 to match erydb.xml  // 3-5
 	uint32_t    blockOffset; //24
 	HWM_t       HWM;
 	uint32_t	partitionNum; // starts at 0  //32
 	uint16_t	segmentNum;   // starts at 0
-	DBROOTS_struct	dbRoots;       // starts at 1 to match erydb.xml  // 3-5
 	uint16_t	colWid;  //
 	int16_t 	status;       //extent avail for query or not, or out of service 40
 	EMPartition_t partition; //24
