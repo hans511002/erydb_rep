@@ -805,8 +805,8 @@ void BatchPrimitiveProcessorJL::reset()
 void BatchPrimitiveProcessorJL::setLBID(uint64_t l, const BRM::EMEntry &scannedExtent)
 {
 	uint32_t i;
-
-	dbRoot = scannedExtent.dbRoots[0];
+     BRM::EMEntry * _scannedExtent=(BRM::EMEntry*)&scannedExtent;
+	dbRoot = _scannedExtent->dbRoots[0];
 	baseRid = rowgroup::convertToRid(scannedExtent.partitionNum,
 			scannedExtent.segmentNum,
 			scannedExtent.blockOffset/(scannedExtent.range.size * 1024),  // the extent #

@@ -158,9 +158,6 @@ EMEntry::EMEntry()
 	HWM = 0;
 	partitionNum = 0;
 	segmentNum   = 0;
-	for (int n=0; n < MAX_DATA_REPLICATESIZE ; n++){
-        dbRoots[n]       = 0;
-    }
 	colWid       = 0;
 	status		= 0;
 }
@@ -176,7 +173,7 @@ EMEntry::EMEntry(const EMEntry& e)
 	partitionNum = e.partitionNum;
 	segmentNum   = e.segmentNum;
 	for (int n=0; n < extentDBRreplicateSize ; n++){
-        dbRoots[n]       =e.dbRoots[n] ;
+        dbRoots[n]=((EMEntry)e).dbRoots[n] ;
     }
 	colWid       = e.colWid;
 	status		= e.status;
@@ -194,7 +191,7 @@ EMEntry& EMEntry::operator= (const EMEntry& e)
 	segmentNum   = e.segmentNum;
 	colWid       = e.colWid;
 	for (int n=0; n < extentDBRreplicateSize ; n++){
-        dbRoots[n]       =e.dbRoots[n] ;
+        dbRoots[n]=((EMEntry)e).dbRoots[n] ;
     }
 	status		= e.status;
 	return *this;

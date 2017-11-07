@@ -114,7 +114,10 @@ struct EMPartition_struct {
 typedef EMPartition_struct EMPartition_t;
 struct DBROOTS_struct {
     uint16_t	dbRoots[MAX_DATA_REPLICATESIZE];  
-	EXPORT DBROOTS_struct();
+	EXPORT DBROOTS_struct(){
+		for (int n=0; n < MAX_DATA_REPLICATESIZE ; n++){
+        dbRoots[n]       = 0;
+    }};
     EXPORT inline uint16_t & operator [](int i){return dbRoots[i];};
 };
 struct EMEntry {
@@ -137,17 +140,19 @@ struct EMEntry {
 // Bug 2989, moved from joblist
 struct ExtentSorter
 {
-	bool operator()(EMEntry &e1, EMEntry &e2)
+	bool operator()(const EMEntry &em1,const EMEntry &em2)
 	{
-		if (e1.dbRoots[0] < e2.dbRoots[0])
-			return true;
-		if (e1.dbRoots[0] == e2.dbRoots[0] && e1.partitionNum < e2.partitionNum)
-			return true;
-		if (e1.dbRoots[0] == e2.dbRoots[0] && e1.partitionNum == e2.partitionNum && e1.blockOffset < e2.blockOffset)
-			return true;
-		if (e1.dbRoots[0] == e2.dbRoots[0] && e1.partitionNum == e2.partitionNum && e1.blockOffset == e2.blockOffset && e1.segmentNum < e2.segmentNum)
-			return true;
+	    BRM::EMEntry * e1=(BRM::EMEntry*)&em1;
+	    BRM::EMEntry * e2=(BRM::EMEntry*)&em2;
 
+		if (e1->dbRoots[0] < e2->dbRoots[0])
+			return true;
+		if (e1->dbRoots[0] == e2->dbRoots[0] && e1->partitionNum < e2->partitionNum)
+			return true;
+		if (e1->dbRoots[0] == e2->dbRoots[0] && e1->partitionNum == e2->partitionNum && e1->blockOffset < e2->blockOffset)
+			return true;
+		if (e1->dbRoots[0] == e2->dbRoots[0] && e1->partitionNum == e2->partitionNum && e1->blockOffset == e2->blockOffset && e1->segmentNum < e2->segmentNum)
+			return true;
 		return false;
 	}
 };

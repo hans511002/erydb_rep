@@ -70,16 +70,20 @@ bool uflg = false;
 
 struct SortExtentsByPartitionFirst
 {
-	bool operator() (const EMEntry& entry1, const EMEntry& entry2)
+	bool operator() (const EMEntry& _entry1, const EMEntry& _entry2)
 	{
+	    EMEntry * __entry1=(EMEntry*)&_entry1;
+	    EMEntry * __entry2=(EMEntry*)&_entry2;
+	    EMEntry& entry1=*__entry1;
+	    EMEntry& entry2=*__entry2;
 		if ( (entry1.partitionNum <  entry2.partitionNum) ||
 			((entry1.partitionNum == entry2.partitionNum) &&
-			 (entry1.dbRoot       <  entry2.dbRoot))      ||
+			 (entry1.dbRoots[0]       <  entry2.dbRoots[0]))      ||
 			((entry1.partitionNum == entry2.partitionNum) &&
-			 (entry1.dbRoot       == entry2.dbRoot)       &&
+			 (entry1.dbRoots[0]       == entry2.dbRoots[0])       &&
 			 (entry1.segmentNum   <  entry2.segmentNum))  ||
 			((entry1.partitionNum == entry2.partitionNum) &&
-			 (entry1.dbRoot       == entry2.dbRoot)       &&
+			 (entry1.dbRoots[0]       == entry2.dbRoots[0])       &&
 			 (entry1.segmentNum   == entry2.segmentNum)   &&
 			 (entry1.blockOffset  <  entry2.blockOffset)) )
 			return true;
@@ -90,15 +94,19 @@ struct SortExtentsByPartitionFirst
 
 struct SortExtentsByDBRootFirst
 {
-	bool operator() (const EMEntry& entry1, const EMEntry& entry2)
+	bool operator() (const EMEntry& _entry1, const EMEntry& _entry2)
 	{
-		if ( (entry1.dbRoot       <  entry2.dbRoot)       ||
-			((entry1.dbRoot       == entry2.dbRoot)       &&
+	    EMEntry * __entry1=(EMEntry*)&_entry1;
+	    EMEntry * __entry2=(EMEntry*)&_entry2;
+	    EMEntry& entry1=*__entry1;
+	    EMEntry& entry2=*__entry2;
+		if ( (entry1.dbRoots[0]       <  entry2.dbRoots[0])       ||
+			((entry1.dbRoots[0]       == entry2.dbRoots[0])       &&
 			 (entry1.partitionNum <  entry2.partitionNum))||
-			((entry1.dbRoot       == entry2.dbRoot)       &&
+			((entry1.dbRoots[0]       == entry2.dbRoots[0])       &&
 			 (entry1.partitionNum == entry2.partitionNum) &&
 			 (entry1.segmentNum   <  entry2.segmentNum))  ||
-			((entry1.dbRoot       == entry2.dbRoot)       &&
+			((entry1.dbRoots[0]       == entry2.dbRoots[0])       &&
 			 (entry1.partitionNum == entry2.partitionNum) &&
 			 (entry1.segmentNum   == entry2.segmentNum)   &&
 			 (entry1.blockOffset  <  entry2.blockOffset)) )
@@ -297,9 +305,11 @@ int dumpone(OID_t oid, unsigned int sortOrder)
 				break;
 			}
 			cout << ", fbo: "   << iter->blockOffset;
-			cout << ", DBRoot: " << iter->dbRoot <<
-				", part#: " << iter->partitionNum <<
-				", seg#: " << iter->segmentNum;
+			cout << ", DBRoot: "<< ((EMEntry*)&(*iter))->dbRoots[0]  ;
+		    for (int n=1; n < MAX_DATA_REPLICATESIZE ; n++){
+                cout <<","<< ((EMEntry*)&(*iter))->dbRoots[n] ;
+            }
+			cout <<", part#: " << iter->partitionNum <<", seg#: " << iter->segmentNum;
 			cout << ", HWM: "   << iter->HWM;
 			switch (iter->status)
 			{

@@ -127,14 +127,14 @@ static int is_erydb_files_fill(THD *thd, TABLE_LIST *tables, COND *cond)
             table->field[0]->store(oid);
             table->field[1]->store(iter->segmentNum);
             table->field[2]->store(iter->partitionNum);
-
+            BRM::EMEntry* _iter=(BRM::EMEntry*)&(*iter);
             WriteEngine::Convertor::oid2FileName(oid, oidDirName, dbDir, iter->partitionNum, iter->segmentNum);
             std::stringstream DbRootName;
-            DbRootName << "DBRoot" << iter->dbRoots[0];
+            DbRootName << "DBRoot" << _iter->dbRoots[0];
             std::string DbRootPath = config->getConfig("SystemConfig", DbRootName.str());
             fileSize = compressedFileSize = 0;
             snprintf(fullFileName, WriteEngine::FILE_NAME_SIZE, "%s/%s", DbRootPath.c_str(), oidDirName);
-            oam_instance.getDbrootPmConfig(iter->dbRoots[0], pmId);
+            oam_instance.getDbrootPmConfig(_iter->dbRoots[0], pmId);
             std::ostringstream oss;
             oss << "pm" << pmId << "_WriteEngineServer";
             std::string client = oss.str();

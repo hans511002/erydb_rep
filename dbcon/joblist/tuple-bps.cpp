@@ -1514,12 +1514,13 @@ bool TupleBPS::processPseudoColFilters(uint32_t extentIndex, boost::shared_ptr<m
 		return true;
 
 	const EMEntry &emEntry = scannedExtents[extentIndex];
+	EMEntry * _emEntry =(EMEntry * ) &scannedExtents[extentIndex];
 
 	if (bop == BOP_AND) {
 		/* All Pseudocolumns have been promoted to 8-bytes except the casual partitioning filters */
-		return (!hasPMFilter || processOneFilterType(8, (*dbRootPMMap)[emEntry.dbRoots[0]], PSEUDO_PM))
+		return (!hasPMFilter || processOneFilterType(8, (*dbRootPMMap)[_emEntry->dbRoots[0]], PSEUDO_PM))
 			&& (!hasSegmentFilter || processOneFilterType(8, emEntry.segmentNum, PSEUDO_SEGMENT))
-			&& (!hasDBRootFilter || processOneFilterType(8, emEntry.dbRoots[0], PSEUDO_DBROOT))
+			&& (!hasDBRootFilter || processOneFilterType(8, _emEntry->dbRoots[0], PSEUDO_DBROOT))
 			&& (!hasSegmentDirFilter || processOneFilterType(8, emEntry.partitionNum, PSEUDO_SEGMENTDIR))
 			&& (!hasExtentIDFilter || processOneFilterType(8, emEntry.range.start, PSEUDO_EXTENTID))
 			&& (!hasMaxFilter || (emEntry.partition.cprange.isValid == BRM::CP_VALID ?
@@ -1530,9 +1531,9 @@ bool TupleBPS::processPseudoColFilters(uint32_t extentIndex, boost::shared_ptr<m
 			;
 	}
 	else {
-		return (hasPMFilter && processOneFilterType(8, (*dbRootPMMap)[emEntry.dbRoots[0]], PSEUDO_PM))
+		return (hasPMFilter && processOneFilterType(8, (*dbRootPMMap)[_emEntry->dbRoots[0]], PSEUDO_PM))
 			|| (hasSegmentFilter && processOneFilterType(8, emEntry.segmentNum, PSEUDO_SEGMENT))
-			|| (hasDBRootFilter && processOneFilterType(8, emEntry.dbRoots[0], PSEUDO_DBROOT))
+			|| (hasDBRootFilter && processOneFilterType(8, _emEntry->dbRoots[0], PSEUDO_DBROOT))
 			|| (hasSegmentDirFilter && processOneFilterType(8, emEntry.partitionNum, PSEUDO_SEGMENTDIR))
 			|| (hasExtentIDFilter && processOneFilterType(8, emEntry.range.start, PSEUDO_EXTENTID))
 			|| (hasMaxFilter && (emEntry.partition.cprange.isValid == BRM::CP_VALID ?

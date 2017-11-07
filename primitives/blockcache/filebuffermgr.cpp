@@ -288,7 +288,7 @@ void FileBufferMgr::flushPartition(const vector<OID_t> &oids, const set<BRM::Log
 		for (currentExtent = 0; currentExtent < extents.size(); currentExtent++) {
 			EMEntry &range = extents[currentExtent];
 
-			LogicalPartition logicalPartNum(range.dbRoot, range.partitionNum, range.segmentNum);
+			LogicalPartition logicalPartNum(range.dbRoots[0], range.partitionNum, range.segmentNum);
 			if (partitions.find(logicalPartNum) == partitions.end())
 				continue;
 
