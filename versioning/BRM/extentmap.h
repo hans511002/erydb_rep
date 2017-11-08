@@ -114,12 +114,15 @@ struct EMPartition_struct {
 typedef EMPartition_struct EMPartition_t;
 struct DBROOTS_struct {
     uint16_t	dbRoots[MAX_DATA_REPLICATESIZE];  
-	EXPORT DBROOTS_struct(){
-		for (int n=0; n < MAX_DATA_REPLICATESIZE ; n++){
-        dbRoots[n]       = 0;
-    }};
-    EXPORT inline uint16_t & operator [](int i){return dbRoots[i];};
+	EXPORT DBROOTS_struct();
+    EXPORT   uint16_t & operator [](int i) ;
+    EXPORT   uint16_t & get(int i) ;
+    EXPORT   void remove(int i);
+    EXPORT DBROOTS_struct(const DBROOTS_struct&);
+	EXPORT DBROOTS_struct& operator= (const DBROOTS_struct&);
 };
+
+
 struct EMEntry {
 	InlineLBIDRange range; //16 
 	int         fileID; //

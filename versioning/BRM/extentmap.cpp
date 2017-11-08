@@ -147,6 +147,32 @@ EMCasualPartition_struct& EMCasualPartition_struct::operator= (const EMCasualPar
 	return *this;
 }
 
+DBROOTS_struct::DBROOTS_struct()
+{
+    for (int n=0; n < MAX_DATA_REPLICATESIZE ; n++)
+    {
+        dbRoots[n]       = 0;
+    }
+};
+DBROOTS_struct::DBROOTS_struct(const DBROOTS_struct& e)
+{
+    memcpy(&dbRoots,&e.dbRoots,sizeof(DBROOTS_struct));
+};
+DBROOTS_struct& DBROOTS_struct::operator= (const DBROOTS_struct&e)
+{
+    memcpy(&dbRoots,&e.dbRoots,sizeof(DBROOTS_struct));
+	return *this;
+};
+
+uint16_t & DBROOTS_struct::operator [](int i){
+    return dbRoots[i];
+};
+uint16_t & DBROOTS_struct::get(int i){
+    return dbRoots[i];
+};
+void DBROOTS_struct::remove(int i){
+};
+
 //------------------------------------------------------------------------------
 // Version 4 EmEntry methods
 //------------------------------------------------------------------------------
@@ -172,9 +198,7 @@ EMEntry::EMEntry(const EMEntry& e)
 	partition = e.partition;
 	partitionNum = e.partitionNum;
 	segmentNum   = e.segmentNum;
-	for (int n=0; n < extentDBRreplicateSize ; n++){
-        dbRoots[n]=((EMEntry)e).dbRoots[n] ;
-    }
+    memcpy(&dbRoots,&e.dbRoots,sizeof(DBROOTS_struct));
 	colWid       = e.colWid;
 	status		= e.status;
 }
@@ -190,9 +214,7 @@ EMEntry& EMEntry::operator= (const EMEntry& e)
 	partitionNum = e.partitionNum;
 	segmentNum   = e.segmentNum;
 	colWid       = e.colWid;
-	for (int n=0; n < extentDBRreplicateSize ; n++){
-        dbRoots[n]=((EMEntry)e).dbRoots[n] ;
-    }
+    memcpy(&dbRoots,&e.dbRoots,sizeof(DBROOTS_struct));
 	status		= e.status;
 	return *this;
 }
