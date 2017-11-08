@@ -117,7 +117,7 @@ struct DBROOTS_struct {
 	EXPORT DBROOTS_struct();
     EXPORT   uint16_t & operator [](int i) ;
     EXPORT   uint16_t & get(int i) ;
-    EXPORT   void remove(int i);
+    EXPORT   void remove(uint16_t dbroot);
     EXPORT DBROOTS_struct(const DBROOTS_struct&);
 	EXPORT DBROOTS_struct& operator= (const DBROOTS_struct&);
 };
@@ -126,8 +126,8 @@ struct DBROOTS_struct {
 struct EMEntry {
 	InlineLBIDRange range; //16 
 	int         fileID; //
-	DBROOTS_struct	dbRoots;       // starts at 1 to match erydb.xml  // 3-5
 	uint32_t    blockOffset; //24
+	DBROOTS_struct	dbRoots;       // starts at 1 to match erydb.xml  // 4
 	HWM_t       HWM;
 	uint32_t	partitionNum; // starts at 0  //32
 	uint16_t	segmentNum;   // starts at 0

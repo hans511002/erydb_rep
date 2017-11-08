@@ -64,7 +64,7 @@ namespace oam
     */
     const int USER_OBJECT_ID = MAX_DBROOT + 2000;
     const int SHARED_NOTHING_DEMO_ID = MAX_DBROOT + 10000;
-    const int MAX_DATA_REPLICATESIZE = 5 ;
+    const int MAX_DATA_REPLICATESIZE = 4 ;
 
    /** @brief Maximum Number of Modules Types within the erydb System
      */

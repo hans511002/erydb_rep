@@ -149,10 +149,11 @@ EMCasualPartition_struct& EMCasualPartition_struct::operator= (const EMCasualPar
 
 DBROOTS_struct::DBROOTS_struct()
 {
-    for (int n=0; n < MAX_DATA_REPLICATESIZE ; n++)
-    {
-        dbRoots[n]       = 0;
-    }
+    memset(dbRoots,0,sizeof(DBROOTS_struct));
+    //for (int n=0; n < MAX_DATA_REPLICATESIZE ; n++)
+    //{
+    //    dbRoots[n]       = 0;
+    //}
 };
 DBROOTS_struct::DBROOTS_struct(const DBROOTS_struct& e)
 {
@@ -170,7 +171,19 @@ uint16_t & DBROOTS_struct::operator [](int i){
 uint16_t & DBROOTS_struct::get(int i){
     return dbRoots[i];
 };
-void DBROOTS_struct::remove(int i){
+void DBROOTS_struct::remove(uint16_t dbroot){
+    int n=-1,j=0;
+    while (++n < MAX_DATA_REPLICATESIZE && dbRoots[n]!=0 ) {
+        if( dbRoots[n] == dbroot){
+            for (j=n; j < MAX_DATA_REPLICATESIZE-1 ; j++){
+                if(!dbRoots[j+1])
+                    break;
+                dbRoots[j]=dbRoots[j+1];
+            }
+            dbRoots[j]=0;
+            break;
+        }
+    }
 };
 
 //------------------------------------------------------------------------------
@@ -4722,19 +4735,20 @@ void ExtentMap::deleteDBRoot(uint16_t dbroot)
 
 	for (unsigned i = 0; i < fEMShminfo->allocdSize/sizeof(struct EMEntry); i++)
 		if (fExtentMap[i].range.size != 0){
-		    if(fExtentMap[i].dbRoots[0] == dbroot && fExtentMap[i].dbRoots[1] == 0 ){ // 只有一份数据
-		        deleteExtent(i); // 主目录删除
+		    if(fExtentMap[i].dbRoots[0] == dbroot && fExtentMap[i].dbRoots[1] == 0 ){ // only one rep 	        
+		        deleteExtent(i); // 
 		    }else{
-		        int n=-1,j=0;
-    		    while (++n < extentDBRreplicateSize ) {
-                    if(fExtentMap[i].dbRoots[n] == dbroot){
-                        for (j=n; j < extentDBRreplicateSize-1 ; j++){
-                            if(!fExtentMap[i].dbRoots[j+1])break;
-                            fExtentMap[i].dbRoots[j]=fExtentMap[i].dbRoots[j+1];
-                        }
-                        fExtentMap[i].dbRoots[j]=0;
-                    }
-                }
+		        fExtentMap[i].dbRoots.remove(dbroot);
+		        //int n=-1,j=0;
+    		    //while (++n < extentDBRreplicateSize ) {
+                //    if(fExtentMap[i].dbRoots[n] == dbroot){
+                //        for (j=n; j < extentDBRreplicateSize-1 ; j++){
+                //            if(!fExtentMap[i].dbRoots[j+1])break;
+                //            fExtentMap[i].dbRoots[j]=fExtentMap[i].dbRoots[j+1];
+                //        }
+                //        fExtentMap[i].dbRoots[j]=0;
+                //    }
+                //}
 		    }
 		}
 }
@@ -4766,13 +4780,17 @@ bool ExtentMap::isDBRootEmpty(uint16_t dbroot)
 
 	for (i = 0; i < emEntries; i++) {
 		if (fExtentMap[i].range.size != 0) {
-		    for (int n=0; n<extentDBRreplicateSize; n++){
-                if(fExtentMap[i].dbRoots[n] == dbroot){
-                    bEmpty = false;
-                    break;
-                }
+		    if(fExtentMap[i].dbRoots[0] == dbroot){
+                bEmpty = false;
+                break;
             }
-			if(!bEmpty)break;
+		    //for (int n=0; n<extentDBRreplicateSize; n++){
+            //    if(fExtentMap[i].dbRoots[n] == dbroot){
+            //        bEmpty = false;
+            //        break;
+            //    }
+            //}
+			//if(!bEmpty)break;
 		}
 	}
 	releaseEMEntryTable(READ);
