@@ -43,6 +43,8 @@ namespace fs = boost::filesystem;
 #include "ERYDBDataFile.h"
 #include "ERYDBPolicy.h"
 #include "erydbsystemcatalog.h"
+#include "extentmap.h"
+using namespace BRM;
 
 using namespace erydbdatafile;
 
@@ -81,7 +83,7 @@ namespace WriteEngine
 		bs >> columnOid;
 		bs >> nextVal;
 		bs >> sessionID;
-		uint16_t dbRoot;
+		DBROOTS_struct dbRoot;
 		BRM::OID_t oid = OID_SYSCOLUMN_SCHEMA;
 		fDbrm.getSysCatDBRoot(oid, dbRoot);
 		std::map<uint32_t,uint32_t> oids;
@@ -846,7 +848,7 @@ uint8_t WE_DDLCommandProc::writeSyscolumn(ByteStream& bs, std::string & err)
 		}
 
 		unsigned int i = 0;
-		uint16_t  dbRoot;
+		DBROOTS_struct  dbRoot;
 		BRM::OID_t sysOid = OID_SYSCOLUMN_SCHEMA;
 		//Find out where syscolumn is
 		rc = fDbrm.getSysCatDBRoot(sysOid, dbRoot);
@@ -1260,7 +1262,7 @@ uint8_t WE_DDLCommandProc::deleteSyscolumn(ByteStream& bs, std::string & err)
 	boost::shared_ptr<erydbSystemCatalog> systemCatalogPtr;
 	systemCatalogPtr = erydbSystemCatalog::makeerydbSystemCatalog(sessionID);
 	systemCatalogPtr->identity(erydbSystemCatalog::EC);
-	uint16_t  dbRoot;
+	DBROOTS_struct  dbRoot;
 	BRM::OID_t sysOid = OID_SYSCOLUMN_SCHEMA;
 	//Find out where syscolumn is
 	rc = fDbrm.getSysCatDBRoot(sysOid, dbRoot);
@@ -1387,7 +1389,7 @@ uint8_t WE_DDLCommandProc::deleteSyscolumnRow(ByteStream& bs, std::string & err)
 	boost::shared_ptr<erydbSystemCatalog> systemCatalogPtr;
 	systemCatalogPtr = erydbSystemCatalog::makeerydbSystemCatalog(sessionID);
 	systemCatalogPtr->identity(erydbSystemCatalog::EC);
-	uint16_t  dbRoot;
+	DBROOTS_struct  dbRoot;
 	BRM::OID_t sysOid = OID_SYSCOLUMN_SCHEMA;
 	//Find out where syscolumn is
 	rc = fDbrm.getSysCatDBRoot(sysOid, dbRoot);
@@ -1512,7 +1514,7 @@ uint8_t WE_DDLCommandProc::deleteSystable(ByteStream& bs, std::string & err)
 	systemCatalogPtr = erydbSystemCatalog::makeerydbSystemCatalog(sessionID);
 	systemCatalogPtr->identity(erydbSystemCatalog::EC);
 
-	uint16_t  dbRoot;
+	DBROOTS_struct  dbRoot;
 	BRM::OID_t sysOid = OID_SYSTABLE_TABLENAME;
 
 	//Find out where systcolumn is
@@ -1644,7 +1646,7 @@ uint8_t WE_DDLCommandProc::deleteSystables(ByteStream& bs, std::string & err)
 	WriteEngine::RIDList ridList;
 	std::vector<WriteEngine::RIDList> ridLists;
 	DDLColumn column;
-	uint16_t  dbRoot;
+	DBROOTS_struct  dbRoot;
 	BRM::OID_t sysOid = 1003;
 	//Find out where systable is
 	rc = fDbrm.getSysCatDBRoot(sysOid, dbRoot);
@@ -1873,7 +1875,7 @@ uint8_t WE_DDLCommandProc::updateSyscolumnAuto(ByteStream& bs, std::string & err
 	WriteEngine::DctColTupleList dctRowList;
 	WriteEngine::DctnryTuple dctColList;
 
-	uint16_t dbRoot=0;
+	DBROOTS_struct dbRoot;
 	uint16_t segment;
 	uint32_t partition;
 	erydbSystemCatalog::RIDList roList;
@@ -2040,7 +2042,7 @@ uint8_t WE_DDLCommandProc::updateSyscolumnNextvalCol(ByteStream& bs, std::string
 	WriteEngine::DctColTupleList dctRowList;
 	WriteEngine::DctnryTuple dctColList;
 
-	uint16_t dbRoot=0;
+	DBROOTS_struct dbRoot;
 	uint16_t segment;
 	uint32_t partition;
 
@@ -2203,7 +2205,7 @@ uint8_t WE_DDLCommandProc::updateSyscolumnTablename(ByteStream& bs, std::string 
 	std::map<uint32_t,uint32_t> oids;
 	//std::vector<BRM::OID_t>  oidsToFlush;
 
-	uint16_t dbRoot=0;
+	DBROOTS_struct dbRoot;
 	uint16_t segment;
 	uint32_t partition;
 
@@ -2404,7 +2406,7 @@ uint8_t WE_DDLCommandProc::updateSystableAuto(ByteStream& bs, std::string & err)
 	WriteEngine::DctColTupleList dctRowList;
 	WriteEngine::DctnryTuple dctColList;
 
-	uint16_t dbRoot=0;
+	DBROOTS_struct dbRoot;
 	uint16_t segment;
 	uint32_t partition;
 
@@ -2575,7 +2577,7 @@ uint8_t WE_DDLCommandProc::updateSystableTablename(ByteStream& bs, std::string &
 	WriteEngine::DctColTupleList dctRowList;
 	WriteEngine::DctnryTuple dctColList;
 
-	uint16_t dbRoot=0;
+	DBROOTS_struct dbRoot;
 	uint16_t segment;
 	uint32_t partition;
 
@@ -2789,7 +2791,7 @@ uint8_t WE_DDLCommandProc::updateSystablesTablename(ByteStream& bs, std::string 
 	WriteEngine::DctColTupleList dctRowList;
 	WriteEngine::DctnryTuple dctColList;
 
-	uint16_t dbRoot=0;
+	DBROOTS_struct dbRoot;
 	uint16_t segment;
 	uint32_t partition;
 
@@ -3216,7 +3218,7 @@ uint8_t WE_DDLCommandProc::updateSyscolumnColumnposCol(messageqcpp::ByteStream& 
 		return rc;
 	}
 	colValuesList.push_back(colTuples);
-	uint16_t  dbRoot;
+	DBROOTS_struct  dbRoot;
 	BRM::OID_t sysOid = OID_SYSCOLUMN_SCHEMA;
 	//Find out where systable is
 	rc = fDbrm.getSysCatDBRoot(sysOid, dbRoot);
@@ -3837,7 +3839,7 @@ uint8_t WE_DDLCommandProc::updateSyscolumnSetDefault(messageqcpp::ByteStream& bs
 		return rc;
 	}
 
-	uint16_t dbRoot=0;
+	DBROOTS_struct dbRoot;
 	uint16_t segment;
 	uint32_t partition;
 
@@ -4094,7 +4096,7 @@ uint8_t WE_DDLCommandProc::updateSyscolumnRenameColumn(messageqcpp::ByteStream& 
 		return rc;
 	}
 
-	uint16_t dbRoot=0;
+	DBROOTS_struct dbRoot;
 	uint16_t segment;
 	uint32_t partition;
 

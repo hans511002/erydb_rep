@@ -31,6 +31,10 @@
 #include "dataconvert.h"
 #include "writeengine.h"
 
+#include "extentmap.h"
+using namespace BRM;
+
+
 #if defined(_MSC_VER) && defined(xxxDDLPKGPROC_DLLEXPORT)
 #define EXPORT __declspec(dllexport)
 #else
@@ -92,7 +96,7 @@ class WE_DDLCommandProc
 		 * @return 0 on success, otherwise error.
 		 */
 		EXPORT uint8_t dropPartitions(messageqcpp::ByteStream& bs, std::string& err);
-		inline void convertRidToColumn (uint64_t& rid, uint16_t& dbRoot, uint32_t& partition, uint16_t& segment, const int32_t oid )
+		inline void convertRidToColumn (uint64_t& rid, DBROOTS_struct& dbRoot, uint32_t& partition, uint16_t& segment, const int32_t oid )
 		{
 			fDbrm.getSysCatDBRoot(oid, dbRoot);
 			partition = rid / ( filesPerColumnPartition * extentsPerSegmentFile * extentRows );

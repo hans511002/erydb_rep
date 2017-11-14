@@ -4252,7 +4252,7 @@ namespace WriteEngine
         return BRMWrapper::getInstance()->rollBackVersion(txnid, sessionId);
     }
 
-    int WriteEngineWrapper::updateNextValue(const TxnID txnId, const OID& columnoid, const uint64_t nextVal, const uint32_t sessionID, const uint16_t dbRoot) {
+    int WriteEngineWrapper::updateNextValue(const TxnID txnId, const OID& columnoid, const uint64_t nextVal, const uint32_t sessionID, const DBROOTS_struct& dbRoot) {
         int rc = NO_ERROR;
         boost::shared_ptr<erydbSystemCatalog> systemCatalogPtr;
         RIDList ridList;

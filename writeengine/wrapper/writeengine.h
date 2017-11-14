@@ -45,6 +45,8 @@
 #include "we_rbmetawriter.h"
 #include "brmtypes.h"
 #include "we_chunkmanager.h"
+#include "extentmap.h"
+using namespace BRM;
 
 #define IO_BUFF_SIZE 81920
 
@@ -548,7 +550,7 @@ public:
     * @brief update SYSCOLUMN next value
     * @param oidValueMap
     */
-   EXPORT int updateNextValue(const TxnID txnId, const OID& columnoid, const uint64_t nextVal,  const uint32_t sessionID, const uint16_t dbRoot);
+   EXPORT int updateNextValue(const TxnID txnId, const OID& columnoid, const uint64_t nextVal,  const uint32_t sessionID, const DBROOTS_struct& dbRoot);
 
    /**
     * @brief write active datafiles to disk
