@@ -51,6 +51,10 @@ using namespace BRM;
 #include "cacheutils.h"
 #include "ERYDBDataFile.h"
 #include "ERYDBPolicy.h"
+
+#include "extentmap.h"
+using namespace BRM;
+
 namespace WriteEngine
 {
 //StopWatch timer;
@@ -3163,7 +3167,7 @@ uint8_t WE_DMLCommandProc::processBulkRollbackCleanup(
 		bs >> columnOid;
 		bs >> nextVal;
 		bs >> sessionID;
-		uint16_t dbRoot;
+		DBROOTS_struct dbRoot;
 		std::map<uint32_t,uint32_t> oids;
 		//std::vector<BRM::OID_t>  oidsToFlush;
 		oids[columnOid] = columnOid;

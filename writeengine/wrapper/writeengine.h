@@ -550,7 +550,7 @@ public:
     * @brief update SYSCOLUMN next value
     * @param oidValueMap
     */
-   EXPORT int updateNextValue(const TxnID txnId, const OID& columnoid, const uint64_t nextVal,  const uint32_t sessionID, const DBROOTS_struct& dbRoot);
+   EXPORT int updateNextValue(const TxnID txnId, const OID& columnoid, const uint64_t nextVal,  const uint32_t sessionID, DBROOTS_struct& dbRoot);
 
    /**
     * @brief write active datafiles to disk

@@ -994,10 +994,10 @@ uint8_t WE_DDLCommandProc::writeSyscolumn(ByteStream& bs, std::string & err)
 				oidsToFlush.push_back(column.oid);
 				colStruct.colWidth = column.colType.colWidth > 8 ? 8 : column.colType.colWidth;
 				colStruct.tokenFlag = false;
-				colStruct.fColDbRoot = dbRoot;
+				colStruct.fColDbRoot = dbRoot[0];
 				colStruct.tokenFlag = column.colType.colWidth > 8 ? true : false;
 				colStruct.colDataType = column.colType.colDataType;
-				dctnryStruct.fColDbRoot = dbRoot;
+				dctnryStruct.fColDbRoot = dbRoot[0];
 				if (erydbdatafile::ERYDBPolicy::useHdfs())
 				{
 					colStruct.fCompressionType = 2;
@@ -1303,7 +1303,7 @@ uint8_t WE_DDLCommandProc::deleteSyscolumn(ByteStream& bs, std::string & err)
 			colStruct.dataOid = column.oid;
 			colStruct.colWidth = column.colType.colWidth > 8 ? 8 : column.colType.colWidth;
 			colStruct.colDataType = column.colType.colDataType;
-			colStruct.fColDbRoot = dbRoot;
+			colStruct.fColDbRoot = dbRoot[0];
 			if (erydbdatafile::ERYDBPolicy::useHdfs())
 			{
 				colStruct.fCompressionType = 2;
@@ -1429,7 +1429,7 @@ uint8_t WE_DDLCommandProc::deleteSyscolumnRow(ByteStream& bs, std::string & err)
 			colStruct.dataOid = column.oid;
 			colStruct.colWidth = column.colType.colWidth > 8 ? 8 : column.colType.colWidth;
 			colStruct.colDataType = column.colType.colDataType;
-			colStruct.fColDbRoot = dbRoot;
+			colStruct.fColDbRoot = dbRoot[0];
 			if (erydbdatafile::ERYDBPolicy::useHdfs())
 			{
 				colStruct.fCompressionType = 2;
@@ -1555,7 +1555,7 @@ uint8_t WE_DDLCommandProc::deleteSystable(ByteStream& bs, std::string & err)
 			colStruct.dataOid = column.oid;
 			colStruct.colWidth = column.colType.colWidth > 8 ? 8 : column.colType.colWidth;
 			colStruct.colDataType = column.colType.colDataType;
-			colStruct.fColDbRoot = dbRoot;
+			colStruct.fColDbRoot = dbRoot[0];
 			if (erydbdatafile::ERYDBPolicy::useHdfs())
 			{
 				colStruct.fCompressionType = 2;
@@ -1677,7 +1677,7 @@ uint8_t WE_DDLCommandProc::deleteSystables(ByteStream& bs, std::string & err)
 			colStruct.dataOid = column.oid;
 			colStruct.colWidth = column.colType.colWidth > 8 ? 8 : column.colType.colWidth;
 			colStruct.colDataType = column.colType.colDataType;
-			colStruct.fColDbRoot = dbRoot;
+			colStruct.fColDbRoot = dbRoot[0];
 			if (erydbdatafile::ERYDBPolicy::useHdfs())
 			{
 				colStruct.fCompressionType = 2;
@@ -1768,7 +1768,7 @@ uint8_t WE_DDLCommandProc::deleteSystables(ByteStream& bs, std::string & err)
 			colStruct.dataOid = column.oid;
 			colStruct.colWidth = column.colType.colWidth > 8 ? 8 : column.colType.colWidth;
 			colStruct.colDataType = column.colType.colDataType;
-			colStruct.fColDbRoot = dbRoot;
+			colStruct.fColDbRoot = dbRoot[0];
 			if (erydbdatafile::ERYDBPolicy::useHdfs())
 			{
 				colStruct.fCompressionType = 2;
@@ -1949,7 +1949,7 @@ uint8_t WE_DDLCommandProc::updateSyscolumnAuto(ByteStream& bs, std::string & err
 	{
 		convertRidToColumn(roList[i].rid, dbRoot, partition, segment, oid);
 
-		aExtentinfo.dbRoot = dbRoot;
+		aExtentinfo.dbRoot = dbRoot[0];
 		aExtentinfo.partition = partition;
 		aExtentinfo.segment = segment;
 
@@ -2119,7 +2119,7 @@ uint8_t WE_DDLCommandProc::updateSyscolumnNextvalCol(ByteStream& bs, std::string
 	{
 		convertRidToColumn(roList[i].rid, dbRoot, partition, segment, oid);
 
-		aExtentinfo.dbRoot = dbRoot;
+		aExtentinfo.dbRoot = dbRoot[0];
 		aExtentinfo.partition = partition;
 		aExtentinfo.segment = segment;
 
@@ -2312,7 +2312,7 @@ uint8_t WE_DDLCommandProc::updateSyscolumnTablename(ByteStream& bs, std::string 
 	{
 		convertRidToColumn(roList[i].rid, dbRoot, partition, segment, oid);
 
-		aExtentinfo.dbRoot = dbRoot;
+		aExtentinfo.dbRoot = dbRoot[0];
 		aExtentinfo.partition = partition;
 		aExtentinfo.segment = segment;
 
@@ -2490,7 +2490,7 @@ uint8_t WE_DDLCommandProc::updateSystableAuto(ByteStream& bs, std::string & err)
 	ridList.push_back(ropair.rid);
 	std::vector<WriteEngine::RIDList> ridLists;
 	ridLists.push_back(ridList);
-	aExtentinfo.dbRoot = dbRoot;
+	aExtentinfo.dbRoot = dbRoot[0];
 	aExtentinfo.partition = partition;
 	aExtentinfo.segment = segment;
 
@@ -2678,7 +2678,7 @@ uint8_t WE_DDLCommandProc::updateSystableTablename(ByteStream& bs, std::string &
 	ridList.push_back(ropair.rid);
 	std::vector<WriteEngine::RIDList> ridLists;
 	ridLists.push_back(ridList);
-	aExtentinfo.dbRoot = dbRoot;
+	aExtentinfo.dbRoot = dbRoot[0];
 	aExtentinfo.partition = partition;
 	aExtentinfo.segment = segment;
 
@@ -2903,7 +2903,7 @@ uint8_t WE_DDLCommandProc::updateSystablesTablename(ByteStream& bs, std::string 
 	ridList.push_back(ropair.rid);
 	std::vector<WriteEngine::RIDList> ridLists;
 	ridLists.push_back(ridList);
-	aExtentinfo.dbRoot = dbRoot;
+	aExtentinfo.dbRoot = dbRoot[0];
 	aExtentinfo.partition = partition;
 	aExtentinfo.segment = segment;
 
@@ -3084,7 +3084,7 @@ uint8_t WE_DDLCommandProc::updateSystablesTablename(ByteStream& bs, std::string 
 	{
 		convertRidToColumn(roList[i].rid, dbRoot, partition, segment, oid);
 
-		aExtentinfo.dbRoot = dbRoot;
+		aExtentinfo.dbRoot = dbRoot[0];
 		aExtentinfo.partition = partition;
 		aExtentinfo.segment = segment;
 
@@ -3239,7 +3239,7 @@ uint8_t WE_DDLCommandProc::updateSyscolumnColumnposCol(messageqcpp::ByteStream& 
 		colStruct.colWidth = 4;
 		colStruct.tokenFlag = false;
 		colStruct.colDataType = erydbSystemCatalog::INT;
-		colStruct.fColDbRoot = dbRoot;
+		colStruct.fColDbRoot = dbRoot[0];
 		if (erydbdatafile::ERYDBPolicy::useHdfs())
 		{
 			colStruct.fCompressionType = 2;
@@ -3981,7 +3981,7 @@ uint8_t WE_DDLCommandProc::updateSyscolumnSetDefault(messageqcpp::ByteStream& bs
 
 	convertRidToColumn(ropair.rid, dbRoot, partition, segment, OID_SYSCOLUMN_SCHEMA);
 
-	aExtentinfo.dbRoot = dbRoot;
+	aExtentinfo.dbRoot = dbRoot[0];
 	aExtentinfo.partition = partition;
 	aExtentinfo.segment = segment;
 
@@ -4446,7 +4446,7 @@ uint8_t WE_DDLCommandProc::updateSyscolumnRenameColumn(messageqcpp::ByteStream& 
 
 	convertRidToColumn(ropair.rid, dbRoot, partition, segment, OID_SYSCOLUMN_SCHEMA);
 
-	aExtentinfo.dbRoot = dbRoot;
+	aExtentinfo.dbRoot = dbRoot[0];
 	aExtentinfo.partition = partition;
 	aExtentinfo.segment = segment;
 

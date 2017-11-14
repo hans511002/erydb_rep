@@ -4252,7 +4252,7 @@ namespace WriteEngine
         return BRMWrapper::getInstance()->rollBackVersion(txnid, sessionId);
     }
 
-    int WriteEngineWrapper::updateNextValue(const TxnID txnId, const OID& columnoid, const uint64_t nextVal, const uint32_t sessionID, const DBROOTS_struct& dbRoot) {
+    int WriteEngineWrapper::updateNextValue(const TxnID txnId, const OID& columnoid, const uint64_t nextVal, const uint32_t sessionID, DBROOTS_struct& dbRoot) {
         int rc = NO_ERROR;
         boost::shared_ptr<erydbSystemCatalog> systemCatalogPtr;
         RIDList ridList;
@@ -4264,7 +4264,7 @@ namespace WriteEngine
         colStruct.colWidth = 8;
         colStruct.tokenFlag = false;
         colStruct.colDataType = erydbSystemCatalog::UBIGINT;
-        colStruct.fColDbRoot = dbRoot;
+        colStruct.fColDbRoot = dbRoot[0];
         if (erydbdatafile::ERYDBPolicy::useHdfs())
             colStruct.fCompressionType = 2;
 

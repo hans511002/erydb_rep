@@ -40,6 +40,9 @@
 #include "ERYDBDataFile.h"
 #include "ERYDBPolicy.h"
 
+#include "extentmap.h"
+using namespace BRM;
+
 #undef EXPORT
 #undef DELETE
 #undef NO_ERROR
@@ -195,7 +198,7 @@ namespace WriteEngine
         ERYDBDataFile*   pFile;               /** @brief File handle */
         uint32_t      fPartition;          /** @brief Partition for pFile*/
         uint16_t      fSegment;            /** @brief Segment for pFile */
-        uint16_t      fDbRoot;             /** @brief DbRoot for pFile */
+        uint16_t fDbRoot;             /** @brief DbRoot for pFile */
         std::string    fSegFileName;        /** @brief Current seg file path */
         File()         { clear(); } /** @brief constructor */
         void clear()   { pFile = NULL; oid = fid = hwm = 0;
@@ -257,7 +260,7 @@ namespace WriteEngine
         ColType        colType;             /** @brief column type (internal use for write engine)*/
         uint32_t      fColPartition;       /** @brief Partition for column file */
         uint16_t      fColSegment;         /** @brief Segment for column file*/
-        uint16_t      fColDbRoot;          /** @brief DBRoot for column file */
+        uint16_t     fColDbRoot;          /** @brief DBRoot for column file */
         int            fCompressionType;    /** @brief Compression tpye for column file */
         ColStruct() : dataOid(0), colWidth(0),  /** @brief constructor */
                     tokenFlag(false), colDataType(execplan::erydbSystemCatalog::INT), colType(WR_INT),

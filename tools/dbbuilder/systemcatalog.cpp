@@ -35,7 +35,7 @@ using namespace joblist;
 #include "dbbuilder.h"
 
 void SystemCatalog::build() {
-    TxnID txnID = 0;
+    WriteEngine::TxnID txnID = 0;
     int rc;
     //int t= 1000;
     remove();
