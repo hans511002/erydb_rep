@@ -99,7 +99,7 @@ const char CP_VALID=2;
 struct EMCasualPartition_struct {
 	RangePartitionData_t hi_val;	// This needs to be reinterpreted as unsigned for uint64_t column types.
 	RangePartitionData_t lo_val;
-	int32_t sequenceNum;
+	int32_t sequenceNum; //Increment CP sequence (version) number, and wrap-around when applicable 
 	char isValid; //CP_INVALID - No min/max and no DML in progress. CP_UPDATING - Update in progress. CP_VALID- min/max is valid
 	EXPORT EMCasualPartition_struct();
 	EXPORT EMCasualPartition_struct(const int64_t lo, const int64_t hi, const int32_t seqNum);
@@ -119,7 +119,8 @@ struct DBROOTS_struct {
     EXPORT   uint16_t & get(int i) ;
     EXPORT   void remove(uint16_t dbroot);
     EXPORT DBROOTS_struct(const DBROOTS_struct&);
-	EXPORT DBROOTS_struct& operator= (const DBROOTS_struct&);
+    EXPORT DBROOTS_struct& operator= (const DBROOTS_struct&);
+    EXPORT DBROOTS_struct& set(const DBROOTS_struct&);
 };
 
 
@@ -702,7 +703,7 @@ public:
 	 * @param oid The system catalog OID
 	 * @param dbRoot (out) the DBRoot holding the system catalog OID
 	 */
-	EXPORT void getSysCatDBRoot(OID_t oid, uint16_t& dbRoot);
+	EXPORT void getSysCatDBRoot(OID_t oid, DBROOTS_struct& dbRoot);
 
 	/** @brief Delete a Partition for the specified OID(s).
 	 *
@@ -819,7 +820,9 @@ public:
 	EXPORT void printFL() const;
 #endif
     /** 为一个em分配备份dbroot */
-    int getMinDataDBRoots( uint16_t dbroots[5],int repSize,const OID_t& oid);
+    int getMinDataDBRoots(DBROOTS_struct * dbroots);
+    int getSysDataDBRoots(DBROOTS_struct * dbroots);
+    
 private:
 	static const size_t EM_INCREMENT_ROWS = 100;
 	static const size_t EM_INITIAL_SIZE = EM_INCREMENT_ROWS * 10 * sizeof(EMEntry);
@@ -838,8 +841,10 @@ private:
 	MSTEntry* fFLShminfo;
 	const MasterSegmentTable fMST;
 	bool r_only;
-	typedef std::tr1::unordered_map<int,oam::DBRootConfigList*> PmDbRootMap_t;
-	PmDbRootMap_t fPmDbRootMap;
+    typedef boost::shared_ptr<std::map<int, int> > IntMap;
+
+    //typedef std::tr1::unordered_map<int,oam::DBRootConfigList*> PmDbRootMap_t;
+    //PmDbRootMap_t fPmDbRootMap;
 	time_t fCacheTime; // timestamp associated with config cache
 
 	int numUndoRecords;

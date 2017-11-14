@@ -536,7 +536,7 @@ public:
 	 * @param oid The system catalog OID
 	 * @param dbRoot (out) the DBRoot holding the system catalog OID
 	 */
-	EXPORT int getSysCatDBRoot(OID_t oid, uint16_t& dbRoot) throw();
+	EXPORT int getSysCatDBRoot(OID_t oid, DBROOTS_struct& dbRoot) throw();
 	
 	/** @brief Delete a Partition for the specified OID(s).
 	 *
@@ -999,6 +999,11 @@ public:
     */ 
     EXPORT void invalidateUncommittedExtentLBIDs(execplan::erydbSystemCatalog::SCN txnid,
                                                  std::vector<LBID_t>* plbidList = NULL);
+
+    /** 为一个em分配备份dbroot 获取数据块最小的dbroot表 */
+    int getMinDataDBRoots(DBROOTS_struct *dbroots);
+    int getSysDataDBRoots(DBROOTS_struct *dbroots);
+
 private:
 	DBRM(const DBRM& brm);
 	DBRM& operator=(const DBRM& brm);

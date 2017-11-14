@@ -79,6 +79,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\snmpd\snmpmanager\alarm.h" />
+    <ClInclude Include="liboam.h" />
     <ClInclude Include="liboamcpp.h" />
     <ClInclude Include="oamcache.h" />
     <ClInclude Include="..\..\snmpd\snmpmanager\snmpglobal.h" />

@@ -204,7 +204,6 @@ void OamCache::checkReload()
 OamCache::dbRootPMMap_t OamCache::getDBRootToPMMap()
 {
 	mutex::scoped_lock lk(cacheLock);
-
 	checkReload();
 	return dbRootPMMap;
 }
@@ -212,7 +211,6 @@ OamCache::dbRootPMMap_t OamCache::getDBRootToPMMap()
 OamCache::dbRootPMMap_t OamCache::getDBRootToConnectionMap()
 {
 	mutex::scoped_lock lk(cacheLock);
-
 	checkReload();
 	return dbRootConnectionMap;
 }
@@ -220,7 +218,6 @@ OamCache::dbRootPMMap_t OamCache::getDBRootToConnectionMap()
 OamCache::PMDbrootsMap_t OamCache::getPMToDbrootsMap()
 {
 	mutex::scoped_lock lk(cacheLock);
-
 	checkReload();
 	return pmDbrootsMap;
 }
@@ -228,7 +225,6 @@ OamCache::PMDbrootsMap_t OamCache::getPMToDbrootsMap()
 uint32_t OamCache::getDBRootCount()
 {
 	mutex::scoped_lock lk(cacheLock);
-
 	checkReload();
 	return numDBRoots;
 }
@@ -236,7 +232,6 @@ uint32_t OamCache::getDBRootCount()
 DBRootConfigList& OamCache::getDBRootNums()
 { 
 	mutex::scoped_lock lk(cacheLock);
-
 	checkReload();
 	return dbroots; 
 }
@@ -244,7 +239,6 @@ DBRootConfigList& OamCache::getDBRootNums()
 std::vector<int>& OamCache::getModuleIds()
 {
 	mutex::scoped_lock lk(cacheLock);
-
 	checkReload();
 	return moduleIds; 
 }
@@ -252,7 +246,6 @@ std::vector<int>& OamCache::getModuleIds()
 std::string OamCache::getOAMParentModuleName()
 {
 	mutex::scoped_lock lk(cacheLock);
-
 	checkReload();
 	return OAMParentModuleName; 
 }

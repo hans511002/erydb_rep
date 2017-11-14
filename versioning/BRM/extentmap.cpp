@@ -164,7 +164,10 @@ DBROOTS_struct& DBROOTS_struct::operator= (const DBROOTS_struct&e)
     memcpy(&dbRoots,&e.dbRoots,sizeof(DBROOTS_struct));
 	return *this;
 };
-
+DBROOTS_struct& DBROOTS_struct::set(const DBROOTS_struct& e) {
+    memcpy(&dbRoots, &e.dbRoots, sizeof(DBROOTS_struct));
+    return *this;
+};
 uint16_t & DBROOTS_struct::operator [](int i){
     return dbRoots[i];
 };
@@ -325,15 +328,15 @@ ExtentMap::ExtentMap()
 
 ExtentMap::~ExtentMap()
 {
-	PmDbRootMap_t::iterator iter = fPmDbRootMap.begin();
-	PmDbRootMap_t::iterator end = fPmDbRootMap.end();
-	while (iter != end)
-	{
-		delete iter->second;
-		iter->second = 0;
-		++iter;
-	}
-	fPmDbRootMap.clear();
+	//PmDbRootMap_t::iterator iter = fPmDbRootMap.begin();
+	//PmDbRootMap_t::iterator end = fPmDbRootMap.end();
+	//while (iter != end)
+	//{
+	//	delete iter->second;
+	//	iter->second = 0;
+	//	++iter;
+	//}
+	//fPmDbRootMap.clear();
 }
 
 // Casual Partioning support
@@ -4320,7 +4323,7 @@ void ExtentMap::getExtentCount_dbroot(int OID, uint16_t dbroot,
 // a single DBRoot, as the function only searches for and returns the first
 // DBRoot entry that is found in the extent map.
 //------------------------------------------------------------------------------
-void ExtentMap::getSysCatDBRoot(OID_t oid, uint16_t& dbRoot)
+void ExtentMap::getSysCatDBRoot(OID_t oid, DBROOTS_struct& dbRoot)
 {
 #ifdef BRM_INFO
 	if (fDebug)
@@ -4338,7 +4341,7 @@ void ExtentMap::getSysCatDBRoot(OID_t oid, uint16_t& dbRoot)
 
 	for (int i = 0 ; i < emEntries; i++) {
 		if ((fExtentMap[i].range.size != 0) && (fExtentMap[i].fileID == oid)) {
-			dbRoot = fExtentMap[i].dbRoots[0];
+			dbRoot = fExtentMap[i].dbRoots;
 			bFound = true;
 			break;
 		}
@@ -4718,29 +4721,27 @@ void ExtentMap::getOutOfServicePartitions(OID_t oid,set<LogicalPartition>& parti
 //------------------------------------------------------------------------------
 // Delete all extents for the specified dbroot
 //------------------------------------------------------------------------------
-void ExtentMap::deleteDBRoot(uint16_t dbroot)
-{
+void ExtentMap::deleteDBRoot(uint16_t dbroot) {
 #ifdef BRM_INFO
-	if (fDebug)
-	{
-		TRACER_WRITENOW("deleteDBRoot");
-		ostringstream oss;
-		oss << "dbroot: " << dbroot;
-		TRACER_WRITEDIRECT(oss.str());
-	}
+    if (fDebug) {
+        TRACER_WRITENOW("deleteDBRoot");
+        ostringstream oss;
+        oss << "dbroot: " << dbroot;
+        TRACER_WRITEDIRECT(oss.str());
+    }
 #endif
 
-	grabEMEntryTable(WRITE);
-	grabFreeList(WRITE);
+    grabEMEntryTable(WRITE);
+    grabFreeList(WRITE);
 
-	for (unsigned i = 0; i < fEMShminfo->allocdSize/sizeof(struct EMEntry); i++)
-		if (fExtentMap[i].range.size != 0){
-		    if(fExtentMap[i].dbRoots[0] == dbroot && fExtentMap[i].dbRoots[1] == 0 ){ // only one rep 	        
-		        deleteExtent(i); // 
-		    }else{
-		        fExtentMap[i].dbRoots.remove(dbroot);
-		        //int n=-1,j=0;
-    		    //while (++n < extentDBRreplicateSize ) {
+    for (unsigned i = 0; i < fEMShminfo->allocdSize / sizeof(struct EMEntry); i++){
+        if (fExtentMap[i].range.size != 0) {
+            if (fExtentMap[i].dbRoots[0] == dbroot && fExtentMap[i].dbRoots[1] == 0) { // only one rep 	        
+                deleteExtent(i); // 
+            } else {
+                fExtentMap[i].dbRoots.remove(dbroot);
+                //int n=-1,j=0;
+                //while (++n < extentDBRreplicateSize ) {
                 //    if(fExtentMap[i].dbRoots[n] == dbroot){
                 //        for (j=n; j < extentDBRreplicateSize-1 ; j++){
                 //            if(!fExtentMap[i].dbRoots[j+1])break;
@@ -4749,8 +4750,9 @@ void ExtentMap::deleteDBRoot(uint16_t dbroot)
                 //        fExtentMap[i].dbRoots[j]=0;
                 //    }
                 //}
-		    }
-		}
+            }
+        }
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -5357,6 +5359,94 @@ void ExtentMap::dumpTo(ostream& os)
 	return 0;
 }
 */
+
+/** 为一个em分配备份dbroot */
+int ExtentMap::getMinDataDBRoots(DBROOTS_struct * dbroots) {
+    bool bFound = false;
+    int emEntries = fEMShminfo->allocdSize / sizeof(struct EMEntry);
+    IntMap dbrnum;
+    dbrnum.reset(new IntMap());
+    grabEMEntryTable(READ);
+    for (int i = 0; i < emEntries; i++) {
+        if (fExtentMap[i].range.size != 0) {
+            uint16_t dbr = fExtentMap[i].dbRoots[0];
+            (*dbrnum)[dbr] += (uint16_t)1;
+        }
+    }
+    releaseEMEntryTable(READ);
+    int index = 0;
+    IntMap::element_type::iterator iter;
+    IntMap::element_type::iterator end = dbrnum->begin();
+    IntMap rnum;
+    rnum.reset(new IntMap());
+    oam::OamCache* oamcache = oam::OamCache::makeOamCache();
+    DBRootConfigList dbrnums = oamcache->getDBRootNums;
+    int dbrCount = dbrnums.size();
+    for (int i = 0; i < dbrCount; i++) {
+        int dbrroot = dbrnums[i];
+        if (dbrnum->find(dbrroot) != dbrnum->end() && index < dbrCount) {
+            dbroots->dbRoots[index] = dbrroot;
+            rnum->operator[](dbrroot) = index++;
+        }
+    }
+    while (index < MAX_DATA_REPLICATESIZE && index < dbrCount) {
+        iter = dbrnum->begin();
+        int minDbr = MAX_DBROOT + 1;
+        int dbrroot=0;
+        while (iter != end) {
+            if (minDbr < iter->second && rnum->find(iter->second) == rnum->end()) {
+                minDbr = iter->second;
+                dbrroot = iter->first;
+                
+            }
+            iter++;
+        }
+        if (dbrroot > 0) {
+            dbroots->dbRoots[index] = dbrroot;
+            rnum->operator[](dbrroot) = index++;
+        }
+    }
+    //sort(dbrnums.begin(), dbrnums.end());
+    if (!bFound) {
+        ostringstream oss;
+        oss << "ExtentMap::getSysCatDBRoot(): OID not found: " << OID_SYSTABLE_TABLENAME;
+        log(oss.str(), logging::LOG_TYPE_WARNING);
+        throw logic_error(oss.str());
+    }
+    return bFound;
+};
+
+int ExtentMap::getSysDataDBRoots(DBROOTS_struct * dbroots) {
+    bool bFound = false;
+    grabEMEntryTable(READ);
+    int emEntries = fEMShminfo->allocdSize / sizeof(struct EMEntry);
+    if (emEntries > 0) {
+        for (int i = 0; i < emEntries; i++) {
+            if ((fExtentMap[i].range.size != 0) && (fExtentMap[i].fileID == OID_SYSTABLE_TABLENAME)) {
+                (*dbroots) = fExtentMap[i].dbRoots;
+                bFound = true;
+                break;
+            }
+        }
+    } else {
+        oam::OamCache* oamcache = oam::OamCache::makeOamCache();
+        DBRootConfigList dbrnums = oamcache->getDBRootNums;
+        int dbrCount = dbrnums.size();
+        int index = 0;
+        while (index < MAX_DATA_REPLICATESIZE && index < dbrCount) {
+            dbroots->dbRoots[index] = dbrnums[index];
+            index++;
+        }
+    }
+    releaseEMEntryTable(READ);
+    if (emEntries > 0 && !bFound) {
+        ostringstream oss;
+        oss << "ExtentMap::getSysCatDBRoot(): OID not found: " << OID_SYSTABLE_TABLENAME;
+        log(oss.str(), logging::LOG_TYPE_WARNING);
+        throw logic_error(oss.str());
+    }
+    return bFound;
+};
 
 }	//namespace
 // vim:ts=4 sw=4:

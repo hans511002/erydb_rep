@@ -38,6 +38,9 @@
     <ClInclude Include="..\..\snmpd\snmpmanager\snmpmanager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="liboam.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Xml Include="..\etc\AlarmConfig.xml">

@@ -1503,7 +1503,7 @@ namespace BRM {
     // a single DBRoot, as the function only searches for and returns the first
     // DBRoot entry that is found in the extent map.
     //------------------------------------------------------------------------------
-    int DBRM::getSysCatDBRoot(OID_t oid, uint16_t& dbRoot) throw() {
+    int DBRM::getSysCatDBRoot(OID_t oid, DBROOTS_struct& dbRoot) throw() {
 #ifdef BRM_INFO
         if (fDebug) {
             TRACER_WRITELATER("getSysCatDBRoot");
@@ -3590,4 +3590,11 @@ namespace BRM {
         setExtentsMaxMin(cpInfos);
     }
 
+    /** 为一个em分配备份dbroot 获取数据块最小的dbroot表 */
+    int DBRM::getMinDataDBRoots(DBROOTS_struct *dbroots) {
+        return em->getMinDataDBRoots(dbroots);
+    };
+    int DBRM::getSysDataDBRoots(DBROOTS_struct *dbroots) {
+        return em->getSysDataDBRoots(dbroots);
+    };
 }   //namespace
