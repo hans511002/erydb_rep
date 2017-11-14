@@ -67,6 +67,8 @@ namespace bi=boost::interprocess;
 #define EXTENTMAP_DLLEXPORT
 #include "extentmap.h"
 #undef EXTENTMAP_DLLEXPORT
+#include "erydbsystemcatalog.h"
+using namespace execplan ;
 
 #define EM_MAX_SEQNUM               2000000000
 #define MAX_IO_RETRIES 10
@@ -5365,7 +5367,7 @@ int ExtentMap::getMinDataDBRoots(DBROOTS_struct * dbroots) {
     bool bFound = false;
     int emEntries = fEMShminfo->allocdSize / sizeof(struct EMEntry);
     IntMap dbrnum;
-    dbrnum.reset(new IntMap());
+    dbrnum.reset(new IntMap::element_type());
     grabEMEntryTable(READ);
     for (int i = 0; i < emEntries; i++) {
         if (fExtentMap[i].range.size != 0) {
@@ -5378,9 +5380,9 @@ int ExtentMap::getMinDataDBRoots(DBROOTS_struct * dbroots) {
     IntMap::element_type::iterator iter;
     IntMap::element_type::iterator end = dbrnum->begin();
     IntMap rnum;
-    rnum.reset(new IntMap());
+    rnum.reset(new IntMap::element_type());
     oam::OamCache* oamcache = oam::OamCache::makeOamCache();
-    DBRootConfigList dbrnums = oamcache->getDBRootNums;
+    DBRootConfigList dbrnums = oamcache->getDBRootNums();
     int dbrCount = dbrnums.size();
     for (int i = 0; i < dbrCount; i++) {
         int dbrroot = dbrnums[i];
@@ -5430,7 +5432,7 @@ int ExtentMap::getSysDataDBRoots(DBROOTS_struct * dbroots) {
         }
     } else {
         oam::OamCache* oamcache = oam::OamCache::makeOamCache();
-        DBRootConfigList dbrnums = oamcache->getDBRootNums;
+        DBRootConfigList dbrnums = oamcache->getDBRootNums();
         int dbrCount = dbrnums.size();
         int index = 0;
         while (index < MAX_DATA_REPLICATESIZE && index < dbrCount) {
