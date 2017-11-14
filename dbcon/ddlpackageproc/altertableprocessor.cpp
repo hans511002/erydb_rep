@@ -576,7 +576,7 @@ void AlterTableProcessor::addColumn (uint32_t sessionID, execplan::erydbSystemCa
 	int pmNum = 1;
 	OamCache * oamcache = OamCache::makeOamCache();
 	boost::shared_ptr<std::map<int, int> > dbRootPMMap = oamcache->getDBRootToPMMap();
-	pmNum = (*dbRootPMMap)[dbRoot];
+	pmNum = (*dbRootPMMap)[dbRoot[0]];
 	
 	boost::shared_ptr<messageqcpp::ByteStream> bsIn;
 	//Will create files on each PM as needed.
@@ -727,7 +727,7 @@ void AlterTableProcessor::addColumn (uint32_t sessionID, execplan::erydbSystemCa
 			if (rc != 0)
 				throw std::runtime_error("Error while calling getSysCatDBRoot ");
 			
-			pmNum = (*dbRootPMMap)[dbRoot];
+			pmNum = (*dbRootPMMap)[dbRoot[0]];
 			bs.restart();
 			bs << (ByteStream::byte) WE_SVR_UPDATE_SYSTABLE_AUTO;
 			bs << uniqueId;
@@ -1075,7 +1075,7 @@ void AlterTableProcessor::dropColumn (uint32_t sessionID, execplan::erydbSystemC
 	boost::shared_ptr<messageqcpp::ByteStream> bsIn;
 	OamCache * oamcache = OamCache::makeOamCache();
 	boost::shared_ptr<std::map<int, int> > dbRootPMMap = oamcache->getDBRootToPMMap();
-	pmNum = (*dbRootPMMap)[dbRoot];
+	pmNum = (*dbRootPMMap)[dbRoot[0]];
 
 	// MCOL-66 The DBRM can't handle concurrent DDL					   
 	boost::mutex::scoped_lock lk(dbrmMutex);
@@ -1132,7 +1132,7 @@ cout << "Alter table drop column got unknown exception" << endl;
 		if (rc != 0)
 			throw std::runtime_error("Error while calling getSysCatDBRoot ");
 	
-		pmNum = (*dbRootPMMap)[dbRoot];
+		pmNum = (*dbRootPMMap)[dbRoot[0]];
 		bytestream.restart();
 		bytestream << (ByteStream::byte)WE_SVR_UPDATE_SYSTABLE_AUTO;
 		bytestream << uniqueId;
@@ -1200,7 +1200,7 @@ cout << "Alter table drop column got unknown exception" << endl;
 	if (rc != 0)
 		throw std::runtime_error("Error while calling getSysCatDBRoot ");
 	
-	pmNum = (*dbRootPMMap)[dbRoot];
+	pmNum = (*dbRootPMMap)[dbRoot[0]];
 	
 	try {		
 		fWEClient->write(bytestream, (uint32_t)pmNum);

@@ -47,6 +47,8 @@ using namespace execplan;
 
 #include "oamcache.h"
 using namespace oam;
+#include "extentmap.h"
+using namespace BRM;
 
 namespace ddlpackageprocessor
 {
@@ -292,7 +294,7 @@ cout << fTxnid.id << " Removing the SYSTABLEs meta data" << endl;
 		BRM::OID_t sysOid = OID_SYSTABLE_TABLENAME;
 		ByteStream::byte rc = 0;
 		
-		uint16_t  dbRoot;
+		DBROOTS_struct  dbRoot;
 		rc = fDbrm->getSysCatDBRoot(sysOid, dbRoot);  
 		if (rc != 0)
 		{
@@ -308,7 +310,7 @@ cout << fTxnid.id << " Removing the SYSTABLEs meta data" << endl;
 		}
 		
 		boost::shared_ptr<std::map<int, int> > dbRootPMMap = oamcache->getDBRootToPMMap();
-		pmNum = (*dbRootPMMap)[dbRoot];
+		pmNum = (*dbRootPMMap)[dbRoot[0]];
 		try
 		{
 // #ifdef ERYDB_DDL_DEBUG
@@ -393,7 +395,7 @@ cout << fTxnid.id << " Drop table got unknown exception" << endl;
 			return result;
 		}
 		
-		pmNum = (*dbRootPMMap)[dbRoot];
+		pmNum = (*dbRootPMMap)[dbRoot[0]];
 		try
 		{
 //#ifdef ERYDB_DDL_DEBUG
