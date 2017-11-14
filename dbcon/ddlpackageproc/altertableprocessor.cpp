@@ -62,13 +62,16 @@ using namespace cacheutils;
 #include "ERYDBPolicy.h"
 using namespace erydbdatafile;
 
+#include "extentmap.h"
+using namespace BRM;
+
 //TODO: this should be in a common header somewhere
 struct extentInfo
 {
-	uint16_t dbRoot;
+	DBROOTS_struct dbRoots;
 	uint32_t partition;
 	uint16_t segment;
-	bool operator==(const extentInfo& rhs) const { return (dbRoot == rhs.dbRoot && partition == rhs.partition && segment == rhs.segment); }
+	bool operator==(const extentInfo& rhs) const { return (dbRoots == rhs.dbRoots && partition == rhs.partition && segment == rhs.segment); }
 	bool operator!=(const extentInfo& rhs) const { return !(*this == rhs); }
 };
 
@@ -523,7 +526,7 @@ void AlterTableProcessor::addColumn (uint32_t sessionID, execplan::erydbSystemCa
 	ByteStream::byte tmp8;
 	int rc = 0;
 	std::string errorMsg;
-	uint16_t  dbRoot;
+	DBROOTS_struct  dbRoot;
 	BRM::OID_t sysOid = OID_SYSCOLUMN_SCHEMA;
 	bool isDict = false;
 	//@Bug 4111. Check whether the column exists in erydb systable
@@ -1059,7 +1062,7 @@ void AlterTableProcessor::dropColumn (uint32_t sessionID, execplan::erydbSystemC
 	bytestream << ataDropColumn.fColumnName;
 	
 	std::string errorMsg;
-	uint16_t  dbRoot;
+	DBROOTS_struct  dbRoot;
 	BRM::OID_t sysOid = OID_SYSCOLUMN_SCHEMA;
 	ByteStream::byte rc = 0;
 	//Find out where syscolumn is
@@ -1415,7 +1418,7 @@ void AlterTableProcessor::setColumnDefault (uint32_t sessionID, execplan::erydbS
 	SUMMARY_INFO("AlterTableProcessor::setColumnDefault");
 	ByteStream bs;
 	std::string errorMsg;
-	uint16_t  dbRoot;
+	DBROOTS_struct  dbRoot;
 	BRM::OID_t sysOid = OID_SYSCOLUMN_SCHEMA;
 	ByteStream::byte rc = 0;
 	//Find out where syscolumns
@@ -1426,7 +1429,7 @@ void AlterTableProcessor::setColumnDefault (uint32_t sessionID, execplan::erydbS
 	int pmNum = 1;
 	OamCache * oamcache = OamCache::makeOamCache();
 	boost::shared_ptr<std::map<int, int> > dbRootPMMap = oamcache->getDBRootToPMMap();
-	pmNum = (*dbRootPMMap)[dbRoot];
+	pmNum = (*dbRootPMMap)[dbRoot[0]];
 	
 	boost::shared_ptr<messageqcpp::ByteStream> bsIn;
 	
@@ -1494,7 +1497,7 @@ void AlterTableProcessor::dropColumnDefault (uint32_t sessionID, execplan::erydb
 	SUMMARY_INFO("AlterTableProcessor::setColumnDefault");
 	ByteStream bs;
 	std::string errorMsg;
-	uint16_t  dbRoot;
+	DBROOTS_struct  dbRoot;
 	BRM::OID_t sysOid = OID_SYSCOLUMN_SCHEMA;
 	ByteStream::byte rc = 0;
 	//Find out where syscolumn is
@@ -1505,7 +1508,7 @@ void AlterTableProcessor::dropColumnDefault (uint32_t sessionID, execplan::erydb
 	int pmNum = 1;
 	OamCache * oamcache = OamCache::makeOamCache();
 	boost::shared_ptr<std::map<int, int> > dbRootPMMap = oamcache->getDBRootToPMMap();
-	pmNum = (*dbRootPMMap)[dbRoot];
+	pmNum = (*dbRootPMMap)[dbRoot[0]];
 	
 	boost::shared_ptr<messageqcpp::ByteStream> bsIn;
 	
@@ -1680,7 +1683,7 @@ void AlterTableProcessor::renameTable (uint32_t sessionID, execplan::erydbSystem
 	bytestream << ataRenameTable.fQualifiedName->fName;
 	
 	std::string errorMsg;
-	uint16_t  dbRoot;
+	DBROOTS_struct  dbRoot;
 	BRM::OID_t sysOid = OID_SYSTABLE_TABLENAME;
 	ByteStream::byte rc = 0;
 	//Find out where systable is
@@ -1693,7 +1696,7 @@ void AlterTableProcessor::renameTable (uint32_t sessionID, execplan::erydbSystem
 	boost::shared_ptr<messageqcpp::ByteStream> bsIn;
 	OamCache * oamcache = OamCache::makeOamCache();
 	boost::shared_ptr<std::map<int, int> > dbRootPMMap = oamcache->getDBRootToPMMap();
-	pmNum = (*dbRootPMMap)[dbRoot];
+	pmNum = (*dbRootPMMap)[dbRoot[0]];
 	try
 	{		
 		fWEClient->write(bytestream, (uint32_t)pmNum);
@@ -1752,7 +1755,7 @@ cout << "create table got unknown exception" << endl;
 	if (rc != 0)
 		throw std::runtime_error("Error while calling getSysCatDBRoot");
 	
-	pmNum = (*dbRootPMMap)[dbRoot];
+	pmNum = (*dbRootPMMap)[dbRoot[0]];
 	try
 	{		
 		fWEClient->write(bytestream, (unsigned)pmNum);
@@ -1807,13 +1810,13 @@ void AlterTableProcessor::tableComment(uint32_t sessionID, execplan::erydbSystem
     BRM::OID_t sysOid = OID_SYSTABLE_TABLENAME;
     ByteStream::byte rc = 0;
     boost::shared_ptr<messageqcpp::ByteStream> bsIn;
-    uint16_t dbRoot;
+    DBROOTS_struct dbRoot;
     std::string errorMsg;
     int pmNum = 1;
     rc = fDbrm->getSysCatDBRoot(sysOid, dbRoot);
     OamCache * oamcache = OamCache::makeOamCache();
     boost::shared_ptr<std::map<int, int> > dbRootPMMap = oamcache->getDBRootToPMMap();
-    pmNum = (*dbRootPMMap)[dbRoot];
+    pmNum = (*dbRootPMMap)[dbRoot[0]];
     if (rc != 0)
         throw std::runtime_error("Error while calling getSysCatDBRoot");
 
@@ -1979,7 +1982,7 @@ void AlterTableProcessor::renameColumn(uint32_t sessionID, execplan::erydbSystem
 		
 	ByteStream bs;
 	std::string errorMsg;
-	uint16_t  dbRoot;
+	DBROOTS_struct  dbRoot;
 	BRM::OID_t sysOid = OID_SYSTABLE_TABLENAME;
 	ByteStream::byte rc = 0;
 	//Find out where systable is
@@ -1990,7 +1993,7 @@ void AlterTableProcessor::renameColumn(uint32_t sessionID, execplan::erydbSystem
 	int pmNum = 1;
 	OamCache * oamcache = OamCache::makeOamCache();
 	boost::shared_ptr<std::map<int, int> > dbRootPMMap = oamcache->getDBRootToPMMap();
-	pmNum = (*dbRootPMMap)[dbRoot];
+	pmNum = (*dbRootPMMap)[dbRoot[0]];
 	boost::shared_ptr<messageqcpp::ByteStream> bsIn;
 	
 
@@ -2153,7 +2156,7 @@ void AlterTableProcessor::renameColumn(uint32_t sessionID, execplan::erydbSystem
 		if (rc != 0)
 			throw std::runtime_error("Error while calling getSysCatDBRoot");
 	
-		pmNum = (*dbRootPMMap)[dbRoot];
+		pmNum = (*dbRootPMMap)[dbRoot[0]];
 		//send to WES to process
 		try {
 			fWEClient->write(bs, (uint32_t)pmNum);

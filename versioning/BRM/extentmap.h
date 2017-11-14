@@ -123,6 +123,7 @@ struct DBROOTS_struct {
     EXPORT DBROOTS_struct& set(const DBROOTS_struct&);
 };
 
+EXPORT bool operator==( const BRM::DBROOTS_struct, const BRM::DBROOTS_struct);
 
 struct EMEntry {
 	InlineLBIDRange range; //16 

@@ -46,6 +46,8 @@ using namespace execplan;
 using namespace logging;
 #include "erydbsystemcatalog.h"
 using namespace execplan;
+#include "extentmap.h"
+using namespace BRM;
 
 namespace ddlpackageprocessor
 {
@@ -276,10 +278,11 @@ cout << fTxnid.id << " Create table allocOIDs got the starting oid " << fStartin
 		bytestream << (uint32_t)txnID.id;
 		bytestream << (uint32_t)fStartingColOID;
 		bytestream << (uint32_t)createTableStmt.fTableWithAutoi;
-		uint16_t  dbRoot;
+		DBROOTS_struct  dbRoots;
 		BRM::OID_t sysOid = OID_SYSTABLE_TABLENAME;
 		//Find out where systable is
-		rc = fDbrm->getSysCatDBRoot(sysOid, dbRoot); 
+		rc = fDbrm->getSysCatDBRoot(sysOid, dbRoots); 
+		uint16_t dbRoot=dbRoots[0];
 		if (rc != 0)
 		{
 			result.result =(ResultCode) rc;
@@ -390,7 +393,8 @@ cout << fTxnid.id << " Create table We_SVR_WRITE_CREATETABLEFILES: " << errorMsg
 				
 		sysOid = OID_SYSCOLUMN_SCHEMA;
 		//Find out where syscolumn is
-		rc = fDbrm->getSysCatDBRoot(sysOid, dbRoot); 
+		rc = fDbrm->getSysCatDBRoot(sysOid, dbRoots); 
+		dbRoot=dbRoots[0];
 		if (rc != 0)
 		{
 			result.result =(ResultCode) rc;

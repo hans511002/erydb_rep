@@ -166,6 +166,16 @@ DBROOTS_struct& DBROOTS_struct::operator= (const DBROOTS_struct&e)
     memcpy(&dbRoots,&e.dbRoots,sizeof(DBROOTS_struct));
 	return *this;
 };
+bool operator==( const BRM::DBROOTS_struct &a , const BRM::DBROOTS_struct &b){
+    for (int n=0; n<MAX_DATA_REPLICATESIZE; n++)
+    {
+        if(a.dbRoots[n] != b.dbRoots[n]){
+            return false;
+        }
+    }
+    return true;
+};
+
 DBROOTS_struct& DBROOTS_struct::set(const DBROOTS_struct& e) {
     memcpy(&dbRoots, &e.dbRoots, sizeof(DBROOTS_struct));
     return *this;
@@ -5411,7 +5421,7 @@ int ExtentMap::getMinDataDBRoots(DBROOTS_struct * dbroots) {
     //sort(dbrnums.begin(), dbrnums.end());
     if (!bFound) {
         ostringstream oss;
-        oss << "ExtentMap::getSysCatDBRoot(): OID not found: " << OID_SYSTABLE_TABLENAME;
+        oss << "ExtentMap::getMinDataDBRoots(): OID not found: " << OID_SYSTABLE_TABLENAME;
         log(oss.str(), logging::LOG_TYPE_WARNING);
         throw logic_error(oss.str());
     }
@@ -5443,7 +5453,7 @@ int ExtentMap::getSysDataDBRoots(DBROOTS_struct * dbroots) {
     releaseEMEntryTable(READ);
     if (emEntries > 0 && !bFound) {
         ostringstream oss;
-        oss << "ExtentMap::getSysCatDBRoot(): OID not found: " << OID_SYSTABLE_TABLENAME;
+        oss << "ExtentMap::getSysDataDBRoots(): OID not found: " << OID_SYSTABLE_TABLENAME;
         log(oss.str(), logging::LOG_TYPE_WARNING);
         throw logic_error(oss.str());
     }

@@ -32,7 +32,9 @@ using namespace ddlpackageprocessor;
 
 #include "we_ddlcommandclient.h"
 #include "erydbsystemcatalog.h"
+#include "extentmap.h"
 using namespace execplan;
+using namespace BRM;
 
 namespace WriteEngine {
 	WE_DDLCommandClient::WE_DDLCommandClient()
@@ -57,14 +59,14 @@ namespace WriteEngine {
 		command << columnOid;
 		command << nextVal;
 		command << sessionID;
-		uint16_t dbRoot;	
+		DBROOTS_struct dbRoot;	
 		BRM::OID_t oid = OID_SYSCOLUMN_SCHEMA;
 		fDbrm.getSysCatDBRoot(oid, dbRoot); 
 		int pmNum = 1; 
 		boost::shared_ptr<messageqcpp::ByteStream> bsIn;
 		
 		try {
-			fOam.getDbrootPmConfig (dbRoot, pmNum);
+			fOam.getDbrootPmConfig (dbRoot[0], pmNum);
 			fWEClient->write(command, pmNum);
 			while (1)
 			{			
