@@ -51,6 +51,8 @@
 #endif
 
 #include "brmtypes.h"
+#include "extentmap.h"
+using namespace BRM;
 
 /** Namespace WriteEngine */
 namespace WriteEngine
@@ -86,7 +88,7 @@ public:
     */
     EXPORT int          createFile( FID fid,
                             int & allocSize,
-                            uint16_t dbRoot, uint32_t partition,
+                            DBROOTS_struct& dbRoot, uint32_t partition,
                             execplan::erydbSystemCatalog::ColDataType colDataType,
                             uint64_t emptyVal = 0, int width = 1 ) ;
 
@@ -477,7 +479,7 @@ private:
 
     int                 createFile( const char* fileName, int fileSize, 
                             uint64_t emptyVal, int width,
-                            uint16_t dbRoot );
+                            DBROOTS_struct& dbRoot );
 
     int                 expandAbbrevColumnChunk( ERYDBDataFile* pFile,
                             uint64_t   emptyVal,

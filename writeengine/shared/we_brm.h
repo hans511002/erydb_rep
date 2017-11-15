@@ -36,6 +36,9 @@
 #include "ERYDBDataFile.h"
 #include "ERYDBPolicy.h"
 
+#include "extentmap.h"
+using namespace BRM;
+
 #if defined(_MSC_VER) && defined(WRITEENGINE_DLLEXPORT)
 #define EXPORT __declspec(dllexport)
 #else
@@ -90,7 +93,7 @@ public:
      */
     EXPORT int allocateStripeColExtents(
                  const std::vector<BRM::CreateStripeColumnExtentsArgIn>& cols,
-                     uint16_t    dbRoot,
+                     DBROOTS_struct&   dbRoot,
                      uint32_t&   partition,
                      uint16_t&   segmentNum,
                  std::vector<BRM::CreateStripeColumnExtentsArgOut>& extents);
@@ -101,7 +104,7 @@ public:
      */
     EXPORT int allocateColExtentExactFile( const OID oid,
                      const uint32_t colWidth,
-                     uint16_t   dbRoot,
+                     DBROOTS_struct&   dbRoot,
                      uint32_t   partition,
                      uint16_t   segment,
                      execplan::erydbSystemCatalog::ColDataType colDataType,
@@ -113,7 +116,7 @@ public:
      * @brief Inform BRM to add a dictionary store extent to the specified OID
      */
     EXPORT int allocateDictStoreExtent( const OID oid,
-                     uint16_t   dbRoot,
+                     DBROOTS_struct&   dbRoot,
                      uint32_t   partition,
                      uint16_t   segment,
                      BRM::LBID_t& startLbid,
@@ -153,12 +156,12 @@ public:
      * @brief Get the real physical offset based on the LBID
      */
     EXPORT int getFboOffset( const uint64_t lbid, 
-                      uint16_t& dbRoot,
+                      DBROOTS_struct& dbRoot,
                       uint32_t& partition,
                       uint16_t& segment,
                       int&       fbo );
     EXPORT int getFboOffset( const uint64_t lbid, int& oid,
-                      uint16_t& dbRoot,
+                      DBROOTS_struct& dbRoot,
                       uint32_t& partition,
                       uint16_t& segment,
                       int&       fbo );
@@ -167,7 +170,7 @@ public:
      * @brief Get last "local" HWM, partition, and segment for an OID and DBRoot
      */
     EXPORT int getLastHWM_DBroot( OID oid,
-                      uint16_t   dbRoot,
+                      DBROOTS_struct&   dbRoot,
                       uint32_t&  partition,
                       uint16_t&  segment,
                       HWM&        hwm,
@@ -273,7 +276,7 @@ public:
      */
     int rollbackColumnExtents_DBroot( const OID oid,
                      bool        bDeleteAll,
-                     uint16_t   dbRoot,
+                     DBROOTS_struct&   dbRoot,
                      uint32_t   partition,
                      uint16_t   segment,
                      BRM::HWM_t  hwm );
@@ -288,7 +291,7 @@ public:
      * oid and dbroot are deleted.
      */
     int rollbackDictStoreExtents_DBroot( OID oid,
-                     uint16_t   dbRoot,
+                     DBROOTS_struct&   dbRoot,
                      uint32_t   partition,
                      const std::vector<uint16_t>&  segNums,
                      const std::vector<BRM::HWM_t>& hwms );
@@ -445,7 +448,7 @@ public:
                               std::vector<BRM::LBIDRange>& rangeList,
                               DbFileOp* pFileOp,
 							  std::vector<BRM::VBRange>& freeList,
-							  uint16_t dbRoot,
+							  DBROOTS_struct& dbRoot,
 							  bool skipBeginVBCopy = false);
     void       writeVBEnd(const BRM::VER_t transID,
                               std::vector<BRM::LBIDRange>& rangeList);
@@ -537,7 +540,7 @@ inline int BRMWrapper::getRC( int brmRc, int errRc )
 }
 
 inline int BRMWrapper::getLastHWM_DBroot( OID oid,
-    uint16_t   dbRoot,
+    DBROOTS_struct&   dbRoot,
     uint32_t&  partition,
     uint16_t&  segment,
     HWM&        hwm,
@@ -645,7 +648,7 @@ inline int BRMWrapper::setExtentsMaxMin(const BRM::CPInfoList_t& cpinfoList)
 
 inline int BRMWrapper::rollbackColumnExtents_DBroot( const OID oid,
     bool        bDeleteAll,
-    uint16_t   dbRoot,
+    DBROOTS_struct&   dbRoot,
     uint32_t   partition,
     uint16_t   segment,
     BRM::HWM_t  hwm )
@@ -656,7 +659,7 @@ inline int BRMWrapper::rollbackColumnExtents_DBroot( const OID oid,
 }
 
 inline int BRMWrapper::rollbackDictStoreExtents_DBroot( OID oid,
-    uint16_t   dbRoot,
+    DBROOTS_struct&   dbRoot,
     uint32_t   partition,
     const std::vector<uint16_t>&  segNums,
     const std::vector<BRM::HWM_t>& hwms )

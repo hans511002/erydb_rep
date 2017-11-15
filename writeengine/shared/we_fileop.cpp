@@ -160,7 +160,7 @@ int FileOp::createDir( const char* dirName, mode_t mode ) const
  ***********************************************************/
 int FileOp::createFile( const char* fileName, int numOfBlock,
                               uint64_t emptyVal, int width,
-                              uint16_t dbRoot )
+                              DBROOTS_struct& dbRoot )
 {
 	ERYDBDataFile* pFile =
     	ERYDBDataFile::open(
@@ -221,7 +221,7 @@ int FileOp::createFile( const char* fileName, int numOfBlock,
  ***********************************************************/
 int FileOp::createFile(FID fid,
     int&     allocSize,
-    uint16_t dbRoot,
+    DBROOTS_struct& dbRoot,
     uint32_t partition,
     execplan::erydbSystemCatalog::ColDataType colDataType,
     uint64_t  emptyVal,
@@ -250,9 +250,7 @@ int FileOp::createFile(FID fid,
 
     BRM::LBID_t startLbid;
     uint32_t startBlock;
-    RETURN_ON_ERROR( BRMWrapper::getInstance()->allocateColExtentExactFile(
-        (const OID)fid, (uint32_t)width, dbRootx, partitionx, segment, colDataType,
-        startLbid, allocSize, startBlock) );
+    RETURN_ON_ERROR( BRMWrapper::getInstance()->allocateColExtentExactFile((const OID)fid, (uint32_t)width, dbRootx, partitionx, segment, colDataType,startLbid, allocSize, startBlock) );
 
     // We allocate a full extent from BRM, but only write an abbreviated 256K
     // rows to disk for 1st extent, to conserve disk usage for small tables.

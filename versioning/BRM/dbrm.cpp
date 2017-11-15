@@ -192,7 +192,7 @@ namespace BRM {
 
     // @bug 1055+.  New functions added for multiple files per OID enhancement.
     int DBRM::lookupLocal(LBID_t lbid, VER_t verid, bool vbFlag, OID_t& oid,
-        uint16_t& dbRoot, uint32_t& partitionNum, uint16_t& segmentNum, uint32_t& fileBlockOffset) throw() {
+        DBROOTS_struct&& dbRoot, uint32_t& partitionNum, uint16_t& segmentNum, uint32_t& fileBlockOffset) throw() {
 #ifdef BRM_INFO
         if (fDebug) {
             TRACER_WRITELATER("lookupLocal(lbid,ver,..)");
@@ -742,7 +742,7 @@ namespace BRM {
     //------------------------------------------------------------------------------
     int DBRM::createStripeColumnExtents(
         const std::vector<CreateStripeColumnExtentsArgIn>& cols,
-        uint16_t  dbRoot,
+        DBROOTS_struct&  dbRoot,
         uint32_t& partitionNum,
         uint16_t& segmentNum,
         std::vector<CreateStripeColumnExtentsArgOut>& extents) DBRM_THROW {
@@ -793,7 +793,7 @@ namespace BRM {
     //------------------------------------------------------------------------------
     int DBRM::createColumnExtent_DBroot(OID_t oid,
         uint32_t  colWidth,
-        uint16_t  dbRoot,
+        DBROOTS_struct&  dbRoot,
         uint32_t& partitionNum,
         uint16_t& segmentNum,
         execplan::erydbSystemCatalog::ColDataType colDataType,
@@ -861,7 +861,7 @@ namespace BRM {
     //------------------------------------------------------------------------------
     int DBRM::createColumnExtentExactFile(OID_t oid,
         uint32_t  colWidth,
-        uint16_t  dbRoot,
+        DBROOTS_struct&  dbRoot,
         uint32_t partitionNum,
         uint16_t segmentNum,
         execplan::erydbSystemCatalog::ColDataType colDataType,
@@ -928,7 +928,7 @@ namespace BRM {
     // Send a request to create a dictionary store extent.
     //------------------------------------------------------------------------------
     int DBRM::createDictStoreExtent(OID_t oid,
-        uint16_t  dbRoot,
+        DBROOTS_struct&  dbRoot,
         uint32_t  partitionNum,
         uint16_t  segmentNum,
         LBID_t&    lbid,
@@ -985,7 +985,7 @@ namespace BRM {
     //------------------------------------------------------------------------------
     int DBRM::rollbackColumnExtents_DBroot(OID_t oid,
         bool       bDeleteAll,
-        uint16_t  dbRoot,
+        DBROOTS_struct&  dbRoot,
         uint32_t  partitionNum,
         uint16_t  segmentNum,
         HWM_t      hwm) DBRM_THROW {
@@ -1026,7 +1026,7 @@ namespace BRM {
     // last stripe of extents are updated accordingly.
     //------------------------------------------------------------------------------
     int DBRM::rollbackDictStoreExtents_DBroot(OID_t oid,
-        uint16_t            dbRoot,
+        DBROOTS_struct&            dbRoot,
         uint32_t            partitionNum,
         const vector<uint16_t>& segNums,
         const vector<HWM_t>& hwms) DBRM_THROW {
@@ -1199,7 +1199,7 @@ namespace BRM {
     // If no available or outOfService extent is found, then bFound is returned
     // as false.
     //------------------------------------------------------------------------------
-    int DBRM::getLastHWM_DBroot(int oid, uint16_t dbRoot, uint32_t& partitionNum,
+    int DBRM::getLastHWM_DBroot(int oid, DBROOTS_struct& dbRoot, uint32_t& partitionNum,
         uint16_t& segmentNum, HWM_t& hwm,
         int& status, bool& bFound) throw() {
 #ifdef BRM_INFO
@@ -1974,7 +1974,7 @@ namespace BRM {
     }
 
 
-    int DBRM::beginVBCopy(VER_t transID, uint16_t dbRoot, const LBIDRange_v& ranges,
+    int DBRM::beginVBCopy(VER_t transID, DBROOTS_struct& dbRoot, const LBIDRange_v& ranges,
         VBRange_v& freeList) DBRM_THROW {
 #ifdef BRM_INFO
         if (fDebug) {
@@ -3548,7 +3548,7 @@ namespace BRM {
         CPInfoList_t cpInfos;
         CPInfo aInfo;
         int oid;
-        uint16_t dbRoot;
+        DBROOTS_struct dbRoot;
         uint32_t partitionNum;
         uint16_t segmentNum;
         uint32_t fileBlockOffset;

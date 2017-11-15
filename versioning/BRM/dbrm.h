@@ -123,7 +123,7 @@ public:
 	 * @return 0 on success, non-0 on error (see brmtypes.h)
 	 */
 	EXPORT int lookupLocal(LBID_t lbid, VER_t verid, bool vbFlag, OID_t& oid,
-		uint16_t& dbRoot, uint32_t& partitionNum, uint16_t& segmentNum, uint32_t& fileBlockOffset) throw();
+		DBROOTS_struct& dbRoot, uint32_t& partitionNum, uint16_t& segmentNum, uint32_t& fileBlockOffset) throw();
 
 	/** @brief Get the LBID assigned to the given OID, block offset, partion, and segment.
 	 *
@@ -225,7 +225,7 @@ public:
 	 */
 	 EXPORT int createStripeColumnExtents(
 					const std::vector<CreateStripeColumnExtentsArgIn>& cols,
-					uint16_t  dbRoot,
+					DBROOTS_struct&  dbRoot,
 					uint32_t& partitionNum,
 					uint16_t& segmentNum,
 			std::vector<CreateStripeColumnExtentsArgOut>& extents) DBRM_THROW;
@@ -249,7 +249,7 @@ public:
 	 // @bug 4091: To be deprecated.  Replaced by createStripeColumnExtents().
 	 EXPORT int createColumnExtent_DBroot(OID_t oid,
 					uint32_t  colWidth,
-					uint16_t  dbRoot,
+					DBROOTS_struct&  dbRoot,
 					uint32_t& partitionNum,
 					uint16_t& segmentNum,
 					execplan::erydbSystemCatalog::ColDataType colDataType,
@@ -273,7 +273,7 @@ public:
 	 */
 	 EXPORT int createColumnExtentExactFile(OID_t oid,
 					uint32_t  colWidth,
-					uint16_t  dbRoot,
+					DBROOTS_struct&  dbRoot,
 					uint32_t  partitionNum,
 					uint16_t  segmentNum,
 					execplan::erydbSystemCatalog::ColDataType colDataType,
@@ -295,7 +295,7 @@ public:
 	 * @return 0 on success, -1 on error
 	 */
 	 EXPORT int createDictStoreExtent(OID_t oid,
-					 uint16_t  dbRoot,
+					 DBROOTS_struct&  dbRoot,
 					 uint32_t  partitionNum,
 					 uint16_t  segmentNum,
 					 LBID_t&    lbid,
@@ -316,7 +316,7 @@ public:
 	 */
 	EXPORT int rollbackColumnExtents_DBroot(OID_t oid,
 					bool      bDeleteAll,
-					uint16_t dbRoot,
+					DBROOTS_struct& dbRoot,
 					uint32_t partitionNum,
 					uint16_t segmentNum,
 					HWM_t     hwm) DBRM_THROW;
@@ -337,7 +337,7 @@ public:
 	 * @return 0 on success
 	 */
 	EXPORT int rollbackDictStoreExtents_DBroot(OID_t oid,
-					 uint16_t dbRoot,
+					 DBROOTS_struct& dbRoot,
 					 uint32_t partitionNum,
 					 const std::vector<uint16_t>& segNums,
 					 const std::vector<HWM_t>& hwms) DBRM_THROW;
@@ -395,7 +395,7 @@ public:
 	 * @param bFound (out) Indicates whether an extent was found on the dbRoot
 	 * @return 0 on success, non-0 on error (see brmtypes.h)
 	 */
-	EXPORT int getLastHWM_DBroot(int OID, uint16_t dbRoot,
+	EXPORT int getLastHWM_DBroot(int OID, DBROOTS_struct& dbRoot,
 			uint32_t& partitionNum, uint16_t& segmentNum, HWM_t& hwm,
 			int& status, bool& bFound) throw();
 
@@ -649,7 +649,7 @@ public:
 	 * @note The caller must do a rollback or commit immediately after getting ERR_DEADLOCK (6).
 	 * @return 0 on success, non-0 on error (see brmtypes.h)
 	 */
-	EXPORT int beginVBCopy(VER_t transID, uint16_t dbRoot, const LBIDRange_v& ranges,
+	EXPORT int beginVBCopy(VER_t transID, DBROOTS_struct& dbRoot, const LBIDRange_v& ranges,
 				  VBRange_v& freeList) DBRM_THROW;
 	
 	/** @brief Atomically unset the copy lock & update the VSS.  Beware!  Read the warning!

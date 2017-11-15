@@ -36,6 +36,9 @@
 #define EXPORT
 #endif
 
+#include "extentmap.h"
+using namespace BRM;
+
 /** Namespace WriteEngine */
 namespace WriteEngine
 {
@@ -86,7 +89,7 @@ public:
                                   execplan::erydbSystemCatalog::ColDataType colDataType,
                                   ColType colType,
                                   FID dataFid,
-                                  uint16_t dbRoot,
+                                  DBROOTS_struct& dbRoot,
                                   uint32_t partition);
 
    /**

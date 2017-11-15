@@ -40,6 +40,8 @@
 
 #include "we_type.h"
 #include "brmtypes.h"
+#include "extentmap.h"
+using namespace BRM;
 
 #if defined(_MSC_VER) && defined(WRITEENGINE_DLLEXPORT)
 #define EXPORT __declspec(dllexport)
@@ -75,7 +77,7 @@ enum DBRootExtentInfoState
 struct DBRootExtentInfo
 {
     uint32_t              fPartition;
-    uint16_t              fDbRoot;
+    DBROOTS_struct        fDbRoot;
     uint16_t              fSegment;
     BRM::LBID_t           fStartLbid;
     HWM                   fLocalHwm;
@@ -84,7 +86,7 @@ struct DBRootExtentInfo
 
     DBRootExtentInfo() :
         fPartition(0),
-        fDbRoot(0),
+       // fDbRoot(0),
         fSegment(0),
         fStartLbid(0),
         fLocalHwm(0),
@@ -188,7 +190,7 @@ public:
      * @return Returns true if new extent needs to be allocated, returns false
      *         if extent is partially full, and has room for more rows.
      */
-    EXPORT bool nextSegFile( uint16_t&  dbRoot,
+    EXPORT bool nextSegFile( DBROOTS_struct&  dbRoot,
                     uint32_t&    partition,
                     uint16_t&    segment,
                     HWM&         localHwm,

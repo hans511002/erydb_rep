@@ -192,7 +192,7 @@ int ColumnOp::allocRowId(const TxnID& txnid, bool useStartingExtent,
         if (rowsallocated < totalRow)
 		 {
 			 //Create another extent
-			 uint16_t  dbRoot;
+			 DBROOTS_struct  dbRoot;
 			 uint32_t  partition = 0;
 			 uint16_t  segment;
 			 ERYDBDataFile* pFile = NULL;
@@ -257,20 +257,20 @@ int ColumnOp::allocRowId(const TxnID& txnid, bool useStartingExtent,
 						//@Bug 4758. Check whether this is a abbreviated extent
 						else if (newColStructList[i].fCompressionType == 0)
 						{
-							rc = fileOp.getFileSize(newColStructList[i].dataOid, dbRoot, partition, segment, fileSizeBytes);
+							rc = fileOp.getFileSize(newColStructList[i].dataOid, dbRoot[0], partition, segment, fileSizeBytes);
 							if (rc != NO_ERROR)
 								return rc;
 						
 							if (fileSizeBytes == (long long)  INITIAL_EXTENT_ROWS_TO_DISK * newColStructList[i].colWidth)
 							{
-								 ERYDBDataFile* pFile = fileOp.openFile( newColStructList[i].dataOid, dbRoot, partition, segment, segFile );
+								 ERYDBDataFile* pFile = fileOp.openFile( newColStructList[i].dataOid, dbRoot[0], partition, segment, segFile );
 								 if ( !pFile )
 								 {
 									rc = ERR_FILE_OPEN;
 									return rc;
 								 }
 								 uint64_t emptyVal = getEmptyRowValue(newColStructList[i].colDataType, newColStructList[i].colWidth);
-								 rc = fileOp.expandAbbrevColumnExtent( pFile, dbRoot, emptyVal, newColStructList[i].colWidth);
+								 rc = fileOp.expandAbbrevColumnExtent( pFile, dbRoot[0], emptyVal, newColStructList[i].colWidth);
 								 //set hwm for this extent.
 								 fileOp.closeFile(pFile);
 								 if (rc != NO_ERROR)
@@ -349,8 +349,7 @@ int ColumnOp::allocRowId(const TxnID& txnid, bool useStartingExtent,
 					{
 						if (newDctnryStructList[i].dctnryOid > 0)
 						{
-							rc = we->createDctnry(txnid, newDctnryStructList[i].dctnryOid, newDctnryStructList[i].colWidth, dbRoot, partition,
-                                 segment, newDctnryStructList[i].fCompressionType);
+							rc = we->createDctnry(txnid, newDctnryStructList[i].dctnryOid, newDctnryStructList[i].colWidth, dbRoot, partition, segment, newDctnryStructList[i].fCompressionType);
 							if ( rc != NO_ERROR)
 								return rc;
 							columnOids[newDctnryStructList[i].dctnryOid] = newDctnryStructList[i].dctnryOid ;
@@ -537,7 +536,7 @@ int ColumnOp::allocRowId(const TxnID& txnid, bool useStartingExtent,
 		erydbSystemCatalog::ColDataType colDataType,
 		ColType colType,
 		FID dataFid,
-		uint16_t dbRoot,
+		DBROOTS_struct& dbRoot,
         uint32_t partition)
    {
       int rc, newWidth, allocSize;
@@ -1127,7 +1126,7 @@ int ColumnOp::extendColumn(
     HWM          hwm,
     BRM::LBID_t  startLbid,
     int          allocSize,
-    uint16_t     dbRoot,
+    DBROOTS_struct&     dbRoot,
     uint32_t     partition,
     uint16_t     segment,
     std::string& segFile,
@@ -1144,7 +1143,7 @@ int ColumnOp::extendColumn(
                         hwm,
                         startLbid,
                         allocSize,
-                        dbRoot,
+                        dbRoot[0],
                         partition,
                         segment,
                         segFile,
@@ -1167,7 +1166,7 @@ int ColumnOp::extendColumn(
 
 int ColumnOp::addExtent(
     const Column& column,
-    uint16_t    dbRoot,
+    DBROOTS_struct&    dbRoot,
     uint32_t    partition,
     uint16_t    segment,
     std::string& segFile,
@@ -1183,7 +1182,7 @@ int ColumnOp::addExtent(
                         emptyVal,
                         column.colWidth,
                         allocSize,
-                        dbRoot,
+                        dbRoot[0],
                         partition,
                         segment,
                         column.colDataType,
@@ -1379,7 +1378,7 @@ int ColumnOp::addExtent(
       ColType   colType,
       FID       dataFid,
       int       compressionType,
-      uint16_t dbRoot,
+      DBROOTS_struct& dbRoot,
       uint32_t partition,
       uint16_t segment) const
    {

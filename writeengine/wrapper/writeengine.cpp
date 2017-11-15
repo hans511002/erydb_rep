@@ -57,6 +57,8 @@ using namespace execplan;
 #include "ERYDBPolicy.h"
 #include "MonitorProcMem.h"
 using namespace erydbdatafile;
+#include "extentmap.h"
+using namespace BRM;
 
 #ifdef _MSC_VER
 #define isnan _isnan
@@ -455,7 +457,7 @@ namespace WriteEngine
         const OID& dataOid,
         const erydbSystemCatalog::ColDataType dataType,
         int dataWidth,
-        uint16_t dbRoot,
+        DBROOTS_struct& dbRoot,
         uint32_t partition,
         int compressionType) {
         int      rc;
@@ -463,8 +465,7 @@ namespace WriteEngine
 
         int compress_op = op(compressionType);
         m_colOp[compress_op]->initColumn(curCol);
-        rc = m_colOp[compress_op]->createColumn(curCol, 0, dataWidth, dataType,
-            WriteEngine::WR_CHAR, (FID)dataOid, dbRoot, partition);
+        rc = m_colOp[compress_op]->createColumn(curCol, 0, dataWidth, dataType, WriteEngine::WR_CHAR, (FID)dataOid, dbRoot, partition);
 
         // This is optional, however, it's recommended to do so to free heap
         // memory if assigned in the future
@@ -808,7 +809,8 @@ namespace WriteEngine
          //   return rc;
 
         setTransId(txnid);
-        uint16_t  dbRoot, segmentNum;
+        DBROOTS_struct dbRoot;
+        uint16_t  segmentNum;
         uint32_t partitionNum;
         string    segFile;
         bool newFile;

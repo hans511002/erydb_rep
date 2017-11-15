@@ -201,6 +201,18 @@ void DBROOTS_struct::remove(uint16_t dbroot){
     }
 };
 
+void DBROOTS_struct::serialize(messageqcpp::ByteStream &bs) const{
+    for (int n=0; n<MAX_DATA_REPLICATESIZE; n++){
+        bs<<dbRoots[n];
+    }
+};
+
+void DBROOTS_struct::deserialize(messageqcpp::ByteStream &bs) const{
+    for (int n=0; n<MAX_DATA_REPLICATESIZE; n++){
+        bs>>dbRoots[n];
+    }
+};
+
 //------------------------------------------------------------------------------
 // Version 4 EmEntry methods
 //------------------------------------------------------------------------------

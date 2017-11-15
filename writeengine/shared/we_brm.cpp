@@ -158,7 +158,7 @@ int BRMWrapper::getAutoIncrementRange(
 //------------------------------------------------------------------------------
 int   BRMWrapper::allocateStripeColExtents(
     const std::vector<BRM::CreateStripeColumnExtentsArgIn>& cols,
-    uint16_t    dbRoot,
+    DBROOTS_struct&    dbRoot,
     uint32_t&   partition,
     uint16_t&   segmentNum,
     std::vector<BRM::CreateStripeColumnExtentsArgOut>& extents)
@@ -182,7 +182,7 @@ int   BRMWrapper::allocateStripeColExtents(
 int   BRMWrapper::allocateColExtentExactFile(
     const OID   oid,
     const uint32_t colWidth,
-    uint16_t   dbRoot,
+    DBROOTS_struct&   dbRoot,
     uint32_t   partition,
     uint16_t   segment,
     execplan::erydbSystemCatalog::ColDataType colDataType,
@@ -216,7 +216,7 @@ int   BRMWrapper::allocateColExtentExactFile(
 //------------------------------------------------------------------------------
 int   BRMWrapper::allocateDictStoreExtent(
     const OID   oid,
-    uint16_t   dbRoot,
+    DBROOTS_struct&   dbRoot,
     uint32_t   partition,
     uint16_t   segment,
     LBID_t&     startLbid,
@@ -297,7 +297,7 @@ int   BRMWrapper::getStartLbid(const OID oid,
 // Get the real physical offset based on the LBID
 //------------------------------------------------------------------------------
 int  BRMWrapper::getFboOffset(const uint64_t lbid,
-    uint16_t& dbRoot,
+    DBROOTS_struct& dbRoot,
     uint32_t& partition,
     uint16_t& segment,
     int&       fbo)
@@ -313,7 +313,7 @@ int  BRMWrapper::getFboOffset(const uint64_t lbid,
 // Get the real physical offset based on the LBID
 //------------------------------------------------------------------------------
 int  BRMWrapper::getFboOffset(const uint64_t lbid, int& oid,
-    uint16_t& dbRoot,
+    DBROOTS_struct& dbRoot,
     uint32_t& partition,
     uint16_t& segment,
     int&       fbo)
@@ -360,7 +360,7 @@ int BRMWrapper::getDbRootHWMInfo( const OID oid,
     // Temporary code for testing shared nothing
 #if 0
     EmDbRootHWMInfo info;
-    info.dbRoot         = 1;
+    info.dbRoot[0]         = 1;
     info.partitionNum   = 0;
     info.segmentNum     = 0;
     info.localHWM       = 8192;              // 8192, 16384;
@@ -369,7 +369,7 @@ int BRMWrapper::getDbRootHWMInfo( const OID oid,
     info.totalBlocks    = 1001;
     emDbRootHwmInfos.push_back( info );
 
-    info.dbRoot         = 2;
+    info.dbRoot[0]         = 2;
     info.partitionNum   = 0;
     info.segmentNum     = 1;
     info.localHWM       = 8192;              // 8192, 16384;
@@ -378,7 +378,7 @@ int BRMWrapper::getDbRootHWMInfo( const OID oid,
     info.totalBlocks    = 2002;
     emDbRootHwmInfos.push_back( info );
 
-    info.dbRoot         = 3;
+    info.dbRoot[0]         = 3;
     info.partitionNum   = 0;
     info.segmentNum     = 2;
     info.localHWM       = 4000;              // 4000, 10000;
@@ -387,7 +387,7 @@ int BRMWrapper::getDbRootHWMInfo( const OID oid,
     info.totalBlocks    = 3003;
     emDbRootHwmInfos.push_back( info );
 
-    info.dbRoot         = 4;
+    info.dbRoot[0]         = 4;
     info.partitionNum   = 0;
     info.segmentNum     = 3;
     info.localHWM       = 0;                 // 0, 8192;
@@ -1406,7 +1406,7 @@ int BRMWrapper::writeVB(ERYDBDataFile* pFile, const VER_t transID, const OID oid
     lbidRange.size  = 1;
     rangeList.push_back(lbidRange);
 
-    uint16_t  dbRoot;
+    DBROOTS_struct  dbRoot;
     uint32_t  partition;
     uint16_t  segment;
     RETURN_ON_ERROR(getFboOffset(lbid, dbRoot, partition, segment, fbo));
@@ -1458,7 +1458,7 @@ void BRMWrapper::pruneLBIDList(VER_t transID, vector<LBIDRange> *rangeList,
 }
 
 int BRMWrapper::writeVB(ERYDBDataFile* pSourceFile, const VER_t transID, const OID weOid,
-    std::vector<uint32_t>& fboList, std::vector<LBIDRange>& rangeList, DbFileOp* pFileOp, std::vector<VBRange>& freeList, uint16_t dbRoot, bool skipBeginVBCopy)
+    std::vector<uint32_t>& fboList, std::vector<LBIDRange>& rangeList, DbFileOp* pFileOp, std::vector<VBRange>& freeList, DBROOTS_struct& dbRoot, bool skipBeginVBCopy)
 {
 	if (erydbdatafile::ERYDBPolicy::useHdfs())
 		return 0;

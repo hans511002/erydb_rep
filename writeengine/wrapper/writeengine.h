@@ -163,7 +163,7 @@ public:
     */
    EXPORT int createColumn(const TxnID& txnid, const OID& dataOid,
                            execplan::erydbSystemCatalog::ColDataType dataType, int dataWidth,
-                           uint16_t dbRoot, uint32_t partition=0, int compressionType = 0);
+                           DBROOTS_struct& dbRoot, uint32_t partition=0, int compressionType = 0);
 
    //BUG931
    /**
