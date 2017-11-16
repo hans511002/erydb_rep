@@ -118,10 +118,7 @@ public:
    /**
     * @brief Delete a specific database segment file.
     */
-    EXPORT int          deleteFile( FID fid, uint16_t dbRoot,
-                            uint32_t partition,
-                            uint16_t segment ) const;
-
+    EXPORT int          deleteFile( FID fid, uint16_t dbRoot,uint32_t partition,uint16_t segment ) const;
    /**
     * @brief Check whether a file exists or not
     */

@@ -3387,7 +3387,7 @@ void ExtentMap::deleteEmptyDictStoreExtents(const ExtentsInfoMap_t& extentsInfo)
 				it = extentsInfo.find ( fExtentMap[i].fileID );
 				if ( it != extentsInfo.end() )
 				{
-					if ((fExtentMap[i].partitionNum == it->second.partitionNum) && (fExtentMap[i].segmentNum == it->second.segmentNum) && (fExtentMap[i].dbRoots[0] == it->second.dbRoot) )
+					if ((fExtentMap[i].partitionNum == it->second.partitionNum) && (fExtentMap[i].segmentNum == it->second.segmentNum) && (fExtentMap[i].dbRoots == it->second.dbRoot) )
 						deleteExtent( i );   
 				}
 			}

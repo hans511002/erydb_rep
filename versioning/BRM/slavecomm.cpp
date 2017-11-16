@@ -706,8 +706,8 @@ namespace BRM {
             extentsInfoMap[oid].partitionNum = tmp1;
             msg >> tmp2;
             extentsInfoMap[oid].segmentNum = tmp2;
-            msg >> tmp2;
-            extentsInfoMap[oid].dbRoot = tmp2;
+            msg >> extentsInfoMap[oid].dbRoot;
+            //extentsInfoMap[oid].dbRoot = tmp2;
             msg >> tmp1;
             extentsInfoMap[oid].hwm = tmp1;
             if (printOnly) {
@@ -758,8 +758,8 @@ namespace BRM {
             extentsInfoMap[oid].partitionNum = tmp1;
             msg >> tmp2;
             extentsInfoMap[oid].segmentNum = tmp2;
-            msg >> tmp2;
-            extentsInfoMap[oid].dbRoot = tmp2;
+            msg >> extentsInfoMap[oid].dbRoot;
+            //extentsInfoMap[oid].dbRoot = tmp2;
             msg >> tmp1;
             extentsInfoMap[oid].hwm = tmp1;
             msg >> tmp3;

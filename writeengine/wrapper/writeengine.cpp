@@ -1475,7 +1475,7 @@ namespace WriteEngine
             }
             int rc1 = BRMWrapper::getInstance()->deleteEmptyColExtents(colExtentInfo);
             if ((rc1 == 0) && newFile) {
-                rc1 = colOp->deleteFile(fileInfo[0].oid, fileInfo[0].dbRoot, fileInfo[0].partitionNum, fileInfo[0].segmentNum);
+                rc1 = colOp->deleteFile(fileInfo[0].oid, fileInfo[0].dbRoot[0], fileInfo[0].partitionNum, fileInfo[0].segmentNum);
                 if (rc1 != NO_ERROR)
                     return rc;
                 FileOp fileOp;
@@ -1495,8 +1495,7 @@ namespace WriteEngine
                     if (rc1 != NO_ERROR)
                         return rc;
                     for (unsigned j = 0; j < fileInfo.size(); j++) {
-                        rc1 = fileOp.deleteFile(fileInfo[j].oid, fileInfo[j].dbRoot,
-                            fileInfo[j].partitionNum, fileInfo[j].segmentNum);
+                        rc1 = fileOp.deleteFile(fileInfo[j].oid, fileInfo[j].dbRoot[0], fileInfo[j].partitionNum, fileInfo[j].segmentNum);
                     }
                 }
             }
@@ -1512,15 +1511,8 @@ namespace WriteEngine
             for (unsigned k = 1; k < colStructList.size(); k++) {
                 Column expandCol;
                 colOp = m_colOp[op(colStructList[k].fCompressionType)];
-                colOp->setColParam(expandCol, 0,
-                    colStructList[k].colWidth,
-                    colStructList[k].colDataType,
-                    colStructList[k].colType,
-                    colStructList[k].dataOid,
-                    colStructList[k].fCompressionType,
-                    dbRoot,
-                    partitionNum,
-                    segmentNum);
+                colOp->setColParam(expandCol, 0,colStructList[k].colWidth,colStructList[k].colDataType,colStructList[k].colType,colStructList[k].dataOid,colStructList[k].fCompressionType,
+                    &dbRoot,partitionNum,segmentNum);
                 rc = colOp->openColumnFile(expandCol, segFile, false); // @bug 5572 HDFS tmp file
                 if (rc == NO_ERROR) {
                     if (colOp->abbreviatedExtent(expandCol.dataFile.pFile, colStructList[k].colWidth)) {
@@ -1533,10 +1525,7 @@ namespace WriteEngine
                         int rc1 = BRMWrapper::getInstance()->
                             deleteEmptyColExtents(colExtentInfo);
                         if ((rc1 == 0) && newFile) {
-                            rc1 = colOp->deleteFile(fileInfo[0].oid,
-                                fileInfo[0].dbRoot,
-                                fileInfo[0].partitionNum,
-                                fileInfo[0].segmentNum);
+                            rc1 = colOp->deleteFile(fileInfo[0].oid,fileInfo[0].dbRoot[0],fileInfo[0].partitionNum,fileInfo[0].segmentNum);
                         }
                     }
                     colOp->clearColumn(expandCol); // closes the file
@@ -1712,11 +1701,9 @@ namespace WriteEngine
                 colOp->setColParam(curColLocal, 0,
                     newColStructList[i].colWidth, newColStructList[i].colDataType,
                     newColStructList[i].colType, newColStructList[i].dataOid,
-                    newColStructList[i].fCompressionType, dbRoot, partitionNum, segmentNum);
+                    newColStructList[i].fCompressionType, &dbRoot, partitionNum, segmentNum);
 
-                rc = BRMWrapper::getInstance()->getLastHWM_DBroot(
-                    curColLocal.dataFile.fid, dbRoot, partitionNum, segmentNum, oldHwm,
-                    extState, extFound);
+                rc = BRMWrapper::getInstance()->getLastHWM_DBroot(curColLocal.dataFile.fid, dbRoot, partitionNum, segmentNum, oldHwm,extState, extFound);
 
                 info.oid = curColLocal.dataFile.fid;
                 info.partitionNum = partitionNum;
@@ -1947,7 +1934,7 @@ namespace WriteEngine
         colOp->initColumn(curCol);
 
         //Get the correct segment, partition, column file
-        uint16_t dbRoot;
+        DBROOTS_struct dbRoot;
         uint16_t segmentNum = 0;
         uint32_t partitionNum = 0;
         //Don't search for empty space, always append to the end. May revisit later
@@ -1955,9 +1942,7 @@ namespace WriteEngine
         int  extState;
         bool bStartExtFound;
         bool bUseStartExtent = false;
-        RETURN_ON_ERROR(BRMWrapper::getInstance()->getLastHWM_DBroot(
-            curColStruct.dataOid, dbRoot, partitionNum, segmentNum, hwm,
-            extState, bStartExtFound));
+        RETURN_ON_ERROR(BRMWrapper::getInstance()->getLastHWM_DBroot(curColStruct.dataOid, dbRoot, partitionNum, segmentNum, hwm,extState, bStartExtFound));
         if ((bStartExtFound) && (extState == BRM::EXTENTAVAILABLE))
             bUseStartExtent = true;
 
@@ -1976,7 +1961,7 @@ namespace WriteEngine
         //need to pass real dbRoot, partition, and segment to setColParam
         colOp->setColParam(curCol, 0, curColStruct.colWidth, curColStruct.colDataType,
             curColStruct.colType, curColStruct.dataOid, curColStruct.fCompressionType,
-            dbRoot, partitionNum, segmentNum);
+            &dbRoot, partitionNum, segmentNum);
 
         string segFile;
         if (bUseStartExtent) {
@@ -2027,10 +2012,7 @@ namespace WriteEngine
                 if ((rc1 == 0) && newFile) {
                     for (unsigned int j = 0; j < fileInfo.size(); j++) {
                         // ignore return code and delete what we can
-                        rc1 = colOp->deleteFile(fileInfo[j].oid,
-                            fileInfo[j].dbRoot,
-                            fileInfo[j].partitionNum,
-                            fileInfo[j].segmentNum);
+                        rc1 = colOp->deleteFile(fileInfo[j].oid,fileInfo[j].dbRoot[0],fileInfo[j].partitionNum,fileInfo[j].segmentNum);
                     }
                     fileInfo.clear();
 
@@ -2053,7 +2035,7 @@ namespace WriteEngine
                             return rc;
                         for (unsigned j = 0; j < fileInfo.size(); j++) {
                             rc1 = fileOp.deleteFile(fileInfo[j].oid,
-                                fileInfo[j].dbRoot,
+                                fileInfo[j].dbRoot[0],
                                 fileInfo[j].partitionNum,
                                 fileInfo[j].segmentNum);
                         }
@@ -2087,7 +2069,7 @@ namespace WriteEngine
                     colStructList[k].colType,
                     colStructList[k].dataOid,
                     colStructList[k].fCompressionType,
-                    colStructList[k].fColDbRoot,
+                    &colStructList[k].fColDbRoot,
                     colStructList[k].fColPartition,
                     colStructList[k].fColSegment);
                 rc = colOp->openColumnFile(expandCol, segFile, true); // @bug 5572 HDFS tmp file
@@ -2632,9 +2614,7 @@ namespace WriteEngine
             }
         }
         std::vector<VBRange> freeList;
-        rc = BRMWrapper::getInstance()->
-            writeVB(pFile, verId, colStruct.dataOid, fboList, rangeList, colOp, freeList, colStruct.fColDbRoot);
-
+        rc = BRMWrapper::getInstance()->writeVB(pFile, verId, colStruct.dataOid, fboList, rangeList, colOp, freeList, colStruct.fColDbRoot);
         return rc;
     }
 
@@ -2676,8 +2656,7 @@ namespace WriteEngine
 
         //cout << "calling writeVB with blocks " << rangeList.size() << endl;
         std::vector<VBRange> freeList;
-        rc = BRMWrapper::getInstance()->
-            writeVB(pFile, verId, colStruct.dataOid, fboList, rangeList, colOp, freeList, colStruct.fColDbRoot);
+        rc = BRMWrapper::getInstance()->writeVB(pFile, verId, colStruct.dataOid, fboList, rangeList, colOp, freeList, colStruct.fColDbRoot);
 
         return rc;
     }

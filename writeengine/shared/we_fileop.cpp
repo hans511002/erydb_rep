@@ -452,8 +452,7 @@ int FileOp::deletePartitions( const std::vector<OID>& fids,
  * RETURN:
  *    NO_ERROR if success
  ***********************************************************/
-int FileOp::deleteFile( FID fid, uint16_t dbRoot,
-    uint32_t partition, uint16_t segment ) const
+int FileOp::deleteFile( FID fid, uint16_t dbRoot, uint32_t partition, uint16_t segment ) const
 {
     char fileName[FILE_NAME_SIZE];
 
