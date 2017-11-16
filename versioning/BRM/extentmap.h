@@ -284,7 +284,7 @@ public:
 	 * with LBID
 	 * @return 0 on success, -1 on error
 	 */
-	EXPORT int lookupLocal(LBID_t LBID, int& OID, uint16_t& dbRoot, uint32_t& partitionNum, uint16_t& segmentNum, uint32_t& fileBlockOffset);
+	EXPORT int lookupLocal(LBID_t LBID, int& OID, DBROOTS_struct& dbRoot, uint32_t& partitionNum, uint16_t& segmentNum, uint32_t& fileBlockOffset);
 
 	/** @brief Look up the LBID associated with a given OID, offset, partition, and segment.
 	 *

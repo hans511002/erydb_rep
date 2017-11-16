@@ -92,9 +92,6 @@
     <ClInclude Include="autoincrementmanager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="blockresolutionmanager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="brm.h">
       <Filter>Header Files</Filter>
     </ClInclude>

@@ -1765,7 +1765,7 @@ int ExtentMap::lookup(LBID_t lbid, LBID_t& firstLbid, LBID_t& lastLbid)
 }
 
 // @bug 1055+.  New functions added for multiple files per OID enhancement.
-int ExtentMap::lookupLocal(LBID_t lbid, int& OID, uint16_t& dbRoot, uint32_t& partitionNum, uint16_t& segmentNum, uint32_t& fileBlockOffset)
+int ExtentMap::lookupLocal(LBID_t lbid, int& OID, DBROOTS_struct& dbRoot, uint32_t& partitionNum, uint16_t& segmentNum, uint32_t& fileBlockOffset)
 {
 #ifdef BRM_INFO
         if (fDebug)
@@ -1810,7 +1810,7 @@ int ExtentMap::lookupLocal(LBID_t lbid, int& OID, uint16_t& dbRoot, uint32_t& pa
                         lastBlock = fExtentMap[i].range.start + (static_cast<LBID_t>(fExtentMap[i].range.size) * 1024) - 1;
                         if (lbid >= fExtentMap[i].range.start && lbid <= lastBlock) {
                                 OID = fExtentMap[i].fileID;
-				                dbRoot = fExtentMap[i].dbRoots[0];
+				                dbRoot = fExtentMap[i].dbRoots;
 				                segmentNum = fExtentMap[i].segmentNum;
                 				partitionNum = fExtentMap[i].partitionNum;
                 				// TODO:  Offset logic.

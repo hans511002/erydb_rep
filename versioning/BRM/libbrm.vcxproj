@@ -104,7 +104,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="autoincrementmanager.h" />
-    <ClInclude Include="blockresolutionmanager.h" />
     <ClInclude Include="brm.h" />
     <ClInclude Include="brmshmimpl.h" />
     <ClInclude Include="brmtypes.h" />
