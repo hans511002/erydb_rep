@@ -310,7 +310,7 @@ void pDictionaryScan::sendPrimitiveMessages()
   	uint32_t fbo;
 	ByteStream primMsg(65536);
 	DBRM dbrm;
-	uint16_t dbroot;
+	DBROOTS_struct dbroot;
 	uint32_t partNum;
 	uint16_t segNum;
 	BRM::OID_t oid;
@@ -342,7 +342,7 @@ void pDictionaryScan::sendPrimitiveMessages()
 			{
 				if (localPMId == 0)
 					throw ERYDBExcept(ERR_LOCAL_QUERY_UM);
-				if (dbRootPMMap->find(dbroot)->second != localPMId)
+				if (dbRootPMMap->find(dbroot[0])->second != localPMId)
 					continue;
 			}
 
@@ -364,20 +364,20 @@ void pDictionaryScan::sendPrimitiveMessages()
 				if ( remainingLbids < msgLbidCount)
 					msgLbidCount = remainingLbids;
 
-				if (dbRootConnectionMap->find(dbroot) == dbRootConnectionMap->end())
+				if (dbRootConnectionMap->find(dbroot[0]) == dbRootConnectionMap->end())
                 {
                     // MCOL-259 force a reload of the xml. This usualy fixes it.
 					Logger log;
 					log.logMessage(logging::LOG_TYPE_DEBUG, "dictionary forcing reload of erydb.xml for dbRootConnectionMap");
                     oamCache->forceReload();
                     dbRootConnectionMap = oamCache->getDBRootToConnectionMap();
-                    if (dbRootConnectionMap->find(dbroot) == dbRootConnectionMap->end())
+                    if (dbRootConnectionMap->find(dbroot[0]) == dbRootConnectionMap->end())
                     {
 						log.logMessage(logging::LOG_TYPE_DEBUG, "dictionary still not in dbRootConnectionMap");
                         throw ERYDBExcept(ERR_DATA_OFFLINE);
                     }
                 }
-				sendAPrimitiveMessage(primMsg, msgLbidStart, msgLbidCount, (*dbRootConnectionMap)[dbroot]);
+				sendAPrimitiveMessage(primMsg, msgLbidStart, msgLbidCount, (*dbRootConnectionMap)[dbroot[0]]);
 				primMsg.restart();
 
 				mutex.lock();
