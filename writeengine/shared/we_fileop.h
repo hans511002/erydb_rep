@@ -118,7 +118,7 @@ public:
    /**
     * @brief Delete a specific database segment file.
     */
-    EXPORT int          deleteFile( FID fid, uint16_t dbRoot,uint32_t partition,uint16_t segment ) const;
+    EXPORT int          deleteFile( FID fid, DBROOTS_struct& dbRoot,uint32_t partition,uint16_t segment ) const;
    /**
     * @brief Check whether a file exists or not
     */
@@ -128,7 +128,7 @@ public:
     * @brief @brief Check whether file exists or not by using file id, DBRoot,
     * partition, and segment number.
     */
-    EXPORT bool         exists( FID fid, uint16_t dbRoot,
+    EXPORT bool         exists( FID fid, DBROOTS_struct& dbRoot,
                             uint32_t partition, uint16_t segment ) const;
 
    /**
@@ -148,7 +148,7 @@ public:
     */
     EXPORT virtual int  expandAbbrevColumnExtent(
                             ERYDBDataFile*    pFile,
-                            uint16_t dbRoot,
+        DBROOTS_struct& dbRoot,
                             uint64_t      emptyVal,
                             int      width );
 
@@ -189,7 +189,7 @@ public:
                             HWM          hwm,
                             BRM::LBID_t  startLbid,
                             int          allocSize,
-                            uint16_t     dbRoot,
+        DBROOTS_struct&     dbRoot,
                             uint32_t     partition,
                             uint16_t     segment,
                             std::string& segFile,
@@ -213,9 +213,7 @@ public:
     * @param hdrs (in/out) Contents of headers, if file is compressed.
     */
     EXPORT int          addExtentExactFile(OID oid, uint64_t emptyVal,
-                            int          width,
-                            int&         allocSize,
-                            uint16_t     dbRoot,
+            int width,int& allocSize,DBROOTS_struct& dbRoot,
                             uint32_t     partition,
                             uint16_t     segment,
                             execplan::erydbSystemCatalog::ColDataType colDataType,
@@ -240,7 +238,7 @@ public:
     EXPORT int          fillCompColumnExtentEmptyChunks(OID oid,
                             int          colWidth,
                             uint64_t          emptyVal,
-                            uint16_t     dbRoot,
+        DBROOTS_struct&     dbRoot,
                             uint32_t     partition,
                             uint16_t     segment,
                             HWM          hwm,
@@ -293,27 +291,19 @@ public:
     * @param partition (in) partition number of the file of interest
     * @param segment (in) segment number of the file of interest
     */
-    int                 getFileName( FID fid, char* fileName,
-                            uint16_t dbRoot,
-                            uint32_t partition,
-                            uint16_t segment ) const;
+    int                 getFileName( FID fid, char* fileName,uint16_t dbRoot,uint32_t partition,uint16_t segment ) const;
 
     /**
      * @brief Construct directory path for the specified fid (OID), DBRoot, and
      * partition number.  Directory does not have to exist, nor is it created.
      */
-    int                 getDirName( FID fid, uint16_t dbRoot,
-                            uint32_t partition,
-                            std::string& dirName) const;
+    int                 getDirName( FID fid, uint16_t dbRoot,uint32_t partition,std::string& dirName) const;
 
     /**
      * @brief Get the file size
      */
     EXPORT int          getFileSize( ERYDBDataFile* pFile, long long& fileSize ) const;
-    EXPORT int          getFileSize( FID fid, uint16_t dbRoot,
-                            uint32_t partition,
-                            uint16_t segment,
-                            long long& fileSize ) const;
+    EXPORT int          getFileSize( FID fid, uint16_t dbRoot,uint32_t partition,uint16_t segment,long long& fileSize ) const;
 
    /**
     * @brief Initialize an extent in a dictionary store file
@@ -325,7 +315,7 @@ public:
     * @param bExpandExtent (in) -  Expand existing extent, or initialize new one
     */
     EXPORT int          initDctnryExtent( ERYDBDataFile*    pFile,
-                            uint16_t dbRoot,
+        DBROOTS_struct& dbRoot,
                             int      nBlocks,
                             unsigned char* blockHdrInit,
                             int      blockHdrInitSize,
@@ -348,9 +338,7 @@ public:
    /**
     * @brief Convert an oid to a full file name
     */
-    EXPORT int          oid2FileName( FID fid, char* fullFileName,
-                            bool bCreateDir, uint16_t dbRoot,
-                            uint32_t partition, uint16_t segment ) const;
+    EXPORT int          oid2FileName( FID fid, char* fullFileName,bool bCreateDir, uint16_t dbRoot,uint32_t partition, uint16_t segment ) const;
     EXPORT int          oid2DirName( FID fid, char* oidDirName ) const;
 
    /**
@@ -485,7 +473,7 @@ private:
                             compress::CompChunkPtr& chunkOutPt);
 
     int                 initAbbrevCompColumnExtent( ERYDBDataFile* pFile,
-                            uint16_t dbRoot,
+        DBROOTS_struct& dbRoot,
                             int      nBlocks,
                             uint64_t      emptyVal,
                             int      width);
@@ -500,7 +488,7 @@ private:
     // bExpandExtent (in) -  Expand existing extent, or initialize new one
     // bAbbrevExtent (in) -  If adding new extent, is it abbreviated
     int                 initColumnExtent( ERYDBDataFile*    pFile,
-                            uint16_t dbRoot,
+        DBROOTS_struct& dbRoot,
                             int      nBlocks,
                             uint64_t emptyVal,
                             int      width,
@@ -561,10 +549,7 @@ inline int FileOp::getVBFileName( FID fid, char* fileName ) const
     return oid2FileName( fid, fileName, true, dbRoot, partition, segment ); 
 }
 
-inline int FileOp::getFileName( FID fid, char* fileName,
-    uint16_t dbRoot,
-    uint32_t partition,
-    uint16_t segment ) const
+inline int FileOp::getFileName( FID fid, char* fileName,uint16_t dbRoot,uint32_t partition,uint16_t segment ) const
 {
     return oid2FileName( fid, fileName, false, dbRoot, partition, segment );
 }

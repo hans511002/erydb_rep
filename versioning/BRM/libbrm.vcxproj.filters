@@ -161,5 +161,8 @@
     <ClInclude Include="tracer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\brmTool\blockresolutionmanager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

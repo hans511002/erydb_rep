@@ -175,24 +175,15 @@ int FileOp::createFile( const char* fileName, int numOfBlock,
         // Initialize the contents of the extent.
         if (m_compressionType)
         {
-            rc = initAbbrevCompColumnExtent( pFile,
-                               dbRoot,
-                               numOfBlock,
-                               emptyVal,
-                               width );
+            rc = initAbbrevCompColumnExtent( pFile,dbRoot,numOfBlock,emptyVal,width );
         }
         else
         {
-            rc = initColumnExtent( pFile,
-                               dbRoot,
-                               numOfBlock,
-                               emptyVal,
-                               width,
+            rc = initColumnExtent( pFile,dbRoot,numOfBlock,emptyVal,width,
                                true,    // new file
                                false,   // don't expand; add new extent
                                true );  // add abbreviated extent
         }
-
         closeFile( pFile );
     }
     else
@@ -233,15 +224,14 @@ int FileOp::createFile(FID fid,
     int   rc;
 
     uint16_t segment = 0; // should always be 0 when starting a new column
-    RETURN_ON_ERROR( ( rc = oid2FileName( fid, fileName, true,
-        dbRoot, partition, segment ) ) );
+    RETURN_ON_ERROR( ( rc = oid2FileName( fid, fileName, true,dbRoot[0], partition, segment ) ) );
 
     //@Bug 3196
     if( exists( fileName ) )
         return ERR_FILE_EXIST;
     // allocatColExtent() treats dbRoot and partition as in/out
     // arguments, so we need to pass in a non-const variable.
-    uint16_t dbRootx    = dbRoot;
+    DBROOTS_struct dbRootx    = dbRoot;
     uint32_t partitionx = partition;
 
     // Since we are creating a new column OID, we know partition
@@ -266,7 +256,7 @@ int FileOp::createFile(FID fid,
 
     // Note we can't pass full file name to isDiskSpaceAvail() because the
     // file does not exist yet, but passing DBRoot directory should suffice.
-    if ( !isDiskSpaceAvail(Config::getDBRootByNum(dbRoot), totalSize) )
+    if ( !isDiskSpaceAvail(Config::getDBRootByNum(dbRoot[0]), totalSize) )
     {
         return ERR_FILE_DISK_SPACE;
     }
@@ -452,12 +442,11 @@ int FileOp::deletePartitions( const std::vector<OID>& fids,
  * RETURN:
  *    NO_ERROR if success
  ***********************************************************/
-int FileOp::deleteFile( FID fid, uint16_t dbRoot, uint32_t partition, uint16_t segment ) const
+int FileOp::deleteFile( FID fid, DBROOTS_struct& dbRoot, uint32_t partition, uint16_t segment ) const
 {
     char fileName[FILE_NAME_SIZE];
 
-    RETURN_ON_ERROR( getFileName( fid, fileName,
-        dbRoot, partition, segment) );
+    RETURN_ON_ERROR( getFileName( fid, fileName,dbRoot[0], partition, segment) );
 
     return ( deleteFile( fileName ) );
 }
@@ -486,13 +475,11 @@ bool FileOp::exists( const char* fileName ) const
  * RETURN:
  *    true if exists, false otherwise
  ***********************************************************/
-bool FileOp::exists( FID fid, uint16_t dbRoot,
-    uint32_t partition, uint16_t segment ) const
+bool FileOp::exists( FID fid, DBROOTS_struct& dbRoot, uint32_t partition, uint16_t segment ) const
 {
     char fileName[FILE_NAME_SIZE];
 
-    if (getFileName(fid, fileName, dbRoot, partition,
-        segment) != NO_ERROR)
+    if (getFileName(fid, fileName, dbRoot[0], partition,segment) != NO_ERROR)
         return false;
 
     return exists( fileName );
@@ -553,7 +540,7 @@ int FileOp::extendFile(
     HWM          hwm,
     BRM::LBID_t  startLbid,
     int          allocSize,
-    uint16_t     dbRoot,
+    DBROOTS_struct&     dbRoot,
     uint32_t     partition,
     uint16_t     segment,
     std::string& segFile,
@@ -571,8 +558,7 @@ int FileOp::extendFile(
     // else we are adding an extent to an existing segment file
     if (hwm > 0) // db segment file should exist
     {
-        RETURN_ON_ERROR( oid2FileName(oid, fileName, false,
-            dbRoot, partition, segment) );
+        RETURN_ON_ERROR( oid2FileName(oid, fileName, false,dbRoot[0], partition, segment) );
         segFile = fileName;
 
         if (!exists(fileName))
@@ -590,7 +576,7 @@ int FileOp::extendFile(
             return ERR_FILE_NOT_EXIST;
         }
 
-        pFile = openFile( oid, dbRoot, partition, segment,
+        pFile = openFile( oid, dbRoot[0], partition, segment,
             segFile, "r+b" );//old file
         if (pFile == 0)
         {
@@ -696,8 +682,7 @@ int FileOp::extendFile(
     }
     else // db segment file should not exist
     {
-        RETURN_ON_ERROR( oid2FileName(oid, fileName, true,
-            dbRoot, partition, segment) );
+        RETURN_ON_ERROR( oid2FileName(oid, fileName, true,dbRoot[0], partition, segment) );
         segFile = fileName;
 
         // if obsolete file exists, "w+b" will truncate and write over
@@ -745,11 +730,7 @@ int FileOp::extendFile(
         return rc;
 
     // Initialize the contents of the extent.
-    rc = initColumnExtent( pFile,
-                           dbRoot,
-                           allocSize,
-                           emptyVal,
-                           width,
+    rc = initColumnExtent( pFile,dbRoot,allocSize,emptyVal,width,
                            newFile, // new or existing file
                            false,   // don't expand; new extent
                            false ); // add full (not abbreviated) extent
@@ -781,7 +762,7 @@ int FileOp::addExtentExactFile(
     uint64_t     emptyVal,
     int          width,
     int&         allocSize,
-    uint16_t     dbRoot,
+    DBROOTS_struct&     dbRoot,
     uint32_t     partition,
     uint16_t     segment,
     execplan::erydbSystemCatalog::ColDataType colDataType,
@@ -797,15 +778,13 @@ int FileOp::addExtentExactFile(
     HWM         hwm;
 
     // Allocate the new extent in the ExtentMap
-    RETURN_ON_ERROR( BRMWrapper::getInstance()->allocateColExtentExactFile(
-        oid, width, dbRoot, partition, segment, colDataType, startLbid, allocSize, hwm));
+    RETURN_ON_ERROR( BRMWrapper::getInstance()->allocateColExtentExactFile(oid, width, dbRoot, partition, segment, colDataType, startLbid, allocSize, hwm));
 
     // Determine the existence of the "next" segment file, and either open
     // or create the segment file accordingly.
-    if (exists(oid, dbRoot, partition, segment))
+    if (exists(oid, dbRoot[0], partition, segment))
     {
-        pFile = openFile( oid, dbRoot, partition, segment,
-            segFile, "r+b" );//old file
+        pFile = openFile( oid, dbRoot[0], partition, segment, segFile, "r+b" );//old file
         if (pFile == 0)
         {
             ostringstream oss;
@@ -845,8 +824,7 @@ int FileOp::addExtentExactFile(
     else
     {
         char fileName[FILE_NAME_SIZE];
-        RETURN_ON_ERROR( oid2FileName(oid, fileName, true,
-            dbRoot, partition, segment) );
+        RETURN_ON_ERROR( oid2FileName(oid, fileName, true,dbRoot[0], partition, segment) );
         segFile = fileName;
 
         pFile = openFile( fileName, "w+b" );//new file
@@ -933,7 +911,7 @@ int FileOp::addExtentExactFile(
  ***********************************************************/
 int FileOp::initColumnExtent(
     ERYDBDataFile* pFile,
-    uint16_t dbRoot,
+    DBROOTS_struct& dbRoot,
     int      nBlocks,
     uint64_t emptyVal,
     int      width,
@@ -989,7 +967,7 @@ int FileOp::initColumnExtent(
         }
 
         // Allocate a buffer, initialize it, and use it to create the extent
-        erydbassert(dbRoot > 0);
+        erydbassert(dbRoot[0] > 0);
 #ifdef PROFILE
         if (bExpandExtent)
             Stats::startParseEvent(WE_STATS_WAIT_TO_EXPAND_COL_EXTENT);
@@ -1080,7 +1058,7 @@ int FileOp::initColumnExtent(
  ***********************************************************/
 int FileOp::initAbbrevCompColumnExtent(
     ERYDBDataFile* pFile,
-    uint16_t dbRoot,
+    DBROOTS_struct& dbRoot,
     int      nBlocks,
     uint64_t emptyVal,
     int      width) 
@@ -1220,7 +1198,7 @@ int FileOp::writeInitialCompColumnChunk(
 int FileOp::fillCompColumnExtentEmptyChunks(OID oid,
     int          colWidth,
     uint64_t     emptyVal,
-    uint16_t     dbRoot,   
+    DBROOTS_struct&     dbRoot,
     uint32_t     partition,
     uint16_t     segment,
     HWM          hwm,
@@ -1233,7 +1211,7 @@ int FileOp::fillCompColumnExtentEmptyChunks(OID oid,
 
     // Open the file and read the headers with the compression chunk pointers
     // @bug 5572 - HDFS usage: incorporate *.tmp file backup flag
-    ERYDBDataFile* pFile = openFile( oid, dbRoot, partition, segment, segFile,
+    ERYDBDataFile* pFile = openFile( oid, dbRoot[0], partition, segment, segFile,
         "r+b", DEFAULT_COLSIZ, true );
     if (!pFile)
     {
@@ -1662,7 +1640,7 @@ int FileOp::writeHeaders(ERYDBDataFile* pFile, const char* controlHdr,
  ***********************************************************/
 int FileOp::initDctnryExtent(
     ERYDBDataFile*   pFile,
-    uint16_t       dbRoot,
+    DBROOTS_struct&       dbRoot,
     int            nBlocks,
     unsigned char* blockHdrInit,
     int            blockHdrInitSize,
@@ -2015,15 +1993,12 @@ int FileOp::getFileSize( ERYDBDataFile* pFile, long long& fileSize ) const
  * RETURN:
  *    NO_ERROR if okay, else an error return code.
  ***********************************************************/
-int FileOp::getFileSize( FID fid, uint16_t dbRoot,
-    uint32_t partition, uint16_t segment,
-    long long& fileSize ) const
+int FileOp::getFileSize( FID fid, DBROOTS_struct& dbRoot, uint32_t partition, uint16_t segment,long long& fileSize ) const
 {
     fileSize = 0;
 
     char fileName[FILE_NAME_SIZE];
-    RETURN_ON_ERROR( getFileName(fid, fileName,
-        dbRoot, partition, segment) );
+    RETURN_ON_ERROR( getFileName(fid, fileName,dbRoot[0], partition, segment) );
 
     fileSize = ERYDBPolicy::size( fileName );
 
@@ -2344,8 +2319,7 @@ ERYDBDataFile* FileOp::openFile( const char* fileName,
     int  rc;
 
     //fid2FileName( fileName, fid );
-    RETURN_ON_WE_ERROR( ( rc = getFileName( fid, fileName,
-        dbRoot, partition, segment ) ), NULL );
+    RETURN_ON_WE_ERROR( ( rc = getFileName( fid, fileName, dbRoot, partition, segment ) ), NULL );
 
     // disable buffering for versionbuffer file
     if (fid <= MAX_DBROOT)
@@ -2464,11 +2438,10 @@ int FileOp::setFileOffsetBlock( ERYDBDataFile* pFile, uint64_t lbid, int origin)
     int fbo = 0;
 
     // only when fboFlag is false, we get in here
-    uint16_t  dbRoot;
+    DBROOTS_struct  dbRoot;
     uint32_t  partition;
     uint16_t  segment;
-    RETURN_ON_ERROR( BRMWrapper::getInstance()->getFboOffset(
-        lbid, dbRoot, partition, segment, fbo ) );
+    RETURN_ON_ERROR( BRMWrapper::getInstance()->getFboOffset(lbid, dbRoot, partition, segment, fbo ) );
     fboOffset = ((long long)fbo) * (long)BYTE_PER_BLOCK;
 
     return setFileOffset( pFile, fboOffset, origin );
@@ -2593,7 +2566,7 @@ bool FileOp::isDiskSpaceAvail(const std::string& fileName, int nBlocks) const
 //------------------------------------------------------------------------------
 int FileOp::expandAbbrevColumnExtent(
     ERYDBDataFile* pFile,   // FILE ptr to file where abbrev extent is to be expanded
-    uint16_t dbRoot,  // The DBRoot of the file with the abbreviated extent
+    DBROOTS_struct& dbRoot,  // The DBRoot of the file with the abbreviated extent
     uint64_t emptyVal,// Empty value to be used in expanding the extent
     int      width )  // Width of the column (in bytes)
 {
@@ -2604,7 +2577,7 @@ int FileOp::expandAbbrevColumnExtent(
     // Make sure there is enough disk space to expand the extent.
     RETURN_ON_ERROR( setFileOffset( pFile, 0, SEEK_END ) );
     // TODO-will have to address this DiskSpaceAvail check at some point
-    if ( !isDiskSpaceAvail(Config::getDBRootByNum(dbRoot), blksToAdd) )
+    if ( !isDiskSpaceAvail(Config::getDBRootByNum(dbRoot[0]), blksToAdd) )
     {
         return ERR_FILE_DISK_SPACE;
     }

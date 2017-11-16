@@ -103,6 +103,7 @@
     <ClCompile Include="vss.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\brmTool\blockresolutionmanager.h" />
     <ClInclude Include="autoincrementmanager.h" />
     <ClInclude Include="brm.h" />
     <ClInclude Include="brmshmimpl.h" />
