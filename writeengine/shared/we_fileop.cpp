@@ -911,7 +911,7 @@ int FileOp::addExtentExactFile(
  ***********************************************************/
 int FileOp::initColumnExtent(
     ERYDBDataFile* pFile,
-    DBROOTS_struct& dbRoot,
+    const DBROOTS_struct& dbRoot,
     int      nBlocks,
     uint64_t emptyVal,
     int      width,
@@ -967,14 +967,14 @@ int FileOp::initColumnExtent(
         }
 
         // Allocate a buffer, initialize it, and use it to create the extent
-        erydbassert(dbRoot[0] > 0);
+        erydbassert(dbRoot.get(0) > 0);
 #ifdef PROFILE
         if (bExpandExtent)
             Stats::startParseEvent(WE_STATS_WAIT_TO_EXPAND_COL_EXTENT);
         else
             Stats::startParseEvent(WE_STATS_WAIT_TO_CREATE_COL_EXTENT);
 #endif
-        boost::mutex::scoped_lock lk(*m_DbRootAddExtentMutexes[dbRoot]);
+        boost::mutex::scoped_lock lk(*m_DbRootAddExtentMutexes[dbRoot.get(0)]);
 #ifdef PROFILE
         if (bExpandExtent)
             Stats::stopParseEvent(WE_STATS_WAIT_TO_EXPAND_COL_EXTENT);
@@ -1679,14 +1679,14 @@ int FileOp::initDctnryExtent(
         }
 
         // Allocate a buffer, initialize it, and use it to create the extent
-        erydbassert(dbRoot > 0);
+        erydbassert(dbRoot[0] > 0);
 #ifdef PROFILE
         if (bExpandExtent)
             Stats::startParseEvent(WE_STATS_WAIT_TO_EXPAND_DCT_EXTENT);
         else
             Stats::startParseEvent(WE_STATS_WAIT_TO_CREATE_DCT_EXTENT);
 #endif
-        boost::mutex::scoped_lock lk(*m_DbRootAddExtentMutexes[dbRoot]);
+        boost::mutex::scoped_lock lk(*m_DbRootAddExtentMutexes[dbRoot[0]]);
 #ifdef PROFILE
         if (bExpandExtent)
             Stats::stopParseEvent(WE_STATS_WAIT_TO_EXPAND_DCT_EXTENT);
@@ -1993,12 +1993,12 @@ int FileOp::getFileSize( ERYDBDataFile* pFile, long long& fileSize ) const
  * RETURN:
  *    NO_ERROR if okay, else an error return code.
  ***********************************************************/
-int FileOp::getFileSize( FID fid, DBROOTS_struct& dbRoot, uint32_t partition, uint16_t segment,long long& fileSize ) const
+int FileOp::getFileSize( FID fid, uint16_t dbRoot, uint32_t partition, uint16_t segment,long long& fileSize ) const
 {
     fileSize = 0;
 
     char fileName[FILE_NAME_SIZE];
-    RETURN_ON_ERROR( getFileName(fid, fileName,dbRoot[0], partition, segment) );
+    RETURN_ON_ERROR( getFileName(fid, fileName,dbRoot, partition, segment) );
 
     fileSize = ERYDBPolicy::size( fileName );
 
@@ -2041,12 +2041,7 @@ bool  FileOp::isDir( const char* dirName ) const
  * RETURN:
  *    NO_ERROR if success, other if fail
  ***********************************************************/
-int FileOp::oid2FileName( FID fid,
-    char* fullFileName,
-    bool bCreateDir,
-    uint16_t dbRoot,
-    uint32_t partition,
-    uint16_t segment) const
+int FileOp::oid2FileName( FID fid,char* fullFileName,bool bCreateDir,uint16_t dbRoot,uint32_t partition,uint16_t segment) const
 {
 #ifdef SHARED_NOTHING_DEMO_2
     if (fid >= SHARED_NOTHING_DEMO_ID) {
@@ -2077,13 +2072,11 @@ int FileOp::oid2FileName( FID fid,
 //  excluding the DBRoot.
     char tempFileName[FILE_NAME_SIZE];
     char dbDir[MAX_DB_DIR_LEVEL][MAX_DB_DIR_NAME_SIZE];
-    RETURN_ON_ERROR((Convertor::oid2FileName(
-        fid, tempFileName, dbDir, partition, segment)));
+    RETURN_ON_ERROR((Convertor::oid2FileName(fid, tempFileName, dbDir, partition, segment)));
 
     // see if file exists in specified DBRoot; return if found
     if (dbRoot > 0) {
-        sprintf(fullFileName, "%s/%s", Config::getDBRootByNum(dbRoot).c_str(),
-            tempFileName);
+        sprintf(fullFileName, "%s/%s", Config::getDBRootByNum(dbRoot).c_str(), tempFileName);
 
         //std::cout << "oid2FileName() OID: " << fid <<
         //   " searching for file: " << fullFileName <<std::endl;
@@ -2104,8 +2097,7 @@ int FileOp::oid2FileName( FID fid,
         Config::getDBRootPathList( dbRootPathList );
         for (unsigned i = 0; i < dbRootPathList.size(); i++)
         {
-            sprintf(fullFileName, "%s/%s", dbRootPathList[i].c_str(),
-                tempFileName);
+            sprintf(fullFileName, "%s/%s", dbRootPathList[i].c_str(), tempFileName);
             //found it, nothing more to do, return
             //if (access(fullFileName, R_OK) == 0) return NO_ERROR;
 			 //@Bug 5397
@@ -2566,7 +2558,7 @@ bool FileOp::isDiskSpaceAvail(const std::string& fileName, int nBlocks) const
 //------------------------------------------------------------------------------
 int FileOp::expandAbbrevColumnExtent(
     ERYDBDataFile* pFile,   // FILE ptr to file where abbrev extent is to be expanded
-    DBROOTS_struct& dbRoot,  // The DBRoot of the file with the abbreviated extent
+    const DBROOTS_struct& dbRoot,  // The DBRoot of the file with the abbreviated extent
     uint64_t emptyVal,// Empty value to be used in expanding the extent
     int      width )  // Width of the column (in bytes)
 {
@@ -2577,7 +2569,7 @@ int FileOp::expandAbbrevColumnExtent(
     // Make sure there is enough disk space to expand the extent.
     RETURN_ON_ERROR( setFileOffset( pFile, 0, SEEK_END ) );
     // TODO-will have to address this DiskSpaceAvail check at some point
-    if ( !isDiskSpaceAvail(Config::getDBRootByNum(dbRoot[0]), blksToAdd) )
+    if ( !isDiskSpaceAvail(Config::getDBRootByNum(dbRoot.get(0)), blksToAdd) )
     {
         return ERR_FILE_DISK_SPACE;
     }

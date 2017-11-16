@@ -483,14 +483,7 @@ private:
     // bNewFile (in)      -  Adding extent to new file
     // bExpandExtent (in) -  Expand existing extent, or initialize new one
     // bAbbrevExtent (in) -  If adding new extent, is it abbreviated
-    int                 initColumnExtent( ERYDBDataFile*    pFile,
-        DBROOTS_struct& dbRoot,
-                            int      nBlocks,
-                            uint64_t emptyVal,
-                            int      width,
-                            bool     bNewFile,
-                            bool     bExpandExtent,
-                            bool     bAbbrevExtent );
+    int                 initColumnExtent( ERYDBDataFile* pFile,const DBROOTS_struct& dbRoot,int nBlocks,uint64_t emptyVal,int width,bool bNewFile,bool bExpandExtent,bool bAbbrevExtent );
 
     static void         initDbRootExtentMutexes();
     static void         removeDbRootExtentMutexes();

@@ -731,7 +731,7 @@ void BulkRollbackMgr::deleteColumn1ExtentsV4 ( const char* inBuf )
 {
     char        recType[100];
     OID         columnOID;
-    uint32_t   dbRootHwm;
+    DBROOTS_struct   dbRootHwm;
     uint32_t   partNumHwm;
     uint32_t   segNumHwm;
     HWM         lastLocalHwm;
