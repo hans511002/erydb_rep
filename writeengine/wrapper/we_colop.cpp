@@ -250,7 +250,7 @@ int ColumnOp::allocRowId(const TxnID& txnid, bool useStartingExtent,
 							uint64_t emptyVal = getEmptyRowValue(newColStructList[i].colDataType, newColStructList[i].colWidth);
 							string errorInfo;
 							rc = fileOp.fillCompColumnExtentEmptyChunks(newColStructList[i].dataOid, newColStructList[i].colWidth, 
-								emptyVal, dbRoot[0], partition, segment, newHwm, segFile, errorInfo);
+								emptyVal, dbRoot, partition, segment, newHwm, segFile, errorInfo);
 							if (rc != NO_ERROR)
 								return rc;
 						}
@@ -270,7 +270,7 @@ int ColumnOp::allocRowId(const TxnID& txnid, bool useStartingExtent,
 									return rc;
 								 }
 								 uint64_t emptyVal = getEmptyRowValue(newColStructList[i].colDataType, newColStructList[i].colWidth);
-								 rc = fileOp.expandAbbrevColumnExtent( pFile, dbRoot[0], emptyVal, newColStructList[i].colWidth);
+								 rc = fileOp.expandAbbrevColumnExtent( pFile, dbRoot, emptyVal, newColStructList[i].colWidth);
 								 //set hwm for this extent.
 								 fileOp.closeFile(pFile);
 								 if (rc != NO_ERROR)
@@ -666,7 +666,7 @@ int ColumnOp::fillColumn(const TxnID& txnid, Column& column, Column& refCol, voi
 					BRM::EMEntry aEntry;
 					aEntry.partitionNum = partition = 0;
 					aEntry.segmentNum = segment = 0;
-                    aEntry.dbRoots = refEntries[0].dbRoots;// rootList[i];
+					aEntry.dbRoots[0] = rootList[i];
 					newEntries.push_back(aEntry);
 					if (dictOid >= USER_OBJECT_ID)  //Create dictionary file if needed
 					{
@@ -720,7 +720,8 @@ int ColumnOp::fillColumn(const TxnID& txnid, Column& column, Column& refCol, voi
 			{		
 				for (k = 0; k < fileExtents.size(); k++)
 				{
-					uint16_t dbroot = rootList[i];
+					// uint16_t dbroot = rootList[i];
+					//DBROOTS_struct dbroot=
 					partition = fileExtents[k].partitionNum;
 					segment = fileExtents[k].segmentNum;
 					if ( k == 0)
@@ -738,8 +739,7 @@ int ColumnOp::fillColumn(const TxnID& txnid, Column& column, Column& refCol, voi
 						newEntries.push_back(aEntry);
 						if ((dictOid >= USER_OBJECT_ID) && newFile) //Create dictionary file if needed
 						{
-							rc = dctnry->createDctnry(dictOid, dictColWidth,
-								rootList[i], partition, segment, startLbid, newFile);
+							rc = dctnry->createDctnry(dictOid, dictColWidth, rootList[i], partition, segment, startLbid, newFile);
 							if (rc != NO_ERROR)
 								return rc;
 								
@@ -1181,7 +1181,7 @@ int ColumnOp::addExtent(
                         emptyVal,
                         column.colWidth,
                         allocSize,
-                        dbRoot,
+                        dbRoot[0],
                         partition,
                         segment,
                         column.colDataType,

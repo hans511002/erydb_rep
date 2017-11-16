@@ -1475,7 +1475,7 @@ namespace WriteEngine
             }
             int rc1 = BRMWrapper::getInstance()->deleteEmptyColExtents(colExtentInfo);
             if ((rc1 == 0) && newFile) {
-                rc1 = colOp->deleteFile(fileInfo[0].oid, fileInfo[0].dbRoot[0], fileInfo[0].partitionNum, fileInfo[0].segmentNum);
+                rc1 = colOp->deleteFile(fileInfo[0].oid, fileInfo[0].dbRoot, fileInfo[0].partitionNum, fileInfo[0].segmentNum);
                 if (rc1 != NO_ERROR)
                     return rc;
                 FileOp fileOp;
@@ -1495,7 +1495,7 @@ namespace WriteEngine
                     if (rc1 != NO_ERROR)
                         return rc;
                     for (unsigned j = 0; j < fileInfo.size(); j++) {
-                        rc1 = fileOp.deleteFile(fileInfo[j].oid, fileInfo[j].dbRoot[0], fileInfo[j].partitionNum, fileInfo[j].segmentNum);
+                        rc1 = fileOp.deleteFile(fileInfo[j].oid, fileInfo[j].dbRoot, fileInfo[j].partitionNum, fileInfo[j].segmentNum);
                     }
                 }
             }
@@ -1525,7 +1525,7 @@ namespace WriteEngine
                         int rc1 = BRMWrapper::getInstance()->
                             deleteEmptyColExtents(colExtentInfo);
                         if ((rc1 == 0) && newFile) {
-                            rc1 = colOp->deleteFile(fileInfo[0].oid,fileInfo[0].dbRoot[0],fileInfo[0].partitionNum,fileInfo[0].segmentNum);
+                            rc1 = colOp->deleteFile(fileInfo[0].oid,fileInfo[0].dbRoot,fileInfo[0].partitionNum,fileInfo[0].segmentNum);
                         }
                     }
                     colOp->clearColumn(expandCol); // closes the file
@@ -2012,7 +2012,7 @@ namespace WriteEngine
                 if ((rc1 == 0) && newFile) {
                     for (unsigned int j = 0; j < fileInfo.size(); j++) {
                         // ignore return code and delete what we can
-                        rc1 = colOp->deleteFile(fileInfo[j].oid,fileInfo[j].dbRoot[0],fileInfo[j].partitionNum,fileInfo[j].segmentNum);
+                        rc1 = colOp->deleteFile(fileInfo[j].oid,fileInfo[j].dbRoot,fileInfo[j].partitionNum,fileInfo[j].segmentNum);
                     }
                     fileInfo.clear();
 
@@ -2034,10 +2034,7 @@ namespace WriteEngine
                         if (rc1 != NO_ERROR)
                             return rc;
                         for (unsigned j = 0; j < fileInfo.size(); j++) {
-                            rc1 = fileOp.deleteFile(fileInfo[j].oid,
-                                fileInfo[j].dbRoot[0],
-                                fileInfo[j].partitionNum,
-                                fileInfo[j].segmentNum);
+                            rc1 = fileOp.deleteFile(fileInfo[j].oid,fileInfo[j].dbRoot,fileInfo[j].partitionNum,fileInfo[j].segmentNum);
                         }
                     }
                 }
