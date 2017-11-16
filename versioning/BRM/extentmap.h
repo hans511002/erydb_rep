@@ -128,7 +128,8 @@ struct DBROOTS_struct :public messageqcpp::Serializeable {
 	EXPORT void deserialize(messageqcpp::ByteStream &bs);
 };
 
-EXPORT bool operator==( const BRM::DBROOTS_struct, const BRM::DBROOTS_struct);
+EXPORT bool operator==( const BRM::DBROOTS_struct&, const BRM::DBROOTS_struct&);
+std::ostream & operator<<(std::ostream &, const DBROOTS_struct &);
 
 struct EMEntry {
 	InlineLBIDRange range; //16 
@@ -309,9 +310,7 @@ public:
 	 * @param LBID (out) The LBID associated with the given offset of the OID.
 	 * @return 0 on success, -1 on error
 	 */
-	EXPORT int lookupLocal_DBroot(int OID, uint16_t dbroot,
-		uint32_t partitionNum, uint16_t segmentNum, uint32_t fileBlockOffset,
-		LBID_t& LBID);
+	EXPORT int lookupLocal_DBroot(int OID, DBROOTS_struct& dbroot, uint32_t partitionNum, uint16_t segmentNum, uint32_t fileBlockOffset, LBID_t& LBID);
 
 	// @bug 1055-.
 
@@ -391,7 +390,7 @@ public:
 	// private function used by createStripeColumnExtents().
 	EXPORT void createColumnExtent_DBroot(int OID,
 					uint32_t  colWidth,
-					uint16_t  dbRoot,
+					DBROOTS_struct&  dbRoot,
                     execplan::erydbSystemCatalog::ColDataType colDataType,
 					uint32_t& partitionNum,
 					uint16_t& segmentNum,
@@ -585,7 +584,7 @@ public:
 	 * @return The last file block number written to in the last
 	 * partition/segment file for the given OID.
 	 */
-	EXPORT HWM_t getLastHWM_DBroot(int OID, uint16_t dbRoot,
+	EXPORT HWM_t getLastHWM_DBroot(int OID, DBROOTS_struct& dbRoot,
 				 uint32_t& partitionNum, uint16_t& segmentNum,
 				 int& status, bool& bFound);
 				 
@@ -868,20 +867,20 @@ private:
 
 	LBID_t _createColumnExtent_DBroot(uint32_t size, int OID,
 					uint32_t colWidth,
-					uint16_t  dbRoot,
+					DBROOTS_struct&  dbRoot,
                     execplan::erydbSystemCatalog::ColDataType colDataType,
                     uint32_t& partitionNum,
 					uint16_t& segmentNum,
 					uint32_t& startBlockOffset);
 	LBID_t _createColumnExtentExactFile(uint32_t size, int OID,
 					uint32_t  colWidth,
-					uint16_t  dbRoot,
+					DBROOTS_struct&  dbRoot,
 					uint32_t  partitionNum,
 					uint16_t  segmentNum,
                     execplan::erydbSystemCatalog::ColDataType colDataType,
 					uint32_t& startBlockOffset);
 	LBID_t _createDictStoreExtent(uint32_t size, int OID,
-					uint16_t  dbRoot,
+					DBROOTS_struct&  dbRoot,
 					uint32_t  partitionNum,
 					uint16_t  segmentNum);
 	bool isValidCPRange(int64_t max, int64_t min, execplan::erydbSystemCatalog::ColDataType type) const;

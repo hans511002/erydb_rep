@@ -191,8 +191,7 @@ namespace BRM {
     }
 
     // @bug 1055+.  New functions added for multiple files per OID enhancement.
-    int DBRM::lookupLocal(LBID_t lbid, VER_t verid, bool vbFlag, OID_t& oid,
-        DBROOTS_struct& dbRoot, uint32_t& partitionNum, uint16_t& segmentNum, uint32_t& fileBlockOffset) throw() {
+    int DBRM::lookupLocal(LBID_t lbid, VER_t verid, bool vbFlag, OID_t& oid, DBROOTS_struct& dbRoot, uint32_t& partitionNum, uint16_t& segmentNum, uint32_t& fileBlockOffset) throw() {
 #ifdef BRM_INFO
         if (fDebug) {
             TRACER_WRITELATER("lookupLocal(lbid,ver,..)");
@@ -253,7 +252,6 @@ namespace BRM {
             TRACER_ADDOUTPUT(lbid);
             TRACER_WRITE;
         }
-
 #endif
         try {
             return em->lookupLocal(oid, partitionNum, segmentNum, fileBlockOffset, lbid);
@@ -263,8 +261,7 @@ namespace BRM {
         }
     }
 
-    int DBRM::lookupLocal_DBroot(OID_t oid, uint32_t dbroot, uint32_t partitionNum, uint16_t segmentNum,
-        uint32_t fileBlockOffset, LBID_t& lbid) throw() {
+    int DBRM::lookupLocal_DBroot(OID_t oid, DBROOTS_struct& dbroot, uint32_t partitionNum, uint16_t segmentNum, uint32_t fileBlockOffset, LBID_t& lbid) throw() {
 #ifdef BRM_INFO
         if (fDebug) {
             TRACER_WRITELATER("lookupLocal(oid,fbo,..)");
@@ -275,7 +272,6 @@ namespace BRM {
             TRACER_ADDOUTPUT(lbid);
             TRACER_WRITE;
         }
-
 #endif
         try {
             return em->lookupLocal_DBroot(oid, dbroot, partitionNum, segmentNum, fileBlockOffset, lbid);
@@ -291,11 +287,7 @@ namespace BRM {
     // Lookup/return starting LBID for the specified OID, partition, segment, and
     // file block offset.
     //------------------------------------------------------------------------------
-    int DBRM::lookupLocalStartLbid(OID_t    oid,
-        uint32_t partitionNum,
-        uint16_t segmentNum,
-        uint32_t fileBlockOffset,
-        LBID_t&  lbid) throw() {
+    int DBRM::lookupLocalStartLbid(OID_t oid,uint32_t partitionNum,uint16_t segmentNum,uint32_t fileBlockOffset,LBID_t&  lbid) throw() {
 #ifdef BRM_INFO
         if (fDebug) {
             TRACER_WRITELATER("lookupLocalStartLbid(oid,fbo,..)");
@@ -335,8 +327,7 @@ namespace BRM {
     }
 
     // Casual Partitioning support
-    int DBRM::markExtentInvalid(const LBID_t lbid,
-        execplan::erydbSystemCatalog::ColDataType colDataType) DBRM_THROW {
+    int DBRM::markExtentInvalid(const LBID_t lbid,execplan::erydbSystemCatalog::ColDataType colDataType) DBRM_THROW {
 #ifdef BRM_INFO
         if (fDebug) {
             TRACER_WRITELATER("markExtentInvalid");
@@ -361,8 +352,7 @@ namespace BRM {
         return err;
     }
 
-    int DBRM::markExtentsInvalid(const vector<LBID_t> &lbids,
-        const std::vector<execplan::erydbSystemCatalog::ColDataType>& colDataTypes) DBRM_THROW {
+    int DBRM::markExtentsInvalid(const vector<LBID_t> &lbids,const std::vector<execplan::erydbSystemCatalog::ColDataType>& colDataTypes) DBRM_THROW {
 #ifdef BRM_INFO
         if (fDebug) TRACER_WRITENOW("markExtentsInvalid");
 #endif	
@@ -399,7 +389,6 @@ namespace BRM {
         }
 
 #endif
-
         try {
             int ret = em->getMaxMin(lbid, max, min, seqNum);
             return ret;
@@ -521,8 +510,7 @@ namespace BRM {
         return err;
     }
 
-    int DBRM::vssLookup(LBID_t lbid, const QueryContext &verInfo, VER_t txnID, VER_t *outVer,
-        bool *vbFlag, bool vbOnly) throw() {
+    int DBRM::vssLookup(LBID_t lbid, const QueryContext &verInfo, VER_t txnID, VER_t *outVer,bool *vbFlag, bool vbOnly) throw() {
 #ifdef BRM_INFO
         if (fDebug) {
             TRACER_WRITELATER("vssLookup");
@@ -557,8 +545,7 @@ namespace BRM {
         }
     }
 
-    int DBRM::bulkVSSLookup(const std::vector<LBID_t> &lbids, const QueryContext_vss &verInfo,
-        VER_t txnID, std::vector<VSSData> *out) {
+    int DBRM::bulkVSSLookup(const std::vector<LBID_t> &lbids, const QueryContext_vss &verInfo,VER_t txnID, std::vector<VSSData> *out) {
         uint32_t i;
         bool locked = false;
         try {
@@ -610,8 +597,7 @@ namespace BRM {
         return ret;
     }
 
-    int DBRM::bulkGetCurrentVersion(const vector<LBID_t> &lbids, vector<VER_t> *versions,
-        vector<bool> *isLocked) const {
+    int DBRM::bulkGetCurrentVersion(const vector<LBID_t> &lbids, vector<VER_t> *versions, vector<bool> *isLocked) const {
         bool locked = false;
 
         versions->resize(lbids.size());
@@ -740,12 +726,7 @@ namespace BRM {
     // Send a request to create a "stripe" of column extents for the specified
     // column OIDs and DBRoot.
     //------------------------------------------------------------------------------
-    int DBRM::createStripeColumnExtents(
-        const std::vector<CreateStripeColumnExtentsArgIn>& cols,
-        DBROOTS_struct&  dbRoot,
-        uint32_t& partitionNum,
-        uint16_t& segmentNum,
-        std::vector<CreateStripeColumnExtentsArgOut>& extents) DBRM_THROW {
+    int DBRM::createStripeColumnExtents(const std::vector<CreateStripeColumnExtentsArgIn>& cols,DBROOTS_struct&  dbRoot,uint32_t& partitionNum,uint16_t& segmentNum,std::vector<CreateStripeColumnExtentsArgOut>& extents) DBRM_THROW {
 #ifdef BRM_INFO
         if (fDebug) {
             TRACER_WRITELATER("createStripeColumnExtents");
@@ -791,12 +772,7 @@ namespace BRM {
     //------------------------------------------------------------------------------
     // Send a request to create a column extent for the specified OID and DBRoot.
     //------------------------------------------------------------------------------
-    int DBRM::createColumnExtent_DBroot(OID_t oid,
-        uint32_t  colWidth,
-        DBROOTS_struct&  dbRoot,
-        uint32_t& partitionNum,
-        uint16_t& segmentNum,
-        execplan::erydbSystemCatalog::ColDataType colDataType,
+    int DBRM::createColumnExtent_DBroot(OID_t oid,uint32_t  colWidth,DBROOTS_struct&  dbRoot,uint32_t& partitionNum,uint16_t& segmentNum,execplan::erydbSystemCatalog::ColDataType colDataType,
         LBID_t&    lbid,
         int&       allocdSize,
         uint32_t& startBlockOffset) DBRM_THROW {
@@ -859,12 +835,7 @@ namespace BRM {
     // Send a request to create a column extent for the exact segment file
     // specified by the requested OID, DBRoot, partition, and segment.
     //------------------------------------------------------------------------------
-    int DBRM::createColumnExtentExactFile(OID_t oid,
-        uint32_t  colWidth,
-        DBROOTS_struct&  dbRoot,
-        uint32_t partitionNum,
-        uint16_t segmentNum,
-        execplan::erydbSystemCatalog::ColDataType colDataType,
+    int DBRM::createColumnExtentExactFile(OID_t oid,uint32_t  colWidth,DBROOTS_struct&  dbRoot,uint32_t partitionNum,uint16_t segmentNum,execplan::erydbSystemCatalog::ColDataType colDataType,
         LBID_t&    lbid,
         int&       allocdSize,
         uint32_t& startBlockOffset) DBRM_THROW {
@@ -927,12 +898,7 @@ namespace BRM {
     //------------------------------------------------------------------------------
     // Send a request to create a dictionary store extent.
     //------------------------------------------------------------------------------
-    int DBRM::createDictStoreExtent(OID_t oid,
-        DBROOTS_struct&  dbRoot,
-        uint32_t  partitionNum,
-        uint16_t  segmentNum,
-        LBID_t&    lbid,
-        int&       allocdSize) DBRM_THROW {
+    int DBRM::createDictStoreExtent(OID_t oid,DBROOTS_struct&  dbRoot,uint32_t  partitionNum,uint16_t  segmentNum,LBID_t& lbid,int& allocdSize) DBRM_THROW {
 #ifdef BRM_INFO
         if (fDebug) {
             TRACER_WRITELATER("createDictStoreExtent");
@@ -983,12 +949,7 @@ namespace BRM {
     // DBRoot, and to return the extents to the free list.  HWMs for the last
     // stripe of extents in the specified DBRoot are updated accordingly.
     //------------------------------------------------------------------------------
-    int DBRM::rollbackColumnExtents_DBroot(OID_t oid,
-        bool       bDeleteAll,
-        DBROOTS_struct&  dbRoot,
-        uint32_t  partitionNum,
-        uint16_t  segmentNum,
-        HWM_t      hwm) DBRM_THROW {
+    int DBRM::rollbackColumnExtents_DBroot(OID_t oid,bool bDeleteAll,DBROOTS_struct&  dbRoot,uint32_t  partitionNum,uint16_t  segmentNum,HWM_t hwm) DBRM_THROW {
 #ifdef BRM_INFO
         if (fDebug) {
             TRACER_WRITELATER("rollbackColumnExtents");
@@ -1025,11 +986,7 @@ namespace BRM {
     // OID and DBRoot, and to return the extents to the free list.  HWMs for the
     // last stripe of extents are updated accordingly.
     //------------------------------------------------------------------------------
-    int DBRM::rollbackDictStoreExtents_DBroot(OID_t oid,
-        DBROOTS_struct&            dbRoot,
-        uint32_t            partitionNum,
-        const vector<uint16_t>& segNums,
-        const vector<HWM_t>& hwms) DBRM_THROW {
+    int DBRM::rollbackDictStoreExtents_DBroot(OID_t oid,DBROOTS_struct& dbRoot,uint32_t partitionNum,const vector<uint16_t>& segNums,const vector<HWM_t>& hwms) DBRM_THROW {
 #ifdef BRM_INFO
         if (fDebug) {
             TRACER_WRITELATER("rollbackDictStoreExtents");
@@ -1199,9 +1156,7 @@ namespace BRM {
     // If no available or outOfService extent is found, then bFound is returned
     // as false.
     //------------------------------------------------------------------------------
-    int DBRM::getLastHWM_DBroot(int oid, DBROOTS_struct& dbRoot, uint32_t& partitionNum,
-        uint16_t& segmentNum, HWM_t& hwm,
-        int& status, bool& bFound) throw() {
+    int DBRM::getLastHWM_DBroot(int oid, DBROOTS_struct& dbRoot, uint32_t& partitionNum,uint16_t& segmentNum, HWM_t& hwm,int& status, bool& bFound) throw() {
 #ifdef BRM_INFO
         if (fDebug) {
             TRACER_WRITELATER("getLastHWM_DBroot");
@@ -1216,8 +1171,7 @@ namespace BRM {
 #endif
 
         try {
-            hwm = em->getLastHWM_DBroot(oid, dbRoot, partitionNum, segmentNum,
-                status, bFound);
+            hwm = em->getLastHWM_DBroot(oid, dbRoot, partitionNum, segmentNum, status, bFound);
         } catch (exception& e) {
             return ERR_FAILURE;
         }
@@ -1230,8 +1184,7 @@ namespace BRM {
     // This is used to get the HWM for a particular dictionary segment store file,
     // or a specific column segment file.
     //------------------------------------------------------------------------------
-    int DBRM::getLocalHWM(OID_t oid, uint32_t partitionNum, uint16_t segmentNum,
-        HWM_t& hwm, int& status) throw() {
+    int DBRM::getLocalHWM(OID_t oid, uint32_t partitionNum, uint16_t segmentNum,HWM_t& hwm, int& status) throw() {
 #ifdef BRM_INFO
         if (fDebug) {
             TRACER_WRITELATER("getLocalHWM");
@@ -1258,8 +1211,7 @@ namespace BRM {
     // Set the local HWM for the file referenced by the specified OID, partition
     // number, and segment number.
     //------------------------------------------------------------------------------
-    int DBRM::setLocalHWM(OID_t oid, uint32_t partitionNum, uint16_t segmentNum,
-        HWM_t hwm) DBRM_THROW {
+    int DBRM::setLocalHWM(OID_t oid, uint32_t partitionNum, uint16_t segmentNum,HWM_t hwm) DBRM_THROW {
 #ifdef BRM_INFO
         if (fDebug) {
             TRACER_WRITELATER("setLocalHWM");
@@ -1313,8 +1265,7 @@ namespace BRM {
         return err;
     }
 
-    int DBRM::bulkSetHWMAndCP(const vector<BulkSetHWMArg> &v, const vector<CPInfo> &setCPDataArgs,
-        const vector<CPInfoMerge> &mergeCPDataArgs, VER_t transID) DBRM_THROW {
+    int DBRM::bulkSetHWMAndCP(const vector<BulkSetHWMArg> &v, const vector<CPInfo> &setCPDataArgs, const vector<CPInfoMerge> &mergeCPDataArgs, VER_t transID) DBRM_THROW {
 #ifdef BRM_INFO
         if (fDebug) {
             TRACER_WRITELATER("bulkSetHWMAndCP");
@@ -1373,8 +1324,7 @@ namespace BRM {
     // of objects carrying HWM info (for the last segment file) and block count
     // information about each DBRoot assigned to the specified PM.
     //------------------------------------------------------------------------------
-    int DBRM::getDbRootHWMInfo(OID_t oid, uint16_t pmNumber,
-        EmDbRootHWMInfo_v& emDBRootHwmInfos) throw() {
+    int DBRM::getDbRootHWMInfo(OID_t oid, uint16_t pmNumber, EmDbRootHWMInfo_v& emDBRootHwmInfos) throw() {
 #ifdef BRM_INFO
         if (fDebug) {
             TRACER_WRITELATER("getDbRootHWMInfo");
@@ -1398,8 +1348,7 @@ namespace BRM {
     // Return the status or state of the extents in the segment file specified
     // by the arguments: oid, partitionNum, and segment Num.
     //------------------------------------------------------------------------------
-    int DBRM::getExtentState(OID_t oid, uint32_t partitionNum,
-        uint16_t segmentNum, bool& bFound, int& status) throw() {
+    int DBRM::getExtentState(OID_t oid, uint32_t partitionNum, uint16_t segmentNum, bool& bFound, int& status) throw() {
 #ifdef BRM_INFO
         if (fDebug) {
             TRACER_WRITELATER("getExtentState");
@@ -1478,8 +1427,7 @@ namespace BRM {
     // Return the number of extents for the specified OID and DBRoot.
     // Any out-of-service extents can optionally be included or excluded.
     //------------------------------------------------------------------------------
-    int DBRM::getExtentCount_dbroot(int OID, uint16_t dbroot,
-        bool incOutOfService, uint64_t& numExtents) throw() {
+    int DBRM::getExtentCount_dbroot(int OID, uint16_t dbroot, bool incOutOfService, uint64_t& numExtents) throw() {
 #ifdef BRM_INFO
         if (fDebug) {
             TRACER_WRITELATER("getExtentCount_dbroot");
@@ -1525,8 +1473,7 @@ namespace BRM {
     //------------------------------------------------------------------------------
     // Delete all extents for the specified OID(s) and partition number.
     //------------------------------------------------------------------------------
-    int DBRM::deletePartition(const std::vector<OID_t>& oids,
-        const std::set<LogicalPartition>& partitionNums, string& emsg) DBRM_THROW {
+    int DBRM::deletePartition(const std::vector<OID_t>& oids, const std::set<LogicalPartition>& partitionNums, string& emsg) DBRM_THROW {
 #ifdef BRM_INFO
         if (fDebug) {
             TRACER_WRITENOW("deletePartition");
@@ -1571,8 +1518,7 @@ namespace BRM {
     // Mark all extents as out of service, for the specified OID(s) and partition
     // number.
     //------------------------------------------------------------------------------
-    int DBRM::markPartitionForDeletion(const std::vector<OID_t>& oids,
-        const std::set<LogicalPartition>& partitionNums, string& emsg) DBRM_THROW {
+    int DBRM::markPartitionForDeletion(const std::vector<OID_t>& oids, const std::set<LogicalPartition>& partitionNums, string& emsg) DBRM_THROW {
 #ifdef BRM_INFO
         if (fDebug) {
             TRACER_WRITENOW("markPartitionForDeletion");
@@ -1652,8 +1598,7 @@ namespace BRM {
     //------------------------------------------------------------------------------
     // Restore all extents for the specified OID(s) and partition number.
     //------------------------------------------------------------------------------
-    int DBRM::restorePartition(const std::vector<OID_t>& oids,
-        const std::set<LogicalPartition>& partitionNums, string& emsg) DBRM_THROW {
+    int DBRM::restorePartition(const std::vector<OID_t>& oids, const std::set<LogicalPartition>& partitionNums, string& emsg) DBRM_THROW {
 #ifdef BRM_INFO
         if (fDebug) {
             TRACER_WRITENOW("restorePartition");
@@ -1699,8 +1644,7 @@ namespace BRM {
     //------------------------------------------------------------------------------
     // Return all the out-of-service partitions for the specified OID.
     //------------------------------------------------------------------------------
-    int DBRM::getOutOfServicePartitions(OID_t oid,
-        std::set<LogicalPartition>& partitionNums) throw() {
+    int DBRM::getOutOfServicePartitions(OID_t oid, std::set<LogicalPartition>& partitionNums) throw() {
 #ifdef BRM_INFO
         if (fDebug) {
             TRACER_WRITELATER("getOutOfServicePartitions");
@@ -1753,8 +1697,7 @@ namespace BRM {
     // Does the specified DBRoot have any extents.
     // Returns an error if extentmap shared memory is not loaded.
     //------------------------------------------------------------------------------
-    int DBRM::isDBRootEmpty(uint16_t dbroot,
-        bool& isEmpty, std::string& errMsg) throw() {
+    int DBRM::isDBRootEmpty(uint16_t dbroot, bool& isEmpty, std::string& errMsg) throw() {
 #ifdef BRM_INFO
         if (fDebug) {
             TRACER_WRITELATER("isDBRootEmpty");
@@ -1974,8 +1917,7 @@ namespace BRM {
     }
 
 
-    int DBRM::beginVBCopy(VER_t transID, DBROOTS_struct& dbRoot, const LBIDRange_v& ranges,
-        VBRange_v& freeList) DBRM_THROW {
+    int DBRM::beginVBCopy(VER_t transID, DBROOTS_struct& dbRoot, const LBIDRange_v& ranges, VBRange_v& freeList) DBRM_THROW {
 #ifdef BRM_INFO
         if (fDebug) {
             TRACER_WRITELATER("beginVBCopy");

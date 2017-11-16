@@ -138,9 +138,7 @@ public:
 	EXPORT int lookupLocal(OID_t oid, uint32_t partitionNum, uint16_t segmentNum, uint32_t fileBlockOffset, LBID_t& lbid) throw();
 
 	/** @brief A dbroot-specific version of lookupLocal() */
-	EXPORT int lookupLocal_DBroot(OID_t oid, uint32_t dbroot,
-			uint32_t partitionNum, uint16_t segmentNum,
-			uint32_t fileBlockOffset, LBID_t& lbid) throw();
+	EXPORT int lookupLocal_DBroot(OID_t oid, DBROOTS_struct& dbroot,uint32_t partitionNum, uint16_t segmentNum,uint32_t fileBlockOffset, LBID_t& lbid) throw();
 	// @bug 1055-	
 
 	/** @brief Get the starting LBID assigned to the extent containing
@@ -514,8 +512,7 @@ public:
 	 * @param numExtents (out) number of extents found for OID and dbroot
 	 * @return 0 on success, non-0 on error (see brmtypes.h)
 	 */
-	EXPORT int getExtentCount_dbroot(int OID, uint16_t dbroot,
-		bool incOutOfService, uint64_t& numExtents) throw();
+	EXPORT int getExtentCount_dbroot(int OID, uint16_t dbroot, bool incOutOfService, uint64_t& numExtents) throw();
 
 	/** @brief Gets the number of rows in an extent
 	 * 
@@ -592,8 +589,7 @@ public:
 	 * @param errMsg  (output) Error message corresponding to bad return code
 	 * @return ERR_OK on success
 	 */
-	EXPORT int isDBRootEmpty(uint16_t dbroot,
-		bool& isEmpty, std::string& errMsg) throw();
+	EXPORT int isDBRootEmpty(uint16_t dbroot, bool& isEmpty, std::string& errMsg) throw();
 
 	/** @brief Registers a version buffer entry.
 	 *

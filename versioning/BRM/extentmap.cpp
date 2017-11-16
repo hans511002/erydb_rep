@@ -175,6 +175,16 @@ bool operator==( const BRM::DBROOTS_struct &a , const BRM::DBROOTS_struct &b){
     }
     return true;
 };
+std::ostream & operator<<(std::ostream &os, const DBROOTS_struct & dbRoots){
+    os << "dbRoots:"  ;
+    for (int n=0; n<MAX_DATA_REPLICATESIZE; n++){
+        if(n>0){
+            os << ",";
+        }
+        os <<  dbRoots.dbRoots[n]  ;
+    }
+	return os;
+};
 
 DBROOTS_struct& DBROOTS_struct::set(const DBROOTS_struct& e) {
     memcpy(&dbRoots, &e.dbRoots, sizeof(DBROOTS_struct));
@@ -207,7 +217,7 @@ void DBROOTS_struct::serialize(messageqcpp::ByteStream &bs) const{
     }
 };
 
-void DBROOTS_struct::deserialize(messageqcpp::ByteStream &bs) const{
+void DBROOTS_struct::deserialize(messageqcpp::ByteStream &bs) {
     for (int n=0; n<MAX_DATA_REPLICATESIZE; n++){
         bs>>dbRoots[n];
     }
@@ -277,7 +287,6 @@ ExtentMapImpl* ExtentMapImpl::fInstance=0;
 ExtentMapImpl* ExtentMapImpl::makeExtentMapImpl(unsigned key, off_t size, bool readOnly)
 {
 	boost::mutex::scoped_lock lk(fInstanceMutex);
-
 	if (fInstance)
 	{
 		if (key != fInstance->fExtMap.key())
@@ -288,14 +297,11 @@ ExtentMapImpl* ExtentMapImpl::makeExtentMapImpl(unsigned key, off_t size, bool r
 		ASSERT(key == fInstance->fExtMap.key());
 		return fInstance;
 	}
-
 	fInstance = new ExtentMapImpl(key, size, readOnly);
-
 	return fInstance;
 }
 
-ExtentMapImpl::ExtentMapImpl(unsigned key, off_t size, bool readOnly) :
-	fExtMap(key, size, readOnly)
+ExtentMapImpl::ExtentMapImpl(unsigned key, off_t size, bool readOnly) : fExtMap(key, size, readOnly)
 {
 }
 
@@ -309,9 +315,7 @@ FreeListImpl* FreeListImpl::fInstance=0;
 FreeListImpl* FreeListImpl::makeFreeListImpl(unsigned key, off_t size, bool readOnly)
 {
 	boost::mutex::scoped_lock lk(fInstanceMutex);
-
-	if (fInstance)
-	{
+	if (fInstance){
 		if (key != fInstance->fFreeList.key())
 		{
 			BRMShmImpl newShm(key, 0);
@@ -320,14 +324,11 @@ FreeListImpl* FreeListImpl::makeFreeListImpl(unsigned key, off_t size, bool read
 		ASSERT(key == fInstance->fFreeList.key());
 		return fInstance;
 	}
-
 	fInstance = new FreeListImpl(key, size, readOnly);
-
 	return fInstance;
 }
 
-FreeListImpl::FreeListImpl(unsigned key, off_t size, bool readOnly) :
-	fFreeList(key, size, readOnly)
+FreeListImpl::FreeListImpl(unsigned key, off_t size, bool readOnly) : fFreeList(key, size, readOnly)
 {
 }
 
@@ -417,8 +418,7 @@ int ExtentMap::_markInvalid(const LBID_t lbid, const execplan::erydbSystemCatalo
 	throw logic_error("ExtentMap::markInvalid(): lbid isn't allocated");
 }
 
-int ExtentMap::markInvalid(const LBID_t lbid, 
-                           const execplan::erydbSystemCatalog::ColDataType colDataType)
+int ExtentMap::markInvalid(const LBID_t lbid, const execplan::erydbSystemCatalog::ColDataType colDataType)
 {
 #ifdef BRM_DEBUG
 	if (lbid < 0)
@@ -448,8 +448,7 @@ int ExtentMap::markInvalid(const LBID_t lbid,
 *
 **/
 
-int ExtentMap::markInvalid(const vector<LBID_t>& lbids,
-                           const vector<execplan::erydbSystemCatalog::ColDataType>& colDataTypes)
+int ExtentMap::markInvalid(const vector<LBID_t>& lbids, const vector<execplan::erydbSystemCatalog::ColDataType>& colDataTypes)
 {
 	uint32_t i, size = lbids.size();
 
@@ -499,11 +498,7 @@ int ExtentMap::markInvalid(const vector<LBID_t>& lbids,
 
 **/
 
-int ExtentMap::setMaxMin(const LBID_t lbid,
-							const int64_t max,
-							const int64_t min, 
-							const int32_t seqNum,
-							bool firstNode)
+int ExtentMap::setMaxMin(const LBID_t lbid, const int64_t max, const int64_t min, const int32_t seqNum, bool firstNode)
 {
 #ifdef BRM_INFO
 	if (fDebug)
@@ -1872,12 +1867,12 @@ int ExtentMap::lookupLocal(int OID, uint32_t partitionNum, uint16_t segmentNum, 
         return -1;
 }
 
-int ExtentMap::lookupLocal_DBroot(int OID, uint16_t dbroot, uint32_t partitionNum, uint16_t segmentNum, uint32_t fileBlockOffset, LBID_t& LBID)
+int ExtentMap::lookupLocal_DBroot(int OID, DBROOTS_struct& dbroot, uint32_t partitionNum, uint16_t segmentNum, uint32_t fileBlockOffset, LBID_t& LBID)
 {
 #ifdef BRM_INFO
 	if (fDebug)
 	{
-		TRACER_WRITELATER("lookupLocal");
+		TRACER_WRITELATER("lookupLocal_DBroot");
 		TRACER_ADDINPUT(OID);
 		TRACER_ADDINPUT(partitionNum);
 		TRACER_ADDSHORTINPUT(segmentNum);
@@ -1897,7 +1892,7 @@ int ExtentMap::lookupLocal_DBroot(int OID, uint16_t dbroot, uint32_t partitionNu
 	entries = fEMShminfo->allocdSize/sizeof(struct EMEntry);
 	for (i = 0; i < entries; i++) {
 		// TODO:  Blockoffset logic.
-		if (fExtentMap[i].range.size != 0 && fExtentMap[i].fileID == OID && fExtentMap[i].dbRoots[0] == dbroot &&
+		if (fExtentMap[i].range.size != 0 && fExtentMap[i].fileID == OID && fExtentMap[i].dbRoots == dbroot &&
 				fExtentMap[i].partitionNum == partitionNum && fExtentMap[i].segmentNum == segmentNum && fExtentMap[i].blockOffset <= fileBlockOffset && 
 				fileBlockOffset <= (fExtentMap[i].blockOffset +(static_cast<LBID_t>(fExtentMap[i].range.size) * 1024) - 1))
 		{
@@ -1976,12 +1971,7 @@ int ExtentMap::lookupLocalStartLbid(int OID,uint32_t partitionNum,uint16_t segme
 //   segmentNum   - Segment number for new exents
 //   extents      - starting Lbid, numBlocks, and FBO for new extents
 //------------------------------------------------------------------------------
-void ExtentMap::createStripeColumnExtents(
-	const vector<CreateStripeColumnExtentsArgIn>& cols,
-	uint16_t  dbRoot,
-	uint32_t& partitionNum,
-	uint16_t& segmentNum,
-    vector<CreateStripeColumnExtentsArgOut>& extents)
+void ExtentMap::createStripeColumnExtents(const vector<CreateStripeColumnExtentsArgIn>& cols,DBROOTS_struct&  dbRoot,uint32_t& partitionNum,uint16_t& segmentNum,vector<CreateStripeColumnExtentsArgOut>& extents)
 {
 	LBID_t    startLbid;
 	int       allocSize;
@@ -1995,17 +1985,7 @@ void ExtentMap::createStripeColumnExtents(
 	uint32_t baselinePartNum=-1;
 
 	for (uint32_t i = 0; i < cols.size(); i++) {
-		createColumnExtent_DBroot(
-			cols[i].oid, 
-			cols[i].width,
-			dbRoot,
-            cols[i].colDataType,
-			partitionNum,
-			segmentNum,
-			startLbid,
-			allocSize,
-			startBlkOffset,
-			false);
+		createColumnExtent_DBroot(cols[i].oid, cols[i].width,dbRoot,cols[i].colDataType,partitionNum,segmentNum,startLbid,allocSize,startBlkOffset,false);
 		if (i == 0) {
 			baselineOID        = cols[i].oid;
 			baselineSegmentNum = segmentNum;
@@ -2056,16 +2036,8 @@ void ExtentMap::createStripeColumnExtents(
 //   allocdsize   - number of LBIDs allocated 
 //   startBlockOffset-starting block of the created extent
 //------------------------------------------------------------------------------
-void ExtentMap::createColumnExtent_DBroot(int OID,
-	uint32_t  colWidth,
-	uint16_t  dbRoot,
-    execplan::erydbSystemCatalog::ColDataType colDataType,
-	uint32_t& partitionNum,
-	uint16_t& segmentNum,
-	LBID_t&    lbid,
-	int&       allocdsize,
-	uint32_t& startBlockOffset,
-	bool       useLock) // defaults to true
+void ExtentMap::createColumnExtent_DBroot(int OID,uint32_t  colWidth,DBROOTS_struct&  dbRoot,execplan::erydbSystemCatalog::ColDataType colDataType,	uint32_t& partitionNum,
+	uint16_t& segmentNum, LBID_t& lbid,int& allocdsize,uint32_t& startBlockOffset,bool useLock) // defaults to true
 {
 #ifdef BRM_INFO
 	if (fDebug)
@@ -2110,8 +2082,7 @@ void ExtentMap::createColumnExtent_DBroot(int OID,
 //      size=3 --> 3072 blocks, etc.
 	uint32_t size = EXTENT_SIZE/1024;
 
-	lbid = _createColumnExtent_DBroot(size, OID, colWidth,
-		dbRoot, colDataType, partitionNum, segmentNum, startBlockOffset);
+	lbid = _createColumnExtent_DBroot(size, OID, colWidth, dbRoot, colDataType, partitionNum, segmentNum, startBlockOffset);
 
 	allocdsize = EXTENT_SIZE;
 }
@@ -2138,7 +2109,7 @@ void ExtentMap::createColumnExtent_DBroot(int OID,
 //------------------------------------------------------------------------------
 LBID_t ExtentMap::_createColumnExtent_DBroot(uint32_t size, int OID,
 	uint32_t  colWidth,
-	uint16_t  dbRoot,
+	DBROOTS_struct&  dbRoot,
     execplan::erydbSystemCatalog::ColDataType colDataType,
 	uint32_t& partitionNum,
 	uint16_t& segmentNum,
@@ -2536,15 +2507,7 @@ LBID_t ExtentMap::_createColumnExtent_DBroot(uint32_t size, int OID,
 //   allocdsize   - number of LBIDs allocated 
 //   startBlockOffset-starting block of the created extent
 //------------------------------------------------------------------------------
-void ExtentMap::createColumnExtentExactFile(int OID,
-	uint32_t  colWidth,
-	uint16_t  dbRoot,
-	uint32_t partitionNum,
-	uint16_t segmentNum,
-    execplan::erydbSystemCatalog::ColDataType colDataType,
-	LBID_t&    lbid,
-	int&       allocdsize,
-	uint32_t& startBlockOffset)
+void ExtentMap::createColumnExtentExactFile(int OID,uint32_t  colWidth,DBROOTS_struct&  dbRoot,uint32_t partitionNum,uint16_t segmentNum,execplan::erydbSystemCatalog::ColDataType colDataType,LBID_t& lbid,int& allocdsize,uint32_t& startBlockOffset)
 {
 #ifdef BRM_INFO
 	if (fDebug)
@@ -2586,8 +2549,7 @@ void ExtentMap::createColumnExtentExactFile(int OID,
 //      size=3 --> 3072 blocks, etc.
 	uint32_t size = EXTENT_SIZE/1024;
 
-	lbid = _createColumnExtentExactFile(size, OID, colWidth,
-		dbRoot, partitionNum, segmentNum, colDataType, startBlockOffset);
+	lbid = _createColumnExtentExactFile(size, OID, colWidth, dbRoot, partitionNum, segmentNum, colDataType, startBlockOffset);
 
 	allocdsize = EXTENT_SIZE;
 }
@@ -2610,13 +2572,7 @@ void ExtentMap::createColumnExtentExactFile(int OID,
 //   startBlockOffset-starting block of the created extent
 // returns starting LBID of the created extent.
 //------------------------------------------------------------------------------
-LBID_t ExtentMap::_createColumnExtentExactFile(uint32_t size, int OID,
-	uint32_t  colWidth,
-	uint16_t  dbRoot,
-	uint32_t  partitionNum,
-	uint16_t  segmentNum,
-    execplan::erydbSystemCatalog::ColDataType colDataType,
-    uint32_t& startBlockOffset)
+LBID_t ExtentMap::_createColumnExtentExactFile(uint32_t size, int OID,uint32_t  colWidth,DBROOTS_struct&  dbRoot,uint32_t  partitionNum,uint16_t segmentNum,execplan::erydbSystemCatalog::ColDataType colDataType,uint32_t& startBlockOffset)
 {
 	int emptyEMEntry        = -1;
 	int lastExtentIndex     = -1;
@@ -2630,7 +2586,7 @@ LBID_t ExtentMap::_createColumnExtentExactFile(uint32_t size, int OID,
 	for (int i = 0; i < emEntries; i++) {
 		if (fExtentMap[i].range.size != 0) {
 			if (fExtentMap[i].fileID == OID) {
-				if ((fExtentMap[i].dbRoots[0] == dbRoot) && (fExtentMap[i].partitionNum == partitionNum) && (fExtentMap[i].segmentNum   == segmentNum) && (fExtentMap[i].blockOffset  >= highestOffset)) {
+				if ((fExtentMap[i].dbRoots[0] == dbRoot[0]) && (fExtentMap[i].partitionNum == partitionNum) && (fExtentMap[i].segmentNum == segmentNum) && (fExtentMap[i].blockOffset  >= highestOffset)) {
 					lastExtentIndex = i;
 					highestOffset = fExtentMap[i].blockOffset;
 				}
@@ -2670,7 +2626,7 @@ LBID_t ExtentMap::_createColumnExtentExactFile(uint32_t size, int OID,
 
 	e->colWid       = colWidth;
 
-	e->dbRoots[0]       = dbRoot;
+	e->dbRoots       = dbRoot;
 	e->partitionNum = partitionNum;
 	e->segmentNum   = segmentNum;
 	e->status       = EXTENTUNAVAILABLE; // mark extent as in process
@@ -2685,9 +2641,7 @@ LBID_t ExtentMap::_createColumnExtentExactFile(uint32_t size, int OID,
 	}
 	else
 	{
-		e->blockOffset  = static_cast<uint64_t>
-			(fExtentMap[lastExtentIndex].range.size) * 1024 +
-				fExtentMap[lastExtentIndex].blockOffset;
+		e->blockOffset  = static_cast<uint64_t>(fExtentMap[lastExtentIndex].range.size) * 1024 + fExtentMap[lastExtentIndex].blockOffset;
 		e->HWM          = 0;
 	}
 
@@ -2724,12 +2678,7 @@ LBID_t ExtentMap::_createColumnExtentExactFile(uint32_t size, int OID,
 //   lbid         - starting LBID of the created extent
 //   allocdsize   - number LBIDs of allocated 
 //------------------------------------------------------------------------------
-void ExtentMap::createDictStoreExtent(int OID,
-	uint16_t  dbRoot,
-	uint32_t  partitionNum,
-	uint16_t  segmentNum,
- 	LBID_t&    lbid,
-	int&       allocdsize)
+void ExtentMap::createDictStoreExtent(int OID, DBROOTS_struct& dbRoot,	uint32_t partitionNum,	uint16_t segmentNum, LBID_t& lbid,int& allocdsize)
 {
 #ifdef BRM_INFO
 	if (fDebug)
@@ -2770,8 +2719,7 @@ void ExtentMap::createDictStoreExtent(int OID,
 //      size=3 --> 3072 blocks, etc.
 	uint32_t size = EXTENT_SIZE/1024;
 
-	lbid = _createDictStoreExtent(size, OID,
-		dbRoot, partitionNum, segmentNum);
+	lbid = _createDictStoreExtent(size, OID, dbRoot, partitionNum, segmentNum);
 
 	allocdsize = EXTENT_SIZE;
 }
@@ -2790,10 +2738,7 @@ void ExtentMap::createDictStoreExtent(int OID,
 //   segmentNum   - segment number to be assigned to the new extent
 // returns starting LBID of the created extent.
 //------------------------------------------------------------------------------
-LBID_t ExtentMap::_createDictStoreExtent(uint32_t size, int OID,
-	uint16_t  dbRoot,
-	uint32_t  partitionNum,
-	uint16_t  segmentNum)
+LBID_t ExtentMap::_createDictStoreExtent(uint32_t size, int OID, DBROOTS_struct&  dbRoot, uint32_t  partitionNum, uint16_t  segmentNum)
 {
 	int emptyEMEntry        = -1;
 	int lastExtentIndex     = -1;
@@ -2988,15 +2933,9 @@ void ExtentMap::printFL() const {
 //   segmentNum   - segment number of the last logical extent to be retained
 //   hwm          - HWM to be assigned to the last logical extent retained
 //------------------------------------------------------------------------------
-void ExtentMap::rollbackColumnExtents_DBroot ( int oid,
-	bool      bDeleteAll,
-	uint16_t dbRoot,
-	uint32_t partitionNum,
-	uint16_t segmentNum,
-	HWM_t     hwm)
+void ExtentMap::rollbackColumnExtents_DBroot ( int oid,	bool bDeleteAll,DBROOTS_struct& dbRoot,uint32_t partitionNum,uint16_t segmentNum,HWM_t hwm)
 {
 	//bool oidExists = false;
-
 #ifdef BRM_INFO
 	if (fDebug)
 	{
@@ -3162,14 +3101,9 @@ void ExtentMap::rollbackColumnExtents_DBroot ( int oid,
 //                  hwms[0] applies to segment store file segNums[0];
 //                  hwms[1] applies to segment store file segNums[1]; etc.
 //------------------------------------------------------------------------------
-void ExtentMap::rollbackDictStoreExtents_DBroot ( int oid,
-	uint16_t            dbRoot,
-	uint32_t            partitionNum,
-	const vector<uint16_t>& segNums,
-	const vector<HWM_t>& hwms)
+void ExtentMap::rollbackDictStoreExtents_DBroot ( int oid,DBROOTS_struct& dbRoot,uint32_t partitionNum,const vector<uint16_t>& segNums,const vector<HWM_t>& hwms)
 {
 	//bool oidExists = false;
-
 #ifdef BRM_INFO
 	if (fDebug)
 	{
@@ -3736,8 +3670,7 @@ void ExtentMap::deleteExtent(int emIndex)
 // If no available or outOfService extent is found, then bFound is returned
 // as false.
 //------------------------------------------------------------------------------
-HWM_t ExtentMap::getLastHWM_DBroot(int OID, uint16_t dbRoot,
-   uint32_t& partitionNum, uint16_t& segmentNum, int& status, bool& bFound)
+HWM_t ExtentMap::getLastHWM_DBroot(int OID, DBROOTS_struct& dbRoot, uint32_t& partitionNum, uint16_t& segmentNum, int& status, bool& bFound)
 {
 #ifdef BRM_INFO
 	if (fDebug)
@@ -3774,7 +3707,7 @@ HWM_t ExtentMap::getLastHWM_DBroot(int OID, uint16_t dbRoot,
 	// will be less.
 	int emEntries = fEMShminfo->allocdSize/sizeof(struct EMEntry);
 	for (int i = emEntries-1; i >= 0; i--) {
-		if ((fExtentMap[i].range.size != 0) && (fExtentMap[i].fileID == OID) && (fExtentMap[i].dbRoots[0] == dbRoot) &&
+		if ((fExtentMap[i].range.size != 0) && (fExtentMap[i].fileID == OID) && (fExtentMap[i].dbRoots == dbRoot) &&
 			((fExtentMap[i].status == EXTENTAVAILABLE) || (fExtentMap[i].status == EXTENTOUTOFSERVICE))) {
 			if ( (fExtentMap[i].partitionNum >  partitionNum) || ((fExtentMap[i].partitionNum == partitionNum) &&
 				 (fExtentMap[i].blockOffset  >  lastExtent))  || ((fExtentMap[i].partitionNum == partitionNum) &&
@@ -3805,8 +3738,7 @@ HWM_t ExtentMap::getLastHWM_DBroot(int OID, uint16_t dbRoot,
 // of objects carrying HWM info (for the last segment file) and block count 
 // information about each DBRoot assigned to the specified PM.
 //------------------------------------------------------------------------------
-void ExtentMap::getDbRootHWMInfo(int OID, uint16_t pmNumber,
-	EmDbRootHWMInfo_v& emDbRootHwmInfos)
+void ExtentMap::getDbRootHWMInfo(int OID, uint16_t pmNumber, EmDbRootHWMInfo_v& emDbRootHwmInfos)
 {
 #ifdef BRM_INFO
 	if (fDebug)
@@ -3945,8 +3877,7 @@ void ExtentMap::getDbRootHWMInfo(int OID, uint16_t pmNumber,
 // The value returned in the "status" variable is based on the first extent
 // found, since all the extents in a segment file should have the same state.
 //------------------------------------------------------------------------------
-void ExtentMap::getExtentState(int OID, uint32_t partitionNum,
-	uint16_t segmentNum, bool& bFound, int& status)
+void ExtentMap::getExtentState(int OID, uint32_t partitionNum, uint16_t segmentNum, bool& bFound, int& status)
 {
 #ifdef BRM_INFO
 	if (fDebug)
@@ -3991,8 +3922,7 @@ void ExtentMap::getExtentState(int OID, uint32_t partitionNum,
 // Returns the HWM for the specified OID, partition, and segment numbers.
 // Used to get the HWM for a specific column or dictionary store segment file.
 //------------------------------------------------------------------------------
-HWM_t ExtentMap::getLocalHWM(int OID, uint32_t partitionNum,
-   uint16_t segmentNum, int& status)
+HWM_t ExtentMap::getLocalHWM(int OID, uint32_t partitionNum, uint16_t segmentNum, int& status)
 {
 #ifdef BRM_INFO
 	if (fDebug)
@@ -4063,8 +3993,7 @@ HWM_t ExtentMap::getLocalHWM(int OID, uint32_t partitionNum,
 // (per segment file).
 // Used for dictionary or column OIDs to set the HWM for specific segment file.
 //------------------------------------------------------------------------------
-void ExtentMap::setLocalHWM(int OID, uint32_t partitionNum,
-	uint16_t segmentNum, HWM_t newHWM, bool firstNode, bool uselock)
+void ExtentMap::setLocalHWM(int OID, uint32_t partitionNum, uint16_t segmentNum, HWM_t newHWM, bool firstNode, bool uselock)
 {
 #ifdef BRM_INFO
 	if (fDebug)
@@ -4308,8 +4237,7 @@ void ExtentMap::getExtents_dbroot(int OID, vector<struct EMEntry>& entries, cons
 // OutOfService extents are included/excluded depending on the
 // value of the incOutOfService flag.
 //------------------------------------------------------------------------------
-void ExtentMap::getExtentCount_dbroot(int OID, uint16_t dbroot,
-	bool incOutOfService, uint64_t& numExtents)
+void ExtentMap::getExtentCount_dbroot(int OID, uint16_t dbroot, bool incOutOfService, uint64_t& numExtents)
 {
 	int i, emEntries;
 
@@ -4386,8 +4314,7 @@ void ExtentMap::getSysCatDBRoot(OID_t oid, DBROOTS_struct& dbRoot)
 // @bug 5237 - Removed restriction that prevented deletion of segment files in
 //             the last partition (for a DBRoot).
 //------------------------------------------------------------------------------
-void ExtentMap::deletePartition(const set<OID_t>& oids,
-	const set<LogicalPartition>& partitionNums, string& emsg)
+void ExtentMap::deletePartition(const set<OID_t>& oids, const set<LogicalPartition>& partitionNums, string& emsg)
 {
 #ifdef BRM_INFO
 	if (fDebug)
@@ -4478,8 +4405,7 @@ void ExtentMap::deletePartition(const set<OID_t>& oids,
 // @bug 5237 - Removed restriction that prevented deletion of segment files in
 //             the last partition (for a DBRoot).
 //------------------------------------------------------------------------------
-void ExtentMap::markPartitionForDeletion(const set<OID_t>& oids,
-	const set<LogicalPartition>& partitionNums, string& emsg)
+void ExtentMap::markPartitionForDeletion(const set<OID_t>& oids, const set<LogicalPartition>& partitionNums, string& emsg)
 {
 #ifdef BRM_INFO
 	if (fDebug)
@@ -4620,8 +4546,7 @@ void ExtentMap::markAllPartitionForDeletion(const set<OID_t>& oids)
 //------------------------------------------------------------------------------
 // Restore all extents for the specified OID(s) and partition number.
 //------------------------------------------------------------------------------
-void ExtentMap::restorePartition(const set<OID_t>& oids,
-  const set<LogicalPartition>& partitionNums, string& emsg)
+void ExtentMap::restorePartition(const set<OID_t>& oids, const set<LogicalPartition>& partitionNums, string& emsg)
 {
 #ifdef BRM_INFO
 	if (fDebug)
