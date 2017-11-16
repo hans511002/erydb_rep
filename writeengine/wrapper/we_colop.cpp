@@ -721,13 +721,12 @@ int ColumnOp::fillColumn(const TxnID& txnid, Column& column, Column& refCol, voi
 				for (k = 0; k < fileExtents.size(); k++)
 				{
 					// uint16_t dbroot = rootList[i];
-					//DBROOTS_struct dbroot=
+					DBROOTS_struct dbroot=fileExtents[k].dbRoots;
 					partition = fileExtents[k].partitionNum;
 					segment = fileExtents[k].segmentNum;
 					if ( k == 0)
 					{
-						rc =  addExtent(column, dbroot, partition, segment,
-                         segFile, startLbid, newFile, allocSize) ;
+						rc =  addExtent(column, dbroot, partition, segment,segFile, startLbid, newFile, allocSize) ;
 						if (rc != NO_ERROR)
 							return rc; //Clean up will be done throgh DDLProc
 						
@@ -739,7 +738,7 @@ int ColumnOp::fillColumn(const TxnID& txnid, Column& column, Column& refCol, voi
 						newEntries.push_back(aEntry);
 						if ((dictOid >= USER_OBJECT_ID) && newFile) //Create dictionary file if needed
 						{
-							rc = dctnry->createDctnry(dictOid, dictColWidth, rootList[i], partition, segment, startLbid, newFile);
+							rc = dctnry->createDctnry(dictOid, dictColWidth, dbroot, partition, segment, startLbid, newFile);
 							if (rc != NO_ERROR)
 								return rc;
 								
@@ -786,8 +785,7 @@ int ColumnOp::fillColumn(const TxnID& txnid, Column& column, Column& refCol, voi
 					}
 					else //just add a extent to the file
 					{
-						rc = addExtent(column, dbroot, partition, segment,
-                         segFile, startLbid, newFile, allocSize) ;
+						rc = addExtent(column, dbroot, partition, segment, segFile, startLbid, newFile, allocSize) ;
 						if (rc != NO_ERROR)
 							return rc; //Clean up will be done throgh DDLProc
 					}
