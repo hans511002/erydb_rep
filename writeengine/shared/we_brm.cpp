@@ -765,16 +765,10 @@ ERYDBDataFile* BRMWrapper::openFile(const File& fileInfo, const char* mode, cons
         RETURN_ON_WE_ERROR(fileOp.getVBFileName (fileInfo.oid, fileName),NULL);
     }
     else {
-          RETURN_ON_WE_ERROR(fileOp.getFileName (fileInfo.oid, fileName,fileInfo.fDbRoot,
-               fileInfo.fPartition, fileInfo.fSegment),NULL);
+          RETURN_ON_WE_ERROR(fileOp.getFileName (fileInfo.oid, fileName,fileInfo.fDbRoot[0], fileInfo.fPartition, fileInfo.fSegment),NULL);
     }
     // disable buffering for versionbuffer file by passing USE_NOVBUF
-    pFile = ERYDBDataFile::open(
-							ERYDBPolicy::getType( fileName, ERYDBPolicy::WRITEENG ),
-							fileName,
-							mode,
-							ERYDBDataFile::USE_NOVBUF );
-
+    pFile = ERYDBDataFile::open(ERYDBPolicy::getType( fileName, ERYDBPolicy::WRITEENG ),fileName,mode,ERYDBDataFile::USE_NOVBUF );
     if (pFile && bCache) {
         if (m_curVBOid != (OID)INVALID_NUM) {
             if (m_curVBOid != fileInfo.oid && m_curVBFile != NULL)
@@ -786,7 +780,6 @@ ERYDBDataFile* BRMWrapper::openFile(const File& fileInfo, const char* mode, cons
         m_curVBOid = fileInfo.oid;
         m_curVBFile = pFile;
     }
-
     return pFile;
 }
 
