@@ -1917,7 +1917,7 @@ namespace BRM {
     }
 
 
-    int DBRM::beginVBCopy(VER_t transID, DBROOTS_struct& dbRoot, const LBIDRange_v& ranges, VBRange_v& freeList) DBRM_THROW {
+    int DBRM::beginVBCopy(VER_t transID,const DBROOTS_struct& dbRoot, const LBIDRange_v& ranges, VBRange_v& freeList) DBRM_THROW {
 #ifdef BRM_INFO
         if (fDebug) {
             TRACER_WRITELATER("beginVBCopy");

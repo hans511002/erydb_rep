@@ -2996,7 +2996,7 @@ namespace WriteEngine
             colOp->setColParam(curCol, 0, curColStruct.colWidth,
                 curColStruct.colDataType, curColStruct.colType, curColStruct.dataOid,
                 curColStruct.fCompressionType,
-                curColStruct.fColDbRoot, curColStruct.fColPartition, curColStruct.fColSegment);
+                &curColStruct.fColDbRoot, curColStruct.fColPartition, curColStruct.fColSegment);
 
             ColExtsInfo aColExtsInfo = aTbaleMetaData->getColExtsInfo(curColStruct.dataOid);
             ColExtsInfo::iterator it = aColExtsInfo.begin();
@@ -3100,7 +3100,7 @@ namespace WriteEngine
                 std::vector<BRM::FileInfo> files;
                 BRM::FileInfo aFile;
                 aFile.partitionNum = curColStruct.fColPartition;
-                aFile.dbRoot = curColStruct.fColDbRoot;;
+                aFile.dbRoot = curColStruct.fColDbRoot[0];
                 aFile.segmentNum = curColStruct.fColSegment;
                 aFile.compType = curColStruct.fCompressionType;
                 files.push_back(aFile);
@@ -3185,7 +3185,7 @@ namespace WriteEngine
                     // need to pass real dbRoot, partition, and segment to setColParam
                     colOp->setColParam(curCol, 0, colStructList[i].colWidth,
                         colStructList[i].colDataType, colStructList[i].colType, colStructList[i].dataOid,
-                        colStructList[i].fCompressionType, colStructList[i].fColDbRoot,
+                        colStructList[i].fCompressionType, (DBROOTS_struct*)&colStructList[i].fColDbRoot,
                         colStructList[i].fColPartition, colStructList[i].fColSegment);
 
                     ColExtsInfo aColExtsInfo = aTbaleMetaData->getColExtsInfo(colStructList[i].dataOid);
@@ -3321,7 +3321,7 @@ namespace WriteEngine
                 colOp->initColumn(curCol);
                 colOp->setColParam(curCol, 0, newColStructList[i].colWidth,
                     newColStructList[i].colDataType, newColStructList[i].colType, newColStructList[i].dataOid,
-                    newColStructList[i].fCompressionType, newColStructList[i].fColDbRoot,
+                    newColStructList[i].fCompressionType, (DBROOTS_struct*)&newColStructList[i].fColDbRoot,
                     newColStructList[i].fColPartition, newColStructList[i].fColSegment);
 
                 ColExtsInfo aColExtsInfo = aTbaleMetaData->getColExtsInfo(newColStructList[i].dataOid);
@@ -3458,7 +3458,7 @@ namespace WriteEngine
                 colOp->initColumn(curCol);
                 colOp->setColParam(curCol, 0, colStructList[i].colWidth,
                     colStructList[i].colDataType, colStructList[i].colType, colStructList[i].dataOid,
-                    colStructList[i].fCompressionType, colStructList[i].fColDbRoot,
+                    colStructList[i].fCompressionType, (DBROOTS_struct*)&colStructList[i].fColDbRoot,
                     colStructList[i].fColPartition, colStructList[i].fColSegment);
 
                 rc = colOp->openColumnFile(curCol, segFile, useTmpSuffix, IO_BUFF_SIZE); // @bug 5572 HDFS tmp file
@@ -3652,7 +3652,7 @@ namespace WriteEngine
             colOp->initColumn(curCol);
             colOp->setColParam(curCol, 0, curColStruct.colWidth,
                 curColStruct.colDataType, curColStruct.colType, curColStruct.dataOid,
-                curColStruct.fCompressionType, curColStruct.fColDbRoot,
+                curColStruct.fCompressionType, &curColStruct.fColDbRoot,
                 curColStruct.fColPartition, curColStruct.fColSegment);
 
 
@@ -3683,7 +3683,7 @@ namespace WriteEngine
                 BRM::FileInfo aFile;
                 aFile.oid = curColStruct.dataOid;
                 aFile.partitionNum = curColStruct.fColPartition;
-                aFile.dbRoot = curColStruct.fColDbRoot;;
+                aFile.dbRoot = curColStruct.fColDbRoot[0];
                 aFile.segmentNum = curColStruct.fColSegment;
                 aFile.compType = curColStruct.fCompressionType;
                 files.push_back(aFile);
@@ -4243,7 +4243,7 @@ namespace WriteEngine
         colStruct.colWidth = 8;
         colStruct.tokenFlag = false;
         colStruct.colDataType = erydbSystemCatalog::UBIGINT;
-        colStruct.fColDbRoot = dbRoot[0];
+        colStruct.fColDbRoot = dbRoot;
         if (erydbdatafile::ERYDBPolicy::useHdfs())
             colStruct.fCompressionType = 2;
 
@@ -4289,7 +4289,7 @@ namespace WriteEngine
         BRM::FileInfo aFile;
         aFile.oid = colStruct.dataOid;
         aFile.partitionNum = colStruct.fColPartition;
-        aFile.dbRoot = colStruct.fColDbRoot;;
+        aFile.dbRoot = colStruct.fColDbRoot[0];
         aFile.segmentNum = colStruct.fColSegment;
         aFile.compType = colStruct.fCompressionType;
         files.push_back(aFile);

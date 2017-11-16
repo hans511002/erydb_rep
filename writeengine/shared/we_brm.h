@@ -438,7 +438,7 @@ public:
      */
     EXPORT int writeVB( ERYDBDataFile* pFile,const BRM::VER_t transID,const OID oid,const uint64_t lbid,DbFileOp* pFileOp );
     int        writeVB( ERYDBDataFile* pFile,const BRM::VER_t transID,const OID weOid,std::vector<uint32_t>& fboList,std::vector<BRM::LBIDRange>& rangeList,
-                              DbFileOp* pFileOp,std::vector<BRM::VBRange>& freeList,DBROOTS_struct& dbRoot,bool skipBeginVBCopy = false);
+                              DbFileOp* pFileOp,std::vector<BRM::VBRange>& freeList,const DBROOTS_struct& dbRoot,bool skipBeginVBCopy = false);
     void       writeVBEnd(const BRM::VER_t transID,std::vector<BRM::LBIDRange>& rangeList);
 							  
 	BRM::DBRM*   getDbrmObject();

@@ -1458,7 +1458,7 @@ void BRMWrapper::pruneLBIDList(VER_t transID, vector<LBIDRange> *rangeList,
 }
 
 int BRMWrapper::writeVB(ERYDBDataFile* pSourceFile, const VER_t transID, const OID weOid,
-    std::vector<uint32_t>& fboList, std::vector<LBIDRange>& rangeList, DbFileOp* pFileOp, std::vector<VBRange>& freeList, DBROOTS_struct& dbRoot, bool skipBeginVBCopy)
+    std::vector<uint32_t>& fboList, std::vector<LBIDRange>& rangeList, DbFileOp* pFileOp, std::vector<VBRange>& freeList,const DBROOTS_struct& dbRoot, bool skipBeginVBCopy)
 {
 	if (erydbdatafile::ERYDBPolicy::useHdfs())
 		return 0;

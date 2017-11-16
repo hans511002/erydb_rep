@@ -250,7 +250,7 @@ int ColumnOp::allocRowId(const TxnID& txnid, bool useStartingExtent,
 							uint64_t emptyVal = getEmptyRowValue(newColStructList[i].colDataType, newColStructList[i].colWidth);
 							string errorInfo;
 							rc = fileOp.fillCompColumnExtentEmptyChunks(newColStructList[i].dataOid, newColStructList[i].colWidth, 
-								emptyVal, dbRoot, partition, segment, newHwm, segFile, errorInfo);
+								emptyVal, dbRoot[0], partition, segment, newHwm, segFile, errorInfo);
 							if (rc != NO_ERROR)
 								return rc;
 						}
@@ -415,7 +415,7 @@ int ColumnOp::allocRowId(const TxnID& txnid, bool useStartingExtent,
 			}
 			
 			 setColParam(newCol, 0, column.colWidth,column.colDataType, column.colType, 
-					 column.dataFile.fid, column.compressionType, dbRoot, partition, segment);
+					 column.dataFile.fid, column.compressionType, &dbRoot, partition, segment);
 			 rc = openColumnFile(newCol, segFile, false); // @bug 5572 HDFS tmp file
 			 if (rc != NO_ERROR)
 				 return rc;
@@ -659,7 +659,7 @@ int ColumnOp::fillColumn(const TxnID& txnid, Column& column, Column& refCol, voi
                 if ((lastRefHwm+1) < numBlksForFirstExtent)
                 {
                     rc = createColumn(column, 0, column.colWidth, column.colDataType,
-							WriteEngine::WR_CHAR, column.dataFile.fid, rootList[i], 0);
+							WriteEngine::WR_CHAR, column.dataFile.fid,refEntries[0].dbRoots, 0);// rootList[i]
 					if (rc != NO_ERROR)
 						return rc;
 					//cout << "createColumn for oid " << column.dataFile.fid << endl;
@@ -670,8 +670,7 @@ int ColumnOp::fillColumn(const TxnID& txnid, Column& column, Column& refCol, voi
 					newEntries.push_back(aEntry);
 					if (dictOid >= USER_OBJECT_ID)  //Create dictionary file if needed
 					{
-						rc = dctnry->createDctnry(dictOid, dictColWidth,
-							rootList[i], partition, segment, startLbid, newFile);
+						rc = dctnry->createDctnry(dictOid, dictColWidth,refEntries[0].dbRoots , partition, segment, startLbid, newFile); //rootList[i]
 						if (rc != NO_ERROR)
 							return rc;
 						//@Bug 5652.
@@ -688,7 +687,7 @@ int ColumnOp::fillColumn(const TxnID& txnid, Column& column, Column& refCol, voi
 							dctnryStruct.columnOid = column.dataFile.fid;
 							dctnryStruct.fColPartition = partition;
 							dctnryStruct.fColSegment = segment;
-							dctnryStruct.fColDbRoot = rootList[i];
+							dctnryStruct.fColDbRoot =refEntries[0].dbRoots;// rootList[i];
 							dctnryStruct.colWidth = dictColWidth;
 							dctnryStruct.fCompressionType = column.compressionType;
 							DctnryTuple dctnryTuple;
