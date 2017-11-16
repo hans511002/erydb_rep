@@ -782,7 +782,7 @@ int FileOp::addExtentExactFile(
 
     // Determine the existence of the "next" segment file, and either open
     // or create the segment file accordingly.
-    if (exists(oid, dbRoot[0], partition, segment))
+    if (exists(oid, dbRoot, partition, segment))
     {
         pFile = openFile( oid, dbRoot[0], partition, segment, segFile, "r+b" );//old file
         if (pFile == 0)

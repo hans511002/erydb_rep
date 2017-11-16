@@ -900,11 +900,11 @@ int BRMWrapper::rollBack(const VER_t transID, int sessionId)
 #ifndef __LP64__
             printf(
                 "\n\tuncommitted lbid - lbidList[i]=%lld weOid =%d weFbo=%d verID=%d, weDbRoot=%d",
-                lbidList[i], weOid, weFbo, outVer, weDbRoot);
+                lbidList[i], weOid, weFbo, outVer, weDbRoot[0]);
 #else
             printf(
                 "\n\tuncommitted lbid - lbidList[i]=%ld weOid =%d weFbo=%d verID=%d, weDbRoot=%d",
-                lbidList[i], weOid, weFbo, outVer, weDbRoot);
+                lbidList[i], weOid, weFbo, outVer, weDbRoot[0]);
 #endif
         //look for the block in the version buffer
 		//timer.start("lookupLocalVB");
@@ -1167,16 +1167,17 @@ int BRMWrapper::rollBackBlocks(const VER_t transID, int sessionId)
         else
             fileOp.chunkManager(&chunkManager);
 
-        if (isDebug(DEBUG_3))
+        if (isDebug(DEBUG_3)){
 #ifndef __LP64__
             printf(
                 "\n\tuncommitted lbid - lbidList[i]=%lld weOid =%d weFbo=%d verID=%d, weDbRoot=%d",
-                lbidList[i], weOid, weFbo, verID, weDbRoot);
+                lbidList[i], weOid, weFbo, verID, weDbRoot[0]);
 #else
             printf(
                 "\n\tuncommitted lbid - lbidList[i]=%ld weOid =%d weFbo=%d verID=%d, weDbRoot=%d",
-                lbidList[i], weOid, weFbo, verID, weDbRoot);
+                lbidList[i], weOid, weFbo, verID, weDbRoot[0]);
 #endif
+        }
         //look for the block in the version buffer
 		//timer.start("lookupLocalVB");
 		rc = blockRsltnMgrPtr->lookupLocal(lbidList[i], verID, true, vbOid, vbDbRoot, vbPartitionNum, vbSegmentNum, vbFbo);
@@ -1209,7 +1210,7 @@ int BRMWrapper::rollBackBlocks(const VER_t transID, int sessionId)
 		}
 			
 //timer.stop("lookupLocalVB");
-        if (isDebug(DEBUG_3))
+        if (isDebug(DEBUG_3)){
 #ifndef __LP64__
         printf("\n\tuncommitted lbid - lbidList[i]=%lld vbOid =%d vbFbo=%d\n",
                lbidList[i], vbOid, vbFbo);
@@ -1217,7 +1218,7 @@ int BRMWrapper::rollBackBlocks(const VER_t transID, int sessionId)
         printf("\n\tuncommitted lbid - lbidList[i]=%ld vbOid =%d vbFbo=%d\n",
                lbidList[i], vbOid, vbFbo);
 #endif
-
+        }
         //@Bug 2293 Version buffer file information cannot be obtained from lookupLocal
         if (vbOid != currentVbOid)
         {

@@ -3097,7 +3097,7 @@ namespace WriteEngine
                 std::vector<BRM::FileInfo> files;
                 BRM::FileInfo aFile;
                 aFile.partitionNum = curColStruct.fColPartition;
-                aFile.dbRoot = curColStruct.fColDbRoot[0];
+                aFile.dbRoot = curColStruct.fColDbRoot;
                 aFile.segmentNum = curColStruct.fColSegment;
                 aFile.compType = curColStruct.fCompressionType;
                 files.push_back(aFile);
@@ -3680,7 +3680,7 @@ namespace WriteEngine
                 BRM::FileInfo aFile;
                 aFile.oid = curColStruct.dataOid;
                 aFile.partitionNum = curColStruct.fColPartition;
-                aFile.dbRoot = curColStruct.fColDbRoot[0];
+                aFile.dbRoot = curColStruct.fColDbRoot;
                 aFile.segmentNum = curColStruct.fColSegment;
                 aFile.compType = curColStruct.fCompressionType;
                 files.push_back(aFile);
@@ -4286,7 +4286,7 @@ namespace WriteEngine
         BRM::FileInfo aFile;
         aFile.oid = colStruct.dataOid;
         aFile.partitionNum = colStruct.fColPartition;
-        aFile.dbRoot = colStruct.fColDbRoot[0];
+        aFile.dbRoot = colStruct.fColDbRoot;
         aFile.segmentNum = colStruct.fColSegment;
         aFile.compType = colStruct.fCompressionType;
         files.push_back(aFile);

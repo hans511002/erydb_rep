@@ -164,11 +164,10 @@ int DbFileOp::readDBFile( CommBlock& cb,
     {
         int  fbo = lbid;
 
-        uint16_t  dbRoot;
+        DBROOTS_struct  dbRoot;
         uint32_t  partition;
         uint16_t  segment;
-        RETURN_ON_ERROR( BRMWrapper::getInstance()->getFboOffset(
-            lbid, dbRoot, partition, segment, fbo ) );
+        RETURN_ON_ERROR( BRMWrapper::getInstance()->getFboOffset(lbid, dbRoot, partition, segment, fbo ) );
       
         if( Cache::getListSize( FREE_LIST ) == 0 ) {
             if ( isDebug( DEBUG_1 ) ) {
@@ -493,15 +492,7 @@ int DbFileOp::restoreBlock(ERYDBDataFile* pFile, const unsigned char* writeBuf, 
 ERYDBDataFile* DbFileOp::getFilePtr(const Column& column, bool useTmpSuffix)
 {
     string filename;
-    return m_chunkManager->getFilePtr(column,
-                                      column.dataFile.fDbRoot,
-                                      column.dataFile.fPartition,
-                                      column.dataFile.fSegment,
-                                      filename,
-                                      "r+b",
-                                      column.colWidth,
-                                      useTmpSuffix);
+    return m_chunkManager->getFilePtr(column,column.dataFile.fDbRoot.get(0),column.dataFile.fPartition,column.dataFile.fSegment,filename,"r+b",column.colWidth,useTmpSuffix);
 }
 
 } //end of namespace
-
