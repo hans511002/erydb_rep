@@ -74,7 +74,7 @@ struct fileInfoCompare // lt operator
         if (lhs.oid < rhs.oid) {
             return true;
         }
-        if ((lhs.oid == rhs.oid) && (lhs.fDbRoot[0] < rhs.fDbRoot[0])) {
+        if ((lhs.oid == rhs.oid) && (lhs.fDbRoot.get(0) < rhs.fDbRoot.get(0))) {
             return true;
         }
         if ((lhs.oid == rhs.oid) &&(lhs.fDbRoot==rhs.fDbRoot) && (lhs.fPartition < rhs.fPartition)) {
