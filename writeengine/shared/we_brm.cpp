@@ -765,7 +765,7 @@ ERYDBDataFile* BRMWrapper::openFile(const File& fileInfo, const char* mode, cons
         RETURN_ON_WE_ERROR(fileOp.getVBFileName (fileInfo.oid, fileName),NULL);
     }
     else {
-          RETURN_ON_WE_ERROR(fileOp.getFileName (fileInfo.oid, fileName,fileInfo.fDbRoot[0], fileInfo.fPartition, fileInfo.fSegment),NULL);
+          RETURN_ON_WE_ERROR(fileOp.getFileName (fileInfo.oid, fileName,fileInfo.fDbRoot.get(0), fileInfo.fPartition, fileInfo.fSegment),NULL);
     }
     // disable buffering for versionbuffer file by passing USE_NOVBUF
     pFile = ERYDBDataFile::open(ERYDBPolicy::getType( fileName, ERYDBPolicy::WRITEENG ),fileName,mode,ERYDBDataFile::USE_NOVBUF );
@@ -792,7 +792,8 @@ int BRMWrapper::rollBack(const VER_t transID, int sessionId)
     uint32_t   vbFbo, weFbo;
     size_t      i;
     bool        vbFlag;
-    uint16_t   vbDbRoot, weDbRoot, vbSegmentNum, weSegmentNum;
+    DBROOTS_struct vbDbRoot, weDbRoot;
+    uint16_t    vbSegmentNum, weSegmentNum;
     uint32_t   vbPartitionNum, wePartitionNum;
     File  sourceFileInfo;
     File  targetFileInfo;
@@ -831,13 +832,12 @@ int BRMWrapper::rollBack(const VER_t transID, int sessionId)
     sourceFileInfo.fPartition = 0;
     sourceFileInfo.fSegment = 0;
     size_t rootCnt = Config::DBRootCount();
-    sourceFileInfo.fDbRoot = (vbOid % rootCnt) + 1;
-    ERYDBDataFile* pSourceFile;
+    // sourceFileInfo.fDbRoot = vbOid+1;// (vbOid % rootCnt) + 1;
+    sourceFileInfo.fDbRoot[0] = vbOid + 1;//versionbuffer dbroot
+    ERYDBDataFile* pSourceFile = NULL;
     ERYDBDataFile* pTargetFile;
-    RETURN_ON_NULL((pSourceFile = openFile(sourceFileInfo, "r+b")), ERR_VB_FILE_NOT_EXIST);
 
-    boost::shared_ptr<execplan::erydbSystemCatalog> systemCatalogPtr =
-        execplan::erydbSystemCatalog::makeerydbSystemCatalog(sessionId);
+    boost::shared_ptr<execplan::erydbSystemCatalog> systemCatalogPtr =execplan::erydbSystemCatalog::makeerydbSystemCatalog(sessionId);
     systemCatalogPtr->identity(execplan::erydbSystemCatalog::EC);
 
     DbFileOp fileOp;
@@ -856,17 +856,19 @@ int BRMWrapper::rollBack(const VER_t transID, int sessionId)
         lbidRangeList.push_back(range);
 		//timer.start("vssLookup");
         // get version id
-        RETURN_ON_WE_ERROR(
-            blockRsltnMgrPtr->vssLookup(lbidList[i], verID, transID, &outVer, &vbFlag, true),
-            ERR_BRM_LOOKUP_VERSION);
+        RETURN_ON_WE_ERROR(blockRsltnMgrPtr->vssLookup(lbidList[i], verID, transID, &outVer, &vbFlag, true),ERR_BRM_LOOKUP_VERSION);
 		//timer.stop("vssLookup");
         // copy buffer back
         //look for the block in extentmap
 		//timer.start("lookupLocalEX");
-        RETURN_ON_WE_ERROR(
-            blockRsltnMgrPtr->lookupLocal(lbidList[i], outVer, false, weOid,
-            weDbRoot, wePartitionNum, weSegmentNum, weFbo), ERR_EXTENTMAP_LOOKUP);
+        RETURN_ON_WE_ERROR(blockRsltnMgrPtr->lookupLocal(lbidList[i], outVer, false, weOid,weDbRoot, wePartitionNum, weSegmentNum, weFbo), ERR_EXTENTMAP_LOOKUP);
 		//timer.stop("lookupLocalEX");
+        if (!pSourceFile){
+            vbOid = currentVbOid = weDbRoot[0];
+            sourceFileInfo.oid = currentVbOid; 
+            sourceFileInfo.fDbRoot[0] = vbOid;//versionbuffer dbroot
+            RETURN_ON_NULL((pSourceFile = openFile(sourceFileInfo, "r+b")), ERR_VB_FILE_NOT_EXIST);
+        }
         Column column;
         execplan::erydbSystemCatalog::ColType colType = systemCatalogPtr->colType(weOid);
 		columnOids[weOid] = weOid;
@@ -906,8 +908,7 @@ int BRMWrapper::rollBack(const VER_t transID, int sessionId)
 #endif
         //look for the block in the version buffer
 		//timer.start("lookupLocalVB");
-        RETURN_ON_WE_ERROR(blockRsltnMgrPtr->lookupLocal(lbidList[i], outVer, true, vbOid,
-                            vbDbRoot, vbPartitionNum, vbSegmentNum, vbFbo), ERR_BRM_LOOKUP_FBO);
+        RETURN_ON_WE_ERROR(blockRsltnMgrPtr->lookupLocal(lbidList[i], outVer, true, vbOid,vbDbRoot, vbPartitionNum, vbSegmentNum, vbFbo), ERR_BRM_LOOKUP_FBO);
 //timer.stop("lookupLocalVB");
         if (isDebug(DEBUG_3))
 #ifndef __LP64__
@@ -927,7 +928,7 @@ int BRMWrapper::rollBack(const VER_t transID, int sessionId)
             sourceFileInfo.oid = currentVbOid;
             sourceFileInfo.fPartition = 0;
             sourceFileInfo.fSegment = 0;
-            sourceFileInfo.fDbRoot = (vbOid % rootCnt) + 1;
+            sourceFileInfo.fDbRoot[0] = vbOid;// (vbOid % rootCnt) + 1;
             RETURN_ON_NULL((pSourceFile = openFile(sourceFileInfo, "r+b")), ERR_VB_FILE_NOT_EXIST);
         }
 
@@ -1034,7 +1035,8 @@ int BRMWrapper::rollBackBlocks(const VER_t transID, int sessionId)
     size_t      i;
     VER_t       verID = (VER_t) transID;
 
-    uint16_t   vbDbRoot, weDbRoot, vbSegmentNum, weSegmentNum;
+    DBROOTS_struct vbDbRoot, weDbRoot;
+    uint16_t     vbSegmentNum, weSegmentNum;
     uint32_t   vbPartitionNum, wePartitionNum;
     File  sourceFileInfo;
     File  targetFileInfo;
@@ -1078,8 +1080,7 @@ int BRMWrapper::rollBackBlocks(const VER_t transID, int sessionId)
             lbidList.size());
     }
 
-    boost::shared_ptr<execplan::erydbSystemCatalog> systemCatalogPtr =
-        execplan::erydbSystemCatalog::makeerydbSystemCatalog(sessionId);
+    boost::shared_ptr<execplan::erydbSystemCatalog> systemCatalogPtr =execplan::erydbSystemCatalog::makeerydbSystemCatalog(sessionId);
     systemCatalogPtr->identity(execplan::erydbSystemCatalog::EC);
 
     DbFileOp fileOp;
@@ -1113,8 +1114,7 @@ int BRMWrapper::rollBackBlocks(const VER_t transID, int sessionId)
         // copy buffer back
         //look for the block in extentmap
 		//timer.start("lookupLocalEX");
-		rc = blockRsltnMgrPtr->lookupLocal(lbidList[i], /*transID*/verID, false, weOid,
-            weDbRoot, wePartitionNum, weSegmentNum, weFbo);
+		rc = blockRsltnMgrPtr->lookupLocal(lbidList[i], /*transID*/verID, false, weOid, weDbRoot, wePartitionNum, weSegmentNum, weFbo);
 		
 		if ( rc != 0)
 		{
@@ -1126,8 +1126,7 @@ int BRMWrapper::rollBackBlocks(const VER_t transID, int sessionId)
 		}
 		
 		//Check whether this lbid is on this PM.
-		dbrootPmMapItor = dbrootPmMap.find(weDbRoot);
-		
+		dbrootPmMapItor = dbrootPmMap.find(weDbRoot[0]);//不只检查第一目录
 		if (dbrootPmMapItor == dbrootPmMap.end())
 			continue;
 		
@@ -1180,8 +1179,7 @@ int BRMWrapper::rollBackBlocks(const VER_t transID, int sessionId)
 #endif
         //look for the block in the version buffer
 		//timer.start("lookupLocalVB");
-		rc = blockRsltnMgrPtr->lookupLocal(lbidList[i], verID, true, vbOid,
-                            vbDbRoot, vbPartitionNum, vbSegmentNum, vbFbo);
+		rc = blockRsltnMgrPtr->lookupLocal(lbidList[i], verID, true, vbOid, vbDbRoot, vbPartitionNum, vbSegmentNum, vbFbo);
 		if ( rc != 0)
 		{
 			std::ostringstream oss;

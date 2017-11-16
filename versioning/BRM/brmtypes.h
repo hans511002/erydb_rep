@@ -216,7 +216,7 @@ struct FileInfo {
 	execplan::erydbSystemCatalog::OID oid;
 	uint32_t	partitionNum; // starts at 0
 	uint16_t	segmentNum;   // starts at 0
-	uint16_t	dbRoot;       // starts at 1 to match erydb.xml
+    DBROOTS_struct	dbRoot;       // starts at 1 to match erydb.xml
 	uint16_t	compType;	  // compression type
 };
 
