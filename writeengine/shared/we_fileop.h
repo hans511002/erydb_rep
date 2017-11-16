@@ -146,11 +146,7 @@ public:
     * @param emptyVal Empty value used in initializing extents for this column
     * @param width    Width of this column (in bytes)
     */
-    EXPORT virtual int  expandAbbrevColumnExtent(
-                            ERYDBDataFile*    pFile,
-        DBROOTS_struct& dbRoot,
-                            uint64_t      emptyVal,
-                            int      width );
+    EXPORT virtual int  expandAbbrevColumnExtent(ERYDBDataFile* pFile,const DBROOTS_struct& dbRoot,uint64_t emptyVal,int width );
 
    /**
     * @brief Add an extent to the specified Column OID and DBRoot.

@@ -197,15 +197,8 @@ public:
 	* @param allocSize (out) number of blocks to be written for an extent
     * @return returns NO_ERROR if success.
     */
-   EXPORT int addExtent(const Column& column,
-                           uint16_t     dbRoot,
-                           uint32_t     partition,
-                           uint16_t     segment,
-                           std::string&  segFile,
-                           BRM::LBID_t&  startLbid,
-                           bool&         newFile,
-                           int&          allocSize,
-                           char*         hdrs = NULL);
+   EXPORT int addExtent(const Column& column,DBROOTS_struct& dbRoot,uint32_t partition,uint16_t segment,std::string& segFile,BRM::LBID_t&  startLbid,bool& newFile,
+                           int& allocSize,char* hdrs = NULL);
 
    /**
     * @brief Get columne data type

@@ -193,7 +193,7 @@ DBROOTS_struct& DBROOTS_struct::set(const DBROOTS_struct& e) {
 uint16_t & DBROOTS_struct::operator [](int i){
     return dbRoots[i];
 };
-uint16_t & DBROOTS_struct::get(int i){
+uint16_t DBROOTS_struct::get(int i){
     return dbRoots[i];
 };
 void DBROOTS_struct::remove(uint16_t dbroot){

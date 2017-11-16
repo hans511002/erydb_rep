@@ -184,8 +184,7 @@ int ColumnOpCompress1::flushFile(int rc, std::map<FID,FID> & columnOids)
 }
 
 
-int ColumnOpCompress1::expandAbbrevColumnExtent(
-   ERYDBDataFile* pFile, uint16_t dbRoot, uint64_t emptyVal, int width)
+int ColumnOpCompress1::expandAbbrevColumnExtent(ERYDBDataFile* pFile, DBROOTS_struct& dbRoot, uint64_t emptyVal, int width)
 {
    // update the uncompressed initial chunk to full chunk
    RETURN_ON_ERROR(m_chunkManager->expandAbbrevColumnExtent(pFile, emptyVal, width));

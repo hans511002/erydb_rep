@@ -87,7 +87,7 @@ struct DBROOTS_struct :public messageqcpp::Serializeable {
     uint16_t	dbRoots[MAX_DATA_REPLICATESIZE];  
 	EXPORT DBROOTS_struct();
     EXPORT   uint16_t & operator [](int i) ;
-    EXPORT   uint16_t & get(int i) ;
+    EXPORT   uint16_t get(int i) ;
     EXPORT   void remove(uint16_t dbroot);
     EXPORT DBROOTS_struct(const DBROOTS_struct&);
     EXPORT DBROOTS_struct& operator= (const DBROOTS_struct&);

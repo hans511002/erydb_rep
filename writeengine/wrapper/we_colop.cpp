@@ -666,7 +666,7 @@ int ColumnOp::fillColumn(const TxnID& txnid, Column& column, Column& refCol, voi
 					BRM::EMEntry aEntry;
 					aEntry.partitionNum = partition = 0;
 					aEntry.segmentNum = segment = 0;
-					aEntry.dbRoots[0] = rootList[i];
+					aEntry.dbRoots =refEntries[0].dbRoots;// rootList[i];
 					newEntries.push_back(aEntry);
 					if (dictOid >= USER_OBJECT_ID)  //Create dictionary file if needed
 					{
@@ -734,7 +734,7 @@ int ColumnOp::fillColumn(const TxnID& txnid, Column& column, Column& refCol, voi
 						BRM::EMEntry aEntry;
 						aEntry.partitionNum = partition;
 						aEntry.segmentNum = segment;
-						aEntry.dbRoots[0] = rootList[i];
+						aEntry.dbRoots = dbroot ; //rootList[i];
 						newEntries.push_back(aEntry);
 						if ((dictOid >= USER_OBJECT_ID) && newFile) //Create dictionary file if needed
 						{
@@ -755,7 +755,7 @@ int ColumnOp::fillColumn(const TxnID& txnid, Column& column, Column& refCol, voi
 								dctnryStruct.columnOid = column.dataFile.fid;
 								dctnryStruct.fColPartition = partition;
 								dctnryStruct.fColSegment = segment;
-								dctnryStruct.fColDbRoot = rootList[i];
+								dctnryStruct.fColDbRoot =dbroot;// rootList[i];
 								dctnryStruct.colWidth = dictColWidth;
 								dctnryStruct.fCompressionType = column.compressionType;
 								DctnryTuple dctnryTuple;
@@ -779,7 +779,6 @@ int ColumnOp::fillColumn(const TxnID& txnid, Column& column, Column& refCol, voi
 								std::map<FID,FID> oids1;
 								oids1[dictOid] = dictOid;						
 								dctnry->flushFile(rc, oids1);
-									
 							}
 						}
 					}
@@ -793,12 +792,12 @@ int ColumnOp::fillColumn(const TxnID& txnid, Column& column, Column& refCol, voi
 			}
 			//Fill the new file with values
 			//Open new column file and reference column file
-			column.dataFile.fDbRoot = rootList[i];
+			column.dataFile.fDbRoot =newEntries[0].dbRoots;// rootList[i];
             column.dataFile.fPartition = newEntries[0].partitionNum;
             column.dataFile.fSegment = newEntries[0].segmentNum;
             RETURN_ON_ERROR(openColumnFile(column, segFile, false)); // @bug 5572 HDFS tmp file
 			//cout << "Processing new col file " << segFile << endl;
-			refCol.dataFile.fDbRoot = rootList[i];
+			refCol.dataFile.fDbRoot =newEntries[0].dbRoots;// rootList[i];
 			refCol.dataFile.fPartition = newEntries[0].partitionNum;
             refCol.dataFile.fSegment = newEntries[0].segmentNum;
             std::string segFileRef;
@@ -1134,19 +1133,7 @@ int ColumnOp::extendColumn(
     uint64_t emptyVal = 0;
 
     emptyVal = getEmptyRowValue(column.colDataType, column.colWidth);
-    int rc = extendFile(column.dataFile.fid,
-                        emptyVal,
-                        column.colWidth,
-                        hwm,
-                        startLbid,
-                        allocSize,
-                        dbRoot[0],
-                        partition,
-                        segment,
-                        segFile,
-                        pFile,
-                        newFile,
-                        hdrs);
+    int rc = extendFile(column.dataFile.fid,emptyVal,column.colWidth,hwm,startLbid,allocSize,dbRoot,partition,segment,segFile,pFile,newFile,hdrs);
     if (rc != NO_ERROR)
     {
         if ((!leaveFileOpen) && (pFile))
@@ -1161,32 +1148,11 @@ int ColumnOp::extendColumn(
     return rc;
 }
 
-int ColumnOp::addExtent(
-    const Column& column,
-    DBROOTS_struct&    dbRoot,
-    uint32_t    partition,
-    uint16_t    segment,
-    std::string& segFile,
-    BRM::LBID_t& startLbid,
-    bool&        newFile,
-    int&         allocSize,
-    char*        hdrs)
+int ColumnOp::addExtent(const Column& column,DBROOTS_struct& dbRoot,uint32_t partition,uint16_t segment,std::string& segFile,BRM::LBID_t& startLbid,bool& newFile,int& allocSize,char* hdrs)
 {
     uint64_t emptyVal = 0;
-
     emptyVal = getEmptyRowValue(column.colDataType, column.colWidth);
-    int rc = addExtentExactFile(column.dataFile.fid,
-                        emptyVal,
-                        column.colWidth,
-                        allocSize,
-                        dbRoot[0],
-                        partition,
-                        segment,
-                        column.colDataType,
-                        segFile,
-                        startLbid,
-                        newFile,
-                        hdrs);
+    int rc = addExtentExactFile(column.dataFile.fid,emptyVal,column.colWidth,allocSize,dbRoot,partition,segment,column.colDataType,segFile,startLbid,newFile,hdrs);
     return rc;
 }
 
@@ -1203,10 +1169,7 @@ int ColumnOp::addExtent(
    int ColumnOp::expandAbbrevExtent(const Column& column)
    {
       uint64_t emptyVal = getEmptyRowValue(column.colDataType, column.colWidth);
-	  int rc = expandAbbrevColumnExtent(column.dataFile.pFile,
-                                         column.dataFile.fDbRoot,
-                                         emptyVal,
-                                         column.colWidth);
+	  int rc = expandAbbrevColumnExtent(column.dataFile.pFile,column.dataFile.fDbRoot,emptyVal,column.colWidth);
 
 	  return rc;
    }
@@ -1304,13 +1267,7 @@ int ColumnOp::addExtent(
          return ERR_INVALID_PARAM;
 
       // open column data file
-      column.dataFile.pFile = openFile(column,
-         column.dataFile.fDbRoot,
-         column.dataFile.fPartition,
-         column.dataFile.fSegment,
-         column.dataFile.fSegFileName,
-         useTmpSuffix,
-         "r+b", ioBuffSize);
+      column.dataFile.pFile = openFile(column,column.dataFile.fDbRoot[0],column.dataFile.fPartition,column.dataFile.fSegment,column.dataFile.fSegFileName,useTmpSuffix,"r+b", ioBuffSize);
       segFile = column.dataFile.fSegFileName;
       if (column.dataFile.pFile == NULL)
 	  {
@@ -1375,7 +1332,7 @@ int ColumnOp::addExtent(
       ColType   colType,
       FID       dataFid,
       int       compressionType,
-      DBROOTS_struct& dbRoot,
+      DBROOTS_struct* dbRoot,
       uint32_t partition,
       uint16_t segment) const
    {
@@ -1383,12 +1340,12 @@ int ColumnOp::addExtent(
       column.colWidth = colWidth;
       column.colType = colType;
       column.colDataType = colDataType;
-
       column.dataFile.fid = dataFid;
-      column.dataFile.fDbRoot    = dbRoot;
+      if(dbRoot){
+          column.dataFile.fDbRoot    = *dbRoot;
+      }
       column.dataFile.fPartition = partition;
       column.dataFile.fSegment   = segment;
-
       column.compressionType = compressionType;
    }
 
