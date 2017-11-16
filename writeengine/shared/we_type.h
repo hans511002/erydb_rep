@@ -260,11 +260,11 @@ namespace WriteEngine
         ColType        colType;             /** @brief column type (internal use for write engine)*/
         uint32_t      fColPartition;       /** @brief Partition for column file */
         uint16_t      fColSegment;         /** @brief Segment for column file*/
-        uint16_t     fColDbRoot;          /** @brief DBRoot for column file */
+        DBROOTS_struct fColDbRoot;          /** @brief DBRoot for column file */
         int            fCompressionType;    /** @brief Compression tpye for column file */
         ColStruct() : dataOid(0), colWidth(0),  /** @brief constructor */
                     tokenFlag(false), colDataType(execplan::erydbSystemCatalog::INT), colType(WR_INT),
-                    fColPartition(0), fColSegment(0), fColDbRoot(0),
+                    fColPartition(0), fColSegment(0), // fColDbRoot(0),
                     fCompressionType(erydbdatafile::ERYDBPolicy::useHdfs()?2:0) { }
     };
 
@@ -283,12 +283,11 @@ namespace WriteEngine
         int            colWidth;            /** @brief string width for the dictionary column*/
         uint32_t      fColPartition;       /** @brief Partition for column file */
         uint16_t      fColSegment;         /** @brief Segment for column file */
-        uint16_t      fColDbRoot;          /** @brief DBRoot for column file */
+        DBROOTS_struct fColDbRoot;          /** @brief DBRoot for column file */
         int            fCompressionType;    /** @brief Compression tpye for column file */
         DctnryStruct() : dctnryOid(0), columnOid(0),   /** @brief constructor */
-                       colWidth(0),
-                       fColPartition(0), fColSegment(0),
-                       fColDbRoot(0), fCompressionType(erydbdatafile::ERYDBPolicy::useHdfs()?2:0) { }
+                       colWidth(0),fColPartition(0), fColSegment(0), // fColDbRoot(0), 
+                       fCompressionType(erydbdatafile::ERYDBPolicy::useHdfs()?2:0) { }
     };
 
     struct DctnryTuple                      /** @brief Dictionary Tuple struct*/

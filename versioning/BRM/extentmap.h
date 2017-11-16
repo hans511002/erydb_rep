@@ -112,24 +112,6 @@ struct EMPartition_struct {
 	EMCasualPartition_t		cprange;
 };
 typedef EMPartition_struct EMPartition_t;
-struct DBROOTS_struct :public messageqcpp::Serializeable {
-    uint16_t	dbRoots[MAX_DATA_REPLICATESIZE];  
-	EXPORT DBROOTS_struct();
-    EXPORT   uint16_t & operator [](int i) ;
-    EXPORT   uint16_t & get(int i) ;
-    EXPORT   void remove(uint16_t dbroot);
-    EXPORT DBROOTS_struct(const DBROOTS_struct&);
-    EXPORT DBROOTS_struct& operator= (const DBROOTS_struct&);
-    EXPORT DBROOTS_struct& set(const DBROOTS_struct&);
-    
-    EXPORT void serialize(messageqcpp::ByteStream &bs) const;
-//	EXPORT void serialize(std::ostream &) const;
-//	EXPORT void deserialize(std::istream &);
-	EXPORT void deserialize(messageqcpp::ByteStream &bs);
-};
-
-EXPORT bool operator==( const BRM::DBROOTS_struct&, const BRM::DBROOTS_struct&);
-std::ostream & operator<<(std::ostream &, const DBROOTS_struct &);
 
 struct EMEntry {
 	InlineLBIDRange range; //16 
@@ -358,7 +340,7 @@ public:
 	 */
 	EXPORT void createStripeColumnExtents(
 					const std::vector<CreateStripeColumnExtentsArgIn>& cols,
-					uint16_t  dbRoot,
+					DBROOTS_struct& dbRoot,
 					uint32_t& partitionNum,
 					uint16_t& segmentNum,
                     std::vector<CreateStripeColumnExtentsArgOut>& extents);
@@ -423,15 +405,7 @@ public:
 	 * @param allocdSize (out) The total number of LBIDs allocated.
 	 * @param startBlockOffset (out) The first block of the extent created.
 	 */
-	EXPORT void createColumnExtentExactFile(int OID,
-					uint32_t  colWidth,
-					uint16_t  dbRoot,
-					uint32_t  partitionNum,
-					uint16_t  segmentNum,
-                    execplan::erydbSystemCatalog::ColDataType colDataType,
-					LBID_t&    lbid,
-					int&       allocdsize,
-					uint32_t& startBlockOffset);
+	EXPORT void createColumnExtentExactFile(int OID,uint32_t  colWidth,DBROOTS_struct& dbRoot,uint32_t  partitionNum,uint16_t  segmentNum,execplan::erydbSystemCatalog::ColDataType colDataType,LBID_t& lbid,int& allocdsize,uint32_t& startBlockOffset);
 
 	/** @brief Allocates an extent for a dictionary store file
 	 * 
@@ -450,12 +424,7 @@ public:
 	 * @param lbid (out) The first LBID of the extent created.
 	 * @param allocdsize (out) The total number of LBIDs allocated.
 	 */
-	EXPORT void createDictStoreExtent(int OID,
-					uint16_t   dbRoot,
-					uint32_t   partitionNum,
-					uint16_t   segmentNum,
-                    LBID_t&    lbid,
-					int&       allocdsize);
+	EXPORT void createDictStoreExtent(int OID,DBROOTS_struct& dbRoot,uint32_t   partitionNum,uint16_t   segmentNum,LBID_t& lbid,int& allocdsize);
 
 	/** @brief Rollback (delete) a set of extents for the specified OID.
 	 *
@@ -483,12 +452,7 @@ public:
 	 * @param segmentNum Last segment in partitionNum to be kept.
 	 * @param hwm HWM to be assigned to the last extent that is kept.
 	 */
-	EXPORT void rollbackColumnExtents_DBroot(int oid,
-					bool      bDeleteAll,
-					uint16_t dbRoot,
-					uint32_t partitionNum,
-					uint16_t segmentNum,
-					HWM_t     hwm);
+	EXPORT void rollbackColumnExtents_DBroot(int oid,bool bDeleteAll,DBROOTS_struct& dbRoot,uint32_t partitionNum,uint16_t segmentNum,HWM_t hwm);
 
 	/** @brief delete of column extents for the specified extents.
 	 *
@@ -538,11 +502,7 @@ public:
 	 * @param segNums Vector of segment files in last partition to be kept.
 	 * @param hwms Vector of hwms for the last partition to be kept.
 	 */
-	EXPORT void rollbackDictStoreExtents_DBroot(int oid,
-					 uint16_t  dbRoot,
-					 uint32_t  partitionNum,
-					 const std::vector<uint16_t>& segNums,
-					 const std::vector<HWM_t>& hwms);
+	EXPORT void rollbackDictStoreExtents_DBroot(int oid,DBROOTS_struct& dbRoot,uint32_t  partitionNum,const std::vector<uint16_t>& segNums,const std::vector<HWM_t>& hwms);
 
 	/** @brief Deallocates all extents associated with OID
 	 *

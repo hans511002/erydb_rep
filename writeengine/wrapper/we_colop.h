@@ -173,7 +173,7 @@ public:
                            HWM           hwm,
                            BRM::LBID_t   startLbid,
                            int           allocSize,
-                           uint16_t      dbRoot,
+                           DBROOTS_struct&      dbRoot,
                            uint32_t      partition,
                            uint16_t      segment,
                            std::string&  segFile,
@@ -250,7 +250,7 @@ public:
                                   ColType colType = WR_INT,
                                   FID dataFid = 0,
                                   int comppre = 0,
-                                  uint16_t dbRoot = 0,
+                                  DBROOTS_struct* dbRoot = 0,
                                   uint32_t partition = 0,
                                   uint16_t segment = 0) const;
 

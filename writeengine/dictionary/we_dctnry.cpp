@@ -83,7 +83,7 @@ Dctnry::Dctnry() :
     m_nextPtr(NOT_USED_PTR),
     m_partition(0),
     m_segment(0),
-    m_dbRoot(1),
+//    m_dbRoot(1),
     m_numBlocks(0),
     m_lastFbo(0),
     m_hwm(0),
@@ -187,9 +187,7 @@ int  Dctnry::init()
  *    success    - successfully created file and/or extent
  *    failure    - failed to create file and/or extent
  ******************************************************************************/
-int  Dctnry::createDctnry( const OID& dctnryOID, int colWidth,
-    const uint16_t dbRoot, const uint32_t partition, const uint16_t segment,
-    LBID_t& startLbid, bool flag)
+int  Dctnry::createDctnry( const OID& dctnryOID, int colWidth,const DBROOTS_struct& dbRoot, const uint32_t partition, const uint16_t segment,LBID_t& startLbid, bool flag)
 {
     int   allocSize = 0;
     char  fileName[FILE_NAME_SIZE];
@@ -205,8 +203,7 @@ int  Dctnry::createDctnry( const OID& dctnryOID, int colWidth,
         m_partition   = partition;
         m_segment     = segment;
         m_dbRoot      = dbRoot;
-        RETURN_ON_ERROR( ( rc = oid2FileName( m_dctnryOID, fileName, true,
-            m_dbRoot, m_partition, m_segment ) ) );
+        RETURN_ON_ERROR( ( rc = oid2FileName( m_dctnryOID, fileName, true, m_dbRoot[0], m_partition, m_segment ) ) );
         m_segFileName = fileName;
 
         // if obsolete file exists, "w+b" will truncate and write over
@@ -217,9 +214,7 @@ int  Dctnry::createDctnry( const OID& dctnryOID, int colWidth,
         RETURN_ON_ERROR( setFileOffset(m_dFile, 0, SEEK_END) );
     }
 
-    rc = BRMWrapper::getInstance()->allocateDictStoreExtent(
-        (const OID)m_dctnryOID, m_dbRoot, m_partition, m_segment,
-        startLbid, allocSize);
+    rc = BRMWrapper::getInstance()->allocateDictStoreExtent((const OID)m_dctnryOID, m_dbRoot, m_partition, m_segment, startLbid, allocSize);
     if (rc != NO_ERROR)
     {
         if (flag)
@@ -466,11 +461,7 @@ int  Dctnry::dropDctnry( const OID& dctnryOID)
  *    Fail      - Error Code
  ******************************************************************************/
 // @bug 5572 - HDFS usage: add *.tmp file backup flag
-int Dctnry::openDctnry(const OID& dctnryOID,
-    const uint16_t dbRoot,
-    const uint32_t partition,
-    const uint16_t segment,
-    const bool     useTmpSuffix)
+int Dctnry::openDctnry(const OID& dctnryOID,const DBROOTS_struct& dbRoot,const uint32_t partition,const uint16_t segment,const bool useTmpSuffix)
 {
 #ifdef PROFILE
     Stats::startParseEvent(WE_STATS_OPEN_DCT_FILE);
@@ -822,13 +813,7 @@ int Dctnry::insertDctnry(const char* buf,
                 LBID_t startLbid;
 
                 // Add an extent.
-                RETURN_ON_ERROR( createDctnry(m_dctnryOID,
-                                 m_colWidth,
-                                 m_dbRoot,
-                                 m_partition,
-                                 m_segment,
-                                 startLbid,
-                                 false) );
+                RETURN_ON_ERROR( createDctnry(m_dctnryOID,m_colWidth,m_dbRoot,m_partition,m_segment,startLbid,false) );
 
                 if (m_logger)
                 {

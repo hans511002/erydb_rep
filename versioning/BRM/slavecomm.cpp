@@ -348,7 +348,7 @@ namespace BRM {
         int        err;
         uint16_t   tmp16;
         uint16_t   tmp32;
-        uint16_t   dbRoot;
+        DBROOTS_struct dbRoot;
         uint32_t   partitionNum;
         uint16_t   segmentNum;
         std::vector<CreateStripeColumnExtentsArgIn>  cols;
@@ -360,8 +360,8 @@ namespace BRM {
 #endif
 
         deserializeInlineVector(msg, cols);
-        msg >> tmp16;
-        dbRoot = tmp16;
+        msg >> dbRoot;
+        // dbRoot = tmp16;
         msg >> tmp32;
         partitionNum = tmp32;
 
@@ -375,8 +375,7 @@ namespace BRM {
             return;
         }
 
-        err = slave->createStripeColumnExtents(cols, dbRoot,
-            partitionNum, segmentNum, extents);
+        err = slave->createStripeColumnExtents(cols, dbRoot,partitionNum, segmentNum, extents);
         reply << (uint8_t)err;
         if (err == ERR_OK) {
             reply << partitionNum;
@@ -409,7 +408,7 @@ namespace BRM {
         uint32_t   tmp32;
         OID_t      oid;
         uint32_t   colWidth;
-        uint16_t   dbRoot;
+        DBROOTS_struct   dbRoot;
         uint32_t   partitionNum;
         uint16_t   segmentNum;
         LBID_t     lbid;
@@ -424,8 +423,8 @@ namespace BRM {
         oid = tmp32;
         msg >> tmp32;
         colWidth = tmp32;
-        msg >> tmp16;
-        dbRoot = tmp16;
+        msg >> dbRoot;
+       // dbRoot = tmp16;
         msg >> tmp32;
         partitionNum = tmp32;
         msg >> tmp16;
@@ -442,8 +441,7 @@ namespace BRM {
             return;
         }
 
-        err = slave->createColumnExtent_DBroot(oid, colWidth, dbRoot, colDataType,
-            partitionNum, segmentNum, lbid, allocdSize, startBlockOffset);
+        err = slave->createColumnExtent_DBroot(oid, colWidth, dbRoot, colDataType, partitionNum, segmentNum, lbid, allocdSize, startBlockOffset);
         reply << (uint8_t)err;
         if (err == ERR_OK) {
             reply << partitionNum;
@@ -476,7 +474,7 @@ namespace BRM {
         uint32_t   tmp32;
         OID_t      oid;
         uint32_t   colWidth;
-        uint16_t   dbRoot;
+        DBROOTS_struct   dbRoot;
         uint32_t   partitionNum;
         uint16_t   segmentNum;
         LBID_t     lbid;
@@ -491,8 +489,8 @@ namespace BRM {
         oid = tmp32;
         msg >> tmp32;
         colWidth = tmp32;
-        msg >> tmp16;
-        dbRoot = tmp16;
+        msg >> dbRoot ;
+        // dbRoot = tmp16;
         msg >> tmp32;
         partitionNum = tmp32;
         msg >> tmp16;
@@ -508,8 +506,7 @@ namespace BRM {
             return;
         }
 
-        err = slave->createColumnExtentExactFile(oid, colWidth, dbRoot,
-            partitionNum, segmentNum, colDataType, lbid, allocdSize, startBlockOffset);
+        err = slave->createColumnExtentExactFile(oid, colWidth, dbRoot, partitionNum, segmentNum, colDataType, lbid, allocdSize, startBlockOffset);
         reply << (uint8_t)err;
         if (err == ERR_OK) {
             reply << partitionNum;
@@ -539,7 +536,7 @@ namespace BRM {
         uint16_t   tmp16;
         uint32_t   tmp32;
         OID_t      oid;
-        uint16_t   dbRoot;
+        DBROOTS_struct   dbRoot;
         uint32_t   partitionNum;
         uint16_t   segmentNum;
         LBID_t     lbid;
@@ -550,8 +547,8 @@ namespace BRM {
 
         msg >> tmp32;
         oid = tmp32;
-        msg >> tmp16;
-        dbRoot = tmp16;
+        msg >> dbRoot;
+    //    dbRoot = tmp16;
         msg >> tmp32;
         partitionNum = tmp32;
         msg >> tmp16;
@@ -562,8 +559,7 @@ namespace BRM {
             return;
         }
 
-        err = slave->createDictStoreExtent(oid, dbRoot,
-            partitionNum, segmentNum, lbid, allocdSize);
+        err = slave->createDictStoreExtent(oid, dbRoot, partitionNum, segmentNum, lbid, allocdSize);
         reply << (uint8_t)err;
         if (err == ERR_OK) {
             reply << (uint64_t)lbid;
@@ -588,7 +584,7 @@ namespace BRM {
         bool       bDeleteAll;
         uint32_t   partitionNum;
         uint16_t   segmentNum;
-        uint16_t   dbRoot;
+        DBROOTS_struct   dbRoot;
         HWM_t      hwm;
         uint8_t    tmp8;
         uint16_t   tmp16;
@@ -603,8 +599,8 @@ namespace BRM {
         oid = tmp32;
         msg >> tmp8;
         bDeleteAll = tmp8;
-        msg >> tmp16;
-        dbRoot = tmp16;
+        msg >> dbRoot;
+    //    dbRoot = tmp16;
         msg >> tmp32;
         partitionNum = tmp32;
         msg >> tmp16;
@@ -620,8 +616,7 @@ namespace BRM {
             return;
         }
 
-        err = slave->rollbackColumnExtents_DBroot(
-            oid, bDeleteAll, dbRoot, partitionNum, segmentNum, hwm);
+        err = slave->rollbackColumnExtents_DBroot(oid, bDeleteAll, dbRoot, partitionNum, segmentNum, hwm);
         reply << (uint8_t)err;
 
 #ifdef BRM_VERBOSE
@@ -642,7 +637,7 @@ namespace BRM {
         int        err;
         OID_t      oid;
         uint32_t   partitionNum;
-        uint16_t   dbRoot;
+        DBROOTS_struct   dbRoot;
         uint32_t   tmp32;
         uint16_t   tmp16;
         ByteStream reply;
@@ -655,8 +650,8 @@ namespace BRM {
 
         msg >> tmp32;
         oid = tmp32;
-        msg >> tmp16;
-        dbRoot = tmp16;
+        msg >> dbRoot;
+        //dbRoot = tmp16;
         msg >> tmp32;
         partitionNum = tmp32;
         deserializeVector(msg, segNums);
@@ -673,8 +668,7 @@ namespace BRM {
         }
 
 
-        err = slave->rollbackDictStoreExtents_DBroot(
-            oid, dbRoot, partitionNum, segNums, hwms);
+        err = slave->rollbackDictStoreExtents_DBroot(oid, dbRoot, partitionNum, segNums, hwms);
         reply << (uint8_t)err;
 
 #ifdef BRM_VERBOSE

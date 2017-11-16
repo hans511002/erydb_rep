@@ -720,11 +720,7 @@ void RBMetaWriter::backupColumnHWMChunk(
 // dictionary column.
 //------------------------------------------------------------------------------
 // @bug 5572 - HDFS usage: add return flag to indicate backup status
-bool RBMetaWriter::backupDctnryHWMChunk(
-    OID       dctnryOID,
-    uint16_t  dbRoot,
-    uint32_t  partition,
-    uint16_t  segment)
+bool RBMetaWriter::backupDctnryHWMChunk(OID dctnryOID,DBROOTS_struct& dbRoot,uint32_t partition,uint16_t segment)
 {
     bool bBackupApplies = false;
 
@@ -757,8 +753,7 @@ bool RBMetaWriter::backupDctnryHWMChunk(
                 bBackupApplies = true;
                 if (!ERYDBPolicy::useHdfs())
                 {
-                    backupHWMChunk(false, dctnryOID,
-                        dbRoot, partition, segment, chunkInfoFound.fHwm);
+                    backupHWMChunk(false, dctnryOID,dbRoot, partition, segment, chunkInfoFound.fHwm);
                 }
             }
             else

@@ -313,7 +313,7 @@ int ColumnOp::allocRowId(const TxnID& txnid, bool useStartingExtent,
 				for ( i=0; i < extents.size(); i++)
 				{
 					setColParam(newCol, 0, newColStructList[i].colWidth, newColStructList[i].colDataType, newColStructList[i].colType, 
-						newColStructList[i].dataOid, newColStructList[i].fCompressionType, dbRoot, partition, segment);
+						newColStructList[i].dataOid, newColStructList[i].fCompressionType, &dbRoot, partition, segment);
 						
 					compressionType(newColStructList[i].fCompressionType);
 					rc = extendColumn(newCol, false, extents[i].startBlkOffset, extents[i].startLbid, extents[i].allocSize, 

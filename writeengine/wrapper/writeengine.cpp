@@ -512,7 +512,8 @@ namespace WriteEngine
        // boost::shared_ptr<ColumnOp> refColOp;
        // refColOp.reset(colOpRefCol);
        // dctnry.reset(dctOp);
-        uint16_t dbRoot = 1;	//not to be used
+        DBROOTS_struct dbRoot;	//not to be used
+        dbRoot[0]=1;
         //Convert HWM of the reference column for the new column
         //Bug 1703,1705
         bool isToken = false;
@@ -528,10 +529,8 @@ namespace WriteEngine
         }
 
         Convertor::convertColType(refColDataType, refColType, isToken);
-        refColOp->setColParam(refCol, 0, refColOp->getCorrectRowWidth(refColDataType, refColWidth),
-            refColDataType, refColType, (FID)refColOID, refCompressionType, dbRoot);
-        colOpNewCol->setColParam(newCol, 0, colOpNewCol->getCorrectRowWidth(dataType, dataWidth),
-            dataType, newColType, (FID)dataOid, compressionType, dbRoot);
+        refColOp->setColParam(refCol, 0, refColOp->getCorrectRowWidth(refColDataType, refColWidth),refColDataType, refColType, (FID)refColOID, refCompressionType, &dbRoot);
+        colOpNewCol->setColParam(newCol, 0, colOpNewCol->getCorrectRowWidth(dataType, dataWidth),dataType, newColType, (FID)dataOid, compressionType, &dbRoot);
 
         int size = sizeof(Token);
         if (newColType == WriteEngine::WR_TOKEN) {
@@ -633,7 +632,7 @@ namespace WriteEngine
                 if (j == 0) {
                     colOp->setColParam(curCol, 0, colStructs[i].colWidth,
                         colStructs[i].colDataType, colStructs[i].colType, colStructs[i].dataOid,
-                        colStructs[i].fCompressionType, colStructs[i].fColDbRoot,
+                        colStructs[i].fCompressionType, &colStructs[i].fColDbRoot,
                         colStructs[i].fColPartition, colStructs[i].fColSegment);
 
                     string segFile;
@@ -867,7 +866,7 @@ namespace WriteEngine
                     colOp->initColumn(curCol);
                     colOp->setColParam(curCol, 0, colStructList[i].colWidth, colStructList[i].colDataType,
                         colStructList[i].colType, colStructList[i].dataOid, colStructList[i].fCompressionType,
-                        dbRoot, partitionNum, segmentNum);
+                        &dbRoot, partitionNum, segmentNum);
                     rc = colOp->extendColumn(curCol, false, extents[i].startBlkOffset, extents[i].startLbid, extents[i].allocSize, dbRoot,
                         partitionNum, segmentNum, segFile, pFile, newFile);
                     if (rc != NO_ERROR)
@@ -891,8 +890,7 @@ namespace WriteEngine
                 //create corresponding dictionary files
                 for (i = 0; i < dctnryStructList.size(); i++) {
                     if (dctnryStructList[i].dctnryOid > 0) {
-                        rc = createDctnry(txnid, dctnryStructList[i].dctnryOid, dctnryStructList[i].colWidth, dbRoot, partitionNum,
-                            segmentNum, dctnryStructList[i].fCompressionType);
+                        rc = createDctnry(txnid, dctnryStructList[i].dctnryOid, dctnryStructList[i].colWidth, dbRoot, partitionNum, segmentNum, dctnryStructList[i].fCompressionType);
                         if (rc != NO_ERROR)
                             return rc;
                     }
@@ -1038,7 +1036,7 @@ namespace WriteEngine
         //need to pass real dbRoot, partition, and segment to setColParam
         colOp->setColParam(curCol, 0, curColStruct.colWidth, curColStruct.colDataType,
             curColStruct.colType, curColStruct.dataOid, curColStruct.fCompressionType,
-            curColStruct.fColDbRoot, curColStruct.fColPartition, curColStruct.fColSegment);
+            &curColStruct.fColDbRoot, curColStruct.fColPartition, curColStruct.fColSegment);
         rc = colOp->openColumnFile(curCol, segFile, useTmpSuffix); // @bug 5572 HDFS tmp file
         if (rc != NO_ERROR) {
             return rc;
@@ -1089,7 +1087,7 @@ namespace WriteEngine
                     colStructList[k].colType,
                     colStructList[k].dataOid,
                     colStructList[k].fCompressionType,
-                    colStructList[k].fColDbRoot,
+                    &colStructList[k].fColDbRoot,
                     colStructList[k].fColPartition,
                     colStructList[k].fColSegment);
                 rc = colOp->openColumnFile(expandCol, segFile, true); // @bug 5572 HDFS tmp file
@@ -1408,7 +1406,8 @@ namespace WriteEngine
         colOp->initColumn(curCol);
 
         //Get the correct segment, partition, column file
-        uint16_t dbRoot, segmentNum;
+        DBROOTS_struct dbRoot;
+        uint16_t segmentNum;
         uint32_t partitionNum;
         vector<ExtentInfo> colExtentInfo; //Save those empty extents in case of failure to rollback
         vector<ExtentInfo> dictExtentInfo; //Save those empty extents in case of failure to rollback
@@ -1431,7 +1430,7 @@ namespace WriteEngine
         //need to pass real dbRoot, partition, and segment to setColParam
         colOp->setColParam(curCol, 0, curColStruct.colWidth, curColStruct.colDataType,
             curColStruct.colType, curColStruct.dataOid, curColStruct.fCompressionType,
-            dbRoot, partitionNum, segmentNum);
+            &dbRoot, partitionNum, segmentNum);
 
         string segFile;
         rc = colOp->openColumnFile(curCol, segFile, false); // @bug 5572 HDFS tmp file
@@ -3952,13 +3951,12 @@ namespace WriteEngine
     int WriteEngineWrapper::createDctnry(const TxnID& txnid,
         const OID& dctnryOid,
         int colWidth,
-        uint16_t dbRoot,
+        DBROOTS_struct& dbRoot,
         uint32_t partiotion,
         uint16_t segment,
         int compressionType) {
         BRM::LBID_t startLbid;
-        return m_dctnry[op(compressionType)]->
-            createDctnry(dctnryOid, colWidth, dbRoot, partiotion, segment, startLbid);
+        return m_dctnry[op(compressionType)]->createDctnry(dctnryOid, colWidth, dbRoot, partiotion, segment, startLbid);
     }
 
     int WriteEngineWrapper::convertRidToColumn(RID& rid, uint16_t& dbRoot, uint32_t& partition,

@@ -2151,7 +2151,7 @@ LBID_t ExtentMap::_createColumnExtent_DBroot(uint32_t size, int OID,
 		if (fExtentMap[i].range.size  != 0) {
 			if (fExtentMap[i].fileID == OID) {
 				// 1. Find HWM extent in relevant DBRoot
-				if (fExtentMap[i].dbRoots[0] == dbRoot) {
+				if (fExtentMap[i].dbRoots == dbRoot) {
 					if ( (fExtentMap[i].partitionNum >  highestPartNum) ||
 						((fExtentMap[i].partitionNum == highestPartNum) &&
 					 	(fExtentMap[i].blockOffset   >  highestOffset)) ||
@@ -2238,7 +2238,7 @@ LBID_t ExtentMap::_createColumnExtent_DBroot(uint32_t size, int OID,
 						}
 						// 6. Save list of seg files in target DBRoot/Partition,
 						//    along with the highest fbo for each seg file
-						if (fExtentMap[i].dbRoots[0] == dbRoot) {
+						if (fExtentMap[i].dbRoots == dbRoot) {
 							if (fExtentMap[i].status == EXTENTOUTOFSERVICE)
 								bSegsOutOfService = true;
 							TargetDbRootSegsMapIter iter =
@@ -2276,7 +2276,7 @@ LBID_t ExtentMap::_createColumnExtent_DBroot(uint32_t size, int OID,
 	//       partition and the next available segment in that partition.
 	// 4. Set blockOffset of new extent based on where extent is being added
 	//--------------------------------------------------------------------------
-	uint16_t newDbRoot       = dbRoot;
+	DBROOTS_struct newDbRoot       = dbRoot;
 	uint32_t newPartitionNum = partitionNum;
 	uint16_t newSegmentNum   = 0;
 	uint32_t newBlockOffset  = 0;
@@ -2461,7 +2461,7 @@ LBID_t ExtentMap::_createColumnExtent_DBroot(uint32_t size, int OID,
 
 	e->colWid       = colWidth;
 
-	e->dbRoots[0]      = newDbRoot;
+	e->dbRoots      = newDbRoot;
 	e->partitionNum = newPartitionNum;
 	e->segmentNum   = newSegmentNum;
 
@@ -2795,7 +2795,7 @@ LBID_t ExtentMap::_createDictStoreExtent(uint32_t size, int OID, DBROOTS_struct&
 		e->HWM          = 0;
 		e->segmentNum   = segmentNum;
 		e->partitionNum = partitionNum;
-		e->dbRoots[0]       = dbRoot;
+		e->dbRoots      = dbRoot;
 		e->colWid       = 0; // we don't store col width for dictionaries;
 		                     // this helps to flag this as a dictionary extent
 	} else {
@@ -2971,7 +2971,7 @@ void ExtentMap::rollbackColumnExtents_DBroot ( int oid,	bool bDeleteAll,DBROOTS_
 	for (int i = 0; i < emEntries; i++) {
 		if ((fExtentMap[i].range.size  != 0) && 
 			(fExtentMap[i].fileID      == oid) &&
-			(fExtentMap[i].dbRoots[0]      == dbRoot)) {
+			(fExtentMap[i].dbRoots == dbRoot)) {
 			//oidExists = true;
 			// Don't rollback extents that are out of service
 			if (fExtentMap[i].status == EXTENTOUTOFSERVICE)
@@ -3142,9 +3142,7 @@ void ExtentMap::rollbackDictStoreExtents_DBroot ( int oid,DBROOTS_struct& dbRoot
 	int emEntries = fEMShminfo->allocdSize/sizeof(struct EMEntry);
 
 	for (int i = 0; i < emEntries; i++) {
-		if ((fExtentMap[i].range.size  != 0) && 
-			(fExtentMap[i].fileID      == oid) &&
-			(fExtentMap[i].dbRoots[0]      == dbRoot)) {
+		if ((fExtentMap[i].range.size  != 0) && (fExtentMap[i].fileID      == oid) && (fExtentMap[i].dbRoots == dbRoot)) {
 
 			//oidExists = true;
 

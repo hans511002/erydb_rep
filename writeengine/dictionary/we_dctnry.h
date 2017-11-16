@@ -101,13 +101,7 @@ public:
      * @param flag      - indicates whether extent is added to new file (true)
      * @param startLbid - starting LBID for the newly allocated extent
      */
-    EXPORT int   createDctnry(const OID& dctnryOID,
-                              int colWidth,
-                              const uint16_t dbRoot,
-                              const uint32_t partition,
-                              const uint16_t segment,
-                              BRM::LBID_t&   startLbid,
-                              bool flag=true);
+    EXPORT int   createDctnry(const OID& dctnryOID,int colWidth,const DBROOTS_struct& dbRoot,const uint32_t partition,const uint16_t segment,BRM::LBID_t&   startLbid,bool flag=true);
 
     /**
      * @brief Drop dictionary store
@@ -171,9 +165,7 @@ public:
      * @param segment   - column segment number for store file
      * @param useTmpSuffix - for Bulk HDFS usage: use or not use *.tmp file suffix
      */
-    EXPORT int   openDctnry(const OID& dctnryOID, const uint16_t dbRoot,
-                    const uint32_t partition, const uint16_t segment,
-                    const bool useTmpSuffix);
+    EXPORT int   openDctnry(const OID& dctnryOID, const DBROOTS_struct& dbRoot,const uint32_t partition, const uint16_t segment,const bool useTmpSuffix);
 
     /**
      * @brief copy the dictionary header to buffer
@@ -273,7 +265,7 @@ protected:
     ERYDBDataFile* m_dFile;            // dictionary file
     uint32_t     m_partition;        // partition associated with OID
     uint16_t     m_segment;          // segment associated with OID
-    uint16_t     m_dbRoot;           // DBRoot associated with OID
+    DBROOTS_struct m_dbRoot;         // DBRoot associated with OID
     std::string  m_segFileName;      // current column segment file
     int          m_numBlocks;        // num "raw" uncompressed blocks in file
     int          m_lastFbo;

@@ -104,12 +104,8 @@ class SlaveDBRMNode {
 		 * @param extents (out) list of lbids, numBlks, and fbo for new extents
 		 * @return 0 on success, -1 on error
 		 */
-		EXPORT int createStripeColumnExtents(
-				 const std::vector<CreateStripeColumnExtentsArgIn>& cols,
-						 uint16_t  dbRoot,
-						 uint32_t& partitionNum,
-						 uint16_t& segmentNum,
-                         std::vector<CreateStripeColumnExtentsArgOut>& extents) throw();
+		EXPORT int createStripeColumnExtents(const std::vector<CreateStripeColumnExtentsArgIn>& cols,DBROOTS_struct& dbRoot,uint32_t& partitionNum,
+						 uint16_t& segmentNum,std::vector<CreateStripeColumnExtentsArgOut>& extents) throw();
 		
 		/** @brief Allocate extent in the specified segment file
 		 *
@@ -126,15 +122,8 @@ class SlaveDBRMNode {
          * @param startBlockOffset (out) The first block of the extent created. 
 		 * @return 0 on success, -1 on error
 		 */
-		 EXPORT int createColumnExtentExactFile(OID_t oid,
-						 uint32_t  colWidth,
-						 uint16_t  dbRoot,
-						 uint32_t  partitionNum,
-						 uint16_t  segmentNum,
-                         execplan::erydbSystemCatalog::ColDataType colDataType,
-						 LBID_t&    lbid,
-						 int&       allocdSize,
-						 uint32_t& startBlockOffset) throw();
+		 EXPORT int createColumnExtentExactFile(OID_t oid,uint32_t  colWidth,DBROOTS_struct& dbRoot,uint32_t  partitionNum,uint16_t  segmentNum,
+                         execplan::erydbSystemCatalog::ColDataType colDataType,LBID_t& lbid,int& allocdSize,uint32_t& startBlockOffset) throw();
 
 		/** @brief Allocate an extent for a column file
 		 *
@@ -154,15 +143,8 @@ class SlaveDBRMNode {
 		 * @param startBlockOffset (out) The first block of the extent created.
 		 * @return 0 on success, -1 on error
 		 */
-		 EXPORT int createColumnExtent_DBroot(OID_t oid,
-						 uint32_t  colWidth,
-						 uint16_t  dbRoot,
-                         execplan::erydbSystemCatalog::ColDataType colDataType,
-                         uint32_t& partitionNum,
-						 uint16_t& segmentNum,
-						 LBID_t&    lbid,
-						 int&       allocdSize,
-						 uint32_t& startBlockOffset) throw();
+		 EXPORT int createColumnExtent_DBroot(OID_t oid,uint32_t  colWidth,DBROOTS_struct& dbRoot,execplan::erydbSystemCatalog::ColDataType colDataType,
+                         uint32_t& partitionNum,uint16_t& segmentNum,LBID_t& lbid,int& allocdSize,uint32_t& startBlockOffset) throw();
 
 		/** @brief Allocate an extent for a dictionary store file
 		 *
@@ -176,12 +158,7 @@ class SlaveDBRMNode {
 		 * @param allocdSize (out) The total number of LBIDs allocated.
 		 * @return 0 on success, -1 on error
 		 */
-		 EXPORT int createDictStoreExtent(OID_t oid,
-						 uint16_t  dbRoot,
-						 uint32_t  partitionNum,
-						 uint16_t  segmentNum,
-						 LBID_t&    lbid,
-						 int&       allocdSize) throw();
+		 EXPORT int createDictStoreExtent(OID_t oid,DBROOTS_struct& dbRoot,uint32_t partitionNum,uint16_t segmentNum,LBID_t& lbid,int& allocdSize) throw();
 
 		/** @brief Rollback (delete) a set of extents for the specified OID.
 		 *
@@ -211,12 +188,7 @@ class SlaveDBRMNode {
 		 * @param hwm HWM to be assigned to the last extent that is kept.
 		 * @return 0 on success, -1 on error
 		 */
-		EXPORT int rollbackColumnExtents_DBroot(OID_t oid,
-						 bool     bDeleteAll,
-						 uint16_t dbRoot,
-						 uint32_t partitionNum,	
-						 uint16_t segmentNum,
-						 HWM_t    hwm) throw();
+		EXPORT int rollbackColumnExtents_DBroot(OID_t oid,bool bDeleteAll,DBROOTS_struct& dbRoot,uint32_t partitionNum,	uint16_t segmentNum,HWM_t hwm) throw();
 
 		/** @brief Rollback (delete) a set of dict store extents for an OID.
 		 *
@@ -249,11 +221,7 @@ class SlaveDBRMNode {
 		 * @param hwms Vector of hwms for the last partition to be kept.
 		 * @return 0 on success, -1 on error
 		 */
-		EXPORT int rollbackDictStoreExtents_DBroot(OID_t oid,
-						 uint16_t          dbRoot,
-						 uint32_t         partitionNum,
-						 const std::vector<uint16_t>& segNums,
-						 const std::vector<HWM_t>& hwms) throw ();
+		EXPORT int rollbackDictStoreExtents_DBroot(OID_t oid,DBROOTS_struct& dbRoot,uint32_t partitionNum,const std::vector<uint16_t>& segNums,const std::vector<HWM_t>& hwms) throw ();
 						 
 		/** @brief delete of column extents for the specified extents.
 		 *

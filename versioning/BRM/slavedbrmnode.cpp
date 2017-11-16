@@ -82,12 +82,8 @@ namespace BRM {
     //------------------------------------------------------------------------------
     // Create a "stripe" of column extents for the specified column OIDs and DBRoot.
     //------------------------------------------------------------------------------
-    int SlaveDBRMNode::createStripeColumnExtents(
-        const std::vector<CreateStripeColumnExtentsArgIn>& cols,
-        uint16_t  dbRoot,
-        uint32_t& partitionNum,
-        uint16_t& segmentNum,
-        std::vector<CreateStripeColumnExtentsArgOut>& extents) throw() {
+    int SlaveDBRMNode::createStripeColumnExtents(const std::vector<CreateStripeColumnExtentsArgIn>& cols,DBROOTS_struct& dbRoot,
+        uint32_t& partitionNum,uint16_t& segmentNum,std::vector<CreateStripeColumnExtentsArgOut>& extents) throw() {
         try {
             em.createStripeColumnExtents(cols, dbRoot,
                 partitionNum, segmentNum, extents);
@@ -102,15 +98,8 @@ namespace BRM {
     //------------------------------------------------------------------------------
     // Create an extent for the specified OID and DBRoot.
     //------------------------------------------------------------------------------
-    int SlaveDBRMNode::createColumnExtent_DBroot(OID_t oid,
-        uint32_t  colWidth,
-        uint16_t  dbRoot,
-        execplan::erydbSystemCatalog::ColDataType colDataType,
-        uint32_t& partitionNum,
-        uint16_t& segmentNum,
-        LBID_t&    lbid,
-        int&       allocdSize,
-        uint32_t& startBlockOffset) throw() {
+    int SlaveDBRMNode::createColumnExtent_DBroot(OID_t oid,uint32_t  colWidth,DBROOTS_struct&  dbRoot,
+        execplan::erydbSystemCatalog::ColDataType colDataType,uint32_t& partitionNum,uint16_t& segmentNum,LBID_t& lbid,int& allocdSize,uint32_t& startBlockOffset) throw() {
         try {
             em.createColumnExtent_DBroot(oid, colWidth, dbRoot, colDataType,
                 partitionNum, segmentNum, lbid, allocdSize, startBlockOffset);
@@ -126,15 +115,8 @@ namespace BRM {
     // Create extent for the exact segment file specified by the requested
     // OID, DBRoot, partition, and segment.
     //------------------------------------------------------------------------------
-    int SlaveDBRMNode::createColumnExtentExactFile(OID_t oid,
-        uint32_t  colWidth,
-        uint16_t  dbRoot,
-        uint32_t  partitionNum,
-        uint16_t  segmentNum,
-        execplan::erydbSystemCatalog::ColDataType colDataType,
-        LBID_t&    lbid,
-        int&       allocdSize,
-        uint32_t& startBlockOffset) throw() {
+    int SlaveDBRMNode::createColumnExtentExactFile(OID_t oid,uint32_t  colWidth,DBROOTS_struct&  dbRoot,uint32_t  partitionNum,uint16_t  segmentNum,
+        execplan::erydbSystemCatalog::ColDataType colDataType,LBID_t& lbid,int& allocdSize,uint32_t& startBlockOffset) throw() {
         try {
             em.createColumnExtentExactFile(oid, colWidth, dbRoot, partitionNum,
                 segmentNum, colDataType, lbid, allocdSize, startBlockOffset);
@@ -150,12 +132,7 @@ namespace BRM {
     // Create a dictionary store extent for the specified OID, dbRoot, partition
     // number and segment number.
     //------------------------------------------------------------------------------
-    int SlaveDBRMNode::createDictStoreExtent(OID_t oid,
-        uint16_t  dbRoot,
-        uint32_t  partitionNum,
-        uint16_t  segmentNum,
-        LBID_t&    lbid,
-        int&       allocdSize) throw() {
+    int SlaveDBRMNode::createDictStoreExtent(OID_t oid,DBROOTS_struct& dbRoot,uint32_t  partitionNum,uint16_t  segmentNum,LBID_t& lbid,int& allocdSize) throw() {
         try {
             em.createDictStoreExtent(oid, dbRoot, partitionNum,
                 segmentNum, lbid, allocdSize);
@@ -171,12 +148,7 @@ namespace BRM {
     // Rollback (delete) the extents that logically trail the specified extent for
     // the given OID and DBRoot.  Also sets the HWM for the specified extent.
     //------------------------------------------------------------------------------
-    int SlaveDBRMNode::rollbackColumnExtents_DBroot(OID_t oid,
-        bool     bDeleteAll,
-        uint16_t dbRoot,
-        uint32_t partitionNum,
-        uint16_t segmentNum,
-        HWM_t    hwm) throw() {
+    int SlaveDBRMNode::rollbackColumnExtents_DBroot(OID_t oid,bool bDeleteAll,DBROOTS_struct& dbRoot,uint32_t partitionNum,uint16_t segmentNum,HWM_t hwm) throw() {
         try {
             em.rollbackColumnExtents_DBroot(
                 oid, bDeleteAll, dbRoot, partitionNum, segmentNum, hwm);
@@ -194,11 +166,7 @@ namespace BRM {
     // Also sets the HWMs for the last extents to be kept in each segment file in
     // the specified partition.
     //------------------------------------------------------------------------------
-    int SlaveDBRMNode::rollbackDictStoreExtents_DBroot(OID_t oid,
-        uint16_t             dbRoot,
-        uint32_t             partitionNum,
-        const vector<uint16_t>& segNums,
-        const vector<HWM_t>& hwms) throw() {
+    int SlaveDBRMNode::rollbackDictStoreExtents_DBroot(OID_t oid,DBROOTS_struct& dbRoot,uint32_t partitionNum,const vector<uint16_t>& segNums,const vector<HWM_t>& hwms) throw() {
         try {
             em.rollbackDictStoreExtents_DBroot(
                 oid, dbRoot, partitionNum, segNums, hwms);

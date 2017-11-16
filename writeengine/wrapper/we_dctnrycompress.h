@@ -120,7 +120,7 @@ public:
    void setMaxActiveChunkNum(unsigned int maxActiveChunkNum) { m_chunkManager->setMaxActiveChunkNum(maxActiveChunkNum); };
    void setBulkFlag(bool isBulkLoad) {m_chunkManager->setBulkFlag(isBulkLoad);};
    void setFixFlag(bool isFix) {m_chunkManager->setFixFlag(isFix);};
-   int checkFixLastDictChunk () { return m_chunkManager->checkFixLastDictChunk(m_dctnryOID, m_dbRoot, m_partition, m_segment); };
+   int checkFixLastDictChunk () { return m_chunkManager->checkFixLastDictChunk(m_dctnryOID, m_dbRoot[0], m_partition, m_segment); };
 //   void chunkManager(ChunkManager* cm);
 
    /**

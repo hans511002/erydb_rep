@@ -83,6 +83,25 @@ class ERYDBDataFile;
 
 
 namespace BRM {
+struct DBROOTS_struct :public messageqcpp::Serializeable {
+    uint16_t	dbRoots[MAX_DATA_REPLICATESIZE];  
+	EXPORT DBROOTS_struct();
+    EXPORT   uint16_t & operator [](int i) ;
+    EXPORT   uint16_t & get(int i) ;
+    EXPORT   void remove(uint16_t dbroot);
+    EXPORT DBROOTS_struct(const DBROOTS_struct&);
+    EXPORT DBROOTS_struct& operator= (const DBROOTS_struct&);
+    EXPORT DBROOTS_struct& set(const DBROOTS_struct&);
+    
+    EXPORT void serialize(messageqcpp::ByteStream &bs) const;
+//	EXPORT void serialize(std::ostream &) const;
+//	EXPORT void deserialize(std::istream &);
+	EXPORT void deserialize(messageqcpp::ByteStream &bs);
+};
+
+EXPORT bool operator==( const BRM::DBROOTS_struct&, const BRM::DBROOTS_struct&);
+EXPORT std::ostream & operator<<(std::ostream &, const DBROOTS_struct &);
+
 
 #define MAX_LBID_SIZE 0xFFFFFFFF
 /* these types should be defined in the system catalog header */
@@ -188,7 +207,7 @@ struct ExtentInfo {
 	execplan::erydbSystemCatalog::OID oid;
 	uint32_t	partitionNum; // starts at 0
 	uint16_t	segmentNum;   // starts at 0
-	uint16_t	dbRoot;       // starts at 1 to match erydb.xml
+	DBROOTS_struct	dbRoot;       // starts at 1 to match erydb.xml
 	HWM_t		hwm;
 	bool 		newFile;
 };

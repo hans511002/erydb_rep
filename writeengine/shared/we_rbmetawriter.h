@@ -175,11 +175,7 @@ public:
      * @param segment current segment of last local HWM for columnOID
      * @return Indicates whether it is necessary to perform backup
      */
-    EXPORT bool backupDctnryHWMChunk (
-        OID                dctnryOID,
-        uint16_t           dbRoot,
-        uint32_t           partition,
-        uint16_t           segment );
+    EXPORT bool backupDctnryHWMChunk (OID dctnryOID,DBROOTS_struct& dbRoot,uint32_t partition,uint16_t segment );
 
     /** @brief Delete the rollback meta files associated with this table
      * Warning: This function may throw a WeException.

@@ -38,7 +38,7 @@ namespace WriteEngine
 {
 
 struct ColExtInfo {
-	uint16_t dbRoot; 
+	DBROOTS_struct dbRoot; 
 	uint32_t partNum;
 	uint16_t segNum;
 	HWM hwm;
@@ -51,7 +51,7 @@ struct ColExtInfo {
 	bool isDict;
 	
 	ColExtInfo() :
-	dbRoot(0),
+//	dbRoot(0),
 	partNum(0),
 	segNum(0),
 	hwm(0),

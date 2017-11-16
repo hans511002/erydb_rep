@@ -200,9 +200,7 @@ public:
     * @param segment segment number
     * @param compressionType compression type
     */
-   EXPORT int createDctnry(const TxnID& txnid, const OID& dctnryOid,
-                          int colWidth, uint16_t dbRoot,
-                          uint32_t partiotion=0, uint16_t segment=0, int compressionType = 0);
+   EXPORT int createDctnry(const TxnID& txnid, const OID& dctnryOid,int colWidth, DBROOTS_struct& dbRoot,uint32_t partiotion=0, uint16_t segment=0, int compressionType = 0);
 
    /**
     * @brief Delete a list of rows from a table
@@ -342,12 +340,7 @@ public:
    {
       int compress_op = op(dctnryStruct.fCompressionType);
       m_dctnry[compress_op]->setTransId(txnid);
-      return m_dctnry[compress_op]->openDctnry(
-                                dctnryStruct.dctnryOid,
-                                dctnryStruct.fColDbRoot,
-                                dctnryStruct.fColPartition,
-                                dctnryStruct.fColSegment,
-                                useTmpSuffix);
+      return m_dctnry[compress_op]->openDctnry(dctnryStruct.dctnryOid,dctnryStruct.fColDbRoot,dctnryStruct.fColPartition,dctnryStruct.fColSegment,useTmpSuffix);
    }
 
    /**
