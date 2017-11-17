@@ -172,25 +172,19 @@ void RBMetaWriter::saveBulkRollbackMetaData(
     {
         std::vector<uint16_t> dbRoots;
         Config::getRootIdList( dbRoots );
-
         // Loop through DBRoot HWMs for this PM
-        for (unsigned m=0; m<dbRoots.size(); m++)
-        {
+        for (unsigned m=0; m<dbRoots.size(); m++){
             std::string metaFileName = openMetaFile( dbRoots[m] );
             bOpenedFile    = true;
             fCreatedSubDir = false;
-
             // Loop through the columns in the specified table
-            for( size_t i = 0; i < columns.size(); i++ ) 
-            {
-                const BRM::EmDbRootHWMInfo_v& dbRootHWMInfo =
-                    dbRootHWMInfoVecCol[i];
-
+            for( size_t i = 0; i < columns.size(); i++ ) {
+                const BRM::EmDbRootHWMInfo_v& dbRootHWMInfo = dbRootHWMInfoVecCol[i];
                 // Select dbRootHWMInfo that matches DBRoot for this iteration
                 unsigned k = 0;
                 for (; k<dbRootHWMInfo.size(); k++)
                 {
-                    if (dbRoots[m] == dbRootHWMInfo[k].dbRoot)
+                    if (dbRoots[m] == dbRootHWMInfo[k].dbRoot.get(0))
                         break;
                 }
                 if (k >= dbRootHWMInfo.size()) // logic error; should not happen
@@ -202,7 +196,7 @@ void RBMetaWriter::saveBulkRollbackMetaData(
                     throw WeException( oss.str(), ERR_INVALID_PARAM );
                 }
                     
-                uint16_t dbRoot    = dbRootHWMInfo[k].dbRoot;
+                uint16_t dbRoot    = dbRootHWMInfo[k].dbRoot.get(0);
                 uint32_t partition = 0;
                 uint16_t segment   = 0;
                 HWM       localHWM  = 0;
@@ -210,8 +204,7 @@ void RBMetaWriter::saveBulkRollbackMetaData(
 
                 // For empty DBRoot (totalBlocks == 0),
                 // leave partition, segment, and HWM set to 0
-                if ((dbRootHWMInfo[k].totalBlocks > 0) ||
-                    (dbRootHWMInfo[k].status == BRM::EXTENTOUTOFSERVICE))
+                if ((dbRootHWMInfo[k].totalBlocks > 0) || (dbRootHWMInfo[k].status == BRM::EXTENTOUTOFSERVICE))
                 {
                     partition = dbRootHWMInfo[k].partitionNum;
                     segment   = dbRootHWMInfo[k].segmentNum;
