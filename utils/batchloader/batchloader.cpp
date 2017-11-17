@@ -159,19 +159,19 @@ void BatchLoader::selectFirstPM ( uint32_t& PMId)
 					//newly created table
 					//cout << " This is newly created table. PM id is " << PMId;
 					startDBRootSet = true;
-					createdDbroot = emDbRootHWMInfos[j].dbRoot;
+					createdDbroot = emDbRootHWMInfos[j].dbRoot[0];
 					break;
 				}
 				else
 				{
-					createdDbroot = emDbRootHWMInfos[j].dbRoot;
+					createdDbroot = emDbRootHWMInfos[j].dbRoot[0];
 					//cout << " and createdDbroot is " << createdDbroot << endl;
-					rootBlocks[emDbRootHWMInfos[j].dbRoot] = emDbRootHWMInfos[j].totalBlocks;
+					rootBlocks[createdDbroot] = emDbRootHWMInfos[j].totalBlocks;
 				}
 			}
 			else
 			{					
-				rootBlocks[emDbRootHWMInfos[j].dbRoot] = emDbRootHWMInfos[j].totalBlocks;	
+				rootBlocks[emDbRootHWMInfos[j].dbRoot[0]] = emDbRootHWMInfos[j].totalBlocks;	
 			}
 		}
 		if (startDBRootSet)

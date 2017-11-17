@@ -83,7 +83,7 @@ public:
         uint32_t numExtents;
 		 /** @brief the number of blocks in the last partition
          */
-		uint32_t numBlocks;
+		uint64_t numBlocks;
     };
 	
 	struct PMRootInfo
