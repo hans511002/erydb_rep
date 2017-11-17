@@ -232,7 +232,7 @@ int  Dctnry::createDctnry( const OID& dctnryOID, int colWidth,const DBROOTS_stru
         totalSize = NUM_BLOCKS_PER_INITIAL_EXTENT;
     }
 
-    if ( !isDiskSpaceAvail(Config::getDBRootByNum(m_dbRoot), totalSize) )
+    if ( !isDiskSpaceAvail(Config::getDBRootByNum(m_dbRoot[0]), totalSize) )
     {
         if (flag)
         {
@@ -302,7 +302,7 @@ int  Dctnry::expandDctnryExtent()
     int blksToAdd = ( ((int)BRMWrapper::getInstance()->getExtentRows() -
         INITIAL_EXTENT_ROWS_TO_DISK)/BYTE_PER_BLOCK ) *  PSEUDO_COL_WIDTH;
 
-    if ( !isDiskSpaceAvail(Config::getDBRootByNum(m_dbRoot), blksToAdd) )
+    if ( !isDiskSpaceAvail(Config::getDBRootByNum(m_dbRoot[0]), blksToAdd) )
     {
         return ERR_FILE_DISK_SPACE;
     }
@@ -1288,9 +1288,7 @@ ERYDBDataFile* Dctnry::createDctnryFile(
 // @bug 5572 - HDFS usage: add *.tmp file backup flag
 ERYDBDataFile* Dctnry::openDctnryFile(bool useTmpSuffix)
 {
-    return openFile(
-        m_dctnryOID, m_dbRoot, m_partition, m_segment, m_segFileName,
-            "r+b", DEFAULT_COLSIZ, useTmpSuffix);
+    return openFile(m_dctnryOID, m_dbRoot[0], m_partition, m_segment, m_segFileName, "r+b", DEFAULT_COLSIZ, useTmpSuffix);
 }
 
 /*******************************************************************************
