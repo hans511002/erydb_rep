@@ -321,7 +321,7 @@ void RBMetaWriter::saveBulkRollbackMetaData(
 
                 // For a compressed column, backup the starting HWM chunk if the
                 // starting HWM block is not on an empty DBRoot (or outOfSrvc)
-                if ( (columns[i].compressionType) && (columns[i].dataFile.fDbRoot.get(0) == dbRootHWMInfo[k].dbRoot) && (dbRootHWMInfo[k].totalBlocks > 0) && (dbRootHWMInfo[k].status != BRM::EXTENTOUTOFSERVICE) )
+                if ( (columns[i].compressionType) && (columns[i].dataFile.fDbRoot.get(0) == dbRootHWMInfo[k].dbRoot.get(0)) && (dbRootHWMInfo[k].totalBlocks > 0) && (dbRootHWMInfo[k].status != BRM::EXTENTOUTOFSERVICE) )
                 {
                     backupColumnHWMChunk(columns[i].dataFile.oid,columns[i].dataFile.fDbRoot.get(0),columns[i].dataFile.fPartition,columns[i].dataFile.fSegment,columns[i].dataFile.hwm );
                 }
@@ -1076,8 +1076,7 @@ void RBMetaWriter::backupHWMChunk(
 
     // Backup the HWM chunk
     std::string errMsg;
-    rc = writeHWMChunk(bColumnFile, columnOID, dbRoot, partition, segment,
-        buffer, chunkSize, fileSizeBytes, startingHWM, errMsg);
+    rc = writeHWMChunk(bColumnFile, columnOID, dbRoot, partition, segment, buffer, chunkSize, fileSizeBytes, startingHWM, errMsg);
     if (rc != NO_ERROR)
     {
         std::ostringstream oss;

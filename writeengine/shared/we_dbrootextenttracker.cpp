@@ -132,7 +132,7 @@ DBRootExtentTracker::DBRootExtentTracker ( OID oid,
         }
 
         DBRootExtentInfo dbRootExtent(
-            emDbRootHWMInfo[i].dbRoot,
+            (DBROOTS_struct&)emDbRootHWMInfo[i].dbRoot,
             emDbRootHWMInfo[i].partitionNum,
             emDbRootHWMInfo[i].segmentNum,
             emDbRootHWMInfo[i].startLbid,
