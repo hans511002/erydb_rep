@@ -286,11 +286,16 @@ struct BulkSetHWMArg {
 /* Arg type for DBRM::bulkUpdateDBRoot() */
 struct BulkUpdateDBRootArg {
 	LBID_t   startLBID; // starting LBID for the extent to update
-	uint16_t dbRoot;    // the new dbRoot
+	DBROOTS_struct dbRoot;    // the new dbRoot
 
 	inline bool operator<(const BulkUpdateDBRootArg &b) const
 		{ return startLBID < b.startLBID; }
-	BulkUpdateDBRootArg(LBID_t l = 0, uint16_t d = 0) : startLBID(l), dbRoot(d) {}
+	BulkUpdateDBRootArg(LBID_t l = 0, uint16_t d = 0) : startLBID(l) {
+	    dbRoot[0]=d;
+    }
+    BulkUpdateDBRootArg(LBID_t l ,const DBROOTS_struct& _dbRoot) : startLBID(l) {
+	    dbRoot=_dbRoot;
+    }
 };
 
 /* Input Arg type for DBRM::createStripeColumnExtents() */
@@ -329,7 +334,7 @@ class VBRange : public messageqcpp::Serializeable {
 // Structure used to return HWM information for each DbRoot in a PM
 struct EmDbRootHWMInfo {
 	uint32_t	partitionNum; // last partition in dbRoot
-	uint16_t	dbRoot;       // applicable dbRoot
+	DBROOTS_struct	dbRoot;       // applicable dbRoot
 	uint16_t	segmentNum;   // last segment file in dbRoot
 	HWM_t		localHWM;     // local HWM in last file for this dbRoot
 	uint32_t	fbo;          // starting block offset to HWM extent
@@ -342,7 +347,18 @@ struct EmDbRootHWMInfo {
 	int16_t     status;       // Avail, unAvail, outOfService
 	EmDbRootHWMInfo()              { init(0); }
 	EmDbRootHWMInfo(uint16_t root) { init(root); }
-	void init (uint16_t root) {
+	EmDbRootHWMInfo(const DBROOTS_struct& root) { init(root); }
+	inline void init (uint16_t root) {
+		partitionNum= 0;
+		dbRoot[0]      = root;
+		segmentNum  = 0;
+		localHWM    = 0;
+		fbo         = 0;
+		startLbid   = 0;
+		hwmExtentIndex = -1;
+		totalBlocks = 0;
+		status      = 0; }
+    inline void init (const DBROOTS_struct& root) {
 		partitionNum= 0;
 		dbRoot      = root;
 		segmentNum  = 0;

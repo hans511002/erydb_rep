@@ -43,7 +43,7 @@ namespace WriteEngine
 // DBRootExtentInfo constructor
 //------------------------------------------------------------------------------
 DBRootExtentInfo::DBRootExtentInfo(
-    uint16_t    dbRoot,
+    DBROOTS_struct&    dbRoot,
     uint32_t    partition,
     uint16_t    segment,
     BRM::LBID_t startLbid,
@@ -63,10 +63,9 @@ DBRootExtentInfo::DBRootExtentInfo(
 //------------------------------------------------------------------------------
 // LessThan operator used to sort DBRootExtentInfo objects by DBRoot.
 //------------------------------------------------------------------------------
-bool DBRootExtentInfo::operator<(
-    const DBRootExtentInfo& entry) const
+bool DBRootExtentInfo::operator<(const DBRootExtentInfo& entry) const
 {
-    if (fDbRoot < entry.fDbRoot)
+    if (fDbRoot.get(0) < entry.fDbRoot.get(0))
         return true;
     return false;
 }
@@ -508,7 +507,7 @@ void DBRootExtentTracker::logFirstDBRootSelection( ) const
 // the extent is partially full.
 //------------------------------------------------------------------------------
 bool DBRootExtentTracker::nextSegFile(
-    uint16_t&    dbRoot,
+    DBROOTS_struct&    dbRoot,
     uint32_t&    partition,
     uint16_t&    segment,
     HWM&         localHwm,

@@ -3809,6 +3809,7 @@ void ExtentMap::getDbRootHWMInfo(int OID, uint16_t pmNumber, EmDbRootHWMInfo_v& 
 			 	(fExtentMap[i].blockOffset   == emDbRoot.fbo) &&
 			 	(fExtentMap[i].segmentNum    >= emDbRoot.segmentNum)) )
 			{
+				emDbRoot.dbRoot           = fExtentMap[i].dbRoot;
 				emDbRoot.fbo              = fExtentMap[i].blockOffset;
 				emDbRoot.partitionNum     = fExtentMap[i].partitionNum;
 				emDbRoot.segmentNum       = fExtentMap[i].segmentNum;
@@ -4133,7 +4134,7 @@ void ExtentMap::bulkUpdateDBRoot(const vector<BulkUpdateDBRootArg> &args)
 		key.startLBID = fExtentMap[i].range.start;
 		sit = sArgs.find(key);
 		if (sit != sArgs.end())
-			fExtentMap[i].dbRoots[0] = sit->dbRoot;
+			fExtentMap[i].dbRoots = sit->dbRoot;
 	}
 }
 

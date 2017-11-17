@@ -94,7 +94,7 @@ struct DBRootExtentInfo
         fState(DBROOT_EXTENT_PARTIAL_EXTENT) { }
 
     DBRootExtentInfo(
-        uint16_t    dbRoot,
+        DBROOTS_struct&    dbRoot,
         uint32_t    partition,
         uint16_t    segment,
         BRM::LBID_t startLbid,

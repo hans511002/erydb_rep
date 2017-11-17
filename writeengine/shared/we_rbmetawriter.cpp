@@ -328,17 +328,9 @@ void RBMetaWriter::saveBulkRollbackMetaData(
 
                 // For a compressed column, backup the starting HWM chunk if the
                 // starting HWM block is not on an empty DBRoot (or outOfSrvc)
-                if ( (columns[i].compressionType) &&
-                     (columns[i].dataFile.fDbRoot == dbRootHWMInfo[k].dbRoot) &&
-                     (dbRootHWMInfo[k].totalBlocks > 0) &&
-                     (dbRootHWMInfo[k].status != BRM::EXTENTOUTOFSERVICE) )
+                if ( (columns[i].compressionType) && (columns[i].dataFile.fDbRoot.get(0) == dbRootHWMInfo[k].dbRoot) && (dbRootHWMInfo[k].totalBlocks > 0) && (dbRootHWMInfo[k].status != BRM::EXTENTOUTOFSERVICE) )
                 {
-                    backupColumnHWMChunk(
-                        columns[i].dataFile.oid,
-                        columns[i].dataFile.fDbRoot,
-                        columns[i].dataFile.fPartition,
-                        columns[i].dataFile.fSegment,
-                        columns[i].dataFile.hwm );
+                    backupColumnHWMChunk(columns[i].dataFile.oid,columns[i].dataFile.fDbRoot.get(0),columns[i].dataFile.fPartition,columns[i].dataFile.fSegment,columns[i].dataFile.hwm );
                 }
 
             }         // End of loop through columns
@@ -691,18 +683,11 @@ void RBMetaWriter::deleteSubDir( const std::string& metaFileName )
 // so that the chunk is available for bulk rollback.
 // This operation is only performed for compressed columns.
 //------------------------------------------------------------------------------
-void RBMetaWriter::backupColumnHWMChunk(
-    OID       columnOID,
-    uint16_t  dbRoot,
-    uint32_t  partition,
-    uint16_t  segment,
-    HWM       startingHWM)
-{
+void RBMetaWriter::backupColumnHWMChunk(OID columnOID,uint16_t dbRoot,uint32_t partition,uint16_t segment,HWM startingHWM){
     // @bug 5572 - Don't need db backup file for HDFS; we use hdfs buffer file
     if (!ERYDBPolicy::useHdfs())
     {
-        backupHWMChunk( true,
-            columnOID, dbRoot, partition, segment, startingHWM );
+        backupHWMChunk( true,columnOID, dbRoot, partition, segment, startingHWM );
     }
 }
 
@@ -753,7 +738,7 @@ bool RBMetaWriter::backupDctnryHWMChunk(OID dctnryOID,DBROOTS_struct& dbRoot,uin
                 bBackupApplies = true;
                 if (!ERYDBPolicy::useHdfs())
                 {
-                    backupHWMChunk(false, dctnryOID,dbRoot, partition, segment, chunkInfoFound.fHwm);
+                    backupHWMChunk(false, dctnryOID,dbRoot[0], partition, segment, chunkInfoFound.fHwm);
                 }
             }
             else

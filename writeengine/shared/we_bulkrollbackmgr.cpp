@@ -731,7 +731,7 @@ void BulkRollbackMgr::deleteColumn1ExtentsV4 ( const char* inBuf )
 {
     char        recType[100];
     OID         columnOID;
-    DBROOTS_struct   dbRootHwm;
+    uint32_t   dbRootHwm;
     uint32_t   partNumHwm;
     uint32_t   segNumHwm;
     HWM         lastLocalHwm;
@@ -779,10 +779,12 @@ void BulkRollbackMgr::deleteColumn1ExtentsV4 ( const char* inBuf )
     // DMC-We should probably change this to build up a list of BRM changes,
     //     and wait to make the call(s) to rollback the BRM changes "after" we
     //     have restored the db files, and purged PrimProc FD and block cache.
+    DBROOTS_struct dbRoots;
+    dbRoots[0]=dbRootHwm;
     int rc = BRMWrapper::getInstance()->rollbackColumnExtents_DBroot (
         columnOID,
         false,                  // false -> Don't delete all extents (rollback
-        (uint16_t)dbRootHwm,   //    to specified dbroot, partition, etc.)
+        dbRoots,   //    to specified dbroot, partition, etc.)
         partNumHwm,
         (uint16_t)segNumHwm,
         lastLocalHwm );
@@ -1078,10 +1080,12 @@ void BulkRollbackMgr::deleteColumn2ExtentsV4 ( const char* inBuf )
     // DMC-We should probably change this to build up a list of BRM changes,
     //     and wait to make the call(s) to rollback the BRM changes "after" we
     //     have restored the db files, and purged PrimProc FD and block cache.
+    DBROOTS_struct dbRoots;
+    dbRoots[0]=dbRootHwm;
     rc = BRMWrapper::getInstance()->rollbackColumnExtents_DBroot (
         columnOID,
         true,           // true -> delete all extents (restore to empty DBRoot)
-        (uint16_t)dbRootHwm,
+        dbRoots,
         partNumHwm,
         (uint16_t)segNumHwm,
         lastLocalHwm );
@@ -1320,9 +1324,11 @@ void BulkRollbackMgr::deleteDctnryExtentsV4 ( )
     // DMC-We should probably change this to build up a list of BRM changes,
     //     and wait to make the call(s) to rollback the BRM changes "after" we
     //     have restored the db files, and purged PrimProc FD and block cache.
+    DBROOTS_struct dbRoots;
+    dbRoots[0]=fPendingDctnryStoreDbRoot;
     int rc = BRMWrapper::getInstance()->rollbackDictStoreExtents_DBroot (
         fPendingDctnryStoreOID,
-        (uint16_t)fPendingDctnryStoreDbRoot,
+        dbRoots,
         partNum,
         segNums,
         hwms );
@@ -1493,7 +1499,7 @@ void BulkRollbackMgr::createFileDeletionEntry(
     f.fid          = ((fileTypeFlag) ? 1 : 0); // use fid for file type flag
     f.fPartition   = partNum;
     f.fSegment     = segNum;
-    f.fDbRoot      = dbRoot;
+    f.fDbRoot[0]      = dbRoot;
     f.fSegFileName = segFileName;
     fPendingFilesToDelete.push_back( f );
 }
@@ -1518,7 +1524,7 @@ void BulkRollbackMgr::deleteDbFiles( )
         fileRestorer.deleteSegmentFile(
             fPendingFilesToDelete[i].oid,
             ((fPendingFilesToDelete[i].fid > 0) ? true : false),
-            fPendingFilesToDelete[i].fDbRoot,
+            fPendingFilesToDelete[i].fDbRoot[0],
             fPendingFilesToDelete[i].fPartition,
             fPendingFilesToDelete[i].fSegment,
             fPendingFilesToDelete[i].fSegFileName );

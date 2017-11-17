@@ -77,20 +77,20 @@ public:
     {
         /** @brief the dbroot
          */
-        uint32_t DBRoot;
+        uint16_t DBRoot;
         /** @brief the number of extents
          */
-        uint64_t numExtents;
+        uint32_t numExtents;
 		 /** @brief the number of blocks in the last partition
          */
-		uint64_t numBlocks;
+		uint32_t numBlocks;
     };
 	
 	struct PMRootInfo
 	{
 		/** @brief the module id
          */
-        uint32_t PMId;
+        uint16_t PMId;
 		/** @brief the dbroot info
 		*/
 		std::vector<RootExtentsBlocks> rootInfo;
