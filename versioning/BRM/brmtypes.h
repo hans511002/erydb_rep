@@ -100,6 +100,7 @@ struct DBROOTS_struct :public messageqcpp::Serializeable {
 };
 
 EXPORT bool operator==( const BRM::DBROOTS_struct&, const BRM::DBROOTS_struct&);
+EXPORT bool operator!=( const BRM::DBROOTS_struct&, const BRM::DBROOTS_struct&);
 EXPORT bool operator>( const BRM::DBROOTS_struct&, const BRM::DBROOTS_struct&);
 EXPORT bool operator>=( const BRM::DBROOTS_struct&, const BRM::DBROOTS_struct&);
 EXPORT bool operator<( const BRM::DBROOTS_struct&, const BRM::DBROOTS_struct&);

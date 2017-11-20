@@ -123,6 +123,15 @@ bool operator==( const BRM::DBROOTS_struct &a , const BRM::DBROOTS_struct &b){
     }
     return true;
 };
+bool operator!=( const BRM::DBROOTS_struct &a , const BRM::DBROOTS_struct &b){
+    for (int n=0; n<MAX_DATA_REPLICATESIZE; n++)
+    {
+        if(a.dbRoots[n] != b.dbRoots[n]){
+            return true;
+        }
+    }
+    return false;
+};
 bool operator>( const BRM::DBROOTS_struct& a, const BRM::DBROOTS_struct& b){
     return a.dbRoots[0] > b.dbRoots[0];
 };

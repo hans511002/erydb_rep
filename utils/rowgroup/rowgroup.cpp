@@ -902,7 +902,8 @@ void RowGroup::resetRowGroup(uint64_t rid)
 	*((uint32_t *) &data[rowCountOffset]) = 0;
 	*((uint64_t *) &data[baseRidOffset]) = rid;
 	*((uint16_t *) &data[statusOffset]) = 0;
-	*((uint32_t *) &data[dbRootOffset]) = 0;
+	//*((DBROOTS_struct *) &data[dbRootOffset]) = 0;
+	memset(data+dbRootOffset,0,sizeof(DBROOTS_struct));
 	if (strings)
 		strings->clear();
 }
@@ -1152,9 +1153,9 @@ RowGroup operator+(const RowGroup& lhs, const RowGroup& rhs)
 	return temp += rhs;
 }
 
-uint32_t RowGroup::getDBRoot() const
+DBROOTS_struct& RowGroup::getDBRoot() const
 {
-	return *((uint32_t *) &data[dbRootOffset]);
+	return *((DBROOTS_struct *) &data[dbRootOffset]);
 }
 
 void RowGroup::addToSysDataList(execplan::erydbSystemCatalog::NJLSysDataList& sysDataList)
@@ -1224,9 +1225,9 @@ void RowGroup::addToSysDataList(execplan::erydbSystemCatalog::NJLSysDataList& sy
 	}
 }
 
-void RowGroup::setDBRoot(uint32_t dbroot)
+void RowGroup::setDBRoot(const DBROOTS_struct& dbroot)
 {
-	*((uint32_t *) &data[dbRootOffset]) = dbroot;
+	*((DBROOTS_struct *) &data[dbRootOffset]) = dbroot;
 }
 
 RGData RowGroup::duplicate()

@@ -1551,7 +1551,7 @@ void TupleHashJoinStep::generateJoinResultSet(const vector<vector<Row::Pointer> 
 		  l_outputRG.incRowCount()) {
 			smallRow.setPointer(joinerOutput[depth][i]);
 			if (UNLIKELY(l_outputRG.getRowCount() == 8192)) {
-				uint32_t dbRoot = l_outputRG.getDBRoot();
+				DBROOTS_struct dbRoot = l_outputRG.getDBRoot();
 				uint64_t baseRid = l_outputRG.getBaseRid();
 				outputData->push_back(rgData);
 				rgData.reinit(l_outputRG);

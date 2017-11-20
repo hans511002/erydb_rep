@@ -407,7 +407,8 @@ uint64_t UpdatePackageProcessor::fixUpRows(dmlpackage::erydbDMLPackage& cpackage
 	msg << qb;
 	boost::scoped_ptr<rowgroup::RowGroup> rowGroup;
 	uint64_t rowsProcessed = 0;
-	uint32_t dbroot = 1;
+	DBROOTS_struct dbroot ;
+	dbroot[0]=1;
 	bool metaData = false;
 	oam::OamCache * oamCache = oam::OamCache::makeOamCache();
 	std::vector<int> fPMs = oamCache->getModuleIds();
@@ -501,7 +502,7 @@ uint64_t UpdatePackageProcessor::fixUpRows(dmlpackage::erydbDMLPackage& cpackage
 					metaData = true;
 					//cout << "sending meta data" << endl;
 					//timer.start("Meta");
-					err = processRowgroup(msgBk, result, uniqueId, cpackage, pmState, metaData, dbroot);
+					err = processRowgroup(msgBk, result, uniqueId, cpackage, pmState, dbroot, metaData);
 					rowGroup.reset(new rowgroup::RowGroup());
 					rowGroup->deserialize(msg);
 					qb = 100;
@@ -560,7 +561,7 @@ uint64_t UpdatePackageProcessor::fixUpRows(dmlpackage::erydbDMLPackage& cpackage
 				dbroot = rowGroup->getDBRoot();
 				//cout << "dbroot in the rowgroup is " << dbroot << endl;
 				//timer.start("processRowgroup");
-				err = processRowgroup(msgBk, result, uniqueId, cpackage, pmState, metaData, dbroot);
+				err = processRowgroup(msgBk, result, uniqueId, cpackage, pmState, dbroot, metaData);
 				//timer.stop("processRowgroup");
 				if (err) {
 					//timer.finish();
@@ -672,11 +673,11 @@ uint64_t UpdatePackageProcessor::fixUpRows(dmlpackage::erydbDMLPackage& cpackage
 }
 
 bool UpdatePackageProcessor::processRowgroup(ByteStream & aRowGroup, DMLResult& result, const uint64_t uniqueId, 
-			dmlpackage::erydbDMLPackage& cpackage, std::map<unsigned, bool>& pmState,  bool isMeta, uint32_t dbroot)
+			dmlpackage::erydbDMLPackage& cpackage, std::map<unsigned, bool>& pmState, DBROOTS_struct &dbroot,  bool isMeta)
 {
 	bool rc = false;
 	//cout << "Get dbroot " << dbroot << endl;
-	uint32_t pmNum = (*fDbRootPMMap)[dbroot];
+	uint32_t pmNum = (*fDbRootPMMap)[dbroot[0]];
 	
 	ByteStream bytestream;
 	bytestream << (uint8_t)WE_SVR_UPDATE;

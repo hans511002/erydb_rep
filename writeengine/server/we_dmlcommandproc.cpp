@@ -98,8 +98,8 @@ uint8_t WE_DMLCommandProc::processSingleInsert(messageqcpp::ByteStream& bs, std:
 	BRM::TxnID txnid;
 	txnid.valid = true;
 	txnid.id  = tmp32;
-	bs >> tmp32;
-	uint32_t dbroot = tmp32;
+	DBROOTS_struct dbroot;
+	bs >> dbroot;
 
 	//cout << "processSingleInsert received bytestream length " << bs.length() << endl;
 
@@ -820,8 +820,7 @@ uint8_t WE_DMLCommandProc::processBatchInsert(messageqcpp::ByteStream& bs, std::
 			{
 				// Find DBRoot/segment file where we want to start adding rows
 				colType = systemCatalogPtr->colType(ridList[i].objnum);
-				boost::shared_ptr<DBRootExtentTracker> pDBRootExtentTracker (new DBRootExtentTracker(ridList[i].objnum,
-					colWidths, dbRootHWMInfoColVec, i, 0) );
+				boost::shared_ptr<DBRootExtentTracker> pDBRootExtentTracker (new DBRootExtentTracker(ridList[i].objnum, colWidths, dbRootHWMInfoColVec, i, 0) );
 				dbRootExtTrackerVec.push_back( pDBRootExtentTracker );
 				DBRootExtentInfo dbRootExtent;
 				std::string trkErrMsg;
@@ -1415,7 +1414,7 @@ uint8_t WE_DMLCommandProc::processBatchInsertHwm(messageqcpp::ByteStream& bs, st
 		oidsToFlush.push_back(aFile.oid);
 		roPair.objnum = aFile.oid;
 		aExtentInfo.fPartition = 0;
-		aExtentInfo.fDbRoot = 0;
+		//aExtentInfo.fDbRoot = 0;
 		aExtentInfo.fSegment = 0;
 		aExtentInfo.fLocalHwm = 0;
 		bool isDict = false;
@@ -1816,7 +1815,8 @@ uint8_t WE_DMLCommandProc::processUpdate(messageqcpp::ByteStream& bs,
 
 	rowGroups[txnId]->getRow(0, &row);
 	erydbSystemCatalog::RID rid = row.getRid();
-	uint16_t dbRoot, segment, blockNum;
+    DBROOTS_struct dbRoot;
+	uint16_t segment, blockNum;
 	uint32_t partition;
 	uint8_t extentNum;
 	//Get the file information from rowgroup

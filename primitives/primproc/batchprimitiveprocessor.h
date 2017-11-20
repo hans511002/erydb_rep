@@ -341,7 +341,7 @@ class BatchPrimitiveProcessor
 		int sockIndex;
 
 		/* Shared nothing vars */
-		uint32_t dbRoot;
+		DBROOTS_struct dbRoot;
 
 		bool endOfJoinerRan;
 

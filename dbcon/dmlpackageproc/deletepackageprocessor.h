@@ -72,7 +72,7 @@ private:
                    DMLResult& result);
 	  */
     bool processRowgroup(messageqcpp::ByteStream & aRowGroup, DMLResult& result, const uint64_t uniqueId, dmlpackage::erydbDMLPackage& cpackage, std::map<unsigned, bool>& pmStateDel, 
-						bool isMeta = false, uint32_t dbroot=1);
+						DBROOTS_struct& dbroot,bool isMeta = false);
 
 
     /** @brief add all rows if we have no filter for the delete

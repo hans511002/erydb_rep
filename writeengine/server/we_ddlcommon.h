@@ -88,7 +88,7 @@ namespace WriteEngine
 	
 	struct extentInfo
 	{
-		uint16_t dbRoot;
+		DBROOTS_struct dbRoot;
 		uint32_t partition;
 		uint16_t segment;
 		bool operator==(const extentInfo& rhs) const { return (dbRoot == rhs.dbRoot && partition == rhs.partition && segment == rhs.segment); }

@@ -354,7 +354,8 @@ namespace dmlpackageprocessor
 	msg << qb;
 	boost::scoped_ptr<rowgroup::RowGroup> rowGroup;
 	uint64_t  rowsProcessed = 0;
-	uint32_t dbroot = 1;
+	DBROOTS_struct dbroot;
+	dbroot[0]=1;
 	bool metaData = false;
 	oam::OamCache * oamCache = oam::OamCache::makeOamCache();
 	std::vector<int> fPMs = oamCache->getModuleIds();
@@ -445,7 +446,7 @@ namespace dmlpackageprocessor
 					//This is meta data, need to send to all PMs.
 					metaData = true;
 					//cout << "sending meta data" << endl;
-					err = processRowgroup(msgBk, result, uniqueId, cpackage, pmStateDel, metaData, dbroot);
+					err = processRowgroup(msgBk, result, uniqueId, cpackage, pmStateDel, dbroot, metaData);
 					rowGroup.reset(new rowgroup::RowGroup());
 					rowGroup->deserialize(msg);
 					qb = 100;
@@ -499,7 +500,7 @@ namespace dmlpackageprocessor
 					continue;  // @bug4247, not valid row ids, may from small side outer
 				}
 				dbroot = rowGroup->getDBRoot();
-				err = processRowgroup(msgBk, result, uniqueId, cpackage, pmStateDel, metaData, dbroot);
+				err = processRowgroup(msgBk, result, uniqueId, cpackage, pmStateDel, dbroot, metaData);
 				if (err)
 				{
 					DMLResult tmpResult;
@@ -596,11 +597,11 @@ namespace dmlpackageprocessor
   }
   
 bool DeletePackageProcessor::processRowgroup(ByteStream & aRowGroup, DMLResult& result, const uint64_t uniqueId, 
-			dmlpackage::erydbDMLPackage& cpackage, std::map<unsigned, bool>& pmStateDel, bool isMeta, uint32_t dbroot)
+			dmlpackage::erydbDMLPackage& cpackage, std::map<unsigned, bool>& pmStateDel, DBROOTS_struct& dbroot, bool isMeta)
 {
 	bool rc = false;
 	//cout << "Get dbroot " << dbroot << endl;
-	int pmNum = (*fDbRootPMMap)[dbroot];
+	int pmNum = (*fDbRootPMMap)[dbroot[0]];
 	DMLTable* tablePtr =  cpackage.get_Table();
 	ByteStream bytestream;
 	bytestream << (ByteStream::byte)WE_SVR_DELETE;

@@ -60,7 +60,9 @@
 #include "branchpred.h"
 
 #include "../winport/winport.h"
+#include "brmtypes.h"
 
+using namespace BRM;
 namespace rowgroup
 {
 
@@ -980,8 +982,8 @@ public:
 	uint32_t getStatus() const;
 	void setStatus(uint16_t);
 
-	uint32_t getDBRoot() const;
-	void setDBRoot(uint32_t);
+	DBROOTS_struct& getDBRoot() const;
+	void setDBRoot(const DBROOTS_struct&);
 
 	uint32_t getDataSize() const;
 	uint32_t getDataSize(uint64_t n) const;
@@ -1095,11 +1097,11 @@ private:
 	uint32_t sTableThreshold;
 	boost::shared_array<bool> forceInline;
 
-	static const uint32_t headerSize = 18;
 	static const uint32_t rowCountOffset = 0;
 	static const uint32_t baseRidOffset = 4;
 	static const uint32_t statusOffset = 12;
 	static const uint32_t dbRootOffset = 14;
+	static const uint32_t headerSize = dbRootOffset+sizeof(DBROOTS_struct);
 };
 
 inline uint64_t convertToRid(const uint32_t &partNum, const uint16_t &segNum,

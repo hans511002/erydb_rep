@@ -970,8 +970,7 @@ void WindowFunctionStep::doPostProcessForSelect()
 			rgData.reinit(fRowGroupOut, rgCapacity);
 
 			fRowGroupOut.setData(&rgData);
-			fRowGroupOut.resetRowGroup(0);
-			fRowGroupOut.setDBRoot(0);           // not valid dbroot
+			fRowGroupOut.resetRowGroup(0);  //fRowGroupOut.setDBRoot(0); // not valid dbroot
 			fRowGroupOut.getRow(0, &rowOut);
 			rowsInRg = 0;
 		}

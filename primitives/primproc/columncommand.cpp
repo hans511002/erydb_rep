@@ -892,7 +892,7 @@ const int64_t ColumnCommand::getLastLbid()
 {
 	if (!_isScan)
 		return 0;
-	return lastLbid[bpp->dbRoot-1];
+	return lastLbid[bpp->dbRoot[0]-1];
 
 #if 0
 	/* PL - each dbroot has a different HWM; need to look up the local HWM on start */

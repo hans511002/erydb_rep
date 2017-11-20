@@ -553,7 +553,7 @@ int rollbackExtents(OID_t oid)
 {
 	char      DictStoreOIDFlag;
 	uint32_t  partNum;
-	uint16_t  dbRoot;
+	DBROOTS_struct  dbRoot;
 	uint16_t  segNum;
 	HWM_t     hwm;
 
@@ -589,8 +589,7 @@ int rollbackExtents(OID_t oid)
 			segNums.push_back(segNum);
 		}
 
-		CHECK(emp->rollbackDictStoreExtents_DBroot( oid, dbRoot, partNum,
-			segNums, hwms ));
+		CHECK(emp->rollbackDictStoreExtents_DBroot( oid, dbRoot, partNum, segNums, hwms ));
 	}
 	else
 	{
@@ -691,7 +690,7 @@ int dumpLBID(LBID_t lbid)
 {
 	uint16_t ver = 0;
 	BRM::OID_t oid;
-	uint16_t dbroot;
+	DBROOTS_struct dbroot;
 	uint32_t partNum;
 	uint16_t segNum;
 	uint32_t fbo;

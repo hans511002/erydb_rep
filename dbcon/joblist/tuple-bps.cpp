@@ -2574,7 +2574,7 @@ void TupleBPS::generateJoinResultSet(const vector<vector<Row::Pointer> > &joiner
 		  outputRG.incRowCount()) {
 			smallRow.setPointer(joinerOutput[depth][i]);
 			if (UNLIKELY(outputRG.getRowCount() == 8192)) {
-				uint32_t dbRoot = outputRG.getDBRoot();
+				DBROOTS_struct dbRoot = outputRG.getDBRoot();
 				uint64_t baseRid = outputRG.getBaseRid();
 // 				cout << "GJRS adding data\n";
 				outputData->push_back(rgData);
@@ -2778,10 +2778,7 @@ void TupleBPS::processFE2(RowGroup &input, RowGroup &output, Row &inRow, Row &ou
 				outRow.setRid(inRow.getRelRid());
 				output.incRowCount();
 				outRow.nextRow();
-				if (output.getRowCount() == 8192 ||
-				  output.getDBRoot() != input.getDBRoot() ||
-				  output.getBaseRid() != input.getBaseRid()
-				) {
+				if (output.getRowCount() == 8192 || output.getDBRoot() != input.getDBRoot() || output.getBaseRid() != input.getBaseRid()) {
 //					cout << "FE2 produced a full RG\n";
 					results.push_back(result);
 					result = RGData(output);
