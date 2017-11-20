@@ -236,14 +236,7 @@ public:
      *  @param hwm       (out) FBO for extent created by BRM
      *  @param errMsg    (out) Error message
      */
-    int allocateBRMColumnExtent(OID columnOID,
-            uint16_t     dbRoot,
-            uint32_t&    partition,
-            uint16_t&    segment,
-            BRM::LBID_t& startLbid,
-            int&         allocSize,
-            HWM&         hwm,
-            std::string& errMsg );
+    int allocateBRMColumnExtent(OID columnOID,DBROOTS_struct& dbRoot,uint32_t& partition,uint16_t& segment,BRM::LBID_t& startLbid,int& allocSize,HWM& hwm,std::string& errMsg );
 
     /** @brief Delete the bulk rollback metadata file.
      */
@@ -357,9 +350,7 @@ public:
      *  @param fixedBinaryRecLen In binary mode, this is the fixed record length
      *         used to read the buffer; in text mode, this value is not used.
      */
-    void initializeBuffers(int   noOfBuffers,
-                           const JobFieldRefList& jobFieldRefList,
-                           unsigned int fixedBinaryRecLen);
+    void initializeBuffers(int   noOfBuffers,const JobFieldRefList& jobFieldRefList,unsigned int fixedBinaryRecLen);
 
     /** @brief Read the table data into the read buffer
      */
@@ -372,9 +363,7 @@ public:
 
     /** @brief update the buffer status for column
      */
-    int setParseComplete(const int &columnId,
-                         const int & bufferId,
-                         double processingTime);
+    int setParseComplete(const int &columnId,const int & bufferId,double processingTime);
 
     /** @brief update the status to reflect a parsing error
      */
@@ -403,8 +392,7 @@ public:
 
     /** @brief set list of import files and STDIN usage flag
      */
-    void setLoadFilesInput(bool  bReadFromStdin,
-                           const std::vector<std::string>& files);
+    void setLoadFilesInput(bool  bReadFromStdin,const std::vector<std::string>& files);
 
     /** @brief set job file name under process.
      */
@@ -423,17 +411,14 @@ public:
 
     /** @brief log message to data_mods.log file.
      */
-    void logToDataMods(const std::string& jobFile,
-                       const std::string&  messageText);
+    void logToDataMods(const std::string& jobFile,const std::string&  messageText);
 
     /** @brief Validate consistency of current HWMs for this table's columns.
      *  If jobTable argument is provided, then it will be used to get additional
      *  column info, else this table's fColumns vector is used.
      *  "stage" indicates validation stage ("Starting" or "Ending" HWMs).
      */
-    int validateColumnHWMs( const JobTable* jobTable,
-                            const std::vector<DBRootExtentInfo>& segFileInfo,
-                            const char* stage );
+    int validateColumnHWMs( const JobTable* jobTable,const std::vector<DBRootExtentInfo>& segFileInfo,const char* stage );
 
     /** @brief Initialize the bulk rollback meta data writer for this table.
      */
@@ -446,9 +431,7 @@ public:
      *  @param dbRootHWMInfoColVec Vector of last local HWMs for each DBRoot
      *  on this PM.
      */
-    int saveBulkRollbackMetaData( Job& job,
-                            const std::vector<DBRootExtentInfo>& segFileInfo,
-            const std::vector<BRM::EmDbRootHWMInfo_v>& dbRootHWMInfoColVec );
+    int saveBulkRollbackMetaData( Job& job,const std::vector<DBRootExtentInfo>& segFileInfo,const std::vector<BRM::EmDbRootHWMInfo_v>& dbRootHWMInfoColVec );
 
     /** @brief Mark table as complete
      */

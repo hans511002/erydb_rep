@@ -484,11 +484,7 @@ int ColumnInfoCompressed::truncateDctnryStore(
 // place when a DBRoot with a partial extent has been moved from one PM to
 // another.
 //------------------------------------------------------------------------------
-int ColumnInfoCompressed::extendColumnOldExtent(
-    uint16_t    dbRootNext,
-    uint32_t    partitionNext,
-    uint16_t    segmentNext,
-    HWM         hwmNextIn )
+int ColumnInfoCompressed::extendColumnOldExtent(DBROOTS_struct& dbRootNext,uint32_t partitionNext,uint16_t segmentNext,HWM hwmNextIn )
 {
     const unsigned int BLKS_PER_EXTENT =
         (fRowsPerExtent * column.width)/BYTE_PER_BLOCK;

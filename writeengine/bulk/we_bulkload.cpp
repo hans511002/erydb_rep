@@ -540,8 +540,7 @@ int BulkLoad::preProcess( Job& job, int tableNo,
         {
             WErrorCodes ec;
             ostringstream oss;
-            oss << "Error getting last DBRoot/HWMs for column file " <<
-                curJobCol.mapOid << "; " << ec.errorString(rc);
+            oss << "Error getting last DBRoot/HWMs for column file " << curJobCol.mapOid << "; " << ec.errorString(rc);
             fLog.logMsg( oss.str(), rc, MSGLVL_ERROR );
             return rc;
         }
@@ -636,7 +635,7 @@ int BulkLoad::preProcess( Job& job, int tableNo,
     unsigned int fixedBinaryRecLen = 0;
     for( size_t i = 0; i < job.jobTableList[tableNo].colList.size(); i++ ) 
     {
-        uint16_t dbRoot    = segFileInfo[i].fDbRoot;
+        DBROOTS_struct dbRoot    = segFileInfo[i].fDbRoot;
         uint32_t partition = segFileInfo[i].fPartition;
         uint16_t segment   = segFileInfo[i].fSegment;
         HWM       oldHwm    = segFileInfo[i].fLocalHwm;
@@ -719,8 +718,7 @@ int BulkLoad::preProcess( Job& job, int tableNo,
             // extent is disabled.  In either case, we will wait and create a
             // new DB file to receive any new rows, only after we make sure we
             // have rows to insert.
-            info->setupDelayedFileCreation(
-                dbRoot, partition, segment, hwm, bEmptyPM );
+            info->setupDelayedFileCreation(dbRoot, partition, segment, hwm, bEmptyPM );
         }
         else
         {
@@ -734,12 +732,7 @@ int BulkLoad::preProcess( Job& job, int tableNo,
                 hwm, lbid, bSkippedToNewExtent ) );
 
             // Setup import to start loading into starting HWM DB file
-            RETURN_ON_ERROR( info->setupInitialColumnExtent(
-                dbRoot, partition, segment,
-                job.jobTableList[tableNo].tblName,
-                lbid,
-                oldHwm, hwm,
-                bSkippedToNewExtent, false) );   
+            RETURN_ON_ERROR( info->setupInitialColumnExtent(dbRoot, partition, segment,job.jobTableList[tableNo].tblName,lbid,oldHwm, hwm,bSkippedToNewExtent, false) );   
         }
 
         tableInfo->addColumn(info);

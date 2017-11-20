@@ -2193,9 +2193,7 @@ int TableInfo::initBulkRollbackMetaData( )
 //    NO_ERROR if success
 //    other if fail
 //------------------------------------------------------------------------------
-int TableInfo::saveBulkRollbackMetaData( Job& job,
-    const std::vector<DBRootExtentInfo>& segFileInfo,
-    const std::vector<BRM::EmDbRootHWMInfo_v>& dbRootHWMInfoVecCol )
+int TableInfo::saveBulkRollbackMetaData( Job& job,const std::vector<DBRootExtentInfo>& segFileInfo, const std::vector<BRM::EmDbRootHWMInfo_v>& dbRootHWMInfoVecCol )
 {
     int rc = NO_ERROR;
 
@@ -2356,23 +2354,9 @@ int TableInfo::rollbackWork( )
 //------------------------------------------------------------------------------
 // Allocate extent from BRM (through the stripe allocator).
 //------------------------------------------------------------------------------
-int TableInfo::allocateBRMColumnExtent(OID columnOID,
-    uint16_t     dbRoot,
-    uint32_t&    partition,
-    uint16_t&    segment,
-    BRM::LBID_t& startLbid,
-    int&         allocSize,
-    HWM&         hwm,
-    std::string& errMsg )
+int TableInfo::allocateBRMColumnExtent(OID columnOID,DBROOTS_struct& dbRoot,uint32_t& partition,uint16_t& segment,BRM::LBID_t& startLbid,int& allocSize,HWM& hwm,std::string& errMsg )
 {
-    int rc = fExtentStrAlloc.allocateExtent( columnOID,
-        dbRoot,
-        partition,
-        segment,
-        startLbid,
-        allocSize,
-        hwm,
-        errMsg );
+    int rc = fExtentStrAlloc.allocateExtent( columnOID,dbRoot,partition,segment,startLbid,allocSize,hwm,errMsg );
     //fExtentStrAlloc.print();
 
     return rc;

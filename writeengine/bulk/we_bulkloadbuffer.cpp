@@ -1609,7 +1609,7 @@ int  BulkLoadBuffer::parseDict(ColumnInfo &columnInfo)
         //..See if we just finished filling in the last extent for this seg-
         //  ment token file, in which case we can truncate the corresponding
         //  dictionary store segment file. (this only affects compressed data).
-        uint16_t root = columnInfo.curCol.dataFile.fDbRoot;
+        DBROOTS_struct dbRoot = columnInfo.curCol.dataFile.fDbRoot;
         uint32_t pNum = columnInfo.curCol.dataFile.fPartition;
         uint16_t sNum = columnInfo.curCol.dataFile.fSegment;
         bool bFileComplete = columnInfo.isFileComplete();
@@ -1683,8 +1683,7 @@ int  BulkLoadBuffer::parseDict(ColumnInfo &columnInfo)
         //  truncate the dctnry store file we just completed, if applicable.
         if (bFileComplete)
         {
-            rc = columnInfo.truncateDctnryStore(
-                columnInfo.column.dctnry.dctnryOid, root, pNum, sNum);
+            rc = columnInfo.truncateDctnryStore(columnInfo.column.dctnry.dctnryOid, dbRoot, pNum, sNum);
             if (rc != NO_ERROR)
                  return rc;
         }

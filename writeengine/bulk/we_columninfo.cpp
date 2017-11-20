@@ -258,12 +258,7 @@ void ColumnInfo::clearMemory( )
 // A starting DB file will be created if/when we determine that we have rows
 // to be processed.
 //------------------------------------------------------------------------------
-void ColumnInfo::setupDelayedFileCreation(
-    uint16_t dbRoot,
-    uint32_t partition,
-    uint16_t segment,
-    HWM       hwm,
-    bool      bEmptyPM )
+void ColumnInfo::setupDelayedFileCreation(DBROOTS_struct & dbRoot,uint32_t partition,uint16_t segment,HWM hwm,bool bEmptyPM )
 {
     if (bEmptyPM)
         fDelayedFileCreation = INITIAL_DBFILE_STAT_CREATE_FILE_ON_EMPTY;
@@ -273,13 +268,7 @@ void ColumnInfo::setupDelayedFileCreation(
     fSavedLbid = INVALID_LBID;
 
     colOp->initColumn ( curCol );
-    colOp->setColParam( curCol, id,
-        column.width,
-        column.dataType,
-        column.weType,
-        column.mapOid,
-        column.compressionType,
-        dbRoot, partition, segment );
+    colOp->setColParam( curCol, id,column.width,column.dataType,column.weType,column.mapOid,column.compressionType,&dbRoot, partition, segment );
 }
 
 //------------------------------------------------------------------------------
@@ -321,7 +310,7 @@ int ColumnInfo::createDelayedFileIfNeeded( const std::string& tableName )
     // change within the scope of a fColMutex lock.
     boost::mutex::scoped_lock lock2(fColMutex);
 
-    uint16_t dbRoot      = curCol.dataFile.fDbRoot;
+    DBROOTS_struct dbRoot      = curCol.dataFile.fDbRoot;
     uint32_t partition   = curCol.dataFile.fPartition;
 
     // We don't have a file on this PM, so we create an initial file
@@ -329,7 +318,7 @@ int ColumnInfo::createDelayedFileIfNeeded( const std::string& tableName )
     
     bool         createLeaveFileOpen = false;
     ERYDBDataFile* createPFile      = 0;
-    uint16_t     createDbRoot     = dbRoot;
+    DBROOTS_struct     createDbRoot     = dbRoot;
     uint32_t     createPartition  = partition;
     uint16_t     createSegment    = 0;
     std::string  createSegFile;
@@ -437,14 +426,7 @@ int ColumnInfo::createDelayedFileIfNeeded( const std::string& tableName )
         }
 
         boost::scoped_ptr<Dctnry> refDctnry(tempD);
-        rc = tempD->createDctnry(
-            column.dctnry.dctnryOid,
-            column.dctnryWidth,
-            dbRoot,
-            partition,
-            segment,
-            dLbid,
-            true); // creating the store file
+        rc = tempD->createDctnry(column.dctnry.dctnryOid,column.dctnryWidth,dbRoot,partition,segment,dLbid,true); // creating the store file
         if (rc != NO_ERROR)
         {
             WErrorCodes ec;
@@ -495,9 +477,7 @@ int ColumnInfo::createDelayedFileIfNeeded( const std::string& tableName )
     {
         hwm = fDelayedFileStartBlksSkipped;
     }
-    rc = setupInitialColumnExtent(
-        dbRoot, partition, segment,
-        tableName, lbid, hwm, hwm, false, true );
+    rc = setupInitialColumnExtent(dbRoot, partition, segment,tableName, lbid, hwm, hwm, false, true );
 
     if (rc == NO_ERROR)
         fDelayedFileCreation = INITIAL_DBFILE_STAT_FILE_EXISTS;
@@ -571,7 +551,7 @@ int ColumnInfo::extendColumn( bool saveLBIDForCP )
     }
 
     //..Declare variables used to advance to the next extent
-    uint16_t    dbRootNext   = 0;
+    DBROOTS_struct    dbRootNext  ;
     uint32_t    partitionNext= 0;
     uint16_t    segmentNext  = 0;
     HWM         hwmNext      = 0;
@@ -592,8 +572,7 @@ int ColumnInfo::extendColumn( bool saveLBIDForCP )
         bAllocNewExtent = true;
         if (fDbRootExtTrk)
         {
-            bAllocNewExtent = fDbRootExtTrk->nextSegFile(
-                dbRootNext, partitionNext, segmentNext, hwmNext, startLbid );
+            bAllocNewExtent = fDbRootExtTrk->nextSegFile(dbRootNext, partitionNext, segmentNext, hwmNext, startLbid );
         }
 
         // If our next extent is a partial extent, then fill out that extent
@@ -618,10 +597,7 @@ int ColumnInfo::extendColumn( bool saveLBIDForCP )
 // Add a new extent to this column, at the specified DBRoot.  Partition may be
 // used if DBRoot is empty.
 //------------------------------------------------------------------------------
-int ColumnInfo::extendColumnNewExtent(
-    bool     saveLBIDForCP,
-    uint16_t dbRootNew,
-    uint32_t partitionNew )
+int ColumnInfo::extendColumnNewExtent(bool saveLBIDForCP,DBROOTS_struct& dbRootNew,uint32_t partitionNew )
 {
     //..Declare variables used to advance to the next extent
     ERYDBDataFile* pFileNew     = 0;
@@ -780,11 +756,7 @@ int ColumnInfo::extendColumnNewExtent(
 // place when a DBRoot with a partial extent has been moved from one PM to
 // another.
 //------------------------------------------------------------------------------
-int ColumnInfo::extendColumnOldExtent(
-    uint16_t    dbRootNext,
-    uint32_t    partitionNext,
-    uint16_t    segmentNext,
-    HWM         hwmNext )
+int ColumnInfo::extendColumnOldExtent(DBROOTS_struct& dbRootNext,uint32_t    partitionNext,uint16_t    segmentNext,HWM         hwmNext )
 {
     const unsigned int BLKS_PER_EXTENT = 
         (fRowsPerExtent * column.width)/BYTE_PER_BLOCK;
@@ -809,8 +781,7 @@ int ColumnInfo::extendColumnOldExtent(
     fLog->logMsg( oss.str(), MSGLVL_INFO2 );
 
     long long fileSizeBytes;
-    int rc = colOp->getFileSize( curCol.dataFile.fid,
-        dbRootNext, partitionNext, segmentNext, fileSizeBytes);
+    int rc = colOp->getFileSize( curCol.dataFile.fid,dbRootNext[0], partitionNext, segmentNext, fileSizeBytes);
     if (rc != NO_ERROR)
     {
         std::ostringstream oss;
@@ -838,8 +809,7 @@ int ColumnInfo::extendColumnOldExtent(
         std::string segFile;
 
         // @bug 5572 - HDFS usage: incorporate *.tmp file backup flag 
-        ERYDBDataFile* pFile = colOp->openFile( curCol,
-            dbRootNext, partitionNext, segmentNext, segFile, true );
+        ERYDBDataFile* pFile = colOp->openFile( curCol, dbRootNext[0], partitionNext, segmentNext, segFile, true );
         if ( !pFile )
         {
             std::ostringstream oss;
@@ -855,8 +825,7 @@ int ColumnInfo::extendColumnOldExtent(
             return rc;
         }
 
-        rc = colOp->expandAbbrevColumnExtent( pFile, dbRootNext,
-            column.emptyVal, column.width);
+        rc = colOp->expandAbbrevColumnExtent( pFile, dbRootNext,column.emptyVal, column.width);
         if (rc != NO_ERROR)
         {
             std::ostringstream oss;
@@ -1349,7 +1318,7 @@ int ColumnInfo::getHWMInfoForBRM( BRMReporter& brmReporter )
 // start adding rows, we will automatically advance to the next extent.
 //------------------------------------------------------------------------------
 int ColumnInfo::setupInitialColumnExtent(
-    uint16_t   dbRoot,               // dbroot of starting extent
+    DBROOTS_struct&   dbRoot,               // dbroot of starting extent
     uint32_t   partition,            // partition number of starting extent
     uint16_t   segment,              // segment number of starting extent
     const std::string& tblName,       // name of table containing this column
@@ -1361,13 +1330,7 @@ int ColumnInfo::setupInitialColumnExtent(
 {
     // Init the ColumnInfo object
     colOp->initColumn( curCol );
-    colOp->setColParam( curCol, id,
-        column.width,
-        column.dataType,
-        column.weType, 
-        column.mapOid,
-        column.compressionType,
-        dbRoot, partition, segment );
+    colOp->setColParam( curCol, id,column.width,column.dataType,column.weType, column.mapOid,column.compressionType,&dbRoot, partition, segment );
 
     // Open the column file
     if(!colOp->exists(column.mapOid, dbRoot, partition, segment) )
@@ -1850,8 +1813,7 @@ int ColumnInfo::saveDctnryStoreHWMChunk(bool& needBackup)
 // Truncate specified dictionary store file for this column.
 // Only applies to compressed columns.
 //------------------------------------------------------------------------------
-int ColumnInfo::truncateDctnryStore(
-    OID /*dctnryOid*/, uint16_t /*root*/, uint32_t /*pNum*/, uint16_t /*sNum*/)
+int ColumnInfo::truncateDctnryStore(OID /*dctnryOid*/, DBROOTS_struct& /*root*/, uint32_t /*pNum*/, uint16_t /*sNum*/)
     const
 {
     return NO_ERROR;

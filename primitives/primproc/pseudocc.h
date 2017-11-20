@@ -107,7 +107,7 @@ void PseudoCC::loadPartitionNum()
 template<typename W>
 void PseudoCC::loadDBRootNum()
 {
-	loadSingleValue<W>(bpp->dbRoot);
+	loadSingleValue<W>(bpp->dbRoot[0]);
 }
 
 template<typename W>

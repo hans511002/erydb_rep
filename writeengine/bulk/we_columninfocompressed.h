@@ -85,12 +85,8 @@ class ColumnInfoCompressed : public ColumnInfo
     virtual int setupInitialColumnFile( HWM oldHWM, HWM newHWM );
 
     virtual int saveDctnryStoreHWMChunk(bool& needBackup);
-    virtual int extendColumnOldExtent(
-        uint16_t dbRootNext,
-        uint32_t partitionNext,
-        uint16_t segmentNext,
-        HWM      hwmNext );
-
+    virtual int extendColumnOldExtent(DBROOTS_struct& dbRootNext,uint32_t partitionNext,uint16_t segmentNext,HWM hwmNext );
+    
     RBMetaWriter* fRBMetaWriter;
     FileOp        fTruncateDctnryFileOp; // Used to truncate dctnry store file
 

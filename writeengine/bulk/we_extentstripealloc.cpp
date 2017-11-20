@@ -98,7 +98,7 @@ void ExtentStripeAlloc::addColumn( OID colOID, int colWidth )
 //    one column extent with the same DBRoot.
 //------------------------------------------------------------------------------
 int ExtentStripeAlloc::allocateExtent( OID oid,
-    uint16_t     dbRoot,
+    DBROOTS_struct& dbRoot,
     uint32_t&    partNum, // used as input for empty DBRoot, else output only
     uint16_t&    segNum,
     BRM::LBID_t& startLbid,
@@ -177,8 +177,7 @@ int ExtentStripeAlloc::allocateExtent( OID oid,
         int         allocStatus    = NO_ERROR;
         std::string allocStatusMsg;
 
-        int rc = BRMWrapper::getInstance()->allocateStripeColExtents(
-            cols, dbRoot, allocPartNum, allocSegNum, extents );
+        int rc = BRMWrapper::getInstance()->allocateStripeColExtents(cols, dbRoot, allocPartNum, allocSegNum, extents );
 
         // If allocation error occurs, we go ahead and store extent entries
         // with error status, to satisfy subsequent allocations in same stripe.

@@ -148,14 +148,7 @@ public:
      *  @param errMsg    (out) Error msg associated with the extent allocation
      *  @return NO_ERROR returned upon success
      */
-    int  allocateExtent( OID        oid,
-                    uint16_t        dbRoot,
-                    uint32_t&       partNum,
-                    uint16_t&       segNum,
-                    BRM::LBID_t&    startLbid,
-                    int&            allocSize,
-                    HWM&            hwm,
-                    std::string&    errMsg );
+    int  allocateExtent( OID oid,DBROOTS_struct& dbRoot,uint32_t& partNum,uint16_t& segNum,BRM::LBID_t& startLbid,int& allocSize,HWM& hwm,std::string& errMsg );
 
     /** @brief Debug print function.
      */

@@ -2920,7 +2920,8 @@ uint8_t WE_DMLCommandProc::processDelete(messageqcpp::ByteStream& bs,
 	WriteEngine::RIDList  rowIDList;
 	erydbSystemCatalog::RID rid;
 	uint32_t rowsThisRowgroup = rowGroups[txnId]->getRowCount();
-	uint16_t dbRoot, segment, blockNum;
+	DBROOTS_struct dbRoot;
+	uint16_t segment, blockNum;
 	uint32_t partition;
 	uint8_t extentNum;
 	erydbSystemCatalog::TableName aTableName;
@@ -3258,7 +3259,8 @@ uint8_t WE_DMLCommandProc::processFixRows(messageqcpp::ByteStream& bs,
 	//cout << " In processFixRows" << endl;
 	uint32_t tmp32;
 	uint64_t sessionID;
-	uint16_t dbRoot, segment;
+	DBROOTS_struct dbRoot;
+	uint16_t segment;
 	uint32_t partition;
 	string schema, tableName;
 	TxnID txnId;
@@ -3322,12 +3324,12 @@ uint8_t WE_DMLCommandProc::processFixRows(messageqcpp::ByteStream& bs,
 	WriteEngine::ColStructList colStructList;	
 	WriteEngine::ColStruct colStruct;
 	WriteEngine::DctnryStructList dctnryStructList;
-/*	colStruct.fColPartition = partition;
+	colStruct.fColPartition = partition;
 	colStruct.fColSegment = segment;
-	colStruct.fColDbRoot = dbRoot; */
-	colStruct.fColPartition = 0;
+	colStruct.fColDbRoot = dbRoot;
+/*	colStruct.fColPartition = 0;
 	colStruct.fColSegment = 0;
-	colStruct.fColDbRoot = 3;
+	colStruct.fColDbRoot = 3; */
 	//should we always scan dictionary store files?
 	
 	try {

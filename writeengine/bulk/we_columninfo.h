@@ -310,15 +310,7 @@ struct ColumnInfo
      *  @param bSkippedtoNewExtent Did block skipping advance to next extent
      *  @param bIsNewExtent Treat as new extent when updating CP min/max
      */
-    int setupInitialColumnExtent( uint16_t dbRoot,
-                       uint32_t partition,
-                       uint16_t segment,
-                       const std::string& tblName,
-                       BRM::LBID_t lbid,
-                       HWM     oldHwm,
-                       HWM     hwm,
-                       bool    bSkippedToNewExtent,
-                       bool    bIsNewExtent );
+    int setupInitialColumnExtent( DBROOTS_struct& dbRoot,uint32_t partition,uint16_t segment,const std::string& tblName,BRM::LBID_t lbid,HWM oldHwm,HWM hwm,bool bSkippedToNewExtent,bool bIsNewExtent );
 
    /** @brief Setup a DB file to be created for starting extent only when needed
     *  @param dbRoot     DBRoot of starting extent
@@ -328,12 +320,7 @@ struct ColumnInfo
     *  @param bEmptyPM   Are we setting up delayed file creation because a PM
     *                    has no extents (or is the HWM extent just disabled)
     */
-    void setupDelayedFileCreation(
-                       uint16_t dbRoot,
-                       uint32_t partition,
-                       uint16_t segment,
-                       HWM       hwm,
-                       bool      bEmptyPM );
+    void setupDelayedFileCreation(DBROOTS_struct &dbRoot,uint32_t partition,uint16_t segment,HWM hwm,bool bEmptyPM );
 
    /** @brief Belatedly create a starting DB file for a PM that has none.
     *  @param tableName Name of table for which this column belongs
@@ -370,8 +357,7 @@ struct ColumnInfo
      * @param pNum Partition number of relevant dictionary store segment file.
      * @param sNum Segment number of relevant dictionary store segment file.
      */
-    virtual int truncateDctnryStore(OID dctnryOid,
-        uint16_t root, uint32_t pNum, uint16_t sNum) const;
+    virtual int truncateDctnryStore(OID dctnryOid,DBROOTS_struct& dbRoot, uint32_t pNum, uint16_t sNum) const;
 
     /** @brief Increment saturated row count for this column in current import
      * @param satIncCnt Increment count to add to the total saturation count.
@@ -428,17 +414,11 @@ struct ColumnInfo
                                         HWM newHWM ); // new HWM to start from
 
     virtual int saveDctnryStoreHWMChunk(bool& needBackup);//Backup Dct HWM Chunk
-    int extendColumnNewExtent(              // extend column; new extent
-        bool saveLBIDForCP,
-        uint16_t dbRootNew,
-        uint32_t partitionNew );
-    virtual int extendColumnOldExtent(      // extend column; existing extent
-        uint16_t dbRootNext,
-        uint32_t partitionNext,
-        uint16_t segmentNext,
-        HWM      hwmNext );
-
-    //--------------------------------------------------------------------------
+    // extend column; new extent
+    int extendColumnNewExtent(bool saveLBIDForCP,DBROOTS_struct& dbRootNew,uint32_t partitionNew );
+             // extend column; existing extent
+    virtual int extendColumnOldExtent( DBROOTS_struct& dbRootNext,uint32_t partitionNext,uint16_t segmentNext,HWM hwmNext );
+        //--------------------------------------------------------------------------
     // Protected Data Members
     //--------------------------------------------------------------------------
 
