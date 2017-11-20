@@ -2277,17 +2277,23 @@ namespace processmonitor {
         struct tm tm;
         localtime_r(&now, &tm);
         char timestamp[200];
-        strftime(timestamp, 200, "%m:%d:%y-%H:%M:%S", &tm);
+        strftime(timestamp, 200, "20%y-%m-%d_%H:%M:%S", &tm);
 
-        string logdir("/var/log/erydb");
-        if (access(logdir.c_str(), W_OK) != 0) logdir = "/tmp";
-        string outFileName = logdir + "/" + processName + ".out";
-        string errFileName = logdir + "/" + processName + ".err";
+        //string logdir("/var/log/erydb");
+        //Config* cf = Config::makeConfig();
+        //string logdir = cf->getConfig("MessageLog", "MessageLogDir");
+        //if (messageLogDir.length() == 0)
+        //    logdir = "/var/log/erydb";
+        //if (access(logdir.c_str(), W_OK) != 0)
+        //    logdir = "/tmp";
+        //string outFileName = logdir + "/" + processName + ".out";
+        //string errFileName = logdir + "/" + processName + ".err";
 
-        string saveoutFileName = outFileName + "." + timestamp + ".log1";
-        string saveerrFileName = errFileName + "." + timestamp + ".log1";
-        logging::rollLogFile(outFileName, saveoutFileName);
-        logging::rollLogFile(errFileName, saveerrFileName);
+        //string saveoutFileName = outFileName + "." + timestamp + ".log1";
+        //string saveerrFileName = errFileName + "." + timestamp + ".log1";
+        //logging::rollLogFile(outFileName, saveoutFileName);
+        //logging::rollLogFile(errFileName, saveerrFileName);
+
         //fork and exec new process
         newProcessID = fork();
 
