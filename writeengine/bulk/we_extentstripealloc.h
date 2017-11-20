@@ -54,7 +54,7 @@ public:
     // Default constructor
     AllocExtEntry() :   fOid(0),
                         fColWidth(0),
-                        fDbRoot(0),
+                        // fDbRoot(0),
                         fPartNum(0),
                         fSegNum(0),
                         fStartLbid(0),
@@ -65,7 +65,7 @@ public:
 
     // Used to create entry for an existing extent we are going to add data to.
     AllocExtEntry   (   OID& oid, int colWidth,
-                        uint16_t dbRoot, uint32_t partNum, uint16_t segNum,
+                        DBROOTS_struct& dbRoot, uint32_t partNum, uint16_t segNum,
                         BRM::LBID_t startLbid, int allocSize,
                         HWM hwm, int status, const std::string& statusMsg,
                         unsigned int stripeKey ) :
@@ -83,7 +83,7 @@ public:
 
     OID         fOid;       // column OID
     int         fColWidth;  // colum width (in bytes)
-    uint16_t    fDbRoot;    // DBRoot of allocated extent
+    DBROOTS_struct    fDbRoot;    // DBRoot of allocated extent
     uint32_t    fPartNum;   // Partition number of allocated extent
     uint16_t    fSegNum;    // Segment number of allocated extent
     BRM::LBID_t fStartLbid; // Starting LBID of allocated extent
