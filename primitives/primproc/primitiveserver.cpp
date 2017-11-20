@@ -219,7 +219,7 @@ void prefetchBlocks(const uint64_t lbid,
 					const int compType,
 					uint32_t* rCount)
 {
-	uint16_t dbRoot;
+	DBROOTS_struct dbRoot;
 	uint32_t partNum;
 	uint16_t segNum;
 	uint32_t hwm;
@@ -480,7 +480,7 @@ void loadBlock (
 	bool flg = false;
 	BRM::OID_t oid;
 	BRM::VER_t txn = (BRM::VER_t)t;
-	uint16_t dbRoot=0;
+	DBROOTS_struct dbRoot;
 	uint32_t partitionNum=0;
 	uint16_t segmentNum=0;
 	int rc;
@@ -533,18 +533,9 @@ void loadBlock (
 		int pageSize = getpagesize();
 		ERYDBDataFile* fp = 0;
 		try {
-			rc = brm->lookupLocal((BRM::LBID_t)lbid,
-								  ver,
-								  flg,
-								  oid,
-								  dbRoot,
-								  partitionNum,
-								  segmentNum,
-								  fbo);
-
-
-			// load the block
-			buildOidFileName(oid, dbRoot, partitionNum, segmentNum, fileNamePtr);
+			rc = brm->lookupLocal((BRM::LBID_t)lbid,ver,flg,oid,dbRoot,partitionNum,segmentNum,fbo);
+			    // load the block
+			buildOidFileName(oid, dbRoot[0], partitionNum, segmentNum, fileNamePtr);
 			int opts = directIOFlag ? ERYDBDataFile::USE_ODIRECT : 0;
 			fp = ERYDBDataFile::open(
 					 ERYDBPolicy::getType( fileNamePtr, ERYDBPolicy::PRIMPROC ),

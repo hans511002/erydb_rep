@@ -152,13 +152,13 @@ typedef IOMThreadArg IOMThreadArg_t;
 class FdEntry
 {
 public:
-	FdEntry() : oid(0), dbroot(0), partNum(0), segNum(0),
+	FdEntry() : oid(0),  partNum(0), segNum(0),//dbroot(0),
 		fp(0), c(0), inUse(0), compType(0)
 	{
 		cmpMTime = 0;
 	}
 
-	FdEntry(const BRM::OID_t o, const uint16_t d, const uint32_t p, const uint16_t s, const int ct, ERYDBDataFile* f) :
+	FdEntry(const BRM::OID_t o, const DBROOTS_struct& d, const uint32_t p, const uint16_t s, const int ct, ERYDBDataFile* f) :
 		oid(o), dbroot(d), partNum(p), segNum(s), fp(f), c(0), inUse(0), compType(0)
 	{
 		cmpMTime = 0;
@@ -172,8 +172,8 @@ public:
 		fp = 0;
 	}
 
+	DBROOTS_struct dbroot;
 	BRM::OID_t oid;
-	uint16_t dbroot;
 	uint32_t partNum;
 	uint16_t segNum;
 	ERYDBDataFile* fp;
@@ -208,13 +208,13 @@ struct fdCacheMapLessThan
 		if (lhs.oid < rhs.oid)
 			return true;
 
-		if (lhs.oid==rhs.oid && lhs.dbroot < rhs.dbroot)
+		if (lhs.oid==rhs.oid && lhs.dbroot.get(0) < rhs.dbroot.get(0))
 			return true;
 
-		if (lhs.oid==rhs.oid && lhs.dbroot==rhs.dbroot && lhs.partNum < rhs.partNum)
+		if (lhs.oid==rhs.oid && lhs.dbroot.get(0)==rhs.dbroot.get(0) && lhs.partNum < rhs.partNum)
 			return true;
 
-		if (lhs.oid==rhs.oid && lhs.dbroot==rhs.dbroot && lhs.partNum==rhs.partNum && lhs.segNum < rhs.segNum)
+		if (lhs.oid==rhs.oid && lhs.dbroot.get(0)==rhs.dbroot.get(0) && lhs.partNum==rhs.partNum && lhs.segNum < rhs.segNum)
 			return true;
 
 		return false;
@@ -240,12 +240,12 @@ typedef std::map<FdEntry, SPFdEntry_t, fdCacheMapLessThan> FdCacheType_t;
 struct FdCountEntry
 {
 	FdCountEntry() {}
-	FdCountEntry(const BRM::OID_t o, const uint16_t d, const uint32_t p, const uint16_t s, const uint32_t c,
+	FdCountEntry(const BRM::OID_t o, const DBROOTS_struct& d, const uint32_t p, const uint16_t s, const uint32_t c,
 				 const FdCacheType_t::iterator it) : oid(o), dbroot(d), partNum(p), segNum(s), cnt(c), fdit(it) {}
 	~FdCountEntry() {}
 
 	BRM::OID_t oid;
-	uint16_t dbroot;
+	DBROOTS_struct dbroot;
 	uint32_t partNum;
 	uint16_t segNum;
 	uint32_t cnt;
@@ -456,7 +456,7 @@ void* thr_popper(ioManager *arg) {
 	const uint64_t fileBlockSize = BLOCK_SIZE;
 	bool flg=false;
 	bool useCache;
-	uint16_t dbroot=0;
+	DBROOTS_struct dbroot;
 	uint32_t partNum=0;
 	uint16_t segNum=0;
 	uint32_t offset=0;
@@ -543,7 +543,7 @@ void* thr_popper(ioManager *arg) {
 		dlen = fr->BlocksRequested();
 		blocksRequested = fr->BlocksRequested();
 		oid=0;
-		dbroot=0;
+	//	dbroot=0;
 		partNum=0;
 		segNum=0;
 		offset=0;
@@ -564,15 +564,7 @@ void* thr_popper(ioManager *arg) {
 			ver = qc.currentScn;
 		}
 
-		err = iom->localLbidLookup(lbid,
-								   ver,
-								   flg,
-								   oid,
-								   dbroot,
-								   partNum,
-								   segNum,
-								   offset);
-
+		err = iom->localLbidLookup(lbid,ver,flg,oid,dbroot,partNum,segNum,offset);
 		if (err == BRM::ERR_SNAPSHOT_TOO_OLD) {
 			ostringstream errMsg;
 			errMsg << "thr_popper: version " << ver << " of LBID " << lbid <<
@@ -607,7 +599,7 @@ void* thr_popper(ioManager *arg) {
 		if (fdit==fdcache.end())
 		{
 			try {
-				iom->buildOidFileName(oid, dbroot, partNum, segNum, fileNamePtr);
+				iom->buildOidFileName(oid, dbroot[0], partNum, segNum, fileNamePtr);
 			} catch (exception& exc) {
 				fdMapMutex.unlock();
 				Message::Args args;
@@ -637,13 +629,7 @@ void* thr_popper(ioManager *arg) {
 					FdCacheCountType_t fdCountSort;
 					for (FdCacheType_t::iterator it = fdcache.begin(); it != fdcache.end(); it++)
 					{
-						struct FdCountEntry fdc(it->second->oid,
-												it->second->dbroot,
-												it->second->partNum,
-												it->second->segNum,
-												it->second->c,
-												it);
-
+						struct FdCountEntry fdc(it->second->oid,it->second->dbroot,it->second->partNum,it->second->segNum,it->second->c,it);
 						fdCountSort.insert(fdc);
 					}
 
@@ -750,9 +736,7 @@ void* thr_popper(ioManager *arg) {
 			fdcache[fdKey] = fe;
 			fdit = fdcache.find(fdKey);
 			fe.reset();
-		}
-
-		else {
+		} else {
 			if (fdit->second.get()) {
 				fdit->second->c++;
 				fdit->second->inUse++;
@@ -764,8 +748,7 @@ void* thr_popper(ioManager *arg) {
                 fdMapMutex.unlock();
 				args.add(oid);
 				ostringstream errMsg;
-				errMsg << "Null FD cache entry. (dbroot, partNum, segNum, compType) = ("
-				<< dbroot << ", " << partNum << ", " << segNum << ", " << compType << ")";
+				errMsg << "Null FD cache entry. (dbroot, partNum, segNum, compType) = ("<< dbroot << ", " << partNum << ", " << segNum << ", " << compType << ")";
 				args.add(errMsg.str());
 				primitiveprocessor::mlp->logMessage(logging::M0053, args, true);
                 iom->handleBlockReadError( fr, errMsg.str(), &copyLocked );
@@ -860,7 +843,7 @@ retryReadHeaders:
 							Message::Args args;
 							args.add(oid);
 							ostringstream infoMsg;
-							iom->buildOidFileName(oid, dbroot, partNum, segNum, fileNamePtr);
+							iom->buildOidFileName(oid, dbroot[0], partNum, segNum, fileNamePtr);
 							infoMsg << "retry updateptrs for " << fileNamePtr
 							<< ". rc=" << updatePtrsRc << ", idx="
 							<< idx << ", ptr.size=" << fdit->second->ptrList.size();
@@ -913,7 +896,7 @@ retryReadHeaders:
 							Message::Args args;
 							args.add(oid);
 							ostringstream infoMsg;
-							iom->buildOidFileName(oid, dbroot, partNum, segNum, fileNamePtr);
+							iom->buildOidFileName(oid, dbroot[0], partNum, segNum, fileNamePtr);
 							infoMsg << " Read from " << fileNamePtr << " failed at chunk " << idx
 							<< ". (offset, size, actuall read) = ("
 							<< fdit->second->ptrList[idx].first << ", "
@@ -959,7 +942,7 @@ retryReadHeaders:
 				else if (i < 0)
 				{
 					try {
-						iom->buildOidFileName(oid,dbroot, partNum, segNum,  fileNamePtr);
+						iom->buildOidFileName(oid,dbroot[0], partNum, segNum,  fileNamePtr);
 					}
 					catch (exception& exc)
 					{
@@ -976,7 +959,7 @@ retryReadHeaders:
 				}
 				else if (i == 0)
 				{
-					iom->buildOidFileName(oid, dbroot, partNum, segNum, fileNamePtr);
+					iom->buildOidFileName(oid, dbroot[0], partNum, segNum, fileNamePtr);
 					errorString   = "early EOF";
 					errorOccurred = true;
 					errMsg << "thr_popper: Early EOF reading file for OID " <<
@@ -1052,7 +1035,7 @@ retryReadHeaders:
 								Message::Args args;
 								args.add(oid);
 								ostringstream infoMsg;
-								iom->buildOidFileName(oid, dbroot, partNum, segNum, fileNamePtr);
+								iom->buildOidFileName(oid, dbroot[0], partNum, segNum, fileNamePtr);
 								infoMsg << "decompress retry for " << fileNamePtr
 								<< " decompRetry chunk " << cmpOffFact.quot
 								<< " code=" << dcrc;
@@ -1084,7 +1067,7 @@ retryReadHeaders:
 						Message::Args args;
 						args.add(oid);
 						ostringstream infoMsg;
-						iom->buildOidFileName(oid, dbroot, partNum, segNum, fileNamePtr);
+						iom->buildOidFileName(oid, dbroot[0], partNum, segNum, fileNamePtr);
 						infoMsg << "Successfully uncompress " << fileNamePtr << " chunk "
 						<< cmpOffFact.quot << " @";
 						if (retryReadHeadersCount > 0)
@@ -1310,26 +1293,12 @@ void ioManager::buildOidFileName(const BRM::OID_t oid, const uint16_t dbRoot, co
 	//cout << "Oid2Filename o: " << oid << " n: " << file_name << endl;
 }
 
-const int ioManager::localLbidLookup(BRM::LBID_t lbid,
-									 BRM::VER_t verid,
-									 bool vbFlag,
-									 BRM::OID_t& oid,
-									 uint16_t& dbRoot,
-									 uint32_t& partitionNum,
-									 uint16_t& segmentNum,
-									 uint32_t& fileBlockOffset)
+const int ioManager::localLbidLookup(BRM::LBID_t lbid,BRM::VER_t verid,bool vbFlag,BRM::OID_t& oid,DBROOTS_struct& dbRoot,uint32_t& partitionNum,uint16_t& segmentNum,uint32_t& fileBlockOffset)
 {
 	if (primitiveprocessor::noVB > 0)
 		vbFlag = false;
 
-	int rc = fdbrm.lookupLocal(lbid,
-							   verid,
-							   vbFlag,
-							   oid,
-							   dbRoot,
-							   partitionNum,
-							   segmentNum,
-							   fileBlockOffset);
+	int rc = fdbrm.lookupLocal(lbid,verid,vbFlag,oid,dbRoot,partitionNum,segmentNum,fileBlockOffset);
 
 	return rc;
 }

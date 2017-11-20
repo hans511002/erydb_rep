@@ -35,7 +35,7 @@ typedef int pthread_t;
 #include <sstream>
 
 #include "brm.h"
-
+using namespace BRM;
 namespace dbbc
 {
 
@@ -52,7 +52,7 @@ public:
 	inline BRM::OID_t lbid2oid(uint64_t lbid)
 	{
 		BRM::OID_t oid;
-		uint16_t dbroot;
+		DBROOTS_struct dbroot;
 		uint32_t partNum;
 		uint16_t segNum;
 		uint32_t fbo;

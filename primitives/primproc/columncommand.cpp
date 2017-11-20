@@ -526,7 +526,7 @@ void ColumnCommand::projectResult()
 		ostringstream os;
 		BRM::DBRM brm;
 		BRM::OID_t oid;
-		uint16_t l_dbroot;
+		DBROOTS_struct l_dbroot;
 		uint32_t partNum;
 		uint16_t segNum;
 		uint32_t fbo;
@@ -606,7 +606,7 @@ void ColumnCommand::projectResultRG(RowGroup &rg, uint32_t pos)
 		ostringstream os;
 		BRM::DBRM brm;
 		BRM::OID_t oid;
-		uint16_t dbroot;
+		DBROOTS_struct dbroot;
 		uint32_t partNum;
 		uint16_t segNum;
 		uint32_t fbo;

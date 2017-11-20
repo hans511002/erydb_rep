@@ -104,22 +104,14 @@ int BlockRequestProcessor::check(const BRM::InlineLBIDRange& range, const BRM::Q
 	if (idx == rangeLen) { // range is already loaded
 		if (fTrace)
 		{
-			uint16_t dbroot;
+			DBROOTS_struct dbroot;
 			uint32_t partNum;
 			uint16_t segNum;
 			uint32_t fbo;
 			BRM::OID_t oid;
 			fdbrm.lookupLocal(maxLbid, ver.currentScn, false, oid, dbroot, partNum, segNum, fbo);
-			fLogFile
-			<< oid << " "
-			<< maxLbid << " "
-			<< fbo << " "
-			<< rangeLen << " "
-			<< 0 << " "
-			<< 0 << " "
-			<< 0 << " "
-			<< right << fixed << ((double)(start_tm.tv_sec + (1.e-9 * start_tm.tv_nsec)))
-			<< endl;
+			fLogFile << oid << " " << maxLbid << " " << fbo << " " << rangeLen << " " << 0 << " " << 0 << " " << 0 << " "<< right << fixed 
+			    << ((double)(start_tm.tv_sec + (1.e-9 * start_tm.tv_nsec))) << endl;
 		}
 		return 0;
 	}
@@ -144,24 +136,15 @@ int BlockRequestProcessor::check(const BRM::InlineLBIDRange& range, const BRM::Q
 	lbidCount=rqstBlk.BlocksRead();
 
 	if (fTrace) {
-		uint16_t dbroot;
+		DBROOTS_struct dbroot;
 		uint32_t partNum;
 		uint16_t segNum;
 		uint32_t fbo;
 		BRM::OID_t oid;
 		fdbrm.lookupLocal(maxLbid, ver.currentScn, false, oid, dbroot, partNum, segNum, fbo);
-		fLogFile
-		<< oid << " "
-		<< maxLbid << " "
-		<< fbo << " "
-		<< rangeLen << " "
-		<< adjSz << " "
-		<< rqstBlk.BlocksRead() << " "
-		<< rqstBlk.BlocksLoaded() << " "
-		<< right << fixed << ((double)(start_tm.tv_sec+(1.e-9*start_tm.tv_nsec)))
-		<< endl;
+		fLogFile<< oid << " "<< maxLbid << " "<< fbo << " "<< rangeLen << " "<< adjSz << " "<< rqstBlk.BlocksRead() << " "<< rqstBlk.BlocksLoaded() << " "<< right << fixed 
+		    << ((double)(start_tm.tv_sec+(1.e-9*start_tm.tv_nsec)))<< endl;
 	}
-
 	return rqstBlk.BlocksLoaded();
 } // check
 

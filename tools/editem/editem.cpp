@@ -440,7 +440,7 @@ int clearmm(OID_t oid)
 //------------------------------------------------------------------------------
 int extendOids( )
 {
-	uint16_t  dbRoot;
+	DBROOTS_struct  dbRoot;
 	uint32_t  partNum;
 	uint16_t  segNum;
 	OID_t     oid;
@@ -466,8 +466,7 @@ int extendOids( )
 				break;
 		}
 
-		CHECK(emp->createDictStoreExtent ( oid, dbRoot, partNum, segNum,
-			lbid, allocd));
+		CHECK(emp->createDictStoreExtent ( oid, dbRoot, partNum, segNum, lbid, allocd));
 
 		if (vflg)
 		{

@@ -58,7 +58,7 @@ void SystemCatalog::build() {
     //------------------------------------------------------------------------------
     // Create SYSTABLE table
     //------------------------------------------------------------------------------
-    uint32_t dbRoot = 1;
+    DBROOTS_struct dbRoot;dbRoot[0] = 1;
     int compressionType = 0;
     uint32_t partition = 0;
     uint16_t segment = 0;
@@ -411,9 +411,10 @@ void SystemCatalog::build() {
     //------------------------------------------------------------------------------
     // Create SYSCONSTRAINT table
     //------------------------------------------------------------------------------
-    dbRoot++;
-    if (dbRoot > dbRootCount)
-        dbRoot = 1;
+    
+    //dbRoot++;
+    //if (dbRoot > dbRootCount)
+    //    dbRoot = 1;
 
     //flush data files
     fWriteEngine.flushDataFiles(rc, 1, oids);

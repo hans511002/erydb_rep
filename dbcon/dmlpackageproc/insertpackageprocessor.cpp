@@ -262,7 +262,7 @@ namespace dmlpackageprocessor
 				uint32_t dbroot;
 				if (tmpSet)
 				{
-					dbroot = tmp.dbRoot;
+					dbroot = tmp.dbRoot[0];
 					boost::shared_ptr<std::map<int, int> > dbRootPMMap = oamcache->getDBRootToPMMap();
 					pmNum = (*dbRootPMMap)[dbroot];
 				

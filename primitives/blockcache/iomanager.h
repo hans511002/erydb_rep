@@ -62,20 +62,9 @@ public:
 	FileBufferMgr& fileBufferManager() {return fIOMfbMgr;}
 	config::Config* configPtr() {return fConfig;}
 
-    const int localLbidLookup(BRM::LBID_t lbid,
-                              BRM::VER_t verid, 
-                              bool vbFlag,
-                              BRM::OID_t& oid,
-                              uint16_t& dbRoot,
-                              uint32_t& partitionNum,
-                              uint16_t& segmentNum,
-                              uint32_t& fileBlockOffset);
+    const int localLbidLookup(BRM::LBID_t lbid,BRM::VER_t verid, bool vbFlag,BRM::OID_t& oid,DBROOTS_struct& dbRoot,uint32_t& partitionNum,uint16_t& segmentNum,uint32_t& fileBlockOffset);
 
-    void buildOidFileName(const BRM::OID_t oid,
-                        const uint16_t dbRoot,
-                        const uint16_t partNum,
-                        const uint32_t segNum,
-                        char* file_name);
+    void buildOidFileName(const BRM::OID_t oid,const uint16_t dbRoot,const uint16_t partNum,const uint32_t segNum,char* file_name);
 
 	const uint32_t getExtentRows() { return fdbrm.getExtentRows(); }
 
