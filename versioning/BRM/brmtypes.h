@@ -105,7 +105,7 @@ EXPORT bool operator>=( const BRM::DBROOTS_struct&, const BRM::DBROOTS_struct&);
 EXPORT bool operator<( const BRM::DBROOTS_struct&, const BRM::DBROOTS_struct&);
 EXPORT bool operator<=( const BRM::DBROOTS_struct&, const BRM::DBROOTS_struct&);
 EXPORT std::ostream & operator<<(std::ostream &, const DBROOTS_struct &);
-EXPORT std::istream & operator>>(std::istream &, const DBROOTS_struct &);
+EXPORT std::istream & operator>>(std::istream &, DBROOTS_struct &);
 
 
 #define MAX_LBID_SIZE 0xFFFFFFFF

@@ -123,30 +123,30 @@ bool operator==( const BRM::DBROOTS_struct &a , const BRM::DBROOTS_struct &b){
     }
     return true;
 };
-bool operator>( const BRM::DBROOTS_struct&, const BRM::DBROOTS_struct&){
+bool operator>( const BRM::DBROOTS_struct& a, const BRM::DBROOTS_struct& b){
     return a.dbRoots[0] > b.dbRoots[0];
 };
-bool operator>=( const BRM::DBROOTS_struct&, const BRM::DBROOTS_struct&){
+bool operator>=( const BRM::DBROOTS_struct& a, const BRM::DBROOTS_struct& b){
     return a.dbRoots[0] >= b.dbRoots[0];
 };
-bool operator<( const BRM::DBROOTS_struct&, const BRM::DBROOTS_struct&){
+bool operator<( const BRM::DBROOTS_struct& a, const BRM::DBROOTS_struct& b){
     return a.dbRoots[0] < b.dbRoots[0];
 };
-bool operator<=( const BRM::DBROOTS_struct&, const BRM::DBROOTS_struct&){
+bool operator<=( const BRM::DBROOTS_struct& a, const BRM::DBROOTS_struct& b){
     return a.dbRoots[0] <= b.dbRoots[0];
 };
-std::ostream & operator<<(std::ostream &os, const DBROOTS_struct & dbRoots){
+std::ostream & operator<<(std::ostream &os, const DBROOTS_struct & a){
     for (int n=0; n<MAX_DATA_REPLICATESIZE; n++){
         if(n>0){
             os << ",";
         }
-        os <<  dbRoots.dbRoots[n]  ;
+        os <<  a.dbRoots[n]  ;
     }
 	return os;
 };
-std::istream & operator>>(std::istream & is, const DBROOTS_struct &){
+std::istream & operator>>(std::istream & is, DBROOTS_struct &a){
     for (int n=0; n<MAX_DATA_REPLICATESIZE; n++){
-        is >>  dbRoots.dbRoots[n]  ;
+        is >>  a.dbRoots[n]  ;
     }
 	return is;
 };
