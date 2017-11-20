@@ -2279,7 +2279,7 @@ namespace processmonitor {
         char timestamp[200];
         strftime(timestamp, 200, "20%y-%m-%d_%H:%M:%S", &tm);
 
-        string logdir("/var/log/erydb");
+        ////string logdir("/var/log/erydb");
         Config* cf = Config::makeConfig();
         string logdir = cf->getConfig("MessageLog", "MessageLogDir");
         if (messageLogDir.length() == 0)
