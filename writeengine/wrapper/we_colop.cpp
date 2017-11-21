@@ -1343,6 +1343,8 @@ int ColumnOp::addExtent(const Column& column,DBROOTS_struct& dbRoot,uint32_t par
       column.dataFile.fid = dataFid;
       if(dbRoot){
           column.dataFile.fDbRoot    = *dbRoot;
+      }else{
+          memset(&column.dataFile.fDbRoot,0,sizeof(column.dataFile.fDbRoot));
       }
       column.dataFile.fPartition = partition;
       column.dataFile.fSegment   = segment;
