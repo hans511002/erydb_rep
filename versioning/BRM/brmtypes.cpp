@@ -61,7 +61,7 @@ namespace BRM {
 /////////////////DBROOTS_struct///////////////////////////////
 DBROOTS_struct::DBROOTS_struct()
 {
-    memset(dbRoots,0,sizeof(DBROOTS_struct));
+    memset(dbRoots,0,sizeof(BRM::DBROOTS_struct));
     //for (int n=0; n < MAX_DATA_REPLICATESIZE ; n++)
     //{
     //    dbRoots[n]       = 0;
