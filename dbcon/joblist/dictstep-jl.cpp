@@ -61,7 +61,7 @@ DictStepJL::~DictStepJL()
 {
 }
 
-void DictStepJL::setLBID(uint64_t token, uint32_t dbroot)
+void DictStepJL::setLBID(uint64_t token, DBROOTS_struct& dbroot)
 {
 // 	lbid = token >> 10;  // the lbid is calculated on the PM
 }

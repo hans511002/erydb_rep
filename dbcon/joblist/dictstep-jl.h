@@ -44,7 +44,7 @@ class DictStepJL : public CommandJL
 		DictStepJL(const pDictionaryStep &);
 		virtual ~DictStepJL();
 
-		void setLBID(uint64_t data, uint32_t dbroot);		// converts a rid or dictionary token to an LBID.  For ColumnCommandJL it's a RID, for a DictStep it's a token.
+		void setLBID(uint64_t data, DBROOTS_struct& dbroot);		// converts a rid or dictionary token to an LBID.  For ColumnCommandJL it's a RID, for a DictStep it's a token.
 		uint8_t getTableColumnType();
 		std::string toString();
 

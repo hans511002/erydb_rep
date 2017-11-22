@@ -101,8 +101,8 @@ public:
 	// void addDeliveryStep(const DeliveryStep &);
 
 	/* At runtime, feed input here */
-	void addElementType(const ElementType &, uint32_t dbroot);
-	void addElementType(const StringElementType &, uint32_t dbroot);
+	void addElementType(const ElementType &, DBROOTS_struct& dbroot);
+	void addElementType(const StringElementType &, DBROOTS_struct& dbroot);
 	//void setRowGroupData(const rowgroup::RowGroup &);
 
 	void runBPP(messageqcpp::ByteStream &, uint32_t pmNum);
@@ -198,7 +198,7 @@ public:
 	void setUuid(const boost::uuids::uuid& u) { uuid = u; }
 
 private:
-	//void setLBIDForScan(uint64_t rid, uint32_t dbroot);
+	//void setLBIDForScan(uint64_t rid, DBROOTS_struct& dbroot);
 
 	BPSOutputType ot;
 
@@ -291,7 +291,7 @@ private:
 	uint32_t threadCount;
 
 	unsigned fJoinerChunkSize;
-	uint32_t dbRoot;
+	DBROOTS_struct dbRoot;
 	bool hasSmallOuterJoin;
 
 	uint32_t _priority;

@@ -42,7 +42,7 @@ FilterCommandJL::~FilterCommandJL()
 }
 
 
-void FilterCommandJL::setLBID(uint64_t rid, uint32_t dbroot)
+void FilterCommandJL::setLBID(uint64_t rid, DBROOTS_struct& dbroot)
 {
 }
 

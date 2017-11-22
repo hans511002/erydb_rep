@@ -305,7 +305,7 @@ void BatchPrimitiveProcessorJL::addDeliveryStep(const DeliveryStep &ds)
 }
 #endif
 
-void BatchPrimitiveProcessorJL::addElementType(const ElementType &et, uint32_t dbroot)
+void BatchPrimitiveProcessorJL::addElementType(const ElementType &et, DBROOTS_struct& dbroot)
 {
 	uint32_t i;
 // 	rowCounter++;
@@ -359,7 +359,7 @@ void BatchPrimitiveProcessorJL::setRowGroupData(const rowgroup::RowGroup &rg)
 
 #endif
 
-void BatchPrimitiveProcessorJL::addElementType(const StringElementType &et, uint32_t dbroot)
+void BatchPrimitiveProcessorJL::addElementType(const StringElementType &et, DBROOTS_struct& dbroot)
 {
 	if (filterCount == 0)
 		throw logic_error("BPPJL::addElementType(StringElementType): doesn't work without filter steps yet");
@@ -806,7 +806,7 @@ void BatchPrimitiveProcessorJL::setLBID(uint64_t l, const BRM::EMEntry &scannedE
 {
 	uint32_t i;
      BRM::EMEntry * _scannedExtent=(BRM::EMEntry*)&scannedExtent;
-	dbRoot = _scannedExtent->dbRoots[0];
+	dbRoot = _scannedExtent->dbRoots;
 	baseRid = rowgroup::convertToRid(scannedExtent.partitionNum,
 			scannedExtent.segmentNum,
 			scannedExtent.blockOffset/(scannedExtent.range.size * 1024),  // the extent #

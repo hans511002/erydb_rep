@@ -66,7 +66,7 @@ RTSCommandJL::~RTSCommandJL()
 {
 }
 
-void RTSCommandJL::setLBID(uint64_t data, uint32_t dbroot)
+void RTSCommandJL::setLBID(uint64_t data, DBROOTS_struct& dbroot)
 {
 	if (!passThru)
 		col->setLBID(data, dbroot);

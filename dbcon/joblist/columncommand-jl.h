@@ -47,7 +47,7 @@ public:
 
 	virtual void createCommand(messageqcpp::ByteStream &bs) const;
 	virtual void runCommand(messageqcpp::ByteStream &bs) const;
-	void setLBID(uint64_t rid, uint32_t dbroot);
+	void setLBID(uint64_t rid, DBROOTS_struct& dbroot);
 	uint8_t getTableColumnType();
 	virtual std::string toString();
 	uint16_t getWidth();
@@ -93,7 +93,7 @@ private:
 	uint64_t fExtentsPerSegmentFile;
 
 	uint32_t numDBRoots;
-	uint32_t dbroot;
+	DBROOTS_struct dbroot;
 
 	static const unsigned DEFAULT_FILES_PER_COLUMN_PARTITION = 32;
 	static const unsigned DEFAULT_EXTENTS_PER_SEGMENT_FILE   =  4;

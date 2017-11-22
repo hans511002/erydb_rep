@@ -39,7 +39,7 @@ class FilterCommandJL : public CommandJL
 		FilterCommandJL(const FilterStep&);
 		virtual ~FilterCommandJL();
 
-		void setLBID(uint64_t rid, uint32_t dbroot);
+		void setLBID(uint64_t rid, DBROOTS_struct& dbroot);
 		uint8_t getTableColumnType();
 		CommandType getCommandType();
 		std::string toString();

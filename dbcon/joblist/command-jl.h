@@ -40,7 +40,7 @@ public:
 
 	// converts a rid or dictionary token to an LBID.  For ColumnCommandJL it's a RID,
 	// for a DictStep it's a token.
-	virtual void setLBID(uint64_t data, uint32_t dbroot) = 0;
+	virtual void setLBID(uint64_t data, DBROOTS_struct& dbroot) = 0;
 	virtual uint8_t getTableColumnType() = 0;
 	virtual std::string toString() = 0;
 	virtual void createCommand(messageqcpp::ByteStream &) const;

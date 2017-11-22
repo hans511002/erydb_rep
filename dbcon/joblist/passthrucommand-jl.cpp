@@ -69,7 +69,7 @@ PassThruCommandJL::~PassThruCommandJL()
 {
 }
 
-void PassThruCommandJL::setLBID(uint64_t l, uint32_t dbroot)
+void PassThruCommandJL::setLBID(uint64_t l, DBROOTS_struct& dbroot)
 {
 }
 
