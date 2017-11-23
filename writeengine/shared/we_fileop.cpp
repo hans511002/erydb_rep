@@ -1987,21 +1987,17 @@ int FileOp::getFileSize( ERYDBDataFile* pFile, long long& fileSize ) const
  * RETURN:
  *    NO_ERROR if okay, else an error return code.
  ***********************************************************/
-int FileOp::getFileSize( FID fid, uint16_t dbRoot, uint32_t partition, uint16_t segment,long long& fileSize ) const
+int FileOp::getFileSize( FID fid, uint16_t dbr, uint32_t partition, uint16_t segment,long long& fileSize ) const
 {
     fileSize = 0;
-
     char fileName[FILE_NAME_SIZE];
-    RETURN_ON_ERROR( getFileName(fid, fileName,dbRoot, partition, segment) );
-
+    RETURN_ON_ERROR( getFileName(fid, fileName,dbr, partition, segment) );
     fileSize = ERYDBPolicy::size( fileName );
-
     if( fileSize < 0 )
     {
     	fileSize = 0;
     	return ERR_FILE_STAT;
     }
-
     return NO_ERROR;
 }
 
@@ -2035,13 +2031,13 @@ bool  FileOp::isDir( const char* dirName ) const
  * RETURN:
  *    NO_ERROR if success, other if fail
  ***********************************************************/
-int FileOp::oid2FileName( FID fid,char* fullFileName,bool bCreateDir,uint16_t dbRoot,uint32_t partition,uint16_t segment) const
+int FileOp::oid2FileName( FID fid,char* fullFileName,bool bCreateDir,uint16_t dbr,uint32_t partition,uint16_t segment) const
 {
 #ifdef SHARED_NOTHING_DEMO_2
     if (fid >= SHARED_NOTHING_DEMO_ID) {
         char root[FILE_NAME_SIZE];
-        Config::getSharedNothingRoot(root);
-        sprintf(fullFileName, "%s/FILE%d", root, fid);
+        Config::getSharedNothingRoot(dbr);
+        sprintf(fullFileName, "%s/FILE%d", dbr, fid);
         return NO_ERROR;
     }
 #endif
@@ -2069,8 +2065,8 @@ int FileOp::oid2FileName( FID fid,char* fullFileName,bool bCreateDir,uint16_t db
     RETURN_ON_ERROR((Convertor::oid2FileName(fid, tempFileName, dbDir, partition, segment)));
 
     // see if file exists in specified DBRoot; return if found
-    if (dbRoot > 0) {
-        sprintf(fullFileName, "%s/%s", Config::getDBRootByNum(dbRoot).c_str(), tempFileName);
+    if (dbr > 0) {
+        sprintf(fullFileName, "%s/%s", Config::getDBRootByNum(dbr).c_str(), tempFileName);
 
         //std::cout << "oid2FileName() OID: " << fid <<
         //   " searching for file: " << fullFileName <<std::endl;
@@ -2130,7 +2126,7 @@ int FileOp::oid2FileName( FID fid,char* fullFileName,bool bCreateDir,uint16_t db
 
     std::stringstream aDirName;
 
-    aDirName << Config::getDBRootByNum(dbRoot).c_str()<<"/" << dbDir[0];
+    aDirName << Config::getDBRootByNum(dbr).c_str()<<"/" << dbDir[0];
     if(!isDir((aDirName.str()).c_str()))
         RETURN_ON_ERROR( createDir((aDirName.str()).c_str()) );
 

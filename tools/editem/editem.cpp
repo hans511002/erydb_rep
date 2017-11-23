@@ -690,15 +690,15 @@ int dumpLBID(LBID_t lbid)
 {
 	uint16_t ver = 0;
 	BRM::OID_t oid;
-	DBROOTS_struct dbroot;
+	DBROOTS_struct dbRoot;
 	uint32_t partNum;
 	uint16_t segNum;
 	uint32_t fbo;
 	int rc;
-	rc = emp->lookupLocal(lbid, ver, false, oid, dbroot, partNum, segNum, fbo);
+	rc = emp->lookupLocal(lbid, ver, false, oid, dbRoot, partNum, segNum, fbo);
 	erydbassert(rc == 0);
 	cout << "LBID " << lbid << " is part of OID " << oid <<
-		"; DbRoot "     << dbroot  <<
+		"; DbRoot "     << dbRoot  <<
 		"; partition# " << partNum <<
 		"; segment# "   << segNum  <<
 		"; at FBO "     << fbo     << endl;
@@ -708,10 +708,10 @@ int dumpLBID(LBID_t lbid)
 //------------------------------------------------------------------------------
 // Delete all the extents for the specified DBRoot
 //------------------------------------------------------------------------------
-int deleteAllOnDBRoot(uint16_t dbroot)
+int deleteAllOnDBRoot(uint16_t dbr)
 {
 	int rc;
-	rc = emp->deleteDBRoot(dbroot);
+	rc = emp->deleteDBRoot(dbr);
 	erydbassert(rc == 0);
 	return 0;
 }
@@ -740,7 +740,7 @@ int main(int argc, char** argv)
 	bool iflg = false;
 	LBID_t lbid = 0;
 	bool pflg = false;
-	uint16_t dbroot = 0;
+	uint16_t dbr = 0;
 	unsigned int sortOrder = 0; // value of 0 means no sorting
 
 	opterr = 0;
@@ -815,7 +815,7 @@ int main(int argc, char** argv)
 			break;
 		case 'p':
 			pflg = true;
-			dbroot = (uint16_t)strtoul(optarg, 0, 0);
+			dbr = (uint16_t)strtoul(optarg, 0, 0);
 			break;
 		case 'S':
 			sortOrder = strtoul(optarg, 0, 0);
@@ -895,7 +895,7 @@ int main(int argc, char** argv)
 	}
 
 	if (pflg)
-		return deleteAllOnDBRoot(dbroot);
+		return deleteAllOnDBRoot(dbr);
 
 	if (oflg)
 		return dumpone(oid, sortOrder);

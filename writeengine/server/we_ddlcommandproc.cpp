@@ -3474,7 +3474,8 @@ uint8_t WE_DDLCommandProc::writeDropPartitionLog(ByteStream& bs, std::string& er
 
 
 	// -1 indicates the end of partition list
-	BRM::LogicalPartition end(-1,-1,-1);
+	DBROOTS_struct endDbr(-1);
+	BRM::LogicalPartition end(endDbr,-1,-1);
 	buf << end << endl;
 
 	for (unsigned i=0; i < oids.size(); i++)
@@ -3728,7 +3729,7 @@ uint8_t WE_DDLCommandProc::fetchDDLLog(ByteStream& bs, std::string& err)
 				std::istringstream strbuf(string(buf.get(), fileSize));
 				while (strbuf >> partition)
 				{
-					if (partition.dbroot == (uint16_t)-1)
+					if (partition.dbRoot[0] == (uint16_t)-1)
 						break;
 					partitionNums.push_back(partition);
 				}

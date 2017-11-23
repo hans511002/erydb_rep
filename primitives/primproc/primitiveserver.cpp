@@ -185,11 +185,11 @@ uint32_t cacheNum(uint64_t lbid)
 	return ( lbid / brm->getExtentSize() ) % fCacheCount;
 }
 
-void buildOidFileName(const BRM::OID_t oid,const uint16_t dbRoot,const uint16_t partNum,const uint32_t segNum,char* file_name)
+void buildOidFileName(const BRM::OID_t oid,const uint16_t dbr,const uint16_t partNum,const uint32_t segNum,char* file_name)
 {
 	WriteEngine::FileOp fileOp(false);
 
-	if (fileOp.getFileName(oid, file_name, dbRoot, partNum, segNum) != WriteEngine::NO_ERROR)
+	if (fileOp.getFileName(oid, file_name, dbr, partNum, segNum) != WriteEngine::NO_ERROR)
 	{
 		file_name[0]=0;
 		throw std::runtime_error("fileOp.getFileName failed");

@@ -210,7 +210,7 @@ public:
     /**
      * @brief Return the extents info for specified OID and dbroot
      */
-    int getExtents_dbroot( int oid,std::vector<struct BRM::EMEntry>& entries,const uint16_t dbroot);
+    int getExtents_dbroot( int oid,std::vector<struct BRM::EMEntry>& entries,const uint16_t dbr);
 
     /**
      * @brief Return the read/write status of DBRM (helps detect if DBRM is up)
@@ -264,12 +264,7 @@ public:
      * subsequent partitions are deleted.  If bDeleteAll is true, then all
      * extents for the specified oid and dbroot are deleted.
      */
-    int rollbackColumnExtents_DBroot( const OID oid,
-                     bool        bDeleteAll,
-                     DBROOTS_struct&   dbRoot,
-                     uint32_t   partition,
-                     uint16_t   segment,
-                     BRM::HWM_t  hwm );
+    int rollbackColumnExtents_DBroot( const OID oid,bool bDeleteAll,DBROOTS_struct& dbRoot,uint32_t partition,uint16_t segment,BRM::HWM_t hwm );
 
     /**
      * @brief Perform bulk rollback of the extents that follow the specified
@@ -280,11 +275,7 @@ public:
      * segNums and hwms vector are empty, then all extents for the specified
      * oid and dbroot are deleted.
      */
-    int rollbackDictStoreExtents_DBroot( OID oid,
-                     DBROOTS_struct&   dbRoot,
-                     uint32_t   partition,
-                     const std::vector<uint16_t>&  segNums,
-                     const std::vector<BRM::HWM_t>& hwms );
+    int rollbackDictStoreExtents_DBroot( OID oid,DBROOTS_struct& dbRoot,uint32_t partition,const std::vector<uint16_t>& segNums,const std::vector<BRM::HWM_t>& hwms );
 
     /**
      * @brief Perform delete column extents 
@@ -568,9 +559,9 @@ inline int BRMWrapper::getExtents( int oid,
     return rc;
 }
 
-inline int BRMWrapper::getExtents_dbroot( int oid,std::vector<struct BRM::EMEntry>& entries,const uint16_t dbroot )
+inline int BRMWrapper::getExtents_dbroot( int oid,std::vector<struct BRM::EMEntry>& entries,const uint16_t dbr)
 {
-    int rc = blockRsltnMgrPtr->getExtents_dbroot(oid, entries, dbroot);
+    int rc = blockRsltnMgrPtr->getExtents_dbroot(oid, entries, dbr);
     return rc;
 }
 

@@ -720,7 +720,7 @@ int ColumnOp::fillColumn(const TxnID& txnid, Column& column, Column& refCol, voi
 			{		
 				for (k = 0; k < fileExtents.size(); k++)
 				{
-					// uint16_t dbroot = rootList[i];
+					// uint16_t dbr = rootList[i];
 					DBROOTS_struct dbroot=fileExtents[k].dbRoots;
 					partition = fileExtents[k].partitionNum;
 					segment = fileExtents[k].segmentNum;

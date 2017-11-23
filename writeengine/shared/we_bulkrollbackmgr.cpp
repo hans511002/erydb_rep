@@ -308,10 +308,9 @@ void BulkRollbackMgr::validateAllMetaFilesExist (
 // Returns true/false to indicate whether execution should continue if the
 // meta-data file is missing.
 //------------------------------------------------------------------------------
-bool BulkRollbackMgr::openMetaDataFile ( uint16_t dbRoot,
-    std::istringstream& metaDataStream )
+bool BulkRollbackMgr::openMetaDataFile ( uint16_t dbr,std::istringstream& metaDataStream )
 {
-    std::string bulkRollbackPath( Config::getDBRootByNum( dbRoot ) );
+    std::string bulkRollbackPath( Config::getDBRootByNum( dbr ) );
 
     // Construct file name and check for it's existence
     std::ostringstream oss;
@@ -329,9 +328,7 @@ bool BulkRollbackMgr::openMetaDataFile ( uint16_t dbRoot,
     }
 
     // Open the file
-    fMetaFile = ERYDBDataFile::open( ERYDBPolicy::getType(fMetaFileName.c_str(),
-                                   ERYDBPolicy::WRITEENG),
-                                   fMetaFileName.c_str(), "rb", 0);
+    fMetaFile = ERYDBDataFile::open( ERYDBPolicy::getType(fMetaFileName.c_str(),ERYDBPolicy::WRITEENG),fMetaFileName.c_str(), "rb", 0);
 
     if ( !fMetaFile )
     {
@@ -367,8 +364,7 @@ bool BulkRollbackMgr::openMetaDataFile ( uint16_t dbRoot,
         int errRc = errno;
         std::ostringstream oss;
         oss << "Error reading bulk rollback meta-data file "
-            << fMetaFileName << "; read/expect:" << readSofar << "/" << metaFileSize
-            << "; err-" << errRc << "; " << strerror( errRc );
+            << fMetaFileName << "; read/expect:" << readSofar << "/" << metaFileSize << "; err-" << errRc << "; " << strerror( errRc );
     
         throw WeException( oss.str(), ERR_FILE_READ );
     }
@@ -390,8 +386,7 @@ bool BulkRollbackMgr::openMetaDataFile ( uint16_t dbRoot,
     else
     {
         std::ostringstream oss;
-        oss << "Invalid version record in meta-data file " << fMetaFileName
-            << "; record-<" << inBuf << ">" <<std::endl;
+        oss << "Invalid version record in meta-data file " << fMetaFileName << "; record-<" << inBuf << ">" <<std::endl;
     
         throw WeException( oss.str(), ERR_INVALID_PARAM );
     }
@@ -455,7 +450,7 @@ void BulkRollbackMgr::deleteExtents ( std::istringstream& metaDataStream )
     char  inBuf[ BUF_SIZE ];
     OID   columnOID     = 0;
     OID   storeOID      = 0;
-    uint32_t dbRoot    = 0;
+    DBROOTS_struct dbRoot    = 0;
 
     // Loop through the records in the meta-data file
     while (metaDataStream.getline( inBuf, BUF_SIZE ))
@@ -486,27 +481,21 @@ void BulkRollbackMgr::deleteExtents ( std::istringstream& metaDataStream )
             deleteColumn2Extents ( inBuf );
             deleteDbFiles( );
         }
-        else if (RBMetaWriter::verifyDStore1Rec(inBuf) ||
-                 RBMetaWriter::verifyDStore2Rec(inBuf))
+        else if (RBMetaWriter::verifyDStore1Rec(inBuf) || RBMetaWriter::verifyDStore2Rec(inBuf))
         {
             if (fPendingDctnryExtents.size() > 0)
             {
                 char recType[100];
-                int numFields = sscanf(
-                    inBuf, "%s %u %u %d",
-                    recType, &columnOID, &storeOID, &dbRoot );
+                int numFields = sscanf(inBuf, "%s %u %u %u.%u.%u.%u",recType, &columnOID, &storeOID, &dbRoot.dbRoots[0], &dbRoot.dbRoots[1], &dbRoot.dbRoots[2], &dbRoot.dbRoots[3] );
                 if (numFields != 4)
                 {
                     std::ostringstream oss;
-                    oss << "Invalid record in meta-data file " << fMetaFileName
-                        << "; record-<" << inBuf << ">" <<std::endl;
-    
+                    oss << "Invalid record in meta-data file " << fMetaFileName << "; record-<" << inBuf << ">" <<std::endl;
                     throw WeException( oss.str(), ERR_INVALID_PARAM );
                 }
 
                 // Process any pending dictionary deletes
-                if ((storeOID != fPendingDctnryStoreOID) ||
-                    (dbRoot   != fPendingDctnryStoreDbRoot))
+                if ((storeOID != fPendingDctnryStoreOID) ||(dbRoot[0] != fPendingDctnryStoreDbRoot))
                 {
                     deleteDctnryExtents ( );
                     deleteDbFiles( );
@@ -541,7 +530,7 @@ void BulkRollbackMgr::readMetaDataRecDctnry ( const char* inBuf )
     char      recType[100];
     OID       dColumnOID;
     OID       dStoreOID;
-    uint32_t dbRootHwm;
+    DBROOTS_struct dbRootHwm;
     uint32_t partNumHwm;
     uint32_t segNumHwm;
     HWM       localHwm;
@@ -553,11 +542,11 @@ void BulkRollbackMgr::readMetaDataRecDctnry ( const char* inBuf )
     // Process DSTORE1 records representing segment files with an HWM
     if (RBMetaWriter::verifyDStore1Rec(recType))
     {
-        int numFields = sscanf(inBuf, "%s %u %u %u %u %u %u %d",
+        int numFields = sscanf(inBuf, "%s %u %u.%u.%u.%u %u %u %u %u %d",
             recType, &dColumnOID, &dStoreOID,
-            &dbRootHwm, &partNumHwm, &segNumHwm, &localHwm, &compressionType );
+            &dbRootHwm.dbRoots[0],&dbRootHwm.dbRoots[1],&dbRootHwm.dbRoots[2],&dbRootHwm.dbRoots[3], &partNumHwm, &segNumHwm, &localHwm, &compressionType );
 
-        if (numFields < 7) // compressionType optional
+        if (numFields < 10) // compressionType optional
         {
             std::ostringstream oss;
             oss << "Invalid DSTOR1 record in meta-data file " <<
@@ -574,11 +563,11 @@ void BulkRollbackMgr::readMetaDataRecDctnry ( const char* inBuf )
     // segment file did not previously exist and can be deleted if it was added
     else
     {
-        int numFields = sscanf(inBuf, "%s %u %u %u %u %u %d",
+        int numFields = sscanf(inBuf, "%s %u %u.%u.%u.%u %u %u %u %d",
             recType, &dColumnOID, &dStoreOID,
-            &dbRootHwm, &partNumHwm, &segNumHwm, &compressionType );
+            &dbRootHwm.dbRoots[0],&dbRootHwm.dbRoots[1],&dbRootHwm.dbRoots[2],&dbRootHwm.dbRoots[3], &partNumHwm, &segNumHwm, &compressionType );
 
-        if (numFields < 6) // compressionType optional
+        if (numFields < 9) // compressionType optional
         {
             std::ostringstream oss;
             oss << "Invalid DSTOR2 record in meta-data file " <<
@@ -679,7 +668,7 @@ void BulkRollbackMgr::deleteColumn2ExtentsV3 ( const char* inBuf )
 {
     char        recType[100];
     OID         columnOID;
-    uint32_t   dbRootHwm;
+    DBROOTS_struct   dbRootHwm;
     uint32_t   partNumHwm;
     uint32_t   segNumHwm;
     int         colTypeInt;
@@ -688,9 +677,9 @@ void BulkRollbackMgr::deleteColumn2ExtentsV3 ( const char* inBuf )
     int         compressionType = 0; // optional parameter
     
     // Read meta-data record
-    int numFields = sscanf(inBuf, "%s %u %u %u %u %d %s %u %d",
+    int numFields = sscanf(inBuf, "%s %u %u.%u.%u.%u %u %u %d %s %u %d",
         recType, &columnOID,
-        &dbRootHwm, &partNumHwm, &segNumHwm,
+        &dbRootHwm.dbRoots[0],&dbRootHwm.dbRoots[1],&dbRootHwm.dbRoots[2],&dbRootHwm.dbRoots[3], &partNumHwm, &segNumHwm,
         &colTypeInt, colTypeName, &colWidth, &compressionType );
     if (numFields < 8) // compressionType is optional
     {
@@ -730,7 +719,7 @@ void BulkRollbackMgr::deleteColumn1ExtentsV4 ( const char* inBuf )
 {
     char        recType[100];
     OID         columnOID;
-    uint32_t   dbRootHwm;
+    DBROOTS_struct   dbRootHwm;
     uint32_t   partNumHwm;
     uint32_t   segNumHwm;
     HWM         lastLocalHwm;
@@ -741,12 +730,11 @@ void BulkRollbackMgr::deleteColumn1ExtentsV4 ( const char* inBuf )
     int         compressionType = 0; // optional parameter
     
     // Read meta-data record
-    int numFields = sscanf(inBuf, "%s %u %u %u %u %u %d %s %u %d",
-        recType, &columnOID,
-        &dbRootHwm, &partNumHwm, &segNumHwm, &lastLocalHwm,
+    int numFields = sscanf(inBuf, "%s %u %u.%u.%u.%u %u %u %u %d %s %u %d",
+        recType, &columnOID,&dbRootHwm.dbRoots[0],&dbRootHwm.dbRoots[1],&dbRootHwm.dbRoots[2],&dbRootHwm.dbRoots[3], &partNumHwm, &segNumHwm, &lastLocalHwm,
         &colTypeInt, colTypeName, &colWidth, &compressionType );
     colType = (erydbSystemCatalog::ColDataType)colTypeInt;
-    if (numFields < 9) // compressionType is optional
+    if (numFields < 13) // compressionType is optional
     {
         std::ostringstream oss;
         oss << "Invalid COLUM1 record in meta-data file " <<
@@ -778,8 +766,7 @@ void BulkRollbackMgr::deleteColumn1ExtentsV4 ( const char* inBuf )
     // DMC-We should probably change this to build up a list of BRM changes,
     //     and wait to make the call(s) to rollback the BRM changes "after" we
     //     have restored the db files, and purged PrimProc FD and block cache.
-    DBROOTS_struct dbRoots;
-    dbRoots[0]=dbRootHwm;
+    DBROOTS_struct dbRoots =dbRootHwm;
     int rc = BRMWrapper::getInstance()->rollbackColumnExtents_DBroot (
         columnOID,
         false,                  // false -> Don't delete all extents (rollback
@@ -793,7 +780,7 @@ void BulkRollbackMgr::deleteColumn1ExtentsV4 ( const char* inBuf )
         std::ostringstream oss;
         oss << "Error rolling back column extents from extent map for " <<
             columnOID <<
-            "; dbRoot-"    << dbRootHwm    <<
+            "; dbRoot-"    << dbRoots    <<
             "; partition-" << partNumHwm   <<
             "; segment-"   << segNumHwm    <<
             "; hwm-"       << lastLocalHwm <<
@@ -818,7 +805,6 @@ void BulkRollbackMgr::deleteColumn1ExtentsV4 ( const char* inBuf )
         lastBlkOfCurrStripe = lastBlkOfPrevStripe + BLKS_PER_EXTENT;
     }
 
-    uint32_t dbRoot  = dbRootHwm;
     uint32_t partNum = partNumHwm;
     std::string segFileListErrMsg;
 
@@ -831,14 +817,14 @@ void BulkRollbackMgr::deleteColumn1ExtentsV4 ( const char* inBuf )
     {
         std::vector<uint32_t> segList;
         std::string dirName;
-        rc = fileRestorer->buildDirName( columnOID, dbRoot, partNum, dirName );
+        rc = fileRestorer->buildDirName( columnOID, dbRoots[0], partNum, dirName );
         if (rc != NO_ERROR)
         {
             WErrorCodes ec;
             std::ostringstream oss;
             oss << "Bulk rollback error constructing path for column " <<
                 columnOID <<
-                "; dbRoot-"    << dbRoot    <<
+                "; dbRoot-"    << dbRootHwm    <<
                 "; partition-" << partNum   <<
                 "; "           << ec.errorString(rc);
 
@@ -870,8 +856,7 @@ void BulkRollbackMgr::deleteColumn1ExtentsV4 ( const char* inBuf )
                 // Don't rollback an OutOfService extent in the HWM partition
                 bool bFound;
                 int extState;
-                rc = BRMWrapper::getInstance()->getExtentState(
-                    columnOID, partNum, segNum, bFound, extState );
+                rc = BRMWrapper::getInstance()->getExtentState(columnOID, partNum, segNum, bFound, extState );
                 if (rc != NO_ERROR)
                 {
                     WErrorCodes ec;
@@ -888,22 +873,14 @@ void BulkRollbackMgr::deleteColumn1ExtentsV4 ( const char* inBuf )
 
                 if ( segNum < segNumHwm )
                 {
-                    fileRestorer->truncateSegmentFile ( columnOID,
-                        dbRoot,
-                        partNum,
-                        segNum,
-                        (lastBlkOfCurrStripe + 1) );
+                    fileRestorer->truncateSegmentFile ( columnOID,dbRoots[0],partNum,segNum,(lastBlkOfCurrStripe + 1) );
                 } // end of (segNum < segNumHwm)
 
                 else if ( segNum > segNumHwm )
                 {
                     if (lastBlkOfPrevStripe > 0)
                     {
-                        fileRestorer->truncateSegmentFile ( columnOID,
-                            dbRoot,
-                            partNum,
-                            segNum,
-                            (lastBlkOfPrevStripe + 1) );
+                        fileRestorer->truncateSegmentFile ( columnOID,dbRoots[0],partNum,segNum,(lastBlkOfPrevStripe + 1) );
                     }
                     // lastBlkOfPrevStripe = 0, means there was no previous
                     // stripe in this partition.  The HWM block was in the
@@ -912,16 +889,9 @@ void BulkRollbackMgr::deleteColumn1ExtentsV4 ( const char* inBuf )
                     else
                     {
                         std::string segFileName;
-                        fileRestorer->buildSegmentFileName ( columnOID,
-                            true,    // column segment file
-                            dbRoot,
-                            partNum,
-                            segNum,
-                            segFileName );
-
-                        createFileDeletionEntry( columnOID,
-                            true, // column segment file
-                            dbRoot, partNum, segNum, segFileName );
+                                // column segment file
+                        fileRestorer->buildSegmentFileName ( columnOID,true,dbRoots[0],partNum,segNum,segFileName );
+                        createFileDeletionEntry( columnOID,true,dbRoots, partNum, segNum, segFileName );// column segment file
                     }
                 } // end of (segNum > segNumHwm)
 
@@ -929,17 +899,11 @@ void BulkRollbackMgr::deleteColumn1ExtentsV4 ( const char* inBuf )
                 {
                     if (lastBlkOfCurrStripe == lastLocalHwm)
                     { 
-                        fileRestorer->truncateSegmentFile ( columnOID,
-                            dbRoot,
-                            partNum,
-                            segNum,
-                            (lastBlkOfCurrStripe + 1) );
+                        fileRestorer->truncateSegmentFile ( columnOID,dbRoots[0], partNum,segNum,(lastBlkOfCurrStripe + 1) );
                     }
                     else
                     {
-                        bool restoreChunk =
-                            fileRestorer->doWeReInitExtent(columnOID,
-                            dbRoot, partNum, segNum);
+                        bool restoreChunk =fileRestorer->doWeReInitExtent(columnOID,dbRoots[0], partNum, segNum);
 
                         // For compressed data, if there is no backup chunk to
                         // restore (restoreChunk is false), we still restore
@@ -954,15 +918,7 @@ void BulkRollbackMgr::deleteColumn1ExtentsV4 ( const char* inBuf )
 
                         // Reinit last extent and truncate the remainder,
                         // starting with the next block following the HWM block.
-                        fileRestorer->reInitTruncColumnExtent ( columnOID,
-                            dbRoot,
-                            partNum,
-                            segNum,
-                            (lastLocalHwm + 1),
-                            (lastBlkOfCurrStripe - lastLocalHwm),
-                            colType,
-                            colWidth,
-                            restoreChunk );
+                        fileRestorer->reInitTruncColumnExtent ( columnOID,dbRoots[0],partNum,segNum,(lastLocalHwm + 1),(lastBlkOfCurrStripe - lastLocalHwm),colType,colWidth,restoreChunk );
                     }
                 } // end of (segNum == segNumHwm)
             }
@@ -970,16 +926,8 @@ void BulkRollbackMgr::deleteColumn1ExtentsV4 ( const char* inBuf )
             {
                 // Delete any files added to subsequent partitions
                 std::string segFileName;
-                fileRestorer->buildSegmentFileName ( columnOID,
-                    true,    // column segment file
-                    dbRoot,
-                    partNum,
-                    segNum,
-                    segFileName );
-
-                createFileDeletionEntry( columnOID,
-                    true, // column segment file
-                    dbRoot, partNum, segNum, segFileName );
+                fileRestorer->buildSegmentFileName ( columnOID,true,dbRoots[0],partNum,segNum,segFileName );    // column segment file
+                createFileDeletionEntry( columnOID,true,dbRoots, partNum, segNum, segFileName ); // column segment file
             }
         } // loop thru all the potential segment files in a partition
 
@@ -1001,7 +949,7 @@ void BulkRollbackMgr::deleteColumn2ExtentsV4 ( const char* inBuf )
 {
     char        recType[100];
     OID         columnOID;
-    uint32_t   dbRootHwm;
+    DBROOTS_struct   dbRootHwm;
     uint32_t   partNumHwm;
     uint32_t   segNumHwm;
     HWM         lastLocalHwm = 0;
@@ -1011,11 +959,10 @@ void BulkRollbackMgr::deleteColumn2ExtentsV4 ( const char* inBuf )
     int         compressionType = 0; // optional parameter
     
     // Read meta-data record
-    int numFields = sscanf(inBuf, "%s %u %u %u %u %d %s %u %d",
-        recType, &columnOID,
-        &dbRootHwm, &partNumHwm, &segNumHwm,
+    int numFields = sscanf(inBuf, "%s %u %u.%u.%u.%u %u %u %d %s %u %d",
+        recType, &columnOID,&dbRootHwm.dbRoots[0],&dbRootHwm.dbRoots[1],&dbRootHwm.dbRoots[2],&dbRootHwm.dbRoots[3], &partNumHwm, &segNumHwm,
         &colTypeInt, colTypeName, &colWidth, &compressionType );
-    if (numFields < 8) // compressionType is optional
+    if (numFields < 11) // compressionType is optional
     {
         std::ostringstream oss;
         oss << "Invalid COLUM2 record in meta-data file " <<
@@ -1033,15 +980,16 @@ void BulkRollbackMgr::deleteColumn2ExtentsV4 ( const char* inBuf )
     // be 0, but we may start importing into part# > 0 (to line up with other
     // DBRoots).  Use extent map to find first partition added by this import.
     std::vector<struct BRM::EMEntry> extEntries;
-    int rc = BRMWrapper::getInstance()->getExtents_dbroot( columnOID,
-        extEntries, dbRootHwm );
+    DBROOTS_struct dbRoot=dbRootHwm;
+
+    int rc = BRMWrapper::getInstance()->getExtents_dbroot( columnOID,extEntries, dbRoot[0] );
     if (rc != NO_ERROR)
     {
         WErrorCodes ec;
         std::ostringstream oss;
         oss << "Error getting extent list from extent map for " <<
             columnOID <<
-            "; dbRoot-"    << dbRootHwm    <<
+            "; dbRoot-"    << dbRoot    <<
             "; "           << ec.errorString(rc);
 
         throw WeException( oss.str(), ERR_BRM_BULK_RB_COLUMN );
@@ -1060,7 +1008,7 @@ void BulkRollbackMgr::deleteColumn2ExtentsV4 ( const char* inBuf )
     // Delete extents from the extentmap
     std::ostringstream msg0074Text;
     msg0074Text << "Restoring empty DBRoot. "
-        "dbRoot-"  << dbRootHwm  <<
+        "dbRoot-"  << dbRoot  <<
         "; part#-" << partNumHwm <<
         "; seg#-"  << segNumHwm  <<
         "; hwm-"   << lastLocalHwm <<
@@ -1079,12 +1027,10 @@ void BulkRollbackMgr::deleteColumn2ExtentsV4 ( const char* inBuf )
     // DMC-We should probably change this to build up a list of BRM changes,
     //     and wait to make the call(s) to rollback the BRM changes "after" we
     //     have restored the db files, and purged PrimProc FD and block cache.
-    DBROOTS_struct dbRoots;
-    dbRoots[0]=dbRootHwm;
     rc = BRMWrapper::getInstance()->rollbackColumnExtents_DBroot (
         columnOID,
         true,           // true -> delete all extents (restore to empty DBRoot)
-        dbRoots,
+        dbRoot,
         partNumHwm,
         (uint16_t)segNumHwm,
         lastLocalHwm );
@@ -1094,7 +1040,7 @@ void BulkRollbackMgr::deleteColumn2ExtentsV4 ( const char* inBuf )
         std::ostringstream oss;
         oss << "Error rolling back column extents from extent map for " <<
             columnOID <<
-            "; dbRoot-"    << dbRootHwm    <<
+            "; dbRoot-"    << dbRoot    <<
             "; partition-" << partNumHwm   <<
             "; segment-"   << segNumHwm    <<
             "; hwm-"       << lastLocalHwm <<
@@ -1103,7 +1049,6 @@ void BulkRollbackMgr::deleteColumn2ExtentsV4 ( const char* inBuf )
         throw WeException( oss.str(), ERR_BRM_BULK_RB_COLUMN );
     }
 
-    uint32_t dbRoot  = dbRootHwm;
     uint32_t partNum = partNumHwm;
     std::string segFileListErrMsg;
 
@@ -1116,7 +1061,7 @@ void BulkRollbackMgr::deleteColumn2ExtentsV4 ( const char* inBuf )
     {
         std::vector<uint32_t> segList;
         std::string dirName;
-        rc = fileRestorer->buildDirName( columnOID, dbRoot, partNum, dirName );
+        rc = fileRestorer->buildDirName( columnOID, dbRoot[0], partNum, dirName );
         if (rc != NO_ERROR)
         {
             WErrorCodes ec;
@@ -1154,7 +1099,7 @@ void BulkRollbackMgr::deleteColumn2ExtentsV4 ( const char* inBuf )
             std::string segFileName;
             fileRestorer->buildSegmentFileName ( columnOID,
                 true,    // column segment file
-                dbRoot,
+                dbRoot[0],
                 partNum,
                 segNum,                
                 segFileName );
@@ -1267,10 +1212,7 @@ void BulkRollbackMgr::deleteDctnryExtentsV4 ( )
     if (hwms.size() == 0) // empty DBRoot case
     {
         std::vector<struct BRM::EMEntry> extEntries;
-        int rc = BRMWrapper::getInstance()->getExtents_dbroot(
-            fPendingDctnryStoreOID,
-            extEntries,
-            fPendingDctnryStoreDbRoot );
+        int rc = BRMWrapper::getInstance()->getExtents_dbroot(fPendingDctnryStoreOID,extEntries,fPendingDctnryStoreDbRoot[0] );
         if (rc != NO_ERROR)
         {
             WErrorCodes ec;
@@ -1324,7 +1266,7 @@ void BulkRollbackMgr::deleteDctnryExtentsV4 ( )
     //     and wait to make the call(s) to rollback the BRM changes "after" we
     //     have restored the db files, and purged PrimProc FD and block cache.
     DBROOTS_struct dbRoots;
-    dbRoots[0]=fPendingDctnryStoreDbRoot;
+    dbRoots=fPendingDctnryStoreDbRoot;
     int rc = BRMWrapper::getInstance()->rollbackDictStoreExtents_DBroot (
         fPendingDctnryStoreOID,
         dbRoots,
@@ -1349,7 +1291,7 @@ void BulkRollbackMgr::deleteDctnryExtentsV4 ( )
     const unsigned BLKS_PER_EXTENT =
         (ROWS_PER_EXTENT * COL_WIDTH)/BYTE_PER_BLOCK;
 
-    uint32_t dbRoot  = fPendingDctnryStoreDbRoot;
+    DBROOTS_struct dbRoot  = fPendingDctnryStoreDbRoot;
     std::string segFileListErrMsg;
 
     // Delete extents from the database files.
@@ -1361,8 +1303,7 @@ void BulkRollbackMgr::deleteDctnryExtentsV4 ( )
     {
         std::vector<uint32_t> segList;
         std::string dirName;
-        rc = fileRestorer->buildDirName( fPendingDctnryStoreOID,
-            dbRoot, partNum, dirName );
+        rc = fileRestorer->buildDirName( fPendingDctnryStoreOID,dbRoot[0], partNum, dirName );
         if (rc != NO_ERROR)
         {
             WErrorCodes ec;
@@ -1447,23 +1388,12 @@ void BulkRollbackMgr::deleteDctnryExtentsV4 ( )
 
                 // Reinit last extent and truncate the remainder,
                 // starting with the next block following the HWM block.
-                fileRestorer->reInitTruncDctnryExtent (
-                    fPendingDctnryStoreOID,
-                    dbRoot,
-                    partNum,
-                    segNum,
-                    (hwm + 1),
-                    (lastBlkOfCurrStripe - hwm));
+                fileRestorer->reInitTruncDctnryExtent (fPendingDctnryStoreOID,dbRoot[0],partNum,segNum,(hwm + 1),(lastBlkOfCurrStripe - hwm));
             }
             else // don't keep this segment file
             {
                 std::string segFileName;
-                fileRestorer->buildSegmentFileName ( fPendingDctnryStoreOID,
-                    false,    // not a column segment file
-                    dbRoot,
-                    partNum,
-                    segNum,                
-                    segFileName );
+                fileRestorer->buildSegmentFileName ( fPendingDctnryStoreOID,false,dbRoot[0],partNum,segNum,segFileName );    // not a column segment file
 
                 createFileDeletionEntry( fPendingDctnryStoreOID,
                     false, // not a column segment file
@@ -1488,7 +1418,7 @@ void BulkRollbackMgr::deleteDctnryExtentsV4 ( )
 void BulkRollbackMgr::createFileDeletionEntry(
     OID       columnOID,
     bool      fileTypeFlag,
-    uint32_t dbRoot,
+    DBROOTS_struct& dbRoot,
     uint32_t partNum,
     uint32_t segNum,
     const std::string& segFileName )
@@ -1498,7 +1428,7 @@ void BulkRollbackMgr::createFileDeletionEntry(
     f.fid          = ((fileTypeFlag) ? 1 : 0); // use fid for file type flag
     f.fPartition   = partNum;
     f.fSegment     = segNum;
-    f.fDbRoot[0]      = dbRoot;
+    f.fDbRoot      = dbRoot;
     f.fSegFileName = segFileName;
     fPendingFilesToDelete.push_back( f );
 }

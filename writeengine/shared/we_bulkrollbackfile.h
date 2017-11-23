@@ -67,12 +67,7 @@ public:
      * @param segNum Segment number of the segment file to be deleted
      * @param segFileName (out) Name of segment file
      */
-    void buildSegmentFileName(OID columnOID,
-                        bool      fileTypeFlag,
-                        uint32_t dbRoot,
-                        uint32_t partNum,
-                        uint32_t segNum,
-                        std::string& segFileName);
+    void buildSegmentFileName(OID columnOID,bool fileTypeFlag,uint32_t dbr,uint32_t partNum,uint32_t segNum,std::string& segFileName);
 
     /** @brief Delete a segment file.
      * Warning: This function may throw a WeException.
@@ -84,14 +79,8 @@ public:
      * @param segNum Segment number of the segment file to be deleted
      * @param segFileName Name of segment file to be deleted
      */
-    void deleteSegmentFile(OID    columnOID,
-                        bool      fileTypeFlag,
-                        uint32_t dbRoot,
-                        uint32_t partNum,
-                        uint32_t segNum,
-                        const std::string& segFileName );
-
-    /** @brief Construct a directory path.
+    void deleteSegmentFile(OID columnOID,bool fileTypeFlag,uint32_t dbr,uint32_t partNum,uint32_t segNum,const std::string& segFileName );
+            /** @brief Construct a directory path.
      *
      * @param oid       (in) OID to use in constructing directory path
      * @param dbRoot    (in) DBRoot to use in constructing directory path
@@ -99,7 +88,7 @@ public:
      * @param dirName   (out)Directory path constructed from input arguments
      * @return returns NO_ERROR if success
      */
-    int buildDirName(OID oid,uint16_t dbRoot,uint32_t partition,std::string& dirName);
+    int buildDirName(OID oid,uint16_t dbr,uint32_t partition,std::string& dirName);
 
     /** @brief Do we reinit trailing blocks in the HWM extent for the specified
      * segment file
@@ -113,7 +102,7 @@ public:
      * @param partNum Partition number for the segment file in question
      * @param segNum Segment number for the segment file in question
      */
-    virtual bool doWeReInitExtent( OID columnOID,uint16_t dbRoot,uint32_t   partNum,uint32_t segNum) const;
+    virtual bool doWeReInitExtent( OID columnOID,uint16_t dbr,uint32_t   partNum,uint32_t segNum) const;
 
     /** @brief Reinitialize the specified column segment file starting at
      * startOffsetBlk, and truncate trailing extents.
@@ -130,15 +119,7 @@ public:
      * @param colWidth Width in bytes of column.
      * @param restoreHwmChk Restore HWM chunk (n/a to uncompressed)
      */
-    virtual void reInitTruncColumnExtent(OID columnOID,
-                        uint32_t   dbRoot,
-                        uint32_t   partNum,
-                        uint32_t   segNum,
-                        long long   startOffsetBlk,
-                        int         nBlocks,
-                        execplan::erydbSystemCatalog::ColDataType colType,
-                        uint32_t   colWidth,
-                        bool        restoreHwmChk );
+    virtual void reInitTruncColumnExtent(OID columnOID,uint32_t dbr,uint32_t partNum,uint32_t segNum,long long startOffsetBlk,int nBlocks,execplan::erydbSystemCatalog::ColDataType colType, uint32_t colWidth,bool restoreHwmChk );
 
     /** @brief Reinitialize the specified dictionary store segment file starting
      * at startOffsetBlk, and truncate trailing extents.
@@ -168,11 +149,7 @@ public:
      * @param segNum Segment number of the relevant segment file
      * @param fileSizeBlocks Number of blocks to retain in the file
      */
-    virtual void truncateSegmentFile( OID    columnOID,
-                        uint32_t   dbRoot,
-                        uint32_t   partNum,
-                        uint32_t   segNum,
-                        long long   filesSizeBlocks );
+    virtual void truncateSegmentFile( OID columnOID,uint32_t dbr,uint32_t partNum,uint32_t segNum, long long filesSizeBlocks );
 
 protected:
     BulkRollbackMgr* fMgr;                        // Bulk Rollback controller
@@ -188,12 +165,8 @@ private:
 //------------------------------------------------------------------------------
 // Inline functions
 //------------------------------------------------------------------------------
-inline int BulkRollbackFile::buildDirName( OID oid,
-    uint16_t dbRoot,
-    uint32_t partition,
-    std::string& dirName)
-{
-    return fDbFile.getDirName( oid, dbRoot, partition, dirName );
+inline int BulkRollbackFile::buildDirName( OID oid,uint16_t dbr,uint32_t partition,std::string& dirName){
+    return fDbFile.getDirName( oid, dbr, partition, dirName );
 }
 
 } //end of namespace

@@ -1016,9 +1016,9 @@ namespace BRM {
     //------------------------------------------------------------------------------
     // Delete all extents for the dbroot
     //------------------------------------------------------------------------------
-    int SlaveDBRMNode::deleteDBRoot(uint16_t dbroot) throw() {
+    int SlaveDBRMNode::deleteDBRoot(uint16_t dbr) throw() {
         try {
-            em.deleteDBRoot(dbroot);
+            em.deleteDBRoot(dbr);
         } catch (ERYDBExcept& iex) {
             cerr << iex.what() << endl;
             return -1;

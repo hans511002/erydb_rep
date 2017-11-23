@@ -79,10 +79,7 @@ public:
      *  @param errMsg (out) Error msg associated with a bad return code
      *  @return Returns NO_ERROR if call is successful
      */
-    EXPORT int endDbFileChange( const std::string& backUpFileType,
-        const std::string& filename,
-        bool success,
-        std::string& errMsg ) const;
+    EXPORT int endDbFileChange( const std::string& backUpFileType,const std::string& filename,bool success,std::string& errMsg ) const;
 
     /** @brief Confirm changes to the db files modified for tableOID
      *
@@ -93,8 +90,7 @@ public:
      *  @param errMsg (out) Error msg associated with a bad return code
      *  @return Returns NO_ERROR if call is successful
      */
-    EXPORT int confirmDbFileListFromMetaFile( OID tableOID,
-        std::string& errMsg );
+    EXPORT int confirmDbFileListFromMetaFile( OID tableOID,std::string& errMsg );
 
     /** @brief Finalize changes to the db files modified for tableOID
      *
@@ -111,12 +107,10 @@ public:
      *  @param errMsg (out) Error msg associated with a bad return code
      *  @return Returns NO_ERROR if call is successful
      */
-    EXPORT int endDbFileListFromMetaFile( OID tableOID,
-        bool success,
-        std::string& errMsg );
+    EXPORT int endDbFileListFromMetaFile( OID tableOID,bool success,std::string& errMsg );
 
 private:
-    void openMetaDataFile( OID tableOID,uint16_t dbRoot,std::istringstream& metaDataStream );
+    void openMetaDataFile( OID tableOID,uint16_t dbr,std::istringstream& metaDataStream );
 
     void confirmDbFiles( std::istringstream& metaDataStream ) const;
     void confirmColumnDbFile( const char* inBuf ) const;

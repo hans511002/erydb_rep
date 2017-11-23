@@ -1285,8 +1285,8 @@ ioManager::ioManager(FileBufferMgr& fbm,
 	go();
 }
 
-void ioManager::buildOidFileName(const BRM::OID_t oid, const uint16_t dbRoot, const uint16_t partNum, const uint32_t segNum, char* file_name) {
-	if (fFileOp.getFileName(oid, file_name, dbRoot, partNum, segNum) != WriteEngine::NO_ERROR) {
+void ioManager::buildOidFileName(const BRM::OID_t oid, const uint16_t dbr, const uint16_t partNum, const uint32_t segNum, char* file_name) {
+	if (fFileOp.getFileName(oid, file_name, dbr, partNum, segNum) != WriteEngine::NO_ERROR) {
 		file_name[0]=0;
 		throw std::runtime_error("fileOp.getFileName failed");
 	}

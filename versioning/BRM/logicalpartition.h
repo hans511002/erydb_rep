@@ -39,15 +39,16 @@
 
 namespace BRM 
 {
-    struct DBROOTS_struct {
+    union DBROOTS_struct {
     uint16_t	dbRoots[MAX_DATA_REPLICATESIZE];
-    
+    uint64_t dbRoot;
+
 	EXPORT DBROOTS_struct();
 	EXPORT DBROOTS_struct(uint64_t dbRoot){
-	    dbRoots[0]=dbRoot&0xFF;
-	    dbRoots[1]=(dbRoot>>16) &0xFF;
-	    dbRoots[2]=(dbRoot>>32) &0xFF;
-	    dbRoots[3]=(dbRoot>>48) &0xFF;
+	    dbRoots[0]=dbRoot&0xFFFF;
+	    dbRoots[1]=(dbRoot>>16) &0xFFFF;
+	    dbRoots[2]=(dbRoot>>32) &0xFFFF;
+	    dbRoots[3]=(dbRoot>>48) &0xFFFF;
 	};
     EXPORT   uint64_t getUintVal() {
         uint64_t dbRoot=0;
@@ -57,7 +58,7 @@ namespace BRM
 
     EXPORT   uint16_t & operator [](int i) ;
     EXPORT   uint16_t get(int i) const;
-    EXPORT   void remove(uint16_t dbroot);
+    EXPORT   void remove(uint16_t dbr);
     EXPORT DBROOTS_struct(const DBROOTS_struct&);
     EXPORT DBROOTS_struct& operator= (const DBROOTS_struct&);
     EXPORT DBROOTS_struct& set(const DBROOTS_struct&);
@@ -88,9 +89,7 @@ struct LogicalPartition
 	uint32_t pp;      // physical partition #
 	uint16_t seg;     // segment #
 
-	LogicalPartition() : //dbroot ((uint16_t)-1),
-	                     pp ((uint32_t)-1),
-	                     seg ((uint16_t)-1) {}
+	LogicalPartition() : dbRoot ((uint16_t)-1),pp ((uint32_t)-1),seg ((uint16_t)-1) {}
 
 	LogicalPartition(DBROOTS_struct& d, uint32_t p, uint16_t s) : dbRoot(d),pp(p),seg(s){}
 	

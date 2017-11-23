@@ -62,10 +62,10 @@ uint16_t & DBROOTS_struct::operator [](int i){
 uint16_t DBROOTS_struct::get(int i)const{
     return dbRoots[i];
 };
-void DBROOTS_struct::remove(uint16_t dbroot){
+void DBROOTS_struct::remove(uint16_t dbr){
     int n=-1,j=0;
     while (++n < MAX_DATA_REPLICATESIZE && dbRoots[n]!=0 ) {
-        if( dbRoots[n] == dbroot){
+        if( dbRoots[n] == dbr){
             for (j=n; j < MAX_DATA_REPLICATESIZE-1 ; j++){
                 if(!dbRoots[j+1])
                     break;
@@ -120,12 +120,18 @@ bool operator<=( const BRM::DBROOTS_struct& a, const BRM::DBROOTS_struct& b){
 };
 std::ostream & operator<<(std::ostream &os, const DBROOTS_struct & a){
     for (int n=0; n<MAX_DATA_REPLICATESIZE; n++){
+        if(n>0){
+            os<<".";
+        }
         os <<  a.dbRoots[n]  ;
     }
 	return os;
 };
 std::istream & operator>>(std::istream & is, DBROOTS_struct &a){
     for (int n=0; n<MAX_DATA_REPLICATESIZE; n++){
+        if(n>0){
+            is.ignore();
+        }
         is >>  a.dbRoots[n]  ;
     }
 	return is;

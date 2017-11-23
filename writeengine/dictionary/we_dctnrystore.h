@@ -93,7 +93,7 @@ public:
     * @param partition - partition number for store file
     * @param segment   - column segment number for store file
     */
-    EXPORT const int createDctnryStore(const OID& dctnryOID, const OID& treeOID, const OID& listOID, int colWidth, const uint16_t dbRoot,const uint32_t partition, const uint16_t segment );
+    EXPORT const int createDctnryStore(const OID& dctnryOID, const OID& treeOID, const OID& listOID, int colWidth, const uint16_t dbr,const uint32_t partition, const uint16_t segment );
 
    /**
     * @brief Delete a token from dictionary store, for maintanance use
@@ -121,7 +121,7 @@ public:
     * @param partition - partition number for store file
     * @param segment   - column segment number for store file
     */
-    EXPORT const int  openDctnryStore(const OID& dctnryOID, const OID& treeOID,const OID& listOID,const uint16_t dbRoot,const uint32_t partition,const uint16_t segment);
+    EXPORT const int  openDctnryStore(const OID& dctnryOID, const OID& treeOID,const OID& listOID,const uint16_t dbr,const uint32_t partition,const uint16_t segment);
 
    /**
     * @brief Update dictionary store with tokenized strings (for DDL/DML use)

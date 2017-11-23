@@ -667,9 +667,7 @@ void ConfirmHdfsDbFile::endColumnDbFile(
 // End the changes to the hwm dctnry store DB file described in the bulk
 // rollback meta data file record stored in inBuf.  Delete the temp file.
 //------------------------------------------------------------------------------
-void ConfirmHdfsDbFile::endDctnryStoreDbFile(
-    const char* inBuf,
-    bool success) const
+void ConfirmHdfsDbFile::endDctnryStoreDbFile( const char* inBuf,bool success) const
 {
     char      recType[100];
     OID       dColumnOID;
@@ -732,9 +730,9 @@ void ConfirmHdfsDbFile::endDctnryStoreDbFile(
 // and DBRoot.  The contents of the metadata file is returned in the meta-
 // DataStream argument.
 //------------------------------------------------------------------------------
-void ConfirmHdfsDbFile::openMetaDataFile(OID tableOID,uint16_t dbRoot,std::istringstream& metaDataStream)
+void ConfirmHdfsDbFile::openMetaDataFile(OID tableOID,uint16_t dbr,std::istringstream& metaDataStream)
 {
-    std::string bulkRollbackPath( Config::getDBRootByNum( dbRoot ) );
+    std::string bulkRollbackPath( Config::getDBRootByNum( dbr ) );
 
     // Construct file name and check for it's existence
     std::ostringstream ossFileName;
@@ -746,8 +744,7 @@ void ConfirmHdfsDbFile::openMetaDataFile(OID tableOID,uint16_t dbRoot,std::istri
     if ( !fFs.exists( fMetaFileName.c_str() ) )
     {
         std::ostringstream oss;
-        oss << "Bulk rollback meta-data file " <<
-            fMetaFileName << " does not exist.";
+        oss << "Bulk rollback meta-data file " <<fMetaFileName << " does not exist.";
 
         throw WeException( oss.str(), ERR_FILE_NOT_EXIST );
     }
@@ -755,10 +752,7 @@ void ConfirmHdfsDbFile::openMetaDataFile(OID tableOID,uint16_t dbRoot,std::istri
     // Open the file
     boost::scoped_ptr<ERYDBDataFile> metaFile;
     errno = 0;
-    metaFile.reset(erydbdatafile::ERYDBDataFile::open(
-        erydbdatafile::ERYDBPolicy::getType(fMetaFileName.c_str(),
-            erydbdatafile::ERYDBPolicy::WRITEENG),
-        fMetaFileName.c_str(), "rb", 0) );
+    metaFile.reset(erydbdatafile::ERYDBDataFile::open(erydbdatafile::ERYDBPolicy::getType(fMetaFileName.c_str(),erydbdatafile::ERYDBPolicy::WRITEENG),fMetaFileName.c_str(), "rb", 0) );
 
     if ( !metaFile )
     {
@@ -767,7 +761,6 @@ void ConfirmHdfsDbFile::openMetaDataFile(OID tableOID,uint16_t dbRoot,std::istri
         oss << "Error opening bulk rollback meta-data file " <<
             fMetaFileName << "; err-" <<
             errRc << "; " << strerror( errRc );
-
         throw WeException( oss.str(), ERR_FILE_OPEN );
     }
 
@@ -782,9 +775,7 @@ void ConfirmHdfsDbFile::openMetaDataFile(OID tableOID,uint16_t dbRoot,std::istri
     for (int i = 0; i < 10 && readSofar < metaFileSize; i++)
     {
          errno = 0;
-         bytes = metaFile->pread( p+readSofar,
-             readSofar,
-             metaFileSize-readSofar);
+         bytes = metaFile->pread( p+readSofar,readSofar,metaFileSize-readSofar);
          if (bytes < 0)
              break;
 
@@ -794,11 +785,7 @@ void ConfirmHdfsDbFile::openMetaDataFile(OID tableOID,uint16_t dbRoot,std::istri
     {
         int errRc = errno;
         std::ostringstream oss;
-        oss << "Error reading bulk rollback meta-data file "
-            << fMetaFileName << "; read/expect:" << readSofar << "/"
-            << metaFileSize
-            << "; err-" << errRc << "; " << strerror( errRc );
-
+        oss << "Error reading bulk rollback meta-data file "<< fMetaFileName << "; read/expect:" << readSofar << "/"<< metaFileSize<< "; err-" << errRc << "; " << strerror( errRc );
         throw WeException( oss.str(), ERR_FILE_READ );
     }
 
@@ -811,8 +798,7 @@ void ConfirmHdfsDbFile::openMetaDataFile(OID tableOID,uint16_t dbRoot,std::istri
     if (!RBMetaWriter::verifyVersion4(inBuf))
     {
         std::ostringstream oss;
-        oss << "Invalid version record in meta-data file " << fMetaFileName
-            << "; record-<" << inBuf << ">";
+        oss << "Invalid version record in meta-data file " << fMetaFileName<< "; record-<" << inBuf << ">";
 
         throw WeException( oss.str(), ERR_INVALID_PARAM );
     }

@@ -415,17 +415,17 @@ namespace BRM {
     //}
 
 
-    //int OIDServer::allocVBOID(uint16_t dbroot) {
+    //int OIDServer::allocVBOID(uint16_t dbr) {
     //    int ret;
     //    uint32_t offset;
     //    ret = vbOidDBRootMap.size();
     //    offset = HeaderSize + 2 + (vbOidDBRootMap.size() * sizeof(short));
-    //    vbOidDBRootMap.push_back(dbroot);
+    //    vbOidDBRootMap.push_back(dbr);
     //    try {
     //        uint16_t size = vbOidDBRootMap.size();
     //        boost::mutex::scoped_lock lk(fMutex);
     //        writeData((uint8_t *)&size, HeaderSize, sizeof(short));
-    //        writeData((uint8_t *)&dbroot, offset, sizeof(short));
+    //        writeData((uint8_t *)&dbr, offset, sizeof(short));
     //    } catch (...) {
     //        vbOidDBRootMap.pop_back();
     //        throw;

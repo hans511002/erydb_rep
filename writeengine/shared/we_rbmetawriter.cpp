@@ -160,14 +160,10 @@ void RBMetaWriter::init (
 // dbRootHWMInfoVecCol - vector of last local HWM info for each DBRoot
 //     (asssigned to current PM) for each column in tblOid.
 //------------------------------------------------------------------------------
-void RBMetaWriter::saveBulkRollbackMetaData(
-    const std::vector<Column>& columns,
-    const std::vector<OID>&    dctnryStoreOids,
-    const std::vector<BRM::EmDbRootHWMInfo_v>& dbRootHWMInfoVecCol )
+void RBMetaWriter::saveBulkRollbackMetaData(const std::vector<Column>& columns,const std::vector<OID>&    dctnryStoreOids,const std::vector<BRM::EmDbRootHWMInfo_v>& dbRootHWMInfoVecCol )
 {
     int rc = NO_ERROR;
     bool bOpenedFile = false;
-
     try
     {
         std::vector<uint16_t> dbRoots;
@@ -184,7 +180,7 @@ void RBMetaWriter::saveBulkRollbackMetaData(
                 unsigned k = 0;
                 for (; k<dbRootHWMInfo.size(); k++)
                 {
-                    if (dbRoots[m] == dbRootHWMInfo[k].dbRoot.get(0))
+                    if (dbRoots[m] == dbRootHWMInfo[k].dbRoot.dbRoots[0])
                         break;
                 }
                 if (k >= dbRootHWMInfo.size()) // logic error; should not happen
@@ -196,7 +192,7 @@ void RBMetaWriter::saveBulkRollbackMetaData(
                     throw WeException( oss.str(), ERR_INVALID_PARAM );
                 }
                     
-                uint16_t dbRoot    = dbRootHWMInfo[k].dbRoot.get(0);
+                DBROOTS_struct dbRoot    = dbRootHWMInfo[k].dbRoot;
                 uint32_t partition = 0;
                 uint16_t segment   = 0;
                 HWM       localHWM  = 0;
@@ -213,18 +209,7 @@ void RBMetaWriter::saveBulkRollbackMetaData(
                 }
 
                 // Save column meta-data info to support bulk rollback
-                writeColumnMetaData(
-                    metaFileName,
-                    bExtentWithData,
-                    columns[i].dataFile.oid,
-                    dbRoot,
-                    partition,
-                    segment,
-                    localHWM,
-                    columns[i].colDataType,
-                    ColDataTypeStr[ columns[i].colDataType ],
-                    columns[i].colWidth,
-                    columns[i].compressionType );
+                writeColumnMetaData(metaFileName,bExtentWithData,columns[i].dataFile.oid,dbRoot,partition,segment,localHWM,columns[i].colDataType,ColDataTypeStr[ columns[i].colDataType ],columns[i].colWidth,columns[i].compressionType );
 
                 // Save dctnry store meta-data info to support bulk rollback
                 if ( dctnryStoreOids[i] > 0 ) 
@@ -236,7 +221,7 @@ void RBMetaWriter::saveBulkRollbackMetaData(
                     {
                         std::string dirName;
                         FileOp fileOp(false);
-                        rc = fileOp.getDirName( dctnryStoreOids[i],dbRoot, partition, dirName );
+                        rc = fileOp.getDirName( dctnryStoreOids[i],dbRoot[0], partition, dirName );
                         if (rc != NO_ERROR)
                         {
                             WErrorCodes ec;
@@ -250,9 +235,7 @@ void RBMetaWriter::saveBulkRollbackMetaData(
                             throw WeException( oss.str(), rc );
                         }
 
-                        rc = BulkRollbackMgr::getSegFileList(dirName, false,
-                            segList,
-                            segFileListErrMsg);       
+                        rc = BulkRollbackMgr::getSegFileList(dirName, false,segList,segFileListErrMsg);       
                         if (rc != NO_ERROR)
                         {
                             WErrorCodes ec;
@@ -281,12 +264,7 @@ void RBMetaWriter::saveBulkRollbackMetaData(
                             // check HWM for dictionary store file
                             HWM dictHWMStore;
                             int extState;
-                            rc = BRMWrapper::getInstance()->getLocalHWM(
-                                dctnryStoreOids[i],
-                                partition,
-                                segDictionary,
-                                dictHWMStore,
-                                extState );
+                            rc = BRMWrapper::getInstance()->getLocalHWM(dctnryStoreOids[i],partition,segDictionary,dictHWMStore,extState );
                             if (rc != NO_ERROR)
                             {
                                 WErrorCodes ec;
@@ -298,7 +276,6 @@ void RBMetaWriter::saveBulkRollbackMetaData(
                                     "; " << ec.errorString(rc);
                                 throw WeException( oss.str(), rc );
                             }
-
                             writeDictionaryStoreMetaData(columns[i].dataFile.oid,dctnryStoreOids[i],dbRoot,partition,segDictionary,dictHWMStore,columns[i].compressionType );
 
                         } // loop thru dictionary store seg files in this DBRoot
@@ -307,9 +284,9 @@ void RBMetaWriter::saveBulkRollbackMetaData(
 
                 // For a compressed column, backup the starting HWM chunk if the
                 // starting HWM block is not on an empty DBRoot (or outOfSrvc)
-                if ( (columns[i].compressionType) && (columns[i].dataFile.fDbRoot.get(0) == dbRootHWMInfo[k].dbRoot.get(0)) && (dbRootHWMInfo[k].totalBlocks > 0) && (dbRootHWMInfo[k].status != BRM::EXTENTOUTOFSERVICE) )
+                if ( (columns[i].compressionType) && (columns[i].dataFile.fDbRoot.dbRoots[0] == dbRootHWMInfo[k].dbRoot.dbRoots[0]) && (dbRootHWMInfo[k].totalBlocks > 0) && (dbRootHWMInfo[k].status != BRM::EXTENTOUTOFSERVICE) )
                 {
-                    backupColumnHWMChunk(columns[i].dataFile.oid,columns[i].dataFile.fDbRoot.get(0),columns[i].dataFile.fPartition,columns[i].dataFile.fSegment,columns[i].dataFile.hwm );
+                    backupColumnHWMChunk(columns[i].dataFile.oid,columns[i].dataFile.fDbRoot,columns[i].dataFile.fPartition,columns[i].dataFile.fSegment,columns[i].dataFile.hwm );
                 }
 
             }         // End of loop through columns
@@ -371,9 +348,9 @@ void RBMetaWriter::saveBulkRollbackMetaData(
 //------------------------------------------------------------------------------
 // Open a meta data file to save info about the specified table OID.
 //------------------------------------------------------------------------------
-std::string RBMetaWriter::openMetaFile ( uint16_t dbRoot )
+std::string RBMetaWriter::openMetaFile ( uint16_t dbr )
 {
-    std::string bulkRollbackPath( Config::getDBRootByNum( dbRoot ) );
+    std::string bulkRollbackPath( Config::getDBRootByNum( dbr ) );
     bulkRollbackPath += '/';
     bulkRollbackPath += DBROOT_BULK_ROLLBACK_SUBDIR;
 
@@ -382,8 +359,7 @@ std::string RBMetaWriter::openMetaFile ( uint16_t dbRoot )
         if( ERYDBPolicy::mkdir( bulkRollbackPath.c_str() ) != 0 )
         {
             std::ostringstream oss;
-            oss << "Error creating bulk rollback directory " <<
-                bulkRollbackPath << ";" << std::endl;
+            oss << "Error creating bulk rollback directory " <<bulkRollbackPath << ";" << std::endl;
             throw WeException( oss.str(), ERR_DIR_CREATE );
         }
     }
@@ -393,13 +369,11 @@ std::string RBMetaWriter::openMetaFile ( uint16_t dbRoot )
     oss << "/" << fTableOID;
     std::string metaFileName( bulkRollbackPath );
     metaFileName += oss.str();
-    fMetaFileNames.insert( make_pair(dbRoot,metaFileName) );
+    fMetaFileNames.insert( make_pair(dbr,metaFileName) );
 
     std::string tmpMetaFileName( metaFileName );
     tmpMetaFileName += TMP_FILE_SUFFIX;
-    fMetaDataFile = ERYDBDataFile::open(ERYDBPolicy::getType(tmpMetaFileName.c_str(),
-                                          ERYDBPolicy::WRITEENG),
-                                      tmpMetaFileName.c_str(), "wb", 0);
+    fMetaDataFile = ERYDBDataFile::open(ERYDBPolicy::getType(tmpMetaFileName.c_str(),ERYDBPolicy::WRITEENG),tmpMetaFileName.c_str(), "wb", 0);
 
     if ( !fMetaDataFile )
     {
@@ -407,8 +381,7 @@ std::string RBMetaWriter::openMetaFile ( uint16_t dbRoot )
         std::ostringstream oss;
         std::string eMsg;
         Convertor::mapErrnoToString(errRc, eMsg);
-        oss << "Error opening bulk rollback file " <<
-            tmpMetaFileName << "; " << eMsg;
+        oss << "Error opening bulk rollback file " <<tmpMetaFileName << "; " << eMsg;
         throw WeException( oss.str(), ERR_FILE_OPEN );
     }
 
@@ -511,30 +484,15 @@ void RBMetaWriter::deleteFile ( )
 //------------------------------------------------------------------------------
 // New version of writeColumnMetaData for Shared-Nothing
 //------------------------------------------------------------------------------
-void RBMetaWriter::writeColumnMetaData (const std::string& metaFileName,bool withHWM, OID columnOID,uint16_t dbRoot,uint32_t partition,uint16_t segment,HWM lastLocalHwm,erydbSystemCatalog::ColDataType colType,const std::string& colTypeName,int colWidth,int compressionType )
+void RBMetaWriter::writeColumnMetaData (const std::string& metaFileName,bool withHWM, OID columnOID,DBROOTS_struct& dbRoot,uint32_t partition,uint16_t segment,HWM lastLocalHwm,erydbSystemCatalog::ColDataType colType,const std::string& colTypeName,int colWidth,int compressionType )
 {
     if (withHWM)
     {
-        fMetaDataStream  << "COLUM1: " <<
-            columnOID    << ' ' <<
-            dbRoot       << ' ' <<
-            partition    << ' ' <<
-            segment      << ' ' <<
-            lastLocalHwm << ' ' <<
-            colType      << ' ' <<
-            colTypeName  << ' ' <<
-            colWidth;
+        fMetaDataStream  << "COLUM1: " <<columnOID << ' ' <<dbRoot << ' ' <<partition << ' ' <<segment << ' ' <<lastLocalHwm << ' ' <<colType << ' ' <<colTypeName  << ' ' <<colWidth;
     }
     else
     {
-        fMetaDataStream  << "COLUM2: " <<
-            columnOID    << ' ' <<
-            dbRoot       << ' ' <<
-            partition    << ' ' <<
-            segment      << ' ' <<
-            colType      << ' ' <<
-            colTypeName  << ' ' <<
-            colWidth;
+        fMetaDataStream  << "COLUM2: " <<columnOID << ' ' <<dbRoot << ' ' <<partition    << ' ' <<segment      << ' ' <<colType      << ' ' <<colTypeName  << ' ' <<colWidth;
     }
     if (compressionType)
         fMetaDataStream << ' ' << compressionType << ' ';
@@ -556,22 +514,9 @@ void RBMetaWriter::writeColumnMetaData (const std::string& metaFileName,bool wit
 //------------------------------------------------------------------------------
 // New version of writeDictionaryStoreMetaData for Shared-Nothing.
 //------------------------------------------------------------------------------
-void RBMetaWriter::writeDictionaryStoreMetaData (
-    OID      columnOID,
-    OID      dictionaryStoreOID,
-    uint16_t dbRoot,
-    uint32_t partition,
-    uint16_t segment,
-    HWM      localHwm,
-    int      compressionType )
+void RBMetaWriter::writeDictionaryStoreMetaData (OID columnOID,OID dictionaryStoreOID,DBROOTS_struct& dbRoot,uint32_t partition,uint16_t segment,HWM localHwm,int compressionType )
 {
-    fMetaDataStream        << "DSTOR1: " <<
-        columnOID          << ' ' <<
-        dictionaryStoreOID << ' ' <<
-        dbRoot             << ' ' <<
-        partition          << ' ' <<
-        segment            << ' ' <<
-        localHwm;
+    fMetaDataStream << "DSTOR1: " <<columnOID << ' ' <<dictionaryStoreOID << ' ' <<dbRoot << ' ' <<partition << ' ' <<segment << ' ' <<localHwm;
     if (compressionType)
         fMetaDataStream << ' ' << compressionType << ' ';
     fMetaDataStream << std::endl;
@@ -579,10 +524,8 @@ void RBMetaWriter::writeDictionaryStoreMetaData (
     // Save dictionary meta data for later use in backing up the HWM chunks
     if (compressionType)
     {
-        RBChunkInfo chunkInfo(
-            dictionaryStoreOID, dbRoot, partition, segment, localHwm);
+        RBChunkInfo chunkInfo(dictionaryStoreOID, dbRoot, partition, segment, localHwm);
         fRBChunkDctnrySet.insert( chunkInfo );
-
         if ( (fLog) && (fLog->isDebug(DEBUG_1)) )
             printDctnryChunkList(chunkInfo, "after adding ");
     }
@@ -591,20 +534,9 @@ void RBMetaWriter::writeDictionaryStoreMetaData (
 //------------------------------------------------------------------------------
 // New version of writeDictionaryStoreMetaNoDataMarker for Shared-Nothing.
 //------------------------------------------------------------------------------
-void RBMetaWriter::writeDictionaryStoreMetaNoDataMarker (
-    OID      columnOID,
-    OID      dictionaryStoreOID,
-    uint16_t dbRoot,
-    uint32_t partition,
-    uint16_t segment,
-    int      compressionType )
+void RBMetaWriter::writeDictionaryStoreMetaNoDataMarker (OID columnOID,OID dictionaryStoreOID,DBROOTS_struct& dbRoot,uint32_t partition,uint16_t segment,int compressionType )
 {
-    fMetaDataStream        << "DSTOR2: " <<
-        columnOID          << ' ' <<
-        dictionaryStoreOID << ' ' <<
-        dbRoot             << ' ' <<
-        partition          << ' ' <<
-        segment;
+    fMetaDataStream << "DSTOR2: " << columnOID << ' ' <<dictionaryStoreOID << ' ' <<dbRoot << ' ' <<partition << ' ' <<segment;
     if (compressionType)
         fMetaDataStream << ' ' << compressionType << ' ';
     fMetaDataStream << std::endl;
@@ -651,7 +583,7 @@ void RBMetaWriter::deleteSubDir( const std::string& metaFileName )
 // so that the chunk is available for bulk rollback.
 // This operation is only performed for compressed columns.
 //------------------------------------------------------------------------------
-void RBMetaWriter::backupColumnHWMChunk(OID columnOID,uint16_t dbRoot,uint32_t partition,uint16_t segment,HWM startingHWM){
+void RBMetaWriter::backupColumnHWMChunk(OID columnOID,const DBROOTS_struct& dbRoot,uint32_t partition,uint16_t segment,HWM startingHWM){
     // @bug 5572 - Don't need db backup file for HDFS; we use hdfs buffer file
     if (!ERYDBPolicy::useHdfs())
     {
@@ -679,9 +611,9 @@ bool RBMetaWriter::backupDctnryHWMChunk(OID dctnryOID,DBROOTS_struct& dbRoot,uin
 
     if (fRBChunkDctnrySet.size() > 0)
     {
-        RBChunkInfo chunkInfo(
-            dctnryOID, 0, partition, segment, 0);
-        RBChunkInfo chunkInfoFound(0,0,0,0,0);
+        DBROOTS_struct dbr=0;
+        RBChunkInfo chunkInfo(dctnryOID,dbr, partition, segment, 0);
+        RBChunkInfo chunkInfoFound(0,dbr,0,0,0);
         bool bFound = false;
 
         { // Use scoped lock to perform "find"
@@ -706,7 +638,7 @@ bool RBMetaWriter::backupDctnryHWMChunk(OID dctnryOID,DBROOTS_struct& dbRoot,uin
                 bBackupApplies = true;
                 if (!ERYDBPolicy::useHdfs())
                 {
-                    backupHWMChunk(false, dctnryOID,dbRoot[0], partition, segment, chunkInfoFound.fHwm);
+                    backupHWMChunk(false, dctnryOID,dbRoot, partition, segment, chunkInfoFound.fHwm);
                 }
             }
             else
@@ -748,7 +680,7 @@ bool RBMetaWriter::backupDctnryHWMChunk(OID dctnryOID,DBROOTS_struct& dbRoot,uin
 void RBMetaWriter::backupHWMFile(
     bool      bColumnFile, // is this a column (vs dictionary) file
     OID       columnOID,   // OID of column or dictionary store
-    uint16_t  dbRoot,      // DB Root for db segment file
+    const DBROOTS_struct& dbRoot,      // DB Root for db segment file
     uint32_t  partition,   // partition for db segment file
     uint16_t  segment,     // segment for db segment file
     HWM       startingHWM) // starting HWM for db segment file
@@ -761,8 +693,7 @@ void RBMetaWriter::backupHWMFile(
 
     // Construct file name for db file to be backed up
     char dbFileName[FILE_NAME_SIZE];
-    int rc = fileOp.getFileName( columnOID, dbFileName,
-        dbRoot, partition, segment );
+    int rc = fileOp.getFileName( columnOID, dbFileName,dbRoot.dbRoots[0], partition, segment );
     if (rc != NO_ERROR)
     {
         std::ostringstream oss;
@@ -863,7 +794,7 @@ void RBMetaWriter::backupHWMFile(
 void RBMetaWriter::backupHWMChunk(
     bool      bColumnFile, // is this a column (vs dictionary) file
     OID       columnOID,   // OID of column or dictionary store
-    uint16_t  dbRoot,      // DB Root for db segment file
+    const DBROOTS_struct& dbRoot,      // DB Root for db segment file
     uint32_t  partition,   // partition for db segment file
     uint16_t  segment,     // segment for db segment file
     HWM       startingHWM) // starting HWM for db segment file
@@ -875,12 +806,7 @@ void RBMetaWriter::backupHWMChunk(
     // Open the applicable database column segment file
     std::string segFile;
     FileOp fileOp; // @bug 4960: to keep thread-safe, we use local FileOp
-    ERYDBDataFile* dbFile = fileOp.openFile( columnOID,
-        dbRoot,
-        partition,
-        segment,
-        segFile,
-        "rb" );
+    ERYDBDataFile* dbFile = fileOp.openFile( columnOID,dbRoot.dbRoots[0],partition,segment,segFile,"rb" );
     if ( !dbFile )
     {
         std::ostringstream oss;
@@ -1089,7 +1015,7 @@ void RBMetaWriter::backupHWMChunk(
 int RBMetaWriter::writeHWMChunk(
     bool                 bColumnFile, // is this a column (vs dictionary) file
     OID                  columnOID,   // OID of column or dictionary store
-    uint16_t             dbRoot,      // dbroot for db segment file
+    const DBROOTS_struct& dbRoot,      // dbroot for db segment file
     uint32_t             partition,   // partition for db segment file
     uint16_t             segment,     // segment for db segment file
     const unsigned char* compressedOutBuf, // compressed chunk to be written
@@ -1233,18 +1159,15 @@ int RBMetaWriter::writeHWMChunk(
 // This function MUST be kept thread-safe in support of backupDctnryHWMChunk().
 // See that function description for more details.
 //------------------------------------------------------------------------------
-int RBMetaWriter::getSubDirPath( uint16_t dbRoot,
-    std::string& bulkRollbackSubPath ) const
+int RBMetaWriter::getSubDirPath(const DBROOTS_struct& dbRoot,std::string& bulkRollbackSubPath ) const
 {
-    std::map<uint16_t,std::string>::const_iterator iter =
-        fMetaFileNames.find( dbRoot );
+    std::map<uint16_t,std::string>::const_iterator iter =fMetaFileNames.find( dbRoot.dbRoots[0] );
     if (iter == fMetaFileNames.end())
     {
         return ERR_INVALID_PARAM;
     }
     bulkRollbackSubPath  = iter->second;
     bulkRollbackSubPath += DATA_DIR_SUFFIX;
-
     return NO_ERROR;
 }
 
@@ -1253,9 +1176,7 @@ int RBMetaWriter::getSubDirPath( uint16_t dbRoot,
 // in order to backup to disk as needed, before we start adding rows to a
 // previously existing chunk.
 //------------------------------------------------------------------------------
-void RBMetaWriter::printDctnryChunkList(
-    const RBChunkInfo& rbChk, 
-    const char* assocAction)
+void RBMetaWriter::printDctnryChunkList(const RBChunkInfo& rbChk, const char* assocAction)
 {
     if (fLog)
     {

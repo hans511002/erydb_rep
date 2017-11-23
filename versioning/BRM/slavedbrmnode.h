@@ -317,7 +317,7 @@ class SlaveDBRMNode {
 		 *
 		 * @param dbroot (in) the dbroot
 		 */
-		EXPORT int deleteDBRoot(uint16_t dbroot) throw();
+		EXPORT int deleteDBRoot(uint16_t dbr) throw();
 
 		/** @brief Registers a version buffer entry.
 		 *
@@ -327,8 +327,7 @@ class SlaveDBRMNode {
 		 * first.
 		 * @return 0 on success, -1 on error
 		 */
-		EXPORT int writeVBEntry(VER_t transID, LBID_t lbid, OID_t vbOID, 
-						 uint32_t vbFBO) throw();
+		EXPORT int writeVBEntry(VER_t transID, LBID_t lbid, OID_t vbOID, uint32_t vbFBO) throw();
 		
 		/** @brief Atomically prepare to copy data to the version buffer
 		 * 

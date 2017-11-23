@@ -62,17 +62,9 @@ ColumnOpBulk::~ColumnOpBulk()
 // Open specified column file
 //------------------------------------------------------------------------------
 // @bug 5572 - HDFS usage: add *.tmp file backup flag
-ERYDBDataFile* ColumnOpBulk::openFile(const WriteEngine::Column& column,
-    uint16_t     dbRoot,
-    uint32_t     partition,
-    uint16_t     segment,
-    std::string& segFile,
-    bool         useTmpSuffix,
-    const char*  mode,
-    int          ioBuffSize) const
+ERYDBDataFile* ColumnOpBulk::openFile(const WriteEngine::Column& column,uint16_t dbr,uint32_t partition,uint16_t segment,std::string& segFile,bool useTmpSuffix,const char*  mode,int ioBuffSize) const
 {
-    return FileOp::openFile(column.dataFile.fid, dbRoot, partition, segment,
-        segFile, mode, column.colWidth, useTmpSuffix);
+    return FileOp::openFile(column.dataFile.fid, dbr, partition, segment,segFile, mode, column.colWidth, useTmpSuffix);
 }
 
 //------------------------------------------------------------------------------

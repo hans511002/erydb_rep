@@ -261,7 +261,7 @@ namespace BRM {
         }
     }
 
-    int DBRM::lookupLocal_DBroot(OID_t oid, DBROOTS_struct& dbroot, uint32_t partitionNum, uint16_t segmentNum, uint32_t fileBlockOffset, LBID_t& lbid) throw() {
+    int DBRM::lookupLocal_DBroot(OID_t oid, DBROOTS_struct& dbRoot, uint32_t partitionNum, uint16_t segmentNum, uint32_t fileBlockOffset, LBID_t& lbid) throw() {
 #ifdef BRM_INFO
         if (fDebug) {
             TRACER_WRITELATER("lookupLocal(oid,fbo,..)");
@@ -274,7 +274,7 @@ namespace BRM {
         }
 #endif
         try {
-            return em->lookupLocal_DBroot(oid, dbroot, partitionNum, segmentNum, fileBlockOffset, lbid);
+            return em->lookupLocal_DBroot(oid, dbRoot, partitionNum, segmentNum, fileBlockOffset, lbid);
         } catch (exception& e) {
             cerr << e.what() << endl;
             return -1;
@@ -1404,7 +1404,7 @@ namespace BRM {
         return 0;
     }
 
-    int DBRM::getExtents_dbroot(int OID, std::vector<struct EMEntry>& entries,const uint16_t dbroot) throw() {
+    int DBRM::getExtents_dbroot(int OID, std::vector<struct EMEntry>& entries,const uint16_t dbr) throw() {
 #ifdef BRM_INFO
         if (fDebug) {
             TRACER_WRITELATER("getExtents_dbroot");
@@ -1413,7 +1413,7 @@ namespace BRM {
         }
 #endif
         try {
-            em->getExtents_dbroot(OID, entries, dbroot);
+            em->getExtents_dbroot(OID, entries, dbr);
         } catch (exception& e) {
             cerr << e.what() << endl;
             return -1;
@@ -1425,7 +1425,7 @@ namespace BRM {
     // Return the number of extents for the specified OID and DBRoot.
     // Any out-of-service extents can optionally be included or excluded.
     //------------------------------------------------------------------------------
-    int DBRM::getExtentCount_dbroot(int OID, uint16_t dbroot, bool incOutOfService, uint64_t& numExtents) throw() {
+    int DBRM::getExtentCount_dbroot(int OID, uint16_t dbr, bool incOutOfService, uint64_t& numExtents) throw() {
 #ifdef BRM_INFO
         if (fDebug) {
             TRACER_WRITELATER("getExtentCount_dbroot");
@@ -1435,7 +1435,7 @@ namespace BRM {
 #endif
 
         try {
-            em->getExtentCount_dbroot(OID, dbroot, incOutOfService, numExtents);
+            em->getExtentCount_dbroot(OID, dbr, incOutOfService, numExtents);
         } catch (exception& e) {
             cerr << e.what() << endl;
             return -1;
@@ -1664,21 +1664,22 @@ namespace BRM {
     //------------------------------------------------------------------------------
     // Delete all extents for the specified DBRoot
     //------------------------------------------------------------------------------
-    int DBRM::deleteDBRoot(uint16_t dbroot) DBRM_THROW {
+    int DBRM::deleteDBRoot(uint16_t dbr) DBRM_THROW {
 #ifdef BRM_INFO
         if (fDebug) {
             TRACER_WRITENOW("deleteDBRoot");
             std::ostringstream oss;
-            oss << "DBRoot: " << dbroot;
+            oss << "DBRoot: " << dbr;
             TRACER_WRITEDIRECT(oss.str());
         }
 #endif
-
+        DBROOTS_struct dbRoot;
+        dbRoot[0]=dbr;
         ByteStream command, response;
         uint8_t err;
         command << DELETE_DBROOT;
-        uint32_t q = static_cast<uint32_t>(dbroot);
-        command << q;
+        //uint32_t q = static_cast<uint32_t>(dbr);
+        command << dbRoot;
         err = send_recv(command, response);
         if (err != ERR_OK)
             return err;
@@ -1695,18 +1696,18 @@ namespace BRM {
     // Does the specified DBRoot have any extents.
     // Returns an error if extentmap shared memory is not loaded.
     //------------------------------------------------------------------------------
-    int DBRM::isDBRootEmpty(uint16_t dbroot, bool& isEmpty, std::string& errMsg) throw() {
+    int DBRM::isDBRootEmpty(uint16_t dbr, bool& isEmpty, std::string& errMsg) throw() {
 #ifdef BRM_INFO
         if (fDebug) {
             TRACER_WRITELATER("isDBRootEmpty");
-            TRACER_ADDINPUT(dbroot);
+            TRACER_ADDINPUT(dbr);
             TRACER_WRITE;
         }
 #endif
 
         errMsg.clear();
         try {
-            isEmpty = em->isDBRootEmpty(dbroot);
+            isEmpty = em->isDBRootEmpty(dbr);
         } catch (exception& e) {
             cerr << e.what() << endl;
             errMsg = e.what();
@@ -3076,12 +3077,12 @@ namespace BRM {
         }
     }
 
-//    int DBRM::allocVBOID(uint32_t dbroot) {
+//    int DBRM::allocVBOID(uint32_t dbr) {
 //        ByteStream command, response;
 //        uint8_t err;
 //        uint32_t ret;
 //
-//        command << ALLOC_VBOID << (uint32_t)dbroot;
+//        command << ALLOC_VBOID << (uint32_t)dbr;
 //        err = send_recv(command, response);
 //        if (err != ERR_OK) {
 //            cerr << "DBRM: OIDManager::allocVBOID(): network error" << endl;

@@ -693,7 +693,7 @@ void partitionByValue_common(UDF_ARGS* args,								// input
 			for (iter = entries.begin(); iter != entries.end(); ++iter)
 			{
 				PartitionInfo partInfo;
-				logicalPartNum.dbroot = (*iter).dbRoots[0];
+				logicalPartNum.dbRoot = (*iter).dbRoots;
 				logicalPartNum.pp = (*iter).partitionNum;
 				logicalPartNum.seg = (*iter).segmentNum;
 				if (iter->status == EXTENTOUTOFSERVICE)
@@ -959,7 +959,7 @@ const char* calshowpartitions(UDF_INIT* initid, UDF_ARGS* args,
 			for (;iter != end; ++iter)
 			{
 				PartitionInfo partInfo;
-				logicalPartNum.dbroot = (*iter).dbRoots[0];
+				logicalPartNum.dbRoot = (*iter).dbRoots;
 				logicalPartNum.pp = (*iter).partitionNum;
 				logicalPartNum.seg = (*iter).segmentNum;
 
@@ -1715,7 +1715,7 @@ const char* calshowpartitionsbyvalue(UDF_INIT* initid, UDF_ARGS* args,
 			for (;iter != end; ++iter)
 			{
 				PartitionInfo partInfo;
-				logicalPartNum.dbroot = (*iter).dbRoots[0];
+				logicalPartNum.dbRoot = (*iter).dbRoots;
 				logicalPartNum.pp = (*iter).partitionNum;
 				logicalPartNum.seg = (*iter).segmentNum;
 				if (iter->status == EXTENTOUTOFSERVICE)

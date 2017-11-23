@@ -1415,22 +1415,19 @@ namespace BRM {
     void SlaveComm::do_deleteDBRoot(ByteStream &msg) {
         int        err;
         ByteStream reply;
-        uint32_t   q;
-        uint16_t   dbroot;
+        //uint32_t   q;
+        DBROOTS_struct   dbRoot;
 
 #ifdef BRM_VERBOSE
         cerr << "WorkerComm: do_deleteDBroot()" << endl;
 #endif
-
-        msg >> q;
-        dbroot = static_cast<uint16_t>(q);
-
+        msg >> dbRoot;
+        //dbroot = static_cast<uint16_t>(q);
         if (printOnly) {
-            cout << "deleteDBRoot: " << dbroot << endl;
+            cout << "deleteDBRoot: " << dbRoot << endl;
             return;
         }
-
-        err = slave->deleteDBRoot(dbroot);
+        err = slave->deleteDBRoot(dbRoot[0]);
         reply << (uint8_t)err;
 
 #ifdef BRM_VERBOSE

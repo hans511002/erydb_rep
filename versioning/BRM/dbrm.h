@@ -501,7 +501,7 @@ public:
 	 * @param dbroot (in) dbroot
 	 * @return 0 on success, non-0 on error (see brmtypes.h)
 	 */
-	EXPORT int getExtents_dbroot(int OID, std::vector<struct EMEntry>& entries,const uint16_t dbroot) throw();
+	EXPORT int getExtents_dbroot(int OID, std::vector<struct EMEntry>& entries,const uint16_t dbr) throw();
 
 	/** @brief Gets the number of extents for the specified OID and DBRoot
 	 *
@@ -511,7 +511,7 @@ public:
 	 * @param numExtents (out) number of extents found for OID and dbroot
 	 * @return 0 on success, non-0 on error (see brmtypes.h)
 	 */
-	EXPORT int getExtentCount_dbroot(int OID, uint16_t dbroot, bool incOutOfService, uint64_t& numExtents) throw();
+	EXPORT int getExtentCount_dbroot(int OID, uint16_t dbr, bool incOutOfService, uint64_t& numExtents) throw();
 
 	/** @brief Gets the number of rows in an extent
 	 * 
@@ -554,16 +554,14 @@ public:
 	 * @param OID (in) the OID of interest.
 	 * @param partitionNums (in) the set of partitions to be marked out of service.
 	 */
-	EXPORT int markPartitionForDeletion(const std::vector<OID_t>& oids,
-						const std::set<LogicalPartition>& partitionNums, std::string& emsg) DBRM_THROW;
+	EXPORT int markPartitionForDeletion(const std::vector<OID_t>& oids,const std::set<LogicalPartition>& partitionNums, std::string& emsg) DBRM_THROW;
 						
 	/** @brief Restore a Partition for the specified OID(s).
 	 *
 	 * @param OID (in) the OID of interest.
 	 * @param partitionNums (in) the set of partitions to be restored.
 	 */
-	EXPORT int restorePartition(const std::vector<OID_t>& oids,
-						const std::set<LogicalPartition>& partitionNums, std::string& emsg) DBRM_THROW;
+	EXPORT int restorePartition(const std::vector<OID_t>& oids,const std::set<LogicalPartition>& partitionNums, std::string& emsg) DBRM_THROW;
 
 	/** @brief Get the list of out-of-service partitions for a given OID
 	 *
@@ -571,14 +569,13 @@ public:
 	 * @param partitionNums (out) the out-of-service partitions for the oid.
 	 * partitionNums will be in sorted order.
 	 */
-	EXPORT int getOutOfServicePartitions(OID_t oid,
-						std::set<LogicalPartition>& partitionNums) throw();
+	EXPORT int getOutOfServicePartitions(OID_t oid,std::set<LogicalPartition>& partitionNums) throw();
 
 	/** @brief Delete all rows in the extent map that reside on the given DBRoot
 	 *
 	 * @param dbroot (in) the dbroot to be deleted
 	 */
-	EXPORT int deleteDBRoot(uint16_t dbroot) DBRM_THROW;
+	EXPORT int deleteDBRoot(uint16_t dbr) DBRM_THROW;
 
 	/** @brief Is the specified DBRoot empty with no extents.
 	 * Returns error if extentmap shared memory is not loaded.
@@ -588,7 +585,7 @@ public:
 	 * @param errMsg  (output) Error message corresponding to bad return code
 	 * @return ERR_OK on success
 	 */
-	EXPORT int isDBRootEmpty(uint16_t dbroot, bool& isEmpty, std::string& errMsg) throw();
+	EXPORT int isDBRootEmpty(uint16_t dbr, bool& isEmpty, std::string& errMsg) throw();
 
 	/** @brief Registers a version buffer entry.
 	 *
@@ -598,8 +595,7 @@ public:
 	 * first.
 	 * @return 0 on success, non-0 on error (see brmtypes.h)
 	 */
-	EXPORT int writeVBEntry(VER_t transID, LBID_t lbid, OID_t vbOID, 
-					 uint32_t vbFBO) DBRM_THROW;
+	EXPORT int writeVBEntry(VER_t transID, LBID_t lbid, OID_t vbOID, uint32_t vbFBO) DBRM_THROW;
 	
 	/** @brief Retrieves a list of uncommitted LBIDs.
 	 * 
@@ -964,7 +960,7 @@ public:
 	EXPORT int allocOIDs(int num);
 	EXPORT void returnOIDs(int start, int end);
 	EXPORT int oidm_size();
-	//EXPORT int allocVBOID(uint32_t dbroot);
+	//EXPORT int allocVBOID(uint32_t dbr);
 	EXPORT int getDBRootOfVBOID(uint32_t vbOID);
 	EXPORT std::vector<uint16_t> getVBOIDToDBRootMap();
 

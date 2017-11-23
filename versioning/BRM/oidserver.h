@@ -77,7 +77,7 @@ public:
 	 * an array of uint16s.  Version buffer OIDs use 0-999, so the 0th offset in the
 	 * array is the dbroot of the OID 0, and so on.
 	 */
-//	EXPORT int allocVBOID(uint16_t dbroot);
+//	EXPORT int allocVBOID(uint16_t dbr);
 
 	/** @brief Returns the DBRoot of the given version buffer file.
 	 *

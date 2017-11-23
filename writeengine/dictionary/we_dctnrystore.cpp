@@ -49,10 +49,10 @@ DctnryStore::~DctnryStore()
 /***********************************************************
  * Open a dictionary store file
  ***********************************************************/ 
-const int DctnryStore::openDctnryStore(const OID& dctnryOID, const OID& treeOID, const OID& listOID,const uint16_t dbRoot,const uint32_t partition,const uint16_t segment)
+const int DctnryStore::openDctnryStore(const OID& dctnryOID, const OID& treeOID, const OID& listOID,const uint16_t dbr,const uint32_t partition,const uint16_t segment)
 {
     int rc2;
-    rc2 = m_dctnry.openDctnry(dctnryOID, dbRoot, partition, segment);
+    rc2 = m_dctnry.openDctnry(dctnryOID, dbr, partition, segment);
     setUseHashMap(true);
     return rc2;
 }
@@ -60,10 +60,10 @@ const int DctnryStore::openDctnryStore(const OID& dctnryOID, const OID& treeOID,
 /***********************************************************
  * Create a dictionary store file
  ***********************************************************/    
-const int  DctnryStore::createDctnryStore( const OID& dctnryOID,const OID& treeOID, const OID& listOID, int colWidth, const uint16_t dbRoot,const uint32_t partition, const uint16_t segment )
+const int  DctnryStore::createDctnryStore( const OID& dctnryOID,const OID& treeOID, const OID& listOID, int colWidth, const uint16_t dbr,const uint32_t partition, const uint16_t segment )
 { 
     int rc2 ; 
-    rc2 = m_dctnry.createDctnry(dctnryOID, colWidth, dbRoot, partition, segment);
+    rc2 = m_dctnry.createDctnry(dctnryOID, colWidth, dbr, partition, segment);
     return rc2;
 }
 

@@ -151,19 +151,14 @@ private:
     // segment files in the last partition.
     struct RollbackData
     {
-        uint32_t    fDbRoot;
+        DBROOTS_struct fDbRoot;
         uint32_t    fPartNum;
         uint32_t    fSegNum;
         HWM          fHwm;
         bool         fWithHwm;
     };
 
-    void createFileDeletionEntry( OID     columnOID,
-                                bool      fileTypeFlag,
-                                uint32_t dbRoot,
-                                uint32_t partNum,
-                                uint32_t segNum,
-                                const std::string& segFileName );
+    void createFileDeletionEntry( OID columnOID,bool fileTypeFlag,DBROOTS_struct& dbRoot,uint32_t partNum,uint32_t segNum,const std::string& segFileName );
     void deleteColumn1Extents ( const char* inBuf ); // delete col extents
     void deleteColumn1ExtentsV3(const char* inBuf );
     void deleteColumn1ExtentsV4(const char* inBuf );
@@ -185,7 +180,7 @@ private:
     int  metaDataFileExists   ( bool& exists ); // does meta-data file exists
     BulkRollbackFile* makeFileRestorer(int compressionType);
        //  open a metadata file
-    bool openMetaDataFile( uint16_t dbRoot,std::istringstream& metaDataStream );
+    bool openMetaDataFile( uint16_t dbr,std::istringstream& metaDataStream );
     void validateAllMetaFilesExist(const std::vector<uint16_t>& dbRoots) const;
 
     // Data members
@@ -203,7 +198,7 @@ private:
     // Dictionary store extents for an OID are read in and managed as a
     // group.  The following data members are used to collect this info.
     OID           fPendingDctnryStoreOID;// Dctnry OID of pending dctnry extents
-    uint32_t     fPendingDctnryStoreDbRoot; // DbRoot of pending dctnry extents
+    DBROOTS_struct fPendingDctnryStoreDbRoot; // DbRoot of pending dctnry extents
     int           fPendingDctnryStoreCompressionType; // Dctnry compression type
     std::vector<RollbackData> fPendingDctnryExtents;
     std::set<OID> fAllColDctOIDs;   // List of all affected col and dctnry OIDS
