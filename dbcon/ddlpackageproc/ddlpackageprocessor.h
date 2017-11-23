@@ -287,7 +287,7 @@ public:
      */
     EXPORT void removeFiles(const uint64_t uniqueId, std::vector<execplan::erydbSystemCatalog::OID>& oidList);
 	
-	EXPORT void createFiles(execplan::erydbSystemCatalog::TableName aTableName, const int useDBRoot, const uint64_t uniqueId, const uint32_t numOids);
+	EXPORT void createFiles(execplan::erydbSystemCatalog::TableName aTableName, const DBROOTS_struct& dbRoot, const uint64_t uniqueId, const uint32_t numOids);
 	
 	/**  @brief remove the physical files for the specified partition
      *
@@ -634,7 +634,7 @@ protected:
      * @param txnID the transaction id
      * @param result the result of the operation
      */
-    void createDictionaryFiles(execplan::erydbSystemCatalog::SCN txnID, const DDLResult& result, const int useDBRoot);
+    void createDictionaryFiles(execplan::erydbSystemCatalog::SCN txnID, const DDLResult& result, const DBROOTS_struct& dbRoot);
 
     /** @brief create the physical column files
      *
@@ -642,8 +642,7 @@ protected:
      * @param result the result of the operation
      * @param tableDefCols the table column definition list
      */
-    void createColumnFiles(execplan::erydbSystemCatalog::SCN txnID, const DDLResult& result,
-                           ddlpackage::ColumnDefList& tableDefCols, const int useDBRoot, const uint32_t partitionNum=0);
+    void createColumnFiles(execplan::erydbSystemCatalog::SCN txnID, const DDLResult& result,ddlpackage::ColumnDefList& tableDefCols, const DBROOTS_struct& dbRoot, const uint32_t partitionNum=0);
 
     /**  @brief update the SYSCOLUMN table
      *

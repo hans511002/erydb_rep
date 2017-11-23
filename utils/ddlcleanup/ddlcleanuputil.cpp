@@ -187,20 +187,19 @@ int ddl_cleanup()
 					rc = cacheutils::flushOIDsFromCache(aLogInfo.oids);	
 					ddlpackageprocessor.removeExtents( aLogInfo.oids );
 					//create a new sets of files. Just find a dbroot according th the number of tables in syscat-1.
-					boost::shared_ptr<erydbSystemCatalog> systemCatalogPtr =
-						erydbSystemCatalog::makeerydbSystemCatalog(1);
+					boost::shared_ptr<erydbSystemCatalog> systemCatalogPtr =erydbSystemCatalog::makeerydbSystemCatalog(1);
 					int tableCount = systemCatalogPtr->getTableCount();
 					int dbRootCnt = 1;
-					int useDBRoot = 1;
+					DBROOTS_struct dbRoot = 1;
 					string DBRootCount = config::Config::makeConfig()->getConfig("SystemConfig", "DBRootCount");
 					if (DBRootCount.length() != 0)
 						dbRootCnt = static_cast<int>(config::Config::fromText(DBRootCount));
 
-					useDBRoot =  ((tableCount-1) % dbRootCnt) + 1;
+					dbRoot[0] =  ((tableCount-1) % dbRootCnt) + 1;
 					
 					//Create all column and dictionary files
 					erydbSystemCatalog::TableName aTableName = systemCatalogPtr->tableName(it->first);
-					ddlpackageprocessor.createFiles(aTableName,useDBRoot,uniqueId, static_cast<uint32_t>(aLogInfo.oids.size()));				
+					ddlpackageprocessor.createFiles(aTableName,dbRoot,uniqueId, static_cast<uint32_t>(aLogInfo.oids.size()));				
 					ddlpackageprocessor.deleteLogFile(DDLPackageProcessor::TRUNCATE_LOG, it->first, uniqueId);
 					ostringstream oss;
 					oss << "DDLProc has cleaned up truncate table left over for table " << it->first << " and the table lock is released.";

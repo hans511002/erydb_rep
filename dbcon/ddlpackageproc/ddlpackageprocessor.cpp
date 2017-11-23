@@ -826,8 +826,7 @@ void DDLPackageProcessor::removeFiles(const uint64_t uniqueId, std::vector<execp
 	}
 }
 
-void DDLPackageProcessor::createFiles(erydbSystemCatalog::TableName aTableName, const int useDBRoot, 
-	const uint64_t uniqueId, const uint32_t numOids)
+void DDLPackageProcessor::createFiles(erydbSystemCatalog::TableName aTableName, const DBROOTS_struct& dbRoot,const uint64_t uniqueId, const uint32_t numOids)
 {
 	SUMMARY_INFO("DDLPackageProcessor::createFiles");
 	boost::shared_ptr<erydbSystemCatalog> systemCatalogPtr = erydbSystemCatalog::makeerydbSystemCatalog(1);
@@ -847,7 +846,7 @@ void DDLPackageProcessor::createFiles(erydbSystemCatalog::TableName aTableName, 
 		bytestream << (uint8_t) colType.colDataType;
 		bytestream << (uint8_t) false;
 		bytestream << (uint32_t) colType.colWidth;
-		bytestream << (uint16_t) useDBRoot;
+		bytestream << dbRoot;
 		bytestream << (uint32_t) colType.compressionType;
 		if (colType.ddn.dictOID >= USER_OBJECT_ID)
 		{
@@ -855,7 +854,7 @@ void DDLPackageProcessor::createFiles(erydbSystemCatalog::TableName aTableName, 
 			bytestream << (uint8_t) colType.colDataType;
 			bytestream << (uint8_t) true;
 			bytestream << (uint32_t) colType.colWidth;
-			bytestream << (uint16_t) useDBRoot;
+			bytestream << dbRoot;
 			bytestream << (uint32_t) colType.compressionType;
 		}
 	}
@@ -865,7 +864,7 @@ void DDLPackageProcessor::createFiles(erydbSystemCatalog::TableName aTableName, 
 	try {
 		OamCache * oamcache = OamCache::makeOamCache();
 		boost::shared_ptr<std::map<int, int> > dbRootPMMap = oamcache->getDBRootToPMMap();
-		int pmNum = (*dbRootPMMap)[useDBRoot];
+		int pmNum = (*dbRootPMMap)[dbRoot.dbRoots[0]];
 			
 		fWEClient->write(bytestream, (uint32_t)pmNum);
 		bsIn.reset(new ByteStream());

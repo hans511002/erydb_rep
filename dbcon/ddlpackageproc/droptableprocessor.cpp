@@ -1052,7 +1052,7 @@ TruncTableProcessor::DDLResult TruncTableProcessor::processPackage(ddlpackage::T
 	
 		uint16_t useDBRootIndex = tableCount % dbRootList.size();
 		//Find out the dbroot# corresponding the useDBRootIndex from oam
-		uint16_t useDBRoot = dbRootList[useDBRootIndex];
+		DBROOTS_struct dbRoot= dbRootList[useDBRootIndex];
 		
 		bytestream.restart();
 		bytestream << (ByteStream::byte) WE_SVR_WRITE_CREATETABLEFILES;
@@ -1071,7 +1071,7 @@ TruncTableProcessor::DDLResult TruncTableProcessor::processPackage(ddlpackage::T
 			bytestream << (uint8_t) colType.colDataType;
 			bytestream << (uint8_t) false;
 			bytestream << (uint32_t) colType.colWidth;
-			bytestream << (uint16_t) useDBRoot;
+			bytestream << dbRoot;
 			bytestream << (uint32_t) colType.compressionType;			
 		}
 		
@@ -1082,12 +1082,12 @@ TruncTableProcessor::DDLResult TruncTableProcessor::processPackage(ddlpackage::T
 			bytestream << (uint8_t) colType.colDataType;
 			bytestream << (uint8_t) true;
 			bytestream << (uint32_t) colType.colWidth;
-			bytestream << (uint16_t) useDBRoot;
+			bytestream << dbRoot;
 			bytestream << (uint32_t) colType.compressionType;
 		}
 		
 		boost::shared_ptr<std::map<int, int> > dbRootPMMap = oamcache->getDBRootToPMMap();
-		pmNum = (*dbRootPMMap)[useDBRoot];
+		pmNum = (*dbRootPMMap)[dbRoot[0]];
 		try
 		{
 #ifdef ERYDB_DDL_DEBUG
