@@ -483,7 +483,7 @@ cout << fTxnid.id << " Create table WE_SVR_WRITE_CREATE_SYSCOLUMN: " << errorMsg
 		
 		uint16_t useDBRootIndex = tableCount % dbRootList.size();
 		//Find out the dbroot# corresponding the useDBRootIndex from oam
-		uint16_t useDBRoot = dbRootList[useDBRootIndex];
+		dbRoots = dbRootList[useDBRootIndex];
 		
 		VERBOSE_INFO("Creating column files");
 		ColumnDef* colDefPtr;
@@ -531,7 +531,7 @@ cout << fTxnid.id << " Create table WE_SVR_WRITE_CREATE_SYSCOLUMN: " << errorMsg
 			bytestream << (uint8_t) false;
 
 			bytestream << (uint32_t) colDefPtr->fType->fLength;
-			bytestream << (uint16_t) useDBRoot;
+			bytestream << dbRoots;
 			bytestream << (uint32_t) colDefPtr->fType->fCompressiontype;
 			if ( (dataType == erydbSystemCatalog::CHAR && colDefPtr->fType->fLength > 8) ||
 				 (dataType == erydbSystemCatalog::VARCHAR && colDefPtr->fType->fLength > 7) ||
@@ -541,7 +541,7 @@ cout << fTxnid.id << " Create table WE_SVR_WRITE_CREATE_SYSCOLUMN: " << errorMsg
 				bytestream << (uint8_t) dataType;
 				bytestream << (uint8_t) true;
 				bytestream << (uint32_t) colDefPtr->fType->fLength;
-				bytestream << (uint16_t) useDBRoot;
+				bytestream <<  dbRoots;
 				bytestream << (uint32_t) colDefPtr->fType->fCompressiontype;
 			}
 			++iter;
@@ -579,7 +579,7 @@ cout << fTxnid.id << " Create table WE_SVR_WRITE_CREATE_SYSCOLUMN: " << errorMsg
 			return result;
 		}
 		
-		pmNum = (*dbRootPMMap)[useDBRoot];
+		pmNum = (*dbRootPMMap)[dbRoots[0]];
 		try
 		{
 #ifdef ERYDB_DDL_DEBUG
