@@ -32,10 +32,111 @@
 
 namespace BRM
 {
+    /////////////////DBROOTS_struct///////////////////////////////
+DBROOTS_struct::DBROOTS_struct()
+{
+    memset(dbRoots,0,sizeof(BRM::DBROOTS_struct));
+    //for (int n=0; n < MAX_DATA_REPLICATESIZE ; n++)
+    //{
+    //    dbRoots[n]       = 0;
+    //}
+};
+DBROOTS_struct::DBROOTS_struct(const DBROOTS_struct& e)
+{
+    memcpy(&dbRoots,&e.dbRoots,sizeof(DBROOTS_struct));
+};
+DBROOTS_struct& DBROOTS_struct::operator= (const DBROOTS_struct&e)
+{
+    memcpy(&dbRoots,&e.dbRoots,sizeof(DBROOTS_struct));
+	return *this;
+};
+
+
+DBROOTS_struct& DBROOTS_struct::set(const DBROOTS_struct& e) {
+    memcpy(&dbRoots, &e.dbRoots, sizeof(DBROOTS_struct));
+    return *this;
+};
+uint16_t & DBROOTS_struct::operator [](int i){
+    return dbRoots[i];
+};
+uint16_t DBROOTS_struct::get(int i)const{
+    return dbRoots[i];
+};
+void DBROOTS_struct::remove(uint16_t dbroot){
+    int n=-1,j=0;
+    while (++n < MAX_DATA_REPLICATESIZE && dbRoots[n]!=0 ) {
+        if( dbRoots[n] == dbroot){
+            for (j=n; j < MAX_DATA_REPLICATESIZE-1 ; j++){
+                if(!dbRoots[j+1])
+                    break;
+                dbRoots[j]=dbRoots[j+1];
+            }
+            dbRoots[j]=0;
+            break;
+        }
+    }
+};
+
+void DBROOTS_struct::serialize(messageqcpp::ByteStream &bs) const{
+    for (int n=0; n<MAX_DATA_REPLICATESIZE; n++){
+        bs<<dbRoots[n];
+    }
+};
+
+void DBROOTS_struct::deserialize(messageqcpp::ByteStream &bs) {
+    for (int n=0; n<MAX_DATA_REPLICATESIZE; n++){
+        bs>>dbRoots[n];
+    }
+};
+bool operator==( const BRM::DBROOTS_struct &a , const BRM::DBROOTS_struct &b){
+    for (int n=0; n<MAX_DATA_REPLICATESIZE; n++)
+    {
+        if(a.dbRoots[n] != b.dbRoots[n]){
+            return false;
+        }
+    }
+    return true;
+};
+bool operator!=( const BRM::DBROOTS_struct &a , const BRM::DBROOTS_struct &b){
+    for (int n=0; n<MAX_DATA_REPLICATESIZE; n++)
+    {
+        if(a.dbRoots[n] != b.dbRoots[n]){
+            return true;
+        }
+    }
+    return false;
+};
+bool operator>( const BRM::DBROOTS_struct& a, const BRM::DBROOTS_struct& b){
+    return a.dbRoots[0] > b.dbRoots[0];
+};
+bool operator>=( const BRM::DBROOTS_struct& a, const BRM::DBROOTS_struct& b){
+    return a.dbRoots[0] >= b.dbRoots[0];
+};
+bool operator<( const BRM::DBROOTS_struct& a, const BRM::DBROOTS_struct& b){
+    return a.dbRoots[0] < b.dbRoots[0];
+};
+bool operator<=( const BRM::DBROOTS_struct& a, const BRM::DBROOTS_struct& b){
+    return a.dbRoots[0] <= b.dbRoots[0];
+};
+std::ostream & operator<<(std::ostream &os, const DBROOTS_struct & a){
+    for (int n=0; n<MAX_DATA_REPLICATESIZE; n++){
+        os <<  a.dbRoots[n]  ;
+    }
+	return os;
+};
+std::istream & operator>>(std::istream & is, DBROOTS_struct &a){
+    for (int n=0; n<MAX_DATA_REPLICATESIZE; n++){
+        is >>  a.dbRoots[n]  ;
+    }
+	return is;
+};
+
+////////////////////////////////////////////////
 std::string LogicalPartition::toString() const
 {
 	char buf[256] = {0};
-	std::sprintf(buf, "%d.%d.%ulld", pp, seg, dbRoot.getUintVal());
+	//std::sprintf(buf, "%d.%d.%ulld", pp, seg, dbRoot.getUintVal());
+	std::sprintf(buf, "%d.%d.%d.%d.%d.%d", pp, seg, dbRoot.dbRoots[0], dbRoot.dbRoots[1], dbRoot.dbRoots[2], dbRoot.dbRoots[3]);
 	return std::string(buf);
 }
 

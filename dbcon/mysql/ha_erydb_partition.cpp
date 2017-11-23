@@ -429,7 +429,26 @@ void parsePartitionString(UDF_ARGS* args,int offset,set<LogicalPartition>& parti
 					break;
 				goto error;
 			case 2:
-				if (ss >> lp.dbRoot[0] && ss.eof())
+			    //{
+			    //    uint64_t dbr=0;
+			    //    ss >>dbr;
+			    //    lp.dbRoot=dbr;
+			    //    if (dbr && ss.eof())
+				//	    break;
+			    //}
+				if (ss >> lp.dbRoot.dbRoots[0] && ss.eof())
+					break;
+				goto error;
+			case 3:
+				if (ss >> lp.dbRoot.dbRoots[1] && ss.eof())
+					break;
+				goto error;
+			case 4:
+				if (ss >> lp.dbRoot.dbRoots[2] && ss.eof())
+					break;
+				goto error;
+			case 5:
+				if (ss >> lp.dbRoot.dbRoots[3] && ss.eof())
 					break;
 				goto error;
 			default:
