@@ -63,9 +63,7 @@ ColumnOpCompress0::~ColumnOpCompress0()
 
 
 // @bug 5572 - HDFS usage: add *.tmp file backup flag
-ERYDBDataFile* ColumnOpCompress0::openFile(
-   const Column& column, const uint16_t dbRoot, const uint32_t partition, const uint16_t segment,
-   std::string& segFile, bool useTmpSuffix, const char* mode, const int ioBuffSize) const
+ERYDBDataFile* ColumnOpCompress0::openFile(const Column& column, const uint16_t dbRoot, const uint32_t partition, const uint16_t segment,std::string& segFile, bool useTmpSuffix, const char* mode, const int ioBuffSize) const
 {
    return FileOp::openFile(column.dataFile.fid, dbRoot, partition, segment, segFile,
        mode, column.colWidth, useTmpSuffix);
@@ -141,9 +139,7 @@ ColumnOpCompress1::~ColumnOpCompress1()
 }
 
 // @bug 5572 - HDFS usage: add *.tmp file backup flag
-ERYDBDataFile* ColumnOpCompress1::openFile(
-   const Column& column, const uint16_t dbRoot, const uint32_t partition, const uint16_t segment,
-   std::string& segFile, bool useTmpSuffix, const char* mode, const int ioBuffSize) const
+ERYDBDataFile* ColumnOpCompress1::openFile(const Column& column, const uint16_t dbRoot, const uint32_t partition, const uint16_t segment,std::string& segFile, bool useTmpSuffix, const char* mode, const int ioBuffSize) const
 {
     return m_chunkManager->getFilePtr(column, dbRoot, partition, segment, segFile,
         mode, ioBuffSize, useTmpSuffix);

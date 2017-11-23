@@ -158,7 +158,7 @@ void walkBlock (streamsize byteoffset)
             continue; 
         
         // convert lbid to real fob number
-        uint16_t dbRoot;
+        DBROOTS_struct dbRoot;
         uint32_t partition;
         uint16_t segment;
         BRMWrapper::getInstance()->getFboOffset(entry->fbo, dbRoot, partition, segment, fbo);

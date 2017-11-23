@@ -381,8 +381,7 @@ int FileOp::deleteFiles( const std::vector<int32_t>& fids ) const
  *    NO_ERROR if success
  *    ERR_DM_CONVERT_OID if error occurs converting OID to file name
  ***********************************************************/
-int FileOp::deletePartitions( const std::vector<OID>& fids, 
-    const std::vector<BRM::PartitionInfo>& partitions ) const
+int FileOp::deletePartitions( const std::vector<OID>& fids, const std::vector<BRM::PartitionInfo>& partitions ) const
 {
     char tempFileName[FILE_NAME_SIZE];
     char oidDirName  [FILE_NAME_SIZE];
@@ -392,17 +391,12 @@ int FileOp::deletePartitions( const std::vector<OID>& fids,
 
     for (uint32_t i = 0; i < partitions.size(); i++)
     {
-        RETURN_ON_ERROR((Convertor::oid2FileName(
-            partitions[i].oid, tempFileName, dbDir,
-            partitions[i].lp.pp, partitions[i].lp.seg)));
-        sprintf(oidDirName, "%s/%s/%s/%s/%s",
-            dbDir[0], dbDir[1], dbDir[2], dbDir[3], dbDir[4]);
+        RETURN_ON_ERROR((Convertor::oid2FileName(partitions[i].oid, tempFileName, dbDir,partitions[i].lp.pp, partitions[i].lp.seg)));
+        sprintf(oidDirName, "%s/%s/%s/%s/%s",dbDir[0], dbDir[1], dbDir[2], dbDir[3], dbDir[4]);
         // config expects dbroot starting from 0
-        std::string rt( Config::getDBRootByNum(partitions[i].lp.dbroot) );
-        sprintf(rootOidDirName, "%s/%s",
-            rt.c_str(), tempFileName);
-        sprintf(partitionDirName, "%s/%s",
-            rt.c_str(), oidDirName);
+        std::string rt( Config::getDBRootByNum(partitions[i].lp.dbRoot.dbRoots[0]) );
+        sprintf(rootOidDirName, "%s/%s",rt.c_str(), tempFileName);
+        sprintf(partitionDirName, "%s/%s",rt.c_str(), oidDirName);
 
         if( ERYDBPolicy::remove( rootOidDirName ) != 0 )
         {
@@ -2299,13 +2293,7 @@ ERYDBDataFile* FileOp::openFile( const char* fileName,
 }
 
 // @bug 5572 - HDFS usage: add *.tmp file backup flag
- ERYDBDataFile* FileOp::openFile( FID fid,
-    uint16_t dbRoot,
-    uint32_t partition,
-    uint16_t segment,
-    std::string&   segFile,
-    const char* mode, int ioColSize,
-    bool useTmpSuffix ) const
+ ERYDBDataFile* FileOp::openFile( FID fid,uint16_t dbRoot,uint32_t partition,uint16_t segment,std::string&   segFile,const char* mode, int ioColSize,bool useTmpSuffix ) const
 {
     char fileName[FILE_NAME_SIZE];
     int  rc;

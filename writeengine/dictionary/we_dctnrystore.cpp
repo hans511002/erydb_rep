@@ -49,44 +49,31 @@ DctnryStore::~DctnryStore()
 /***********************************************************
  * Open a dictionary store file
  ***********************************************************/ 
-const int DctnryStore::openDctnryStore(const OID& dctnryOID, 
-        const OID&     treeOID,
-        const OID&     listOID,
-        const uint16_t dbRoot,
-        const uint32_t partition,
-        const uint16_t segment)
+const int DctnryStore::openDctnryStore(const OID& dctnryOID, const OID& treeOID, const OID& listOID,const uint16_t dbRoot,const uint32_t partition,const uint16_t segment)
 {
     int rc2;
     rc2 = m_dctnry.openDctnry(dctnryOID, dbRoot, partition, segment);
     setUseHashMap(true);
-
     return rc2;
 }
 
 /***********************************************************
  * Create a dictionary store file
  ***********************************************************/    
-const int  DctnryStore::createDctnryStore( const OID& dctnryOID, 
-        const OID& treeOID, const OID& listOID, int colWidth, const uint16_t dbRoot,
-        const uint32_t partition, const uint16_t segment )
+const int  DctnryStore::createDctnryStore( const OID& dctnryOID,const OID& treeOID, const OID& listOID, int colWidth, const uint16_t dbRoot,const uint32_t partition, const uint16_t segment )
 { 
-    int rc2 ;
- 
+    int rc2 ; 
     rc2 = m_dctnry.createDctnry(dctnryOID, colWidth, dbRoot, partition, segment);
-      
     return rc2;
 }
 
 /***********************************************************
  * Drop a dictionary store file
  ***********************************************************/            
-const int  DctnryStore::dropDctnryStore( const OID& dctnryOID, 
-                                         const OID& treeOID,
-                                         const OID& listOID)
+const int  DctnryStore::dropDctnryStore( const OID& dctnryOID, const OID& treeOID,const OID& listOID)
 {
     int  rc2;
     rc2 = m_dctnry.dropDctnry(dctnryOID);
-
     return rc2;                                
 }
 
@@ -96,9 +83,7 @@ const int  DctnryStore::dropDctnryStore( const OID& dctnryOID,
  * in our string cache, and returns the corresponding token
  * if it is found in the cache.
  ***********************************************************/    
-const int  DctnryStore::updateDctnryStore(unsigned char* sigValue, 
-                                          int& sigSize,
-                                          Token& token)
+const int  DctnryStore::updateDctnryStore(unsigned char* sigValue, int& sigSize,Token& token)
 {
     int rc = NO_ERROR;
     Signature sig;

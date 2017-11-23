@@ -49,9 +49,7 @@ class ColumnOpBulk : public ColumnOp
 
     virtual bool  abbreviatedExtent(ERYDBDataFile*, int) const;
     virtual int   blocksInFile(ERYDBDataFile*) const;
-    virtual ERYDBDataFile* openFile(const WriteEngine::Column& column,
-        uint16_t dbRoot, uint32_t partition, uint16_t segment,
-        std::string& segFile, bool useTmpSuffix, const char* mode = "r+b",
+    virtual ERYDBDataFile* openFile(const WriteEngine::Column& column,uint16_t dbRoot, uint32_t partition, uint16_t segment,std::string& segFile, bool useTmpSuffix, const char* mode = "r+b",
         int ioBuffSize = DEFAULT_BUFSIZ) const;
     virtual int   readBlock(ERYDBDataFile*, unsigned char*, const uint64_t);
     virtual int   saveBlock(ERYDBDataFile*, const unsigned char*, const uint64_t);

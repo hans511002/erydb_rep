@@ -476,10 +476,7 @@ private:
     void startPrimitiveThread();
     void startAggregationThread();
     void initializeConfigParms();
-    void sendAPrimitiveMessage (
-		ISMPacketHeader& ism,
-		BRM::LBID_t msgLbidStart,
-		uint32_t msgLbidCount);
+    void sendAPrimitiveMessage (ISMPacketHeader& ism,BRM::LBID_t msgLbidStart,uint32_t msgLbidCount);
 	uint64_t getFBO(uint64_t lbid);
 	bool isEmptyVal(const uint8_t *val8) const;
 
@@ -748,10 +745,7 @@ private:
     void startPrimitiveThread();
     void startAggregationThread();
     void initializeConfigParms();
-    void sendAPrimitiveMessage(
-		messageqcpp::ByteStream& primMsg,
-		BRM::LBID_t msgLbidStart,
-		uint32_t msgLbidCount, uint16_t dbroot);
+    void sendAPrimitiveMessage(messageqcpp::ByteStream& primMsg,BRM::LBID_t msgLbidStart,uint32_t msgLbidCount, uint16_t pm);
 	void formatMiniStats();
 
     DistributedEngineComm* fDec;
@@ -1182,8 +1176,8 @@ private:
 	/* shared nothing support */
 	struct Job {
 		Job(uint32_t d, uint32_t n, uint32_t b, boost::shared_ptr<messageqcpp::ByteStream> &bs) :
-			dbroot(d), connectionNum(n), expectedResponses(b), msg(bs) { }
-		uint32_t dbroot;
+			dbRoot(d), connectionNum(n), expectedResponses(b), msg(bs) { }
+		DBROOTS_struct dbRoot;
 		uint32_t connectionNum;
 		uint32_t expectedResponses;
 		boost::shared_ptr<messageqcpp::ByteStream> msg;

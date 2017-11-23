@@ -441,12 +441,7 @@ void pDictionaryScan::sendError(uint16_t s)
 //------------------------------------------------------------------------------
 // Construct and send a single primitive message to primproc
 //------------------------------------------------------------------------------
-void pDictionaryScan::sendAPrimitiveMessage(
-	ByteStream& primMsg,
-	BRM::LBID_t	msgLbidStart,
-	uint32_t	msgLbidCount,
-	uint16_t	pm
-	)
+void pDictionaryScan::sendAPrimitiveMessage(ByteStream& primMsg,BRM::LBID_t	msgLbidStart,uint32_t	msgLbidCount,uint16_t pm)
 {
 	DictTokenByScanRequestHeader hdr;
 	memset(&hdr, 0, sizeof(hdr));

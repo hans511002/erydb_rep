@@ -35,7 +35,7 @@ namespace BRM
 std::string LogicalPartition::toString() const
 {
 	char buf[256] = {0};
-	std::sprintf(buf, "%d.%d.%d", pp, seg, dbroot);
+	std::sprintf(buf, "%d.%d.%ulld", pp, seg, dbRoot.getUintVal());
 	return std::string(buf);
 }
 
@@ -44,7 +44,7 @@ std::string LogicalPartition::toString() const
  */
 std::ostream& operator<<(std::ostream& output, const LogicalPartition& rhs)
 {
-	output << rhs.pp << "." << rhs.seg << "." << rhs.dbroot;
+	output << rhs.pp << "." << rhs.seg << "." << rhs.dbRoot;
 	return output;
 }
 
@@ -54,7 +54,7 @@ std::istream& operator>>(std::istream& input, LogicalPartition& rhs)
 	input.ignore();
 	input >> rhs.seg;
 	input.ignore();
-	input >> rhs.dbroot;
+	input >> rhs.dbRoot;
 	return input;
 }
 

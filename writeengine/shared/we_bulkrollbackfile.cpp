@@ -474,11 +474,7 @@ void BulkRollbackFile::reInitTruncDctnryExtent(
 // class can override this functionality, and return true or false depending
 // on whether the HWM chunk was modified and backed up to disk.
 //------------------------------------------------------------------------------
-bool BulkRollbackFile::doWeReInitExtent( OID columnOID,
-    uint32_t dbRoot,
-    uint32_t partNum,
-    uint32_t segNum) const
-{
+bool BulkRollbackFile::doWeReInitExtent( OID columnOID,uint16_t dbRoot,uint32_t partNum,uint32_t segNum) const{
     return true;
 }
 

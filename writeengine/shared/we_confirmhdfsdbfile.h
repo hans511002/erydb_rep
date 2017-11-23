@@ -116,9 +116,7 @@ public:
         std::string& errMsg );
 
 private:
-    void openMetaDataFile( OID tableOID,
-        uint16_t dbRoot,
-        std::istringstream& metaDataStream );
+    void openMetaDataFile( OID tableOID,uint16_t dbRoot,std::istringstream& metaDataStream );
 
     void confirmDbFiles( std::istringstream& metaDataStream ) const;
     void confirmColumnDbFile( const char* inBuf ) const;

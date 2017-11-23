@@ -138,7 +138,7 @@ public:
 	EXPORT int lookupLocal(OID_t oid, uint32_t partitionNum, uint16_t segmentNum, uint32_t fileBlockOffset, LBID_t& lbid) throw();
 
 	/** @brief A dbroot-specific version of lookupLocal() */
-	EXPORT int lookupLocal_DBroot(OID_t oid, DBROOTS_struct& dbroot,uint32_t partitionNum, uint16_t segmentNum,uint32_t fileBlockOffset, LBID_t& lbid) throw();
+	EXPORT int lookupLocal_DBroot(OID_t oid, DBROOTS_struct& dbRoot,uint32_t partitionNum, uint16_t segmentNum,uint32_t fileBlockOffset, LBID_t& lbid) throw();
 	// @bug 1055-	
 
 	/** @brief Get the starting LBID assigned to the extent containing
@@ -501,8 +501,7 @@ public:
 	 * @param dbroot (in) dbroot
 	 * @return 0 on success, non-0 on error (see brmtypes.h)
 	 */
-	EXPORT int getExtents_dbroot(int OID, std::vector<struct EMEntry>& entries,
-		const uint16_t dbroot) throw();
+	EXPORT int getExtents_dbroot(int OID, std::vector<struct EMEntry>& entries,const uint16_t dbroot) throw();
 
 	/** @brief Gets the number of extents for the specified OID and DBRoot
 	 *
@@ -965,7 +964,7 @@ public:
 	EXPORT int allocOIDs(int num);
 	EXPORT void returnOIDs(int start, int end);
 	EXPORT int oidm_size();
-	EXPORT int allocVBOID(uint32_t dbroot);
+	//EXPORT int allocVBOID(uint32_t dbroot);
 	EXPORT int getDBRootOfVBOID(uint32_t vbOID);
 	EXPORT std::vector<uint16_t> getVBOIDToDBRootMap();
 

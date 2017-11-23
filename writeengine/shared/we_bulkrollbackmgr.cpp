@@ -136,8 +136,7 @@ int BulkRollbackMgr::rollback ( bool keepMetaFile )
         for (unsigned m=0; m<dbRoots.size(); m++)
         {
             std::istringstream metaDataStream;
-            bool bPerformRollback = openMetaDataFile ( dbRoots[m],
-                metaDataStream );
+            bool bPerformRollback = openMetaDataFile ( dbRoots[m],metaDataStream );
 
             // Call function to:
             // 1. read bulk rollback meta-data file

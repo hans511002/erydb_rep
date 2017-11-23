@@ -4276,9 +4276,8 @@ void ExtentMap::deletePartition(const set<OID_t>& oids, const set<LogicalPartiti
 	std::set<OID_t>::const_iterator it;
 	for (int i = 0; i < emEntries; i++) 
 	{
-		LogicalPartition lp(fExtentMap[i].dbRoots[0], fExtentMap[i].partitionNum, fExtentMap[i].segmentNum);
-		if ((fExtentMap[i].range.size != 0) &&
-			(partitionNums.find(lp)   != partitionNums.end()))
+		LogicalPartition lp(fExtentMap[i].dbRoots, fExtentMap[i].partitionNum, fExtentMap[i].segmentNum);
+		if ((fExtentMap[i].range.size != 0) && (partitionNums.find(lp)   != partitionNums.end()))
 		{
 			it = oids.find( fExtentMap[i].fileID );
 			if (it != oids.end())
@@ -4367,7 +4366,7 @@ void ExtentMap::markPartitionForDeletion(const set<OID_t>& oids, const set<Logic
 	std::set<OID_t>::const_iterator it;
 	for (int i = 0; i < emEntries; i++) 
 	{
-		LogicalPartition lp(fExtentMap[i].dbRoots[0],fExtentMap[i].partitionNum, fExtentMap[i].segmentNum);
+		LogicalPartition lp(fExtentMap[i].dbRoots,fExtentMap[i].partitionNum, fExtentMap[i].segmentNum);
 		if ((fExtentMap[i].range.size != 0) && (partitionNums.find(lp)   != partitionNums.end()))
 		{
 			it = oids.find( fExtentMap[i].fileID );
@@ -4505,7 +4504,7 @@ void ExtentMap::restorePartition(const set<OID_t>& oids, const set<LogicalPartit
 
 	for (int i = 0; i < emEntries; i++) 
 	{
-		LogicalPartition lp(fExtentMap[i].dbRoots[0], fExtentMap[i].partitionNum, fExtentMap[i].segmentNum);
+		LogicalPartition lp(fExtentMap[i].dbRoots, fExtentMap[i].partitionNum, fExtentMap[i].segmentNum);
 		if ((fExtentMap[i].range.size  != 0  ) && partitionNums.find(lp) != partitionNums.end())
 		{
 			it = oids.find( fExtentMap[i].fileID );
@@ -4585,7 +4584,7 @@ void ExtentMap::getOutOfServicePartitions(OID_t oid,set<LogicalPartition>& parti
 			(fExtentMap[i].fileID     == oid) &&
 			(fExtentMap[i].status     == EXTENTOUTOFSERVICE)) {
 			// need to be logical partition number
-			LogicalPartition lp(fExtentMap[i].dbRoots[0],fExtentMap[i].partitionNum,fExtentMap[i].segmentNum);
+			LogicalPartition lp(fExtentMap[i].dbRoots,fExtentMap[i].partitionNum,fExtentMap[i].segmentNum);
 			partitionNums.insert(lp);
 		}
 	}

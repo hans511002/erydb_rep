@@ -155,16 +155,8 @@ public:
     /**
      * @brief Get the real physical offset based on the LBID
      */
-    EXPORT int getFboOffset( const uint64_t lbid, 
-                      DBROOTS_struct& dbRoot,
-                      uint32_t& partition,
-                      uint16_t& segment,
-                      int&       fbo );
-    EXPORT int getFboOffset( const uint64_t lbid, int& oid,
-                      DBROOTS_struct& dbRoot,
-                      uint32_t& partition,
-                      uint16_t& segment,
-                      int&       fbo );
+    EXPORT int getFboOffset( const uint64_t lbid, DBROOTS_struct& dbRoot,uint32_t& partition,uint16_t& segment,int& fbo );
+    EXPORT int getFboOffset( const uint64_t lbid, int& oid,DBROOTS_struct& dbRoot,uint32_t& partition,uint16_t& segment,int& fbo );
 
     /**
      * @brief Get last "local" HWM, partition, and segment for an OID and DBRoot
@@ -218,9 +210,7 @@ public:
     /**
      * @brief Return the extents info for specified OID and dbroot
      */
-    int getExtents_dbroot( int oid,
-            std::vector<struct BRM::EMEntry>& entries,
-            const uint16_t dbroot);
+    int getExtents_dbroot( int oid,std::vector<struct BRM::EMEntry>& entries,const uint16_t dbroot);
 
     /**
      * @brief Return the read/write status of DBRM (helps detect if DBRM is up)
@@ -578,12 +568,9 @@ inline int BRMWrapper::getExtents( int oid,
     return rc;
 }
 
-inline int BRMWrapper::getExtents_dbroot( int oid,
-    std::vector<struct BRM::EMEntry>& entries,
-    const uint16_t dbroot )
+inline int BRMWrapper::getExtents_dbroot( int oid,std::vector<struct BRM::EMEntry>& entries,const uint16_t dbroot )
 {
-    int rc = blockRsltnMgrPtr->getExtents_dbroot(
-        oid, entries, dbroot);
+    int rc = blockRsltnMgrPtr->getExtents_dbroot(oid, entries, dbroot);
     return rc;
 }
 

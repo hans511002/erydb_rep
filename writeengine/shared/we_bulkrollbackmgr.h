@@ -184,8 +184,8 @@ private:
     void deleteMetaDataFiles  ( ); // delete metafiles
     int  metaDataFileExists   ( bool& exists ); // does meta-data file exists
     BulkRollbackFile* makeFileRestorer(int compressionType);
-    bool openMetaDataFile     ( uint16_t dbRoot,    //  open a metadata file
-                                std::istringstream& metaDataStream );
+       //  open a metadata file
+    bool openMetaDataFile( uint16_t dbRoot,std::istringstream& metaDataStream );
     void validateAllMetaFilesExist(const std::vector<uint16_t>& dbRoots) const;
 
     // Data members

@@ -56,9 +56,7 @@ public:
    /**
    * @brief virtual method in ColumnOp
    */
-   ERYDBDataFile*  openFile(const Column& column, uint16_t dbRoot, uint32_t partition,
-      uint16_t segment, std::string& segFile, bool useTmpSuffix, const char* mode = "r+b",
-      int ioBuffSize = DEFAULT_BUFSIZ) const;
+   ERYDBDataFile*  openFile(const Column& column, uint16_t dbRoot, uint32_t partition,uint16_t segment, std::string& segFile, bool useTmpSuffix, const char* mode = "r+b",int ioBuffSize = DEFAULT_BUFSIZ) const;
 
    /**
    * @brief virtual method in ColumnOp
@@ -116,9 +114,7 @@ public:
    /**
    * @brief virtual method in ColumnOp
    */
-   ERYDBDataFile*  openFile(const Column& column, uint16_t dbRoot, uint32_t partition,
-      uint16_t segment, std::string& segFile, bool useTmpSuffix, const char* mode = "r+b",
-      int ioBuffSize = DEFAULT_BUFSIZ) const;
+   ERYDBDataFile*  openFile(const Column& column, uint16_t dbRoot, uint32_t partition,uint16_t segment, std::string& segFile, bool useTmpSuffix, const char* mode = "r+b",int ioBuffSize = DEFAULT_BUFSIZ) const;
 
    /**
    * @brief virtual method in ColumnOp

@@ -29,42 +29,88 @@
 #define LOGICALPARTITION_H_
 
 #include "bytestream.h"
+#include "liboam.h"
+
+#if defined(_MSC_VER) && defined(xxxBRMTYPES_DLLEXPORT)
+#define EXPORT __declspec(dllexport)
+#else
+#define EXPORT
+#endif
 
 namespace BRM 
 {
+    struct DBROOTS_struct {
+    uint16_t	dbRoots[MAX_DATA_REPLICATESIZE];
+    
+	EXPORT DBROOTS_struct();
+	EXPORT DBROOTS_struct(uint64_t dbRoot){
+	    dbRoots[0]=dbRoot&0xFF;
+	    dbRoots[1]=(dbRoot>>16) &0xFF;
+	    dbRoots[2]=(dbRoot>>32) &0xFF;
+	    dbRoots[3]=(dbRoot>>48) &0xFF;
+	};
+    EXPORT   uint64_t getUintVal() {
+        uint64_t dbRoot=0;
+        dbRoot=(uint64_t)dbRoots[3]<<48 + (uint64_t)dbRoots[2]<<32 + (uint64_t)dbRoots[1]<<16 + (uint64_t)dbRoots[0];
+        return dbRoot;
+    };
+
+    EXPORT   uint16_t & operator [](int i) ;
+    EXPORT   uint16_t get(int i) const;
+    EXPORT   void remove(uint16_t dbroot);
+    EXPORT DBROOTS_struct(const DBROOTS_struct&);
+    EXPORT DBROOTS_struct& operator= (const DBROOTS_struct&);
+    EXPORT DBROOTS_struct& set(const DBROOTS_struct&);
+    
+    EXPORT void serialize(messageqcpp::ByteStream &bs) const;
+	EXPORT void deserialize(messageqcpp::ByteStream &bs);
+};
+
+EXPORT bool operator==( const BRM::DBROOTS_struct&, const BRM::DBROOTS_struct&);
+EXPORT bool operator!=( const BRM::DBROOTS_struct&, const BRM::DBROOTS_struct&);
+EXPORT bool operator>( const BRM::DBROOTS_struct&, const BRM::DBROOTS_struct&);
+EXPORT bool operator>=( const BRM::DBROOTS_struct&, const BRM::DBROOTS_struct&);
+EXPORT bool operator<( const BRM::DBROOTS_struct&, const BRM::DBROOTS_struct&);
+EXPORT bool operator<=( const BRM::DBROOTS_struct&, const BRM::DBROOTS_struct&);
+EXPORT std::ostream & operator<<(std::ostream &, const DBROOTS_struct &);
+EXPORT std::istream & operator>>(std::istream &, DBROOTS_struct &);
+inline messageqcpp::ByteStream& operator<<(messageqcpp::ByteStream& bs, const DBROOTS_struct& s){
+    s.serialize(bs); return bs;
+    };
+inline messageqcpp::ByteStream& operator>>(messageqcpp::ByteStream& bs, DBROOTS_struct& s){
+    s.deserialize(bs); return bs;
+    };
+
 // Logical partition number descriptor
 struct LogicalPartition
 {
-	uint16_t dbroot;  // dbroot #
+	DBROOTS_struct dbRoot;  // dbroot #
 	uint32_t pp;      // physical partition #
 	uint16_t seg;     // segment #
 
-	LogicalPartition() : dbroot ((uint16_t)-1),
+	LogicalPartition() : //dbroot ((uint16_t)-1),
 	                     pp ((uint32_t)-1),
 	                     seg ((uint16_t)-1) {}
 
-	LogicalPartition(uint16_t d, uint32_t p, uint16_t s) : dbroot(d),
-	                                                       pp(p),
-	                                                       seg(s)
-	{}
+	LogicalPartition(DBROOTS_struct& d, uint32_t p, uint16_t s) : dbRoot(d),pp(p),seg(s){}
 	
 	bool operator<( const LogicalPartition &n ) const
 	{
 		return ((pp < n.pp) ||
 		        (pp == n.pp && seg < n.seg) ||
-		        (pp == n.pp && seg == n.seg && dbroot < n.dbroot));
+		        (pp == n.pp && seg == n.seg && dbRoot < n.dbRoot));
 	}
 
 	void serialize(messageqcpp::ByteStream& b) const
 	{
-		b << (uint16_t)dbroot;
+		b << dbRoot;
 		b << (uint32_t)pp;
 		b << (uint16_t)seg;
 	}
 
 	void unserialize(messageqcpp::ByteStream& b)
 	{
-		b >> (uint16_t&)dbroot;
+		b >> dbRoot;
 		b >> (uint32_t&)pp;
 		b >> (uint16_t&)seg;
 	}

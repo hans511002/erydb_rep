@@ -93,10 +93,7 @@ public:
     * @param partition - partition number for store file
     * @param segment   - column segment number for store file
     */
-    EXPORT const int createDctnryStore(
-                        const OID& dctnryOID, const OID& treeOID, 
-                        const OID& listOID, int colWidth, const uint16_t dbRoot,
-                        const uint32_t partition, const uint16_t segment );
+    EXPORT const int createDctnryStore(const OID& dctnryOID, const OID& treeOID, const OID& listOID, int colWidth, const uint16_t dbRoot,const uint32_t partition, const uint16_t segment );
 
    /**
     * @brief Delete a token from dictionary store, for maintanance use
@@ -124,11 +121,7 @@ public:
     * @param partition - partition number for store file
     * @param segment   - column segment number for store file
     */
-    EXPORT const int  openDctnryStore(const OID& dctnryOID, const OID& treeOID,
-                        const OID& listOID,
-                        const uint16_t dbRoot,
-                        const uint32_t partition,
-                        const uint16_t segment);
+    EXPORT const int  openDctnryStore(const OID& dctnryOID, const OID& treeOID,const OID& listOID,const uint16_t dbRoot,const uint32_t partition,const uint16_t segment);
 
    /**
     * @brief Update dictionary store with tokenized strings (for DDL/DML use)
@@ -137,8 +130,7 @@ public:
     * @param sigSize   - signature size
     * @param token     - (output) token that was added
     */              
-    EXPORT const int  updateDctnryStore(unsigned char* sigValue, 
-                        int& sigSize, Token& token); 
+    EXPORT const int  updateDctnryStore(unsigned char* sigValue, int& sigSize, Token& token); 
 
    /**
     * @brief Update dictionary store with tokenized strings (for Bulk use)
@@ -150,12 +142,7 @@ public:
     * @param colWidth  - width of the dictionary column being parsed
     * @param tokenBuf  - (output) list of tokens for the parsed strings
     */              
-    const int  updateDctnryStore(const char*  buf, 
-                        ColPosPair ** pos,
-                        const int totalRow,
-                        const int col, 
-                        const int colWidth, 
-                        char*     tokenBuf) 
+    const int  updateDctnryStore(const char*  buf,ColPosPair ** pos,const int totalRow,const int col, const int colWidth, char*     tokenBuf) 
           { return(m_dctnry.insertDctnry(
             buf, pos, totalRow, col, colWidth, tokenBuf)); }
 

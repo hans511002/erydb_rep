@@ -236,8 +236,7 @@ void RBMetaWriter::saveBulkRollbackMetaData(
                     {
                         std::string dirName;
                         FileOp fileOp(false);
-                        rc = fileOp.getDirName( dctnryStoreOids[i],
-                            dbRoot, partition, dirName );
+                        rc = fileOp.getDirName( dctnryStoreOids[i],dbRoot, partition, dirName );
                         if (rc != NO_ERROR)
                         {
                             WErrorCodes ec;
@@ -270,13 +269,7 @@ void RBMetaWriter::saveBulkRollbackMetaData(
 
                     if (segList.size() == 0)
                     {
-                       writeDictionaryStoreMetaNoDataMarker(
-                            columns[i].dataFile.oid,
-                            dctnryStoreOids[i],
-                            dbRoot,
-                            partition,
-                            0, // segment
-                            columns[i].compressionType );
+                       writeDictionaryStoreMetaNoDataMarker(columns[i].dataFile.oid,dctnryStoreOids[i],dbRoot,partition,0, columns[i].compressionType );
                     }
                     else
                     {
@@ -306,14 +299,7 @@ void RBMetaWriter::saveBulkRollbackMetaData(
                                 throw WeException( oss.str(), rc );
                             }
 
-                            writeDictionaryStoreMetaData(
-                                columns[i].dataFile.oid,
-                                dctnryStoreOids[i],
-                                dbRoot,
-                                partition,
-                                segDictionary,
-                                dictHWMStore,
-                                columns[i].compressionType );
+                            writeDictionaryStoreMetaData(columns[i].dataFile.oid,dctnryStoreOids[i],dbRoot,partition,segDictionary,dictHWMStore,columns[i].compressionType );
 
                         } // loop thru dictionary store seg files in this DBRoot
                     }     // dictionary OID has 1 or more seg files in partition
@@ -525,18 +511,7 @@ void RBMetaWriter::deleteFile ( )
 //------------------------------------------------------------------------------
 // New version of writeColumnMetaData for Shared-Nothing
 //------------------------------------------------------------------------------
-void RBMetaWriter::writeColumnMetaData (
-    const std::string& metaFileName,
-    bool               withHWM,
-    OID                columnOID,
-    uint16_t           dbRoot,
-    uint32_t           partition,
-    uint16_t           segment,
-    HWM                lastLocalHwm,
-    erydbSystemCatalog::ColDataType colType,
-    const std::string& colTypeName,
-    int                colWidth,
-    int                compressionType )
+void RBMetaWriter::writeColumnMetaData (const std::string& metaFileName,bool withHWM, OID columnOID,uint16_t dbRoot,uint32_t partition,uint16_t segment,HWM lastLocalHwm,erydbSystemCatalog::ColDataType colType,const std::string& colTypeName,int colWidth,int compressionType )
 {
     if (withHWM)
     {

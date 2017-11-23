@@ -259,12 +259,12 @@ namespace dmlpackageprocessor
 				}
 
 				// Select the PM to receive the row
-				uint32_t dbroot;
+				DBROOTS_struct dbRoot;
 				if (tmpSet)
 				{
-					dbroot = tmp.dbRoot[0];
+					dbRoot = tmp.dbRoot[0];
 					boost::shared_ptr<std::map<int, int> > dbRootPMMap = oamcache->getDBRootToPMMap();
-					pmNum = (*dbRootPMMap)[dbroot];
+					pmNum = (*dbRootPMMap)[dbRoot[0]];
 				
 					//@Bug 4760. validate pm value
 					if (pmNum == 0)
@@ -290,7 +290,7 @@ namespace dmlpackageprocessor
 				bytestream << (uint8_t)WE_SVR_SINGLE_INSERT;
 				bytestream << uniqueId;
 				bytestream << (uint32_t)txnid.id;
-				bytestream << dbroot;
+				bytestream << dbRoot;
 				cpackage.write(bytestream);
 				boost::shared_ptr<messageqcpp::ByteStream> bsIn;
 				

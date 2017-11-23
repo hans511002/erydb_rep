@@ -732,9 +732,7 @@ void ConfirmHdfsDbFile::endDctnryStoreDbFile(
 // and DBRoot.  The contents of the metadata file is returned in the meta-
 // DataStream argument.
 //------------------------------------------------------------------------------
-void ConfirmHdfsDbFile::openMetaDataFile(OID tableOID,
-    uint16_t dbRoot,
-    std::istringstream& metaDataStream)
+void ConfirmHdfsDbFile::openMetaDataFile(OID tableOID,uint16_t dbRoot,std::istringstream& metaDataStream)
 {
     std::string bulkRollbackPath( Config::getDBRootByNum( dbRoot ) );
 

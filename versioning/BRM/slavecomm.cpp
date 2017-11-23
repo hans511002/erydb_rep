@@ -1483,7 +1483,7 @@ namespace BRM {
         LBIDRange_v ranges;
         VBRange_v freeList;
         uint32_t tmp32;
-        uint16_t dbRoot;
+        DBROOTS_struct dbRoot;
         int err;
         ByteStream reply;
 
@@ -1504,7 +1504,7 @@ namespace BRM {
             return;
         }
 
-        err = slave->beginVBCopy(transID, dbRoot, ranges, freeList, firstSlave && !standalone);
+        err = slave->beginVBCopy(transID, dbRoot[0], ranges, freeList, firstSlave && !standalone);
         reply << (uint8_t)err;
         if (err == ERR_OK)
             serializeVector(reply, freeList);

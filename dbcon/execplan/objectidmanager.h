@@ -67,7 +67,7 @@ public:
 	 *
 	 * @return Returns -1 on all errors.
 	 */
-	int allocVBOID(uint32_t dbroot);
+	// int allocVBOID(uint32_t dbroot);
 
 	/** @brief Returns the DBRoot of the given version buffer OID, or -1 on error. */
 	int getDBRootOfVBOID(uint32_t vboid);

@@ -52,8 +52,7 @@ using namespace BRM;
 namespace ddlpackageprocessor
 {
 
-CreateTableProcessor::DDLResult CreateTableProcessor::processPackage(
-										ddlpackage::CreateTableStatement& createTableStmt)
+CreateTableProcessor::DDLResult CreateTableProcessor::processPackage(ddlpackage::CreateTableStatement& createTableStmt)
 {
 	SUMMARY_INFO("CreateTableProcessor::processPackage");
 
@@ -282,7 +281,6 @@ cout << fTxnid.id << " Create table allocOIDs got the starting oid " << fStartin
 		BRM::OID_t sysOid = OID_SYSTABLE_TABLENAME;
 		//Find out where systable is
 		rc = fDbrm->getSysCatDBRoot(sysOid, dbRoots); 
-		uint16_t dbRoot=dbRoots[0];
 		if (rc != 0)
 		{
 			result.result =(ResultCode) rc;
@@ -298,11 +296,11 @@ cout << fTxnid.id << " Create table allocOIDs got the starting oid " << fStartin
 		}
 	
 		int pmNum = 1;
-		bytestream << (uint32_t)dbRoot; 
+		bytestream << dbRoots; 
 		tableDef.serialize(bytestream);
 		boost::shared_ptr<messageqcpp::ByteStream> bsIn;
 		boost::shared_ptr<std::map<int, int> > dbRootPMMap = oamcache->getDBRootToPMMap();
-		pmNum = (*dbRootPMMap)[dbRoot];
+		pmNum = (*dbRootPMMap)[dbRoots[0]];
         // MCOL-66 The DBRM can't handle concurrent DDL					   
         boost::mutex::scoped_lock lk(dbrmMutex);
 		try
@@ -394,7 +392,6 @@ cout << fTxnid.id << " Create table We_SVR_WRITE_CREATETABLEFILES: " << errorMsg
 		sysOid = OID_SYSCOLUMN_SCHEMA;
 		//Find out where syscolumn is
 		rc = fDbrm->getSysCatDBRoot(sysOid, dbRoots); 
-		dbRoot=dbRoots[0];
 		if (rc != 0)
 		{
 			result.result =(ResultCode) rc;
@@ -408,10 +405,9 @@ cout << fTxnid.id << " Create table We_SVR_WRITE_CREATETABLEFILES: " << errorMsg
 			fSessionManager.rolledback(txnID);
 			return result;
 		}
-
-		bytestream << (uint32_t)dbRoot; 
+		bytestream << dbRoots; 
 		tableDef.serialize(bytestream);
-		pmNum = (*dbRootPMMap)[dbRoot];
+		pmNum = (*dbRootPMMap)[dbRoots[0]];
 		try
 		{
 #ifdef ERYDB_DDL_DEBUG

@@ -99,10 +99,7 @@ public:
      * @param dirName   (out)Directory path constructed from input arguments
      * @return returns NO_ERROR if success
      */
-    int buildDirName(   OID      oid,
-                        uint16_t dbRoot,
-                        uint32_t partition,
-                        std::string& dirName);
+    int buildDirName(OID oid,uint16_t dbRoot,uint32_t partition,std::string& dirName);
 
     /** @brief Do we reinit trailing blocks in the HWM extent for the specified
      * segment file
@@ -116,10 +113,7 @@ public:
      * @param partNum Partition number for the segment file in question
      * @param segNum Segment number for the segment file in question
      */
-    virtual bool doWeReInitExtent( OID columnOID,
-                        uint32_t   dbRoot,
-                        uint32_t   partNum,
-                        uint32_t   segNum) const;
+    virtual bool doWeReInitExtent( OID columnOID,uint16_t dbRoot,uint32_t   partNum,uint32_t segNum) const;
 
     /** @brief Reinitialize the specified column segment file starting at
      * startOffsetBlk, and truncate trailing extents.

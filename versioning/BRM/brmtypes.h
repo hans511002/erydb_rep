@@ -76,6 +76,7 @@ namespace tr1
 #define EXPORT
 #endif
 
+
 namespace erydbdatafile
 {
 class ERYDBDataFile;
@@ -83,34 +84,6 @@ class ERYDBDataFile;
 
 
 namespace BRM {
-struct DBROOTS_struct {
-    uint16_t	dbRoots[MAX_DATA_REPLICATESIZE];  
-	EXPORT DBROOTS_struct();
-    EXPORT   uint16_t & operator [](int i) ;
-    EXPORT   uint16_t get(int i) const;
-    EXPORT   void remove(uint16_t dbroot);
-    EXPORT DBROOTS_struct(const DBROOTS_struct&);
-    EXPORT DBROOTS_struct& operator= (const DBROOTS_struct&);
-    EXPORT DBROOTS_struct& set(const DBROOTS_struct&);
-    
-    EXPORT void serialize(messageqcpp::ByteStream &bs) const;
-	EXPORT void deserialize(messageqcpp::ByteStream &bs);
-};
-
-EXPORT bool operator==( const BRM::DBROOTS_struct&, const BRM::DBROOTS_struct&);
-EXPORT bool operator!=( const BRM::DBROOTS_struct&, const BRM::DBROOTS_struct&);
-EXPORT bool operator>( const BRM::DBROOTS_struct&, const BRM::DBROOTS_struct&);
-EXPORT bool operator>=( const BRM::DBROOTS_struct&, const BRM::DBROOTS_struct&);
-EXPORT bool operator<( const BRM::DBROOTS_struct&, const BRM::DBROOTS_struct&);
-EXPORT bool operator<=( const BRM::DBROOTS_struct&, const BRM::DBROOTS_struct&);
-EXPORT std::ostream & operator<<(std::ostream &, const DBROOTS_struct &);
-EXPORT std::istream & operator>>(std::istream &, DBROOTS_struct &);
-inline messageqcpp::ByteStream& operator<<(messageqcpp::ByteStream& bs, const DBROOTS_struct& s){
-    s.serialize(bs); return bs;
-    };
-inline messageqcpp::ByteStream& operator>>(messageqcpp::ByteStream& bs, DBROOTS_struct& s){
-    s.deserialize(bs); return bs;
-    };
 
 #define MAX_LBID_SIZE 0xFFFFFFFF
 /* these types should be defined in the system catalog header */

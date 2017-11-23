@@ -375,11 +375,7 @@ const int64_t ERYDB_format(char* str, erydbSystemCatalog::ColType& ct, uint8_t& 
 }
 
 
-void parsePartitionString(UDF_ARGS* args,
-						  int offset,
-						  set<LogicalPartition>& partitionNums,
-						  string& errMsg,
-						  execplan::erydbSystemCatalog::TableName tableName)
+void parsePartitionString(UDF_ARGS* args,int offset,set<LogicalPartition>& partitionNums,string& errMsg,execplan::erydbSystemCatalog::TableName tableName)
 {
 	//@Bug 4695
 	algorithm::to_lower(tableName.schema);
@@ -433,7 +429,7 @@ void parsePartitionString(UDF_ARGS* args,
 					break;
 				goto error;
 			case 2:
-				if (ss >> lp.dbroot && ss.eof())
+				if (ss >> lp.dbRoot[0] && ss.eof())
 					break;
 				goto error;
 			default:

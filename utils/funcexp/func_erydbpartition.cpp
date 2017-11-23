@@ -52,16 +52,10 @@ erydbSystemCatalog::ColType Func_erydbpartition::operationType(FunctionParm& fp,
 	return ct;
 }
 
-string Func_erydbpartition::getStrVal(Row& row,
-							FunctionParm& parm,
-							bool& isNull,
-							erydbSystemCatalog::ColType& ct)
+string Func_erydbpartition::getStrVal(Row& row,FunctionParm& parm,bool& isNull,erydbSystemCatalog::ColType& ct)
 {
-	LogicalPartition part(
-		parm[0]->data()->getIntVal(row, isNull),
-		parm[1]->data()->getIntVal(row, isNull),
-		parm[2]->data()->getIntVal(row, isNull));
-
+    DBROOTS_struct dbRoot(parm[0]->data()->getUintVal(row, isNull));
+	LogicalPartition part(dbRoot,parm[1]->data()->getIntVal(row, isNull),parm[2]->data()->getIntVal(row, isNull));
 	return part.toString();
 }
 
