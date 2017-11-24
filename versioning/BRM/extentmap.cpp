@@ -5285,7 +5285,7 @@ int ExtentMap::getMinDataDBRoots(DBROOTS_struct * dbroots) {
         if (index >= repSize || index >= dbrCount)
             return 0;
         it = pmToDbrMap->find(*mit);
-        if (pmExist->find(*mit)!= pmExist->end() || it == end || it->second.size() == 0)
+        if (pmExist->find(*mit)!= pmExist->end() || it == pmend || it->second.size() == 0)
             continue;
         std::vector<int32_t>& pmDbrs = it->second;
         int minDbr = 0x7FFFFFFF;
@@ -5331,9 +5331,9 @@ int ExtentMap::getMinDataDBRoots(DBROOTS_struct * dbroots) {
 
 int ExtentMap::getSysDataDBRoots(DBROOTS_struct * dbroots) {
     bool bFound = false;
+    grabEMEntryTable(READ);
     int emEntries = fEMShminfo->allocdSize / sizeof(struct EMEntry);
     if (emEntries > 0 && fEMShminfo->currentSize>0) {
-        grabEMEntryTable(READ);
         for (int i = 0; i < emEntries; i++) {
             if ((fExtentMap[i].range.size != 0) && (fExtentMap[i].fileID == OID_SYSTABLE_TABLENAME)) {
                 (*dbroots) = fExtentMap[i].dbRoots;
@@ -5350,6 +5350,7 @@ int ExtentMap::getSysDataDBRoots(DBROOTS_struct * dbroots) {
         }
         return 0;
     } else {
+        releaseEMEntryTable(READ);
         oam::OamCache* oamcache = oam::OamCache::makeOamCache();
         OamCache::PMDbrootsMap_t pmToDbrMap = oamcache->getPMToDbrootsMap();
         int pmCount = oamcache->getPMCount();
@@ -5376,19 +5377,21 @@ int ExtentMap::getSysDataDBRoots(DBROOTS_struct * dbroots) {
         index++;
         int repSize = this->getRepSize();
         std::vector<int>& modIDs= oamcache->getModuleIds();
-        for (std::vector<int>::iterator mit = modIDs.begin(); mit != modIDs.end(); mit++) {
-            if (*mit == oamMasterId) {
-                continue;
+        if (pmCount > 1 ){
+            for (std::vector<int>::iterator mit = modIDs.begin(); mit != modIDs.end(); mit++) {
+                if (*mit == oamMasterId) {
+                    continue;
+                }
+                if (index >= repSize || index >= dbrCount) {
+                    return 0;
+                }
+                it = pmToDbrMap->find(*mit);
+                if (it == end || it->second.size() == 0) {
+                    continue;
+                }
+                dbroots->dbRoots[index] = it->second[0];
+                index++;
             }
-            if (index >= repSize || index >= dbrCount) {
-                return 0;
-            }
-            it = pmToDbrMap->find(*mit);
-            if (it == end || it->second.size() == 0) {
-                continue;
-            }
-            dbroots->dbRoots[index] = it->second[0];
-            index++;
         }
         if (pmCount > 1 || index >= repSize || index >= dbrCount) {
             return 0;
