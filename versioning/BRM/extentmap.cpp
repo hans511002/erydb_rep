@@ -4033,14 +4033,12 @@ void ExtentMap::bulkSetHWM(const vector<BulkSetHWMArg> &v, bool firstNode)
 
 class BUHasher {
 public:
-	inline uint64_t operator()(const BulkUpdateDBRootArg &b) const
-		{ return b.startLBID; }
+	inline uint64_t operator()(const BulkUpdateDBRootArg &b) const { return b.startLBID; }
 };
 
 class BUEqual {
 public:
-	inline bool operator()(const BulkUpdateDBRootArg &b1, const BulkUpdateDBRootArg &b2) const
-		{ return b1.startLBID == b2.startLBID; }
+	inline bool operator()(const BulkUpdateDBRootArg &b1, const BulkUpdateDBRootArg &b2) const{ return b1.startLBID == b2.startLBID; }
 };
 
 void ExtentMap::bulkUpdateDBRoot(const vector<BulkUpdateDBRootArg> &args)
@@ -5060,9 +5058,12 @@ void ExtentMap::checkReloadConfig()
 	if (extentsPerSegmentFile == 0)
 		extentsPerSegmentFile = 2;
 	string exrepsize = cf->getConfig("SystemConfig", "PMreplicateCount");
- 	extentDBRreplicateSize = cf->uFromText(epsf);
+ 	extentDBRreplicateSize = cf->uFromText(exrepsize);
 	if (extentDBRreplicateSize == 0)
 		extentDBRreplicateSize = 1;
+    if (extentDBRreplicateSize > 4) {
+        extentDBRreplicateSize = 4;
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -5102,7 +5103,6 @@ unsigned ExtentMap::getFilesPerColumnPartition()
 {
 	boost::mutex::scoped_lock lk(fConfigCacheMutex);
 	checkReloadConfig( );
-
 	return filesPerColumnPartition;
 }
 
@@ -5113,10 +5113,13 @@ unsigned ExtentMap::getExtentsPerSegmentFile()
 {
 	boost::mutex::scoped_lock lk(fConfigCacheMutex);
 	checkReloadConfig( );
-
 	return extentsPerSegmentFile;
 }
-
+unsigned  ExtentMap::getRepSize() {
+    mutex::scoped_lock lk(fConfigCacheMutex);
+    checkReloadConfig();
+    return  extentDBRreplicateSize;
+}
 //------------------------------------------------------------------------------
 // Returns the number of DBRoots to be used in storing db column files.
 //------------------------------------------------------------------------------
@@ -5124,10 +5127,13 @@ unsigned ExtentMap::getDbRootCount()
 {
 	oam::OamCache* oamcache = oam::OamCache::makeOamCache();
 	unsigned int rootCnt = oamcache->getDBRootCount();
-
 	return rootCnt;
 }
-
+unsigned ExtentMap::getPMCount() {
+    oam::OamCache* oamcache = oam::OamCache::makeOamCache();
+    unsigned int pmCnt = oamcache->getPMCount();
+    return pmCnt;
+}
 //------------------------------------------------------------------------------
 // Get list of DBRoots that map to the specified PM.  DBRoot list is cached
 // internally in fPmDbRootMap after getting from erydb.xml via OAM.
@@ -5253,14 +5259,15 @@ int ExtentMap::getMinDataDBRoots(DBROOTS_struct * dbroots) {
     oam::OamCache* oamcache = oam::OamCache::makeOamCache();
     DBRootConfigList dbrnums = oamcache->getDBRootNums();
     int dbrCount = dbrnums.size();
+    int repSize=this->getRepSize();
     for (int i = 0; i < dbrCount; i++) {
         int dbrroot = dbrnums[i];
-        if (dbrnum->find(dbrroot) != dbrnum->end() && index < dbrCount) {
+        if (dbrnum->find(dbrroot) != dbrnum->end() && index < dbrCount && index <repSize) {
             dbroots->dbRoots[index] = dbrroot;
             rnum->operator[](dbrroot) = index++;
         }
     }
-    while (index < MAX_DATA_REPLICATESIZE && index < dbrCount) {
+    while (index < repSize && index < dbrCount ) {
         iter = dbrnum->begin();
         int minDbr = MAX_DBROOT + 1;
         int dbrroot=0;
@@ -5268,7 +5275,6 @@ int ExtentMap::getMinDataDBRoots(DBROOTS_struct * dbroots) {
             if (minDbr < iter->second && rnum->find(iter->second) == rnum->end()) {
                 minDbr = iter->second;
                 dbrroot = iter->first;
-                
             }
             iter++;
         }
@@ -5301,13 +5307,54 @@ int ExtentMap::getSysDataDBRoots(DBROOTS_struct * dbroots) {
         }
     } else {
         oam::OamCache* oamcache = oam::OamCache::makeOamCache();
-        DBRootConfigList dbrnums = oamcache->getDBRootNums();
-        int dbrCount = dbrnums.size();
+        OamCache::PMDbrootsMap_t pmToDbrMap = oamcache->getPMToDbrootsMap();
+        int pmCount = oamcache->getPMCount();
+        int dbrCount = oamcache->getDBRootCount();
+        string oamMasterName = oamcache->getOAMParentModuleName();
+        int oamMasterId = oamcache->getOAMParentModuleId();
         int index = 0;
-        while (index < MAX_DATA_REPLICATESIZE && index < dbrCount) {
-            dbroots->dbRoots[index] = dbrnums[index];
+        OamCache::PMDbrootsMap_t::element_type::iterator it=pmToDbrMap->find(oamMasterId);
+        OamCache::PMDbrootsMap_t::element_type::iterator end = pmToDbrMap->end();
+        if(it==end){
+            ostringstream os;
+            os << "ExtentMap::getSysDataDBRoots OAMParentModuleName" << oamMasterName << " not have dbroot ";
+            Oam::writeLog(os.str(), logging::LOG_TYPE_ERROR);
+            return -1;
+        }
+        std::vector<int32_t>& pmDbrs= it->second;
+        if (pmDbrs.size() == 0) {
+            ostringstream os;
+            os << "ExtentMap::getSysDataDBRoots OAMParentModuleName" << oamMasterName << " not have dbroot ";
+            Oam::writeLog(os.str(), logging::LOG_TYPE_ERROR);
+            return -1;
+        }
+        dbroots->dbRoots[index] = pmDbrs[0];
+        index++;
+        int repSize = this->getRepSize();
+        std::vector<int>& modIDs= oamcache->getModuleIds();
+        for (std::vector<int>::iterator mit = modIDs.begin(); mit != modIDs.end(); mit++) {
+            if (*mit == oamMasterId) {
+                continue;
+            }
+            if (index >= repSize || index >= dbrCount) {
+                return 0;
+            }
+            it = pmToDbrMap->find(*mit);
+            if (it == end || it->second.size() == 0) {
+                continue;
+            }
+            dbroots->dbRoots[index] = it->second[0];
             index++;
         }
+        if (pmCount > 1 || index >= repSize || index >= dbrCount) {
+            return 0;
+        }
+        // test
+        while (index < repSize && index < dbrCount) {
+            dbroots->dbRoots[index] = pmDbrs[index];
+            index++;
+        }
+        return 0;
     }
     releaseEMEntryTable(READ);
     if (emEntries > 0 && !bFound) {

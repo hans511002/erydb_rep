@@ -1208,7 +1208,7 @@ namespace oam
 		/**
 		* @brief Write the message to the log
 		*/
-		void writeLog(const std::string logContent, const logging::LOG_TYPE logType = logging::LOG_TYPE_INFO);
+		static void writeLog(const std::string logContent, const logging::LOG_TYPE logType = logging::LOG_TYPE_INFO);
 
 		bool checkSystemRunning();
 

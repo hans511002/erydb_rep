@@ -195,10 +195,15 @@ void OamCache::checkReload()
 		}
 	}
 	
-	oamModuleInfo_t tm;
-	tm = oam.getModuleInfo();
-	OAMParentModuleName = boost::get<3>(tm);
+    oamModInfo = oam.getModuleInfo();
+    //localModule, localModuleType, localModuleID, ParentOAMModule, parentOAMModuleFlag, serverTypeInstall, StandbyOAMModule, standbyOAMModuleFlag
+    OAMParentModuleName = boost::get<3>(oamModInfo);
 	systemName = config->getConfig("SystemConfig", "SystemName");
+    string moduleType = OAMParentModuleName.substr(0, MAX_MODULE_TYPE_SIZE);
+    OAMParentModuleId = atoi(OAMParentModuleName.substr(MAX_MODULE_TYPE_SIZE, MAX_MODULE_ID_SIZE).c_str());
+    if (moduleType != "pm") {
+        OAMParentModuleId = 0;
+    }
 }
 
 OamCache::dbRootPMMap_t OamCache::getDBRootToPMMap()
@@ -248,6 +253,11 @@ std::string OamCache::getOAMParentModuleName()
 	mutex::scoped_lock lk(cacheLock);
 	checkReload();
 	return OAMParentModuleName; 
+}
+int OamCache::getOAMParentModuleId() {
+    mutex::scoped_lock lk(cacheLock);
+    checkReload();
+    return OAMParentModuleId;
 }
 
 int OamCache::getLocalPMId()
@@ -310,6 +320,12 @@ string OamCache::getModuleName()
 
 	return moduleName; 
 }
+
+unsigned OamCache::getPMCount() {
+    mutex::scoped_lock lk(cacheLock);
+    checkReload();
+    return this->moduleIds.size();
+} 
 
 } /* namespace oam */
 

@@ -8484,7 +8484,7 @@ namespace oam
     * purpose:	Write the message to the log
     *
     ******************************************************************************************/
-    void Oam::writeLog(const string logContent, const LOG_TYPE logType) {
+     void Oam::writeLog(const string logContent, const LOG_TYPE logType) {
         LoggingID lid(8);
         MessageLog ml(lid);
         Message msg;

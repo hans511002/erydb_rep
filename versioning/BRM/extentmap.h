@@ -860,6 +860,8 @@ private:
 
 	EXPORT unsigned getFilesPerColumnPartition();
 	unsigned getExtentsPerSegmentFile();
+    unsigned getRepSize();
+    unsigned getPMCount();
 	unsigned getDbRootCount();
 	void getPmDbRoots(int pm, std::vector<int>& dbRootList);
 	void checkReloadConfig();
