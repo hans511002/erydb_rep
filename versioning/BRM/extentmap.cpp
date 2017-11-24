@@ -884,10 +884,7 @@ bool ExtentMap::isValidCPRange(int64_t max, int64_t min, execplan::erydbSystemCa
 * return the sequenceNum of the extent and the max/min values as -1.
 **/
 
-int ExtentMap::getMaxMin(const LBID_t lbid,
-						int64_t& max,
-						int64_t& min, 
-						int32_t& seqNum)
+int ExtentMap::getMaxMin(const LBID_t lbid,int64_t& max,int64_t& min, int32_t& seqNum)
 {
 #ifdef BRM_INFO
 	if (fDebug)
@@ -2033,13 +2030,8 @@ void ExtentMap::createColumnExtent_DBroot(int OID,uint32_t  colWidth,DBROOTS_str
 //   startBlockOffset-starting block of the created extent
 // returns starting LBID of the created extent.
 //------------------------------------------------------------------------------
-LBID_t ExtentMap::_createColumnExtent_DBroot(uint32_t size, int OID,
-	uint32_t  colWidth,
-	DBROOTS_struct&  dbRoot,
-    execplan::erydbSystemCatalog::ColDataType colDataType,
-	uint32_t& partitionNum,
-	uint16_t& segmentNum,
-	uint32_t& startBlockOffset)
+LBID_t ExtentMap::_createColumnExtent_DBroot(uint32_t size, int OID,uint32_t  colWidth,DBROOTS_struct&  dbRoot,execplan::erydbSystemCatalog::ColDataType colDataType,
+                                             uint32_t& partitionNum,uint16_t& segmentNum,uint32_t& startBlockOffset)
 {
 	int emptyEMEntry        = -1;
 	int lastExtentIndex     = -1;
@@ -5239,7 +5231,6 @@ void ExtentMap::dumpTo(ostream& os)
 
 /** 为一个em分配备份dbroot */
 int ExtentMap::getMinDataDBRoots(DBROOTS_struct * dbroots) {
-    bool bFound = false;
     int emEntries = fEMShminfo->allocdSize / sizeof(struct EMEntry);
     IntMap dbrnum;
     dbrnum.reset(new IntMap::element_type());
@@ -5253,44 +5244,89 @@ int ExtentMap::getMinDataDBRoots(DBROOTS_struct * dbroots) {
     releaseEMEntryTable(READ);
     int index = 0;
     IntMap::element_type::iterator iter;
-    IntMap::element_type::iterator end = dbrnum->begin();
-    IntMap rnum;
-    rnum.reset(new IntMap::element_type());
+    IntMap::element_type::iterator iend = dbrnum->begin();
+    IntMap dbrExist;
+    dbrExist.reset(new IntMap::element_type());
+    IntMap pmExist;
+    pmExist.reset(new IntMap::element_type());
     oam::OamCache* oamcache = oam::OamCache::makeOamCache();
-    DBRootConfigList dbrnums = oamcache->getDBRootNums();
-    int dbrCount = dbrnums.size();
-    int repSize=this->getRepSize();
-    for (int i = 0; i < dbrCount; i++) {
-        int dbrroot = dbrnums[i];
-        if (dbrnum->find(dbrroot) != dbrnum->end() && index < dbrCount && index <repSize) {
-            dbroots->dbRoots[index] = dbrroot;
-            rnum->operator[](dbrroot) = index++;
+    OamCache::PMDbrootsMap_t pmToDbrMap = oamcache->getPMToDbrootsMap();
+    int pmCount = oamcache->getPMCount();
+    int dbrCount = oamcache->getDBRootCount();
+    string oamMasterName = oamcache->getOAMParentModuleName();
+    OamCache::PMDbrootsMap_t::element_type::iterator it;
+    OamCache::PMDbrootsMap_t::element_type::iterator pmend = pmToDbrMap->end();
+    int repSize = this->getRepSize();
+    std::vector<int>& modIDs = oamcache->getModuleIds();
+    for (std::vector<int>::iterator mit = modIDs.begin(); mit != modIDs.end(); mit++)
+    {
+        if (index >= repSize || index >= dbrCount)
+            return 0;
+        it = pmToDbrMap->find(*mit);
+        if (it == pmend || it->second.size() == 0)
+            continue; 
+        std::vector<int32_t>& pmDbrs = it->second;
+        for (int i = 0; i < pmDbrs.size(); i++)
+        {
+            int dbrroot = pmDbrs[i];
+            if (dbrnum->find(dbrroot) == dbrnum->end())
+            {
+                dbroots->dbRoots[index] = dbrroot;
+                pmExist->operator[](*mit) = index;
+                dbrExist->operator[](dbrroot) = index++;
+                break;// 一个PM一个dbr
+            }
         }
     }
-    while (index < repSize && index < dbrCount ) {
-        iter = dbrnum->begin();
-        int minDbr = MAX_DBROOT + 1;
-        int dbrroot=0;
-        while (iter != end) {
-            if (minDbr < iter->second && rnum->find(iter->second) == rnum->end()) {
+    if (index >= repSize || index >= dbrCount)
+        return 0;
+    for (std::vector<int>::iterator mit = modIDs.begin(); mit != modIDs.end(); mit++)
+    {
+        if (index >= repSize || index >= dbrCount)
+            return 0;
+        it = pmToDbrMap->find(*mit);
+        if (pmExist->find(*mit)!= pmExist->end() || it == end || it->second.size() == 0)
+            continue;
+        std::vector<int32_t>& pmDbrs = it->second;
+        int minDbr = 0x7FFFFFFF;
+        int dbrroot = 0;
+        for (int i = 0; i < pmDbrs.size(); i++)
+        {
+            int dbr = pmDbrs[i];
+            if (dbrExist->find(dbr) != dbrExist->end())continue;
+            iter = dbrnum->find(dbr);
+            if (iter != iend && minDbr > iter->second)
+            {
                 minDbr = iter->second;
                 dbrroot = iter->first;
             }
-            iter++;
         }
-        if (dbrroot > 0) {
+        if (dbrroot)
+        {
             dbroots->dbRoots[index] = dbrroot;
-            rnum->operator[](dbrroot) = index++;
+            pmExist->operator[](*mit) = index;
+            dbrExist->operator[](dbrroot) = index++;
+        }
+    }
+    if (index >= repSize || index >= dbrCount)
+        return 0;
+    if (pmCount == 1)// test
+    {
+        std::vector<int32_t>& pmDbrs = pmToDbrMap->find(modIDs[0])->second;
+        while (index < repSize && index < dbrCount && index<pmDbrs.size())
+        {
+            dbroots->dbRoots[index] = pmDbrs[index];
+            index++;
         }
     }
     //sort(dbrnums.begin(), dbrnums.end());
-    if (!bFound) {
+    if (!index) {
         ostringstream oss;
-        oss << "ExtentMap::getMinDataDBRoots(): OID not found: " << OID_SYSTABLE_TABLENAME;
+        oss << "ExtentMap::getMinDataDBRoots(): min extenmap number of dbroot not found: " ;
         log(oss.str(), logging::LOG_TYPE_WARNING);
         throw logic_error(oss.str());
     }
-    return bFound;
+    return 0;
 };
 
 int ExtentMap::getSysDataDBRoots(DBROOTS_struct * dbroots) {
@@ -5358,7 +5394,7 @@ int ExtentMap::getSysDataDBRoots(DBROOTS_struct * dbroots) {
             return 0;
         }
         // test
-        while (index < repSize && index < dbrCount) {
+        while (index < repSize && index < dbrCount && index<pmDbrs.size()) {
             dbroots->dbRoots[index] = pmDbrs[index];
             index++;
         }
