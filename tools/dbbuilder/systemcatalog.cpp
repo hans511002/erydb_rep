@@ -59,8 +59,10 @@ void SystemCatalog::build() {
     // Create SYSTABLE table
     //------------------------------------------------------------------------------
     DBROOTS_struct dbRoot;
-    BRMWrapper::getInstance()->getSysDataDBRoots(dbRoot);
+    BRMWrapper::getInstance()->getSysDataDBRoots(&dbRoot);
     //dbRoot[0] = 1;
+    cout<<"SysDataDBRoots="<<dbRoot<<endl;
+    return;
 
     int compressionType = 0;
     uint32_t partition = 0;

@@ -5295,9 +5295,9 @@ int ExtentMap::getMinDataDBRoots(DBROOTS_struct * dbroots) {
 
 int ExtentMap::getSysDataDBRoots(DBROOTS_struct * dbroots) {
     bool bFound = false;
-    grabEMEntryTable(READ);
     int emEntries = fEMShminfo->allocdSize / sizeof(struct EMEntry);
-    if (emEntries > 0) {
+    if (emEntries > 0 && fEMShminfo->currentSize>0) {
+        grabEMEntryTable(READ);
         for (int i = 0; i < emEntries; i++) {
             if ((fExtentMap[i].range.size != 0) && (fExtentMap[i].fileID == OID_SYSTABLE_TABLENAME)) {
                 (*dbroots) = fExtentMap[i].dbRoots;
@@ -5305,6 +5305,14 @@ int ExtentMap::getSysDataDBRoots(DBROOTS_struct * dbroots) {
                 break;
             }
         }
+        releaseEMEntryTable(READ);
+        if (!bFound) {
+            ostringstream oss;
+            oss << "ExtentMap::getSysDataDBRoots(): OID not found: " << OID_SYSTABLE_TABLENAME;
+            log(oss.str(), logging::LOG_TYPE_WARNING);
+            throw logic_error(oss.str());
+        }
+        return 0;
     } else {
         oam::OamCache* oamcache = oam::OamCache::makeOamCache();
         OamCache::PMDbrootsMap_t pmToDbrMap = oamcache->getPMToDbrootsMap();
@@ -5356,14 +5364,6 @@ int ExtentMap::getSysDataDBRoots(DBROOTS_struct * dbroots) {
         }
         return 0;
     }
-    releaseEMEntryTable(READ);
-    if (emEntries > 0 && !bFound) {
-        ostringstream oss;
-        oss << "ExtentMap::getSysDataDBRoots(): OID not found: " << OID_SYSTABLE_TABLENAME;
-        log(oss.str(), logging::LOG_TYPE_WARNING);
-        throw logic_error(oss.str());
-    }
-    return bFound;
 };
 
 }	//namespace

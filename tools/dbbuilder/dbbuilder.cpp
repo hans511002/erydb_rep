@@ -112,7 +112,7 @@ int main(int argc, char* argv[]) {
     std::string schema("tpch");
     Oam oam;
     bool fFlg = false;
-
+           
     opterr = 0;
 
     while ((c = getopt(argc, argv, "u:fh")) != EOF)
