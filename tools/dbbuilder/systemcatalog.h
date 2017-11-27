@@ -30,7 +30,7 @@ class SystemCatalog
 public:
   void build();
   void remove();
-
+  void buildRep();
 private:
    WriteEngine::WriteEngineWrapper fWriteEngine;
 	

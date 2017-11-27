@@ -349,7 +349,12 @@ public:
     EXPORT void fetchLogFile(TableLogInfo & tableLogInfos, uint64_t uniqueId);
 
 	BRM::TxnID fTxnid;
-	
+    /** @brief convert parsed ddl data type to a system catalog data type
+    *
+    * @param dateType the parsed ddl data type
+    */
+    static execplan::erydbSystemCatalog::ColDataType convertDataType(int dataType);
+
 protected:
     /** @brief get a list of DDLColumns for the given schema.table
      *
@@ -359,13 +364,6 @@ protected:
      */
     EXPORT void getColumnsForTable( uint32_t sessionID, std::string schema,std::string table,
                             ColumnList& colList );
-
-    /** @brief convert parsed ddl data type to a system catalog data type
-     *
-     * @param dateType the parsed ddl data type
-     */
-    execplan::erydbSystemCatalog::ColDataType convertDataType(int dataType);
-
     /** @brief get the null representation for the given column type
      *
      * @param colType the column type

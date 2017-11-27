@@ -27,13 +27,181 @@ using namespace std;
 using namespace execplan;
 
 #include "we_colopcompress.h"
-using namespace WriteEngine;
-
 #include "resourcemanager.h"
 using namespace joblist;
 
 #include "dbbuilder.h"
+#include "ddlpkg.h"
+using namespace ddlpackage;
+#include "we_messages.h"
+using namespace WriteEngine;  
 
+#include "oamcache.h"
+using namespace oam;
+
+#include "bytestream.h"
+using namespace messageqcpp;
+
+#include "erydbsystemcatalog.h"
+using namespace execplan;
+#include "createtableprocessor.h"
+using namespace ddlpackageprocessor;
+
+
+typedef boost::shared_ptr<std::map<string, uint32_t> > StringIntMap;
+
+void SystemCatalog::buildRep()
+{
+    BRM::DBRM* dbrm = new BRM::DBRM();
+    //DDLPackageProcessor ddlProc(dbrm);
+    WriteEngine::WEClients  fWEClient(WriteEngine::WEClients::DDLPROC);
+    ByteStream bytestream;
+    uint64_t uniqueId = 0;
+    uniqueId = dbrm->getUnique64();
+    BRM::TxnID txnID;
+    txnID.id = 0;
+    txnID.valid = 0;
+    int rc = 0;
+    DBROOTS_struct dbRoot;
+    BRMWrapper::getInstance()->getSysDataDBRoots(&dbRoot);
+    cout << "SysDataDBRoots=" << dbRoot << endl;
+    StringIntMap colMap; colMap.reset(new StringIntMap::element_type());
+    int compressionType = 0;
+    string errorMsg;
+    uint32_t partition = 0;
+    uint16_t segment = 0;
+    
+    ResourceManager rm;
+    std::map<uint32_t, uint32_t> oids;
+    if (rm.useHdfs())
+    {
+        compressionType = 2;
+        oids[OID_SYSTABLE_TABLENAME] = OID_SYSTABLE_TABLENAME;
+        oids[DICTOID_SYSTABLE_TABLENAME] = DICTOID_SYSTABLE_TABLENAME;
+        oids[OID_SYSTABLE_SCHEMA] = OID_SYSTABLE_SCHEMA;
+        oids[DICTOID_SYSTABLE_SCHEMA] = DICTOID_SYSTABLE_SCHEMA;
+        oids[OID_SYSTABLE_OBJECTID] = OID_SYSTABLE_OBJECTID;
+        oids[OID_SYSTABLE_CREATEDATE] = OID_SYSTABLE_CREATEDATE;
+        oids[OID_SYSTABLE_LASTUPDATE] = OID_SYSTABLE_LASTUPDATE;
+        oids[OID_SYSTABLE_INIT] = OID_SYSTABLE_INIT;
+        oids[OID_SYSTABLE_NEXT] = OID_SYSTABLE_NEXT;
+        oids[OID_SYSTABLE_NUMOFROWS] = OID_SYSTABLE_NUMOFROWS;
+        oids[OID_SYSTABLE_AVGROWLEN] = OID_SYSTABLE_AVGROWLEN;
+        oids[OID_SYSTABLE_NUMOFBLOCKS] = OID_SYSTABLE_NUMOFBLOCKS;
+        oids[OID_SYSTABLE_AUTOINCREMENT] = OID_SYSTABLE_AUTOINCREMENT;
+    }
+
+    ColumnDef* colDefPtr;
+    ddlpackage::TableDef tableDef;
+    std::vector <erydbSystemCatalog::OID> oidList;//oidList.push_back(fStartingColOID + i + 1);
+
+    //ππ‘Ï TableDef 
+
+    ddlpackage::ColumnDefList tableDefCols = tableDef.fColumns;
+    ColumnDefList::const_iterator iter = tableDefCols.begin();
+
+    uint32_t numColumns = tableDef.fColumns.size();
+    uint32_t numDictCols = 0;
+    for (unsigned i = 0; i < numColumns; i++)
+    {
+        int dataType;
+        dataType = DDLPackageProcessor::convertDataType(tableDef.fColumns[i]->fType->fType);
+        if ((dataType == erydbSystemCatalog::CHAR && tableDef.fColumns[i]->fType->fLength > 8) ||
+            (dataType == erydbSystemCatalog::VARCHAR && tableDef.fColumns[i]->fType->fLength > 7) ||
+            (dataType == erydbSystemCatalog::VARBINARY && tableDef.fColumns[i]->fType->fLength > 7))
+            numDictCols++;
+    }
+
+    bytestream << (ByteStream::byte)WE_SVR_WRITE_CREATETABLEFILES;
+    bytestream << uniqueId;
+    bytestream << (uint32_t)txnID.id;
+    bytestream << (numColumns + numDictCols);
+    unsigned colNum = 0;
+    unsigned dictNum = 0;
+    while (iter != tableDefCols.end())
+    {
+        colDefPtr = *iter;
+        erydbSystemCatalog::ColDataType dataType = DDLPackageProcessor::convertDataType(colDefPtr->fType->fType);
+        if (dataType == erydbSystemCatalog::DECIMAL ||
+            dataType == erydbSystemCatalog::UDECIMAL)
+        {
+            if (colDefPtr->fType->fPrecision == -1 || colDefPtr->fType->fPrecision == 0)
+            {
+                colDefPtr->fType->fLength = 8;
+            } else if ((colDefPtr->fType->fPrecision > 0) && (colDefPtr->fType->fPrecision < 3))
+            {
+                colDefPtr->fType->fLength = 1;
+            }
+
+            else if (colDefPtr->fType->fPrecision < 5 && (colDefPtr->fType->fPrecision > 2))
+            {
+                colDefPtr->fType->fLength = 2;
+            } else if (colDefPtr->fType->fPrecision > 4 && colDefPtr->fType->fPrecision < 10)
+            {
+                colDefPtr->fType->fLength = 4;
+            } else if (colDefPtr->fType->fPrecision > 9 && colDefPtr->fType->fPrecision < 19)
+            {
+                colDefPtr->fType->fLength = 8;
+            }
+        }
+        bytestream << (*colMap)[colDefPtr->fName];// (fStartingColOID + (colNum++) + 1);
+        bytestream << (uint8_t)dataType;
+        bytestream << (uint8_t)false;
+
+        bytestream << (uint32_t)colDefPtr->fType->fLength;
+        bytestream << dbRoot;
+        bytestream << (uint32_t)colDefPtr->fType->fCompressiontype;
+        if ((dataType == erydbSystemCatalog::CHAR && colDefPtr->fType->fLength > 8) ||
+            (dataType == erydbSystemCatalog::VARCHAR && colDefPtr->fType->fLength > 7) ||
+            (dataType == erydbSystemCatalog::VARBINARY && colDefPtr->fType->fLength > 7))
+        {
+            bytestream << (*colMap)[colDefPtr->fName+".dic"];// (uint32_t)(fStartingColOID + numColumns + (dictNum++) + 1);
+            bytestream << (uint8_t)dataType;
+            bytestream << (uint8_t)true;
+            bytestream << (uint32_t)colDefPtr->fType->fLength;
+            bytestream << dbRoot;
+            bytestream << (uint32_t)colDefPtr->fType->fCompressiontype;
+        }
+        ++iter;
+    }
+    
+    bytestream << numDictCols;
+      
+    try
+    {
+#ifdef ERYDB_DDL_DEBUG
+        cout << fTxnid.id << " create table sending WE_SVR_WRITE_CREATETABLEFILES to pm " << pmNum << endl;
+#endif	
+        int weSize = fWEClient.write(bytestream, dbRoot);
+        rc = fWEClient.read(uniqueId, weSize, &errorMsg);
+#ifdef ERYDB_DDL_DEBUG
+        cout << "Create table We_SVR_WRITE_CREATETABLEFILES: " << errorMsg << endl;
+#endif 
+        if (rc != 0)
+        {
+            //drop the newly created files
+            bytestream.restart();
+            bytestream << (ByteStream::byte) WE_SVR_WRITE_DROPFILES;
+            bytestream << uniqueId;
+            bytestream << (uint32_t)(numColumns + numDictCols);
+            for (StringIntMap::element_type::iterator it = colMap->begin(); it != colMap->end(); it++)
+            {
+                bytestream << it->second;
+            }
+            int weSize = fWEClient.write(bytestream, dbRoot);
+            rc = fWEClient.read(uniqueId, weSize);
+            dbrm->deleteOIDs(oidList);
+        }
+    } catch (runtime_error&)
+    {
+        errorMsg = "Lost connection to Write Engine Server";
+    }
+    if (rc)
+    {
+        cerr << errorMsg << endl;
+    }
+
+}
 void SystemCatalog::build() {
     WriteEngine::TxnID txnID = 0;
     int rc;
@@ -441,6 +609,7 @@ void SystemCatalog::build() {
     cout << "System Catalog created" << endl;
     cout << endl;
 }
+
 
 void SystemCatalog::remove() {
     ColumnOpCompress0 colOp;

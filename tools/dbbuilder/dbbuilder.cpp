@@ -222,8 +222,9 @@ int main(int argc, char* argv[]) {
                 ObjectIDManager oidm;
             }
             SystemCatalog sysCatalog;
-            sysCatalog.build();
-
+            //sysCatalog.build();
+            sysCatalog.buildRep();
+            
             std::string cmd = "echo 'OK: buildOption=" + oam.itoa(buildOption) + "' > /tmp/dbbuilder.status";
             if (canWrite)
                 (void)system(cmd.c_str());
