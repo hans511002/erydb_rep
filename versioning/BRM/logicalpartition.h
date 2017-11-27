@@ -62,7 +62,14 @@ namespace BRM
     EXPORT DBROOTS_struct(const DBROOTS_struct&);
     EXPORT DBROOTS_struct& operator= (const DBROOTS_struct&);
     EXPORT DBROOTS_struct& set(const DBROOTS_struct&);
-    
+    EXPORT inline  int size() const {
+        int size = 0;
+        while (size < MAX_DATA_REPLICATESIZE && dbRoots[size])
+        {
+            size++;
+        }
+    };
+
     EXPORT void serialize(messageqcpp::ByteStream &bs) const;
 	EXPORT void deserialize(messageqcpp::ByteStream &bs);
 };

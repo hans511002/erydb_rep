@@ -65,7 +65,8 @@ public:
 	 * @note: saves a copy vs read(uint32_t, uint32_t).
 	 */
     EXPORT void read(uint32_t key, messageqcpp::SBS &);
-    EXPORT int read(uint32_t key,int size, string *errorMsg=0);
+    EXPORT int read(uint32_t key, int size, string *errorMsg = 0);
+    EXPORT int read(uint32_t key, const BRM::DBROOTS_struct & dbRoot, string *errorMsg = 0);
 
 	/** @brief write function to write to specified PM
 	*/
@@ -73,7 +74,7 @@ public:
 	
     /** @brief write function to write to all dbRoot PMs
     */
-    EXPORT void write(const messageqcpp::ByteStream &msg, const BRM::DBROOTS_struct & dbRoot);
+    EXPORT int write(const messageqcpp::ByteStream &msg, const BRM::DBROOTS_struct & dbRoot);
     /** @brief write function to write to all PMs
 	*/
 	EXPORT void write_to_all(const messageqcpp::ByteStream &msg);

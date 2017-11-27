@@ -440,6 +440,12 @@ void WEClients::read(uint32_t key, SBS &bs)
 	if (!bs)
 		bs.reset(new ByteStream());
 }
+inline int WEClients::read(uint32_t key, const BRM::DBROOTS_struct & dbRoot, string *errorMsg = 0)
+{
+    oam::OamCache * oamcache = oam::OamCache::makeOamCache();
+    std::vector<uint16_t>& pms = oamcache->getDBrootPms(dbRoot);
+    return read(key, pms.size(), errorMsg);
+};
 int WEClients::read(uint32_t key, int size, string *errorMsg) {
     ByteStream::byte tmp8;
     uint16_t msgRecived = 0;
@@ -454,15 +460,17 @@ int WEClients::read(uint32_t key, int size, string *errorMsg) {
         if (bsIn->length() == 0) //read error
         {
             rc = 10;// NETWORK_ERROR;
+            if (errorMsg) *errorMsg = "Lost connection to Write Engine Server while updating SYSTABLES";
             break;
         } else{
             *bsIn >> tmp8;
-            if(errorMsg)*bsIn >> *errorMsg;
             rc = tmp8;
             //cout << "Got error code from WES " << rc << endl;
             if (rc != 0)
+            {
+                if (errorMsg)*bsIn >> *errorMsg;
                 break;
-            else
+            } else
                 msgRecived++;
         }
     }
@@ -486,7 +494,7 @@ void WEClients::write(const messageqcpp::ByteStream &msg, uint32_t connection)
 	}
 }
 
-void WEClients::write(const messageqcpp::ByteStream &msg, const BRM::DBROOTS_struct &dbRoot)
+int WEClients::write(const messageqcpp::ByteStream &msg, const BRM::DBROOTS_struct &dbRoot)
 {
     if (pmCount == 0){
         ostringstream oss;
@@ -494,25 +502,20 @@ void WEClients::write(const messageqcpp::ByteStream &msg, const BRM::DBROOTS_str
         writeToLog(__FILE__, __LINE__, oss.str(), LOG_TYPE_DEBUG);
         throw runtime_error("There is no WriteEngineServer to send message to.");
     }
-    ClientList::iterator itor = fPmConnections.begin();
-    oam::OamCache * oamcache = oam::OamCache::makeOamCache();
-    oam::OamCache::UintUintMap dbRootPMMap = oamcache->getDBRootToPMMap();
-    for (int i = 0; i < MAX_DATA_REPLICATESIZE; i++)
+    oam::OamCache * oamcache = oam::OamCache::makeOamCache(); 
+    std::vector<uint16_t>& pms=oamcache->getDBrootPms(dbRoot);
+    for (std::vector<uint16_t>::iterator it=pms.begin();it!= pms.end();it++)
     {
-        int dbr=dbRoot.dbRoots[i];
-        if (dbr > 0){
-            int connection = (*dbRootPMMap)[dbr];
-            if (fPmConnections[connection] != 0){
-                fPmConnections[connection]->write(msg);
-            }else{
-                ostringstream os;
-                os << "Lost connection to WriteEngineServer on pm" << connection;
-                throw runtime_error(os.str());
-            }
-        } else{
-            break;
+        int connection = (*it);
+        if (fPmConnections[connection] != 0){
+            fPmConnections[connection]->write(msg);
+        }else{
+            ostringstream os;
+            os << "Lost connection to WriteEngineServer on pm" << connection;
+            throw runtime_error(os.str());
         }
     }
+    return pms.size();
 }
 void WEClients::write_to_all(const messageqcpp::ByteStream &msg)
 {

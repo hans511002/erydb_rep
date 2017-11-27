@@ -295,12 +295,12 @@ cout << fTxnid.id << " Create table allocOIDs got the starting oid " << fStartin
 			return result;
 		}
 	
-		int pmNum = 1;
+		//int pmNum = 1;
 		bytestream << dbRoots; 
 		tableDef.serialize(bytestream);
 		boost::shared_ptr<messageqcpp::ByteStream> bsIn;
 		OamCache::UintUintMap dbRootPMMap = oamcache->getDBRootToPMMap();
-		pmNum = (*dbRootPMMap)[dbRoots[0]];
+		//pmNum = (*dbRootPMMap)[dbRoots[0]];
         // MCOL-66 The DBRM can't handle concurrent DDL					   
         boost::mutex::scoped_lock lk(dbrmMutex);
 		try
@@ -308,29 +308,33 @@ cout << fTxnid.id << " Create table allocOIDs got the starting oid " << fStartin
 #ifdef ERYDB_DDL_DEBUG
 cout << fTxnid.id << " create table sending We_SVR_WRITE_SYSTABLE to pm " << pmNum << endl;
 #endif	
-			fWEClient->write(bytestream, (unsigned)pmNum);
-			while (1)
-			{
-				bsIn.reset(new ByteStream());
-				fWEClient->read(uniqueId, bsIn);
-				if ( bsIn->length() == 0 ) //read error
-				{
-					rc = NETWORK_ERROR;
-					errorMsg = "Lost connection to Write Engine Server while updating SYSTABLES";
-					break;
-				}			
-				else {
-					*bsIn >> rc;
-					if (rc != 0) {
-                        errorMsg.clear();
-						*bsIn >> errorMsg;
+			int weSize=fWEClient->write(bytestream, dbRoots);
+            rc = fWEClient->read(uniqueId, weSize, &errorMsg);
 #ifdef ERYDB_DDL_DEBUG
-cout << fTxnid.id << "Create table We_SVR_WRITE_CREATETABLEFILES: " << errorMsg << endl;
+            cout << fTxnid.id << "Create table We_SVR_WRITE_CREATETABLEFILES: " << errorMsg << endl;
 #endif
-					}
-					break;
-				}
-			}
+//			while (1)
+//			{
+//				bsIn.reset(new ByteStream());
+//				fWEClient->read(uniqueId, bsIn);
+//				if ( bsIn->length() == 0 ) //read error
+//				{
+//					rc = NETWORK_ERROR;
+//					errorMsg = "Lost connection to Write Engine Server while updating SYSTABLES";
+//					break;
+//				}			
+//				else {
+//					*bsIn >> rc;
+//					if (rc != 0) {
+//                        errorMsg.clear();
+//						*bsIn >> errorMsg;
+//#ifdef ERYDB_DDL_DEBUG
+//cout << fTxnid.id << "Create table We_SVR_WRITE_CREATETABLEFILES: " << errorMsg << endl;
+//#endif
+//					}
+//					break;
+//				}
+//			}
 		}
 		catch (runtime_error& ex) //write error
 		{
@@ -407,35 +411,40 @@ cout << fTxnid.id << " Create table We_SVR_WRITE_CREATETABLEFILES: " << errorMsg
 		}
 		bytestream << dbRoots; 
 		tableDef.serialize(bytestream);
-		pmNum = (*dbRootPMMap)[dbRoots[0]];
+		//pmNum = (*dbRootPMMap)[dbRoots[0]];
 		try
 		{
 #ifdef ERYDB_DDL_DEBUG
 cout << fTxnid.id << " create table sending WE_SVR_WRITE_CREATE_SYSCOLUMN to pm " << pmNum << endl;
 #endif	
-			fWEClient->write(bytestream, (uint32_t)pmNum);
-			while (1)
-			{
-				bsIn.reset(new ByteStream());
-				fWEClient->read(uniqueId, bsIn);
-				if ( bsIn->length() == 0 ) //read error
-				{
-					rc = NETWORK_ERROR;
-					errorMsg = "Lost connection to Write Engine Server while updating SYSTABLES";
-					break;
-				}			
-				else {
-					*bsIn >> rc;
-					if (rc != 0) {
-                        errorMsg.clear();
-						*bsIn >> errorMsg;
+            int weSize = fWEClient->write(bytestream, dbRoots);
+            rc = fWEClient->read(uniqueId, weSize, &errorMsg);
 #ifdef ERYDB_DDL_DEBUG
-cout << fTxnid.id << "Create table We_SVR_WRITE_CREATETABLEFILES: " << errorMsg << endl;
+            cout << fTxnid.id << "Create table We_SVR_WRITE_CREATETABLEFILES: " << errorMsg << endl;
 #endif
-					}
-					break;
-				}
-			}
+//			fWEClient->write(bytestream, (uint32_t)pmNum);
+//			while (1)
+//			{
+//				bsIn.reset(new ByteStream());
+//				fWEClient->read(uniqueId, bsIn);
+//				if ( bsIn->length() == 0 ) //read error
+//				{
+//					rc = NETWORK_ERROR;
+//					errorMsg = "Lost connection to Write Engine Server while updating SYSTABLES";
+//					break;
+//				}			
+//				else {
+//					*bsIn >> rc;
+//					if (rc != 0) {
+//                        errorMsg.clear();
+//						*bsIn >> errorMsg;
+//#ifdef ERYDB_DDL_DEBUG
+//cout << fTxnid.id << "Create table We_SVR_WRITE_CREATETABLEFILES: " << errorMsg << endl;
+//#endif
+//					}
+//					break;
+//				}
+//			}
 		}
 		catch (runtime_error& ex) //write error
 		{
@@ -479,11 +488,12 @@ cout << fTxnid.id << " Create table WE_SVR_WRITE_CREATE_SYSCOLUMN: " << errorMsg
 		int tableCount = systemCatalogPtr->getTableCount();
 
 		//Calculate which dbroot the columns should start
-		DBRootConfigList dbRootList = oamcache->getDBRootNums();
-		
-		uint16_t useDBRootIndex = tableCount % dbRootList.size();
+        ExtentMap em;
+        em.getMinDataDBRoots(&dbRoots);
+        //DBRootConfigList dbRootList = oamcache->getDBRootNums();
+		//uint16_t useDBRootIndex = tableCount % dbRootList.size();
 		//Find out the dbroot# corresponding the useDBRootIndex from oam
-		dbRoots = dbRootList[useDBRootIndex];
+		//dbRoots = dbRootList[useDBRootIndex];
 		
 		VERBOSE_INFO("Creating column files");
 		ColumnDef* colDefPtr;
@@ -499,7 +509,6 @@ cout << fTxnid.id << " Create table WE_SVR_WRITE_CREATE_SYSCOLUMN: " << errorMsg
 		while (iter != tableDefCols.end())
 		{
 			colDefPtr = *iter;
-
 			erydbSystemCatalog::ColDataType dataType = convertDataType(colDefPtr->fType->fType);
 			if (dataType == erydbSystemCatalog::DECIMAL ||
                 dataType == erydbSystemCatalog::UDECIMAL)
@@ -579,35 +588,40 @@ cout << fTxnid.id << " Create table WE_SVR_WRITE_CREATE_SYSCOLUMN: " << errorMsg
 			return result;
 		}
 		
-		pmNum = (*dbRootPMMap)[dbRoots[0]];
+		//pmNum = (*dbRootPMMap)[dbRoots[0]];
 		try
 		{
 #ifdef ERYDB_DDL_DEBUG
 cout << fTxnid.id << " create table sending WE_SVR_WRITE_CREATETABLEFILES to pm " << pmNum << endl;
 #endif	
-			fWEClient->write(bytestream, pmNum);
-			while (1)
-			{
-				bsIn.reset(new ByteStream());
-				fWEClient->read(uniqueId, bsIn);
-				if ( bsIn->length() == 0 ) //read error
-				{
-					rc = NETWORK_ERROR;
-					errorMsg = "Lost connection to Write Engine Server while updating SYSTABLES";
-					break;
-				}			
-				else {
-					*bsIn >> rc;
-					if (rc != 0) {
-                        errorMsg.clear();
-						*bsIn >> errorMsg;
+            int weSize = fWEClient->write(bytestream, dbRoots);
+            rc = fWEClient->read(uniqueId, weSize, &errorMsg);
 #ifdef ERYDB_DDL_DEBUG
-cout << "Create table We_SVR_WRITE_CREATETABLEFILES: " << errorMsg << endl;
+            cout << "Create table We_SVR_WRITE_CREATETABLEFILES: " << errorMsg << endl;
 #endif
-					}
-					break;
-				}
-			}
+//            fWEClient->write(bytestream, pmNum);
+//			while (1)
+//			{
+//				bsIn.reset(new ByteStream());
+//				fWEClient->read(uniqueId, bsIn);
+//				if ( bsIn->length() == 0 ) //read error
+//				{
+//					rc = NETWORK_ERROR;
+//					errorMsg = "Lost connection to Write Engine Server while updating SYSTABLES";
+//					break;
+//				}			
+//				else {
+//					*bsIn >> rc;
+//					if (rc != 0) {
+//                        errorMsg.clear();
+//						*bsIn >> errorMsg;
+//#ifdef ERYDB_DDL_DEBUG
+//cout << "Create table We_SVR_WRITE_CREATETABLEFILES: " << errorMsg << endl;
+//#endif
+//					}
+//					break;
+//				}
+//			}
 			
 			if (rc != 0) {
 				//drop the newly created files
@@ -619,22 +633,23 @@ cout << "Create table We_SVR_WRITE_CREATETABLEFILES: " << errorMsg << endl;
 				{
 					bytestream << (uint32_t)(fStartingColOID + i + 1);
 				}
-				fWEClient->write(bytestream, pmNum);
-				while (1)
-				{
-					bsIn.reset(new ByteStream());
-					fWEClient->read(uniqueId, bsIn);
-					if ( bsIn->length() == 0 ) //read error
-					{	
-						break;
-					}			
-					else {
-						break;
-					}
-				}
+                int weSize = fWEClient->write(bytestream, dbRoots);
+                rc = fWEClient->read(uniqueId, weSize);
+				//fWEClient->write(bytestream, pmNum);
+				//while (1)
+				//{
+				//	bsIn.reset(new ByteStream());
+				//	fWEClient->read(uniqueId, bsIn);
+				//	if ( bsIn->length() == 0 ) //read error
+				//	{	
+				//		break;
+				//	}			
+				//	else {
+				//		break;
+				//	}
+				//}
 				//@Bug 5464. Delete from extent map.
 				fDbrm->deleteOIDs(oidList);
-				
 			}		
 		}
 		catch (runtime_error&)

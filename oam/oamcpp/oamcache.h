@@ -60,6 +60,7 @@ public:
 	EXPORT int getLocalPMId();	// return the PM id of this machine.
 	EXPORT std::string getSystemName();
 	EXPORT std::string getModuleName();
+    EXPORT std::vector<uint16_t>& getDBrootPms(const BRM::DBROOTS_struct &dbRoot);
      
 private:
 	OamCache();
