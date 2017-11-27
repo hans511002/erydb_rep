@@ -70,7 +70,10 @@ public:
 	*/
 	EXPORT void write(const messageqcpp::ByteStream &msg, uint32_t connection);
 	
-	/** @brief write function to write to all PMs
+    /** @brief write function to write to all dbRoot PMs
+    */
+    void WEClients::write(const messageqcpp::ByteStream &msg, const BRM::DBROOTS_struct & dbRoot);
+    /** @brief write function to write to all PMs
 	*/
 	EXPORT void write_to_all(const messageqcpp::ByteStream &msg);
 

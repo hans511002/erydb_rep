@@ -37,21 +37,23 @@ namespace oam
 
 class OamCache {
 public:
-	typedef boost::shared_ptr<std::map<int, int> > dbRootPMMap_t;
-	typedef std::vector<int> dbRoots;
-	typedef boost::shared_ptr<std::map<int, dbRoots> > PMDbrootsMap_t;
+	typedef boost::shared_ptr<std::map<uint16_t, uint16_t> > IntIntMap;
+	typedef std::vector<uint16_t> dbRoots;
+	typedef boost::shared_ptr<std::map<uint16_t, dbRoots> > IntListIntMap;
 	EXPORT virtual ~OamCache();
 
 	EXPORT void checkReload();
 	EXPORT void forceReload() {mtime=0;}
 
-	EXPORT dbRootPMMap_t getDBRootToPMMap();
-	EXPORT dbRootPMMap_t getDBRootToConnectionMap();
-	EXPORT PMDbrootsMap_t getPMToDbrootsMap();
+	EXPORT IntIntMap getDBRootToPMMap();
+	EXPORT IntIntMap getDBRootToConnectionMap();
+	EXPORT IntListIntMap getPMToDbrootsMap();
 	EXPORT uint32_t getDBRootCount();
     EXPORT unsigned getPMCount();
 	EXPORT DBRootConfigList& getDBRootNums();
-	EXPORT std::vector<int> & getModuleIds();
+    EXPORT std::vector<uint16_t> & getDbrootList(uint16_t pm=0);//pm =0 localpm
+    EXPORT bool existDbroot(uint16_t dbr, uint16_t pm = 0);
+	EXPORT std::vector<uint16_t> & getModuleIds();
 	EXPORT static OamCache * makeOamCache();
     EXPORT std::string getOAMParentModuleName();
     EXPORT int getOAMParentModuleId();
@@ -62,18 +64,20 @@ public:
 private:
 	OamCache();
 	OamCache(const OamCache &);
-	OamCache & operator=(const OamCache &) const;
+	// OamCache & operator=(const OamCache &) const;
 
-	dbRootPMMap_t dbRootPMMap;
-	dbRootPMMap_t dbRootConnectionMap;
-	PMDbrootsMap_t pmDbrootsMap;
+    IntIntMap dbRootPMMap;
+    IntIntMap dbRootConnectionMap;
+    IntListIntMap pmDbrootsMap;
+    IntIntMap localDbrootMap;
+
 	uint32_t numDBRoots;
 	time_t mtime;
 	DBRootConfigList dbroots;
-	std::vector<int> moduleIds;
+	std::vector<uint16_t> moduleIds;
 	std::string OAMParentModuleName;
-    int OAMParentModuleId;
-	int mLocalPMId;	// The PM id running on this machine
+    uint16_t OAMParentModuleId;
+    uint16_t mLocalPMId;	// The PM id running on this machine
 	std::string systemName;
 	std::string moduleName;
     //localModule, localModuleType, localModuleID, ParentOAMModule, parentOAMModuleFlag, serverTypeInstall, StandbyOAMModule, standbyOAMModuleFlag

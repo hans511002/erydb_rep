@@ -56,11 +56,13 @@ using namespace logging;
 using namespace alarmmanager;
 using namespace oam;
 
+#include "oamcache.h"
 #include "we_clients.h"
 #include "we_messages.h"
 using namespace WriteEngine;
 
 #include "atomicops.h"
+
 
 namespace {
 
@@ -457,6 +459,34 @@ void WEClients::write(const messageqcpp::ByteStream &msg, uint32_t connection)
 	}
 }
 
+void WEClients::write(const messageqcpp::ByteStream &msg, const BRM::DBROOTS_struct &dbRoot)
+{
+    if (pmCount == 0){
+        ostringstream oss;
+        oss << "WECLIENT:  There is no connection to WES and this = " << this;
+        writeToLog(__FILE__, __LINE__, oss.str(), LOG_TYPE_DEBUG);
+        throw runtime_error("There is no WriteEngineServer to send message to.");
+    }
+    ClientList::iterator itor = fPmConnections.begin();
+    oam::OamCache * oamcache = oam::OamCache::makeOamCache();
+    boost::shared_ptr<std::map<int, int> > dbRootPMMap = oamcache->getDBRootToPMMap();
+    for (int i = 0; i < MAX_DATA_REPLICATESIZE; i++)
+    {
+        int dbr=dbRoot.dbRoots[i];
+        if (dbr > 0){
+            int connection = (*dbRootPMMap)[dbr];
+            if (fPmConnections[connection] != 0){
+                fPmConnections[connection]->write(msg);
+            }else{
+                ostringstream os;
+                os << "Lost connection to WriteEngineServer on pm" << connection;
+                throw runtime_error(os.str());
+            }
+        } else{
+            break;
+        }
+    }
+}
 void WEClients::write_to_all(const messageqcpp::ByteStream &msg)
 {
 	if (pmCount == 0)

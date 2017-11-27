@@ -66,7 +66,7 @@ void OamCache::checkReload()
 
 	if (config->getCurrentMTime() == mtime)
 		return;
-
+    getLocalPMId();
 	dbroots.clear();
 	oam.getSystemDbrootConfig(dbroots);
 
@@ -75,8 +75,9 @@ void OamCache::checkReload()
 	erydbassert(txt != "");
 	numDBRoots = config->fromText(txt);
 
-	dbRootPMMap.reset(new map<int, int>());
-
+    dbRootPMMap.reset(new map<uint16_t, uint16_t>());
+    localDbrootMap.reset(new map<uint16_t, uint16_t>());
+    
 	//cout << "reloading oamcache\n";	
 	for (uint32_t i = 0; i < dbroots.size(); i++) {
 		oam.getDbrootPmConfig(dbroots[i], temp);
@@ -85,17 +86,17 @@ void OamCache::checkReload()
 	}
 
 	ModuleTypeConfig moduletypeconfig; 
-	std::set<int> uniquePids;
+	std::set<uint16_t> uniquePids;
 	oam.getSystemConfig("pm", moduletypeconfig);
 	int moduleID = 0;
 	for (unsigned i = 0; i < moduletypeconfig.ModuleCount; i++) {
 		moduleID = atoi((moduletypeconfig.ModuleNetworkList[i]).DeviceName.substr(MAX_MODULE_TYPE_SIZE,MAX_MODULE_ID_SIZE).c_str());
 		uniquePids.insert(moduleID); 
 	}
-	std::set<int>::const_iterator it = uniquePids.begin();
+	std::set<uint16_t>::const_iterator it = uniquePids.begin();
 	moduleIds.clear();
 	uint32_t i = 0;
-	map<int, int> pmToConnectionMap;
+	map<uint16_t, uint16_t> pmToConnectionMap;
 #ifdef _MSC_VER
 	moduleIds.push_back(*it);
 	pmToConnectionMap[*it] = i++;
@@ -170,17 +171,22 @@ void OamCache::checkReload()
 		
 	}
 #endif
-	dbRootConnectionMap.reset(new map<int, int>());
+	dbRootConnectionMap.reset(new map<uint16_t, uint16_t>());
 	for (i = 0; i < dbroots.size(); i++)
 	{
-		map<int, int>::iterator pmIter = pmToConnectionMap.find((*dbRootPMMap)[dbroots[i]]);
+		map<uint16_t, uint16_t>::iterator pmIter = pmToConnectionMap.find((*dbRootPMMap)[dbroots[i]]);
 		if (pmIter != pmToConnectionMap.end())
 		{
+            uint16_t pmId = (*pmIter).second;
 			(*dbRootConnectionMap)[dbroots[i]] = (*pmIter).second;
+            if (pmId== mLocalPMId)
+            {
+                (*localDbrootMap)[mLocalPMId] = localDbrootMap->size();
+            }
 		}
 	}
 
-	pmDbrootsMap.reset(new OamCache::PMDbrootsMap_t::element_type());
+	pmDbrootsMap.reset(new OamCache::IntListIntMap::element_type());
 	systemStorageInfo_t t;
 	t = oam.getStorageConfig();
 	DeviceDBRootList moduledbrootlist = boost::get<2>(t);
@@ -206,21 +212,21 @@ void OamCache::checkReload()
     }
 }
 
-OamCache::dbRootPMMap_t OamCache::getDBRootToPMMap()
+OamCache::IntIntMap OamCache::getDBRootToPMMap()
 {
 	mutex::scoped_lock lk(cacheLock);
 	checkReload();
 	return dbRootPMMap;
 }
 
-OamCache::dbRootPMMap_t OamCache::getDBRootToConnectionMap()
+OamCache::IntIntMap OamCache::getDBRootToConnectionMap()
 {
 	mutex::scoped_lock lk(cacheLock);
 	checkReload();
 	return dbRootConnectionMap;
 }
 
-OamCache::PMDbrootsMap_t OamCache::getPMToDbrootsMap()
+OamCache::IntListIntMap OamCache::getPMToDbrootsMap()
 {
 	mutex::scoped_lock lk(cacheLock);
 	checkReload();
@@ -241,7 +247,7 @@ DBRootConfigList& OamCache::getDBRootNums()
 	return dbroots; 
 }
 
-std::vector<int>& OamCache::getModuleIds()
+std::vector<uint16_t>& OamCache::getModuleIds()
 {
 	mutex::scoped_lock lk(cacheLock);
 	checkReload();
@@ -326,6 +332,31 @@ unsigned OamCache::getPMCount() {
     checkReload();
     return this->moduleIds.size();
 } 
-
+std::vector<uint16_t> & OamCache::getDbrootList(uint16_t pm) {//pm =0 localpm
+    mutex::scoped_lock lk(cacheLock);
+    checkReload();
+    if (pm == 0) 
+        pm = mLocalPMId;  
+    IntListIntMap::element_type::iterator it= pmDbrootsMap->find(pm);
+    if (it != pmDbrootsMap->end()) 
+        return it->second;
+    ostringstream oss;
+    oss << "OamCache::getDbrootList: pm not found: "<<pm ;
+    BRM::log(oss.str(), logging::LOG_TYPE_ERROR);
+    throw logic_error(oss.str());
+};
+bool OamCache::existDbroot(uint16_t dbr, uint16_t pm  ) {
+    mutex::scoped_lock lk(cacheLock);
+    checkReload();
+    if (pm == 0)
+        pm = mLocalPMId;
+    if (pm == mLocalPMId)
+       return localDbrootMap->find(pm) != localDbrootMap->end();
+    std::vector<uint16_t> pmDbrlist=  getDbrootList(pm);
+    for (std::vector<uint16_t>::iterator it = pmDbrlist.begin(); it != pmDbrlist.end(); it++){
+        if (*it == dbr)
+            return true;
+    }
+    return false;
+};
 } /* namespace oam */
-

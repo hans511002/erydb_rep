@@ -9,5 +9,6 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <DebuggerFlavor>LinuxDebugger</DebuggerFlavor>
+    <RemoteTarget>-1481255179;192.168.160.21 (username=root, port=22, authentication=Password)</RemoteTarget>
   </PropertyGroup>
 </Project>
