@@ -66,8 +66,8 @@ fTxnid(txnId), fIsAutocommitOn(isAutocommitOn), fTableOid(tableOid), fDbrm(aDbrm
 	//cout << "moduleIds size is " << moduleIds.size() << endl;
 	for (unsigned i=0; i < moduleIds.size(); i++)
 	{	
-		fPMs.push_back((uint32_t)moduleIds[i]);
-		//cout << "got module id " << (uint32_t)moduleIds[i] << endl;
+		fPMs.push_back(moduleIds[i]);
+		//cout << "got module id " << moduleIds[i] << endl;
 		//cout << "fPMs[0] is " << fPMs[0] << endl;
 	}
 	fBatchLoader = new BatchLoader(fTableOid, fTxnid, fPMs);

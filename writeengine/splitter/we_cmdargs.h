@@ -50,8 +50,7 @@ class WECmdArgs
 
         void addJobFilesToVector(std::string& JobName);
     	void splitConfigFilePerTable(std::string& ConfigName, int tblCount);
-    	void write2ConfigFiles(std::vector<std::ofstream*>& Files,
-    												char*pBuff, int FileIdx);
+    	void write2ConfigFiles(std::vector<std::ofstream*>& Files,char*pBuff, int FileIdx);
     	void updateWithJobFile(int Idx);
 
     public:
@@ -103,7 +102,7 @@ class WECmdArgs
     private:	// variables for SplitterApp
         typedef std::vector<std::string> VecArgs;
         VecArgs fVecArgs;
-        typedef std::vector<unsigned int> VecInts;
+        typedef std::vector<uint16_t> VecInts;
         VecInts fPmVec;
 
         VecArgs fVecJobFiles;		//JobFiles splitter from master JobFile

@@ -41,9 +41,7 @@ namespace batchloader
 //
 // Mutex lock not needed in this function as it is only called from main thread
 //------------------------------------------------------------------------------
-BatchLoader::BatchLoader ( uint32_t tableOid,
-		execplan::erydbSystemCatalog::SCN sessionId,
-		std::vector<uint32_t>& PMs )
+BatchLoader::BatchLoader ( uint32_t tableOid,execplan::erydbSystemCatalog::SCN sessionId,std::vector<uint16_t>& PMs )
 {
 	fFirstPm=0;
 	fNextIdx=0;
@@ -86,7 +84,7 @@ BatchLoader::BatchLoader ( uint32_t tableOid,
 	4. If all dbroots have same number of extents, starts from the dbroot which has least number of blocks
 */
 //------------------------------------------------------------------------------
-void BatchLoader::selectFirstPM ( uint32_t& PMId)
+void BatchLoader::selectFirstPM (uint16_t & PMId)
 {
 	boost::shared_ptr<erydbSystemCatalog> systemCatalogPtr = erydbSystemCatalog::makeerydbSystemCatalog(fSessionId);
 	//cout << "calling tableName for oid " << fTableOid << endl;
@@ -437,7 +435,7 @@ void BatchLoader::buildBatchDistSeqVector()
  */
 
 //------------------------------------------------------------------------------
-void BatchLoader::buildBatchDistSeqVector(uint32_t StartPm)
+void BatchLoader::buildBatchDistSeqVector(uint16_t StartPm)
 {
 	fPmDistSeq.clear();
 	BlIntVec aDbCntVec(fPMs.size());
@@ -519,11 +517,11 @@ void BatchLoader::buildBatchDistSeqVector(uint32_t StartPm)
 
 //------------------------------------------------------------------------------
 
-uint32_t BatchLoader::selectNextPM()
+uint16_t BatchLoader::selectNextPM()
 {
 	if(0 == fPmDistSeq.size()) //Dist sequence not ready. First time the function is called
 	{
-		uint32_t PMId = 0;
+		uint16_t PMId = 0;
 		//cout << "selectNextPM: size is 0. " << endl;
 		selectFirstPM(PMId);
 		return 	PMId;

@@ -493,7 +493,7 @@ void WESDHandler::setup()
 // getModuleStatus will take too long. Also to test in development
 #if !defined(_MSC_VER) && !defined(SKIP_OAM_INIT)
 	{
-		vector<unsigned int>& aVec = fRef.fCmdArgs.getPmVec();
+		vector<uint16_t>& aVec = fRef.fCmdArgs.getPmVec();
 		for (unsigned int PmId = 1; (PmId <= static_cast<unsigned int>(fPmCount)); ++PmId)
 		{
 			int opState = oam::ACTIVE;
@@ -606,7 +606,7 @@ void WESDHandler::setup()
 			aWaitIntvl = 10;
 		}
 
-		std::vector<unsigned int> aPmVec = fRef.fCmdArgs.getPmVec();
+		std::vector<uint16_t> aPmVec = fRef.fCmdArgs.getPmVec();
 		WETableLockGrabber aTLG(*this);
 		string errMsg;
 		for (int aIdx = 0; aIdx < (aWaitIntvl*10); aIdx++)
@@ -748,7 +748,7 @@ void WESDHandler::setup()
 		else
 		{
 			oss << " PM ";
-			std::vector<unsigned int> aPmVec = fRef.fCmdArgs.getPmVec();
+			std::vector<uint16_t> aPmVec = fRef.fCmdArgs.getPmVec();
 			unsigned int aIdx = 0;
 			while(aIdx < aPmVec.size())
 			{
@@ -2207,7 +2207,7 @@ bool WESDHandler::check4PmArguments()
 {
 	if(fRef.fCmdArgs.getPmVecSize()>0)
 	{
-		std::vector<unsigned int> aPmVec = fRef.fCmdArgs.getPmVec();
+		std::vector<uint16_t> aPmVec = fRef.fCmdArgs.getPmVec();
 		int aSize = aPmVec.size();
 		for (int aIdx=0; aIdx< aSize; aIdx++ )
 		{

@@ -80,7 +80,7 @@ private:
 	BRM::DBRM* fDbrm;
 	WriteEngine::WEClients* fWEClient;
 	oam::OamCache *fOamcache;
-	std::vector<uint32_t> fPMs; //active PMs
+	std::vector<uint16_t> fPMs; //active PMs
 	batchloader::BatchLoader* fBatchLoader;
 	std::map<unsigned, bool> fPmState;
 	uint32_t fCurrentPMid;

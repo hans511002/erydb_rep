@@ -42,8 +42,7 @@ using namespace std;
 namespace WriteEngine
 {
 
-uint64_t WETableLockGrabber::grabTableLock(std::vector<unsigned int> &PmList,
-															uint32_t tableOID)
+uint64_t WETableLockGrabber::grabTableLock(std::vector<uint16_t> &PmList,uint32_t tableOID)
 {
 	uint64_t aLockId;
 	std::string aProcName = "cpimport";
@@ -51,12 +50,9 @@ uint64_t WETableLockGrabber::grabTableLock(std::vector<unsigned int> &PmList,
 	int32_t aSessId = -1;
 	int32_t aTxnId = -1;
 
-
-
 	try
 	{
-		aLockId = fRef.fDbrm.getTableLock(PmList, tableOID, &aProcName,
-							&aProcId, &aSessId, &aTxnId, BRM::LOADING);
+		aLockId = fRef.fDbrm.getTableLock(PmList, tableOID, &aProcName,&aProcId, &aSessId, &aTxnId, BRM::LOADING);
 	}
 	catch (std::exception &e)
 	{

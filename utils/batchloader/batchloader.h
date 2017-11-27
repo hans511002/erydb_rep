@@ -48,14 +48,14 @@ public:
      * @param sessionId cpimport use 0 as session id.
      * @param PMs vector Collection of PM ids.
      */
-    BatchLoader ( uint32_t tableOid, execplan::erydbSystemCatalog::SCN sessionId, std::vector<uint32_t>& PMs);
+    BatchLoader ( uint32_t tableOid, execplan::erydbSystemCatalog::SCN sessionId, std::vector<uint16_t>& PMs);
 
     /**
      * 	@brief select the Next PM where batch data to be distributed.
      * 	return the PM where next batch to be send.
      * 	if an error occurs, 0 will be returned
      */
-    uint32_t selectNextPM();
+    uint16_t selectNextPM();
 
     /**
 	 * 	@brief Move to previous Sequence in the array.
@@ -102,7 +102,7 @@ private:
      * @param PMId - The PM id to send the first batch of rows if startFromNextPM is false.
      * @return Returns 0 if success, else returns error code.
      */
-    void selectFirstPM ( uint32_t& PMId);
+    void selectFirstPM ( uint16_t & PMId);
 
    /** @brief build the batch distribution sequence in a vector
      * return void
@@ -112,9 +112,9 @@ private:
     /** @brief build the batch distribution sequence in a vector
       * return void
       */
-    void buildBatchDistSeqVector(uint32_t StartPm);
+    void buildBatchDistSeqVector(uint16_t StartPm);
 
-    typedef std::vector<uint32_t> BlIntVec;
+    typedef std::vector<uint16_t> BlIntVec;
 	BlIntVec fPMs;
 	BlIntVec fDbRoots;
 	BlIntVec fPmDistSeq;

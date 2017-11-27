@@ -45,8 +45,7 @@ public:
 
 public:
 
-	uint64_t grabTableLock(std::vector<unsigned int> &PmList,
-												uint32_t tableOID);
+	uint64_t grabTableLock(std::vector<uint16_t> &PmList,uint32_t tableOID);
 
 	bool releaseTableLock(uint64_t LockId);
 

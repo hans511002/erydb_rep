@@ -453,7 +453,7 @@ namespace WriteEngine
         int rc = NO_ERROR;
         lockID = 0;
 
-        std::vector<uint32_t> pmList;
+        std::vector<uint16_t> pmList;
         pmList.push_back(Config::getLocalModuleID());
 
         try
