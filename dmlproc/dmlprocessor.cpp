@@ -1650,7 +1650,7 @@ void DMLProcessor::operator()()
 }
 
 void RollbackTransactionProcessor::processBulkRollback (BRM::TableLockInfo lockInfo, BRM::DBRM * dbrm, uint64_t uniqueId, 
-						OamCache::dbRootPMMap_t& dbRootPMMap, bool & lockReleased)
+						OamCache::UintUintMap& dbRootPMMap, bool & lockReleased)
 {
 	// Take over ownership of stale lock.
 	// Use "DMLProc" as process name, session id and transaction id -1 to distinguish from real DMLProc rollback

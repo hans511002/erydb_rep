@@ -776,9 +776,9 @@ void CommandPackageProcessor::clearTableLock( uint64_t uniqueId,
 		lockGrabbed = true;
 
 		oam::OamCache* oamCache = oam::OamCache::makeOamCache();
-		oam::OamCache::dbRootPMMap_t dbRootPmMap = oamCache->getDBRootToPMMap();
-		std::map<int,int>::const_iterator mapIter;
-		std::set<int> pmSet;
+		oam::OamCache::UintUintMap dbRootPmMap = oamCache->getDBRootToPMMap();
+		std::map<uint16_t,uint16_t>::const_iterator mapIter;
+		std::set<uint16_t> pmSet;
 
 		// Construct relevant list of PMs based on the DBRoots associated
 		// with the tableLock.
@@ -799,10 +799,8 @@ void CommandPackageProcessor::clearTableLock( uint64_t uniqueId,
 			}
 		}
 
-		std::vector<int> pmList;
-		for (std::set<int>::const_iterator setIter = pmSet.begin();
-			setIter != pmSet.end();
-			++setIter)
+		std::vector<uint16_t> pmList;
+		for (std::set<uint16_t>::const_iterator setIter = pmSet.begin(); setIter != pmSet.end();++setIter)
 		{
 			pmList.push_back( *setIter );
 		}

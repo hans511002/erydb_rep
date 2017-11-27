@@ -62,7 +62,7 @@ fTxnid(txnId), fIsAutocommitOn(isAutocommitOn), fTableOid(tableOid), fDbrm(aDbrm
 	fWEClient = new WriteEngine::WEClients(WriteEngine::WEClients::DMLPROC);
 	fWEClient->addQueue(fUniqueId);
 	fOamcache = OamCache::makeOamCache();
-	std::vector<int> moduleIds = fOamcache->getModuleIds();
+	std::vector<uint16_t> moduleIds = fOamcache->getModuleIds();
 	//cout << "moduleIds size is " << moduleIds.size() << endl;
 	for (unsigned i=0; i < moduleIds.size(); i++)
 	{	

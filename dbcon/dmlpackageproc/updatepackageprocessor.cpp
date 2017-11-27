@@ -156,7 +156,7 @@ UpdatePackageProcessor::processPackage(dmlpackage::erydbDMLPackage& cpackage)
 				std::string  processName("DMLProc");
 				int i = 0;
 				OamCache * oamcache = OamCache::makeOamCache();
-				std::vector<int> pmList = oamcache->getModuleIds();
+				std::vector<uint16_t> pmList = oamcache->getModuleIds();
 				std::vector<uint32_t> pms;
 				for (unsigned i=0; i < pmList.size(); i++)
 				{
@@ -411,7 +411,7 @@ uint64_t UpdatePackageProcessor::fixUpRows(dmlpackage::erydbDMLPackage& cpackage
 	dbroot[0]=1;
 	bool metaData = false;
 	oam::OamCache * oamCache = oam::OamCache::makeOamCache();
-	std::vector<int> fPMs = oamCache->getModuleIds();
+	std::vector<uint16_t> fPMs = oamCache->getModuleIds();
 	std::map<unsigned, bool> pmState;
 	string emsg;			
 	string emsgStr;
@@ -838,8 +838,7 @@ bool UpdatePackageProcessor::processRowgroup(ByteStream & aRowGroup, DMLResult& 
 	return rc;
 }
 
-bool UpdatePackageProcessor::receiveAll(DMLResult& result, const uint64_t uniqueId, std::vector<int>& fPMs, 
-										std::map<unsigned, bool>& pmState, const uint32_t tableOid)
+bool UpdatePackageProcessor::receiveAll(DMLResult& result, const uint64_t uniqueId, std::vector<uint16_t>& fPMs, std::map<unsigned, bool>& pmState, const uint32_t tableOid)
 {
 	//check how many message we need to receive
 	uint32_t messagesNotReceived = 0;

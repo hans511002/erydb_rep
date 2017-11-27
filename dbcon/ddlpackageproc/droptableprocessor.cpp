@@ -125,7 +125,7 @@ DropTableProcessor::DDLResult DropTableProcessor::processPackage(ddlpackage::Dro
 	boost::shared_ptr<messageqcpp::ByteStream> bsIn;
 	uint64_t tableLockId = 0;
 	OamCache* oamcache = OamCache::makeOamCache();
-	std::vector<int> moduleIds = oamcache->getModuleIds();
+	std::vector<uint16_t> moduleIds = oamcache->getModuleIds();
 
     // MCOL-66 The DBRM can't handle concurrent DDL					   
     boost::mutex::scoped_lock lk(dbrmMutex);
@@ -309,7 +309,7 @@ cout << fTxnid.id << " Removing the SYSTABLEs meta data" << endl;
 			return result;
 		}
 		
-		boost::shared_ptr<std::map<int, int> > dbRootPMMap = oamcache->getDBRootToPMMap();
+		OamCache::UintUintMap dbRootPMMap = oamcache->getDBRootToPMMap();
 		pmNum = (*dbRootPMMap)[dbRoot[0]];
 		try
 		{
@@ -759,7 +759,7 @@ TruncTableProcessor::DDLResult TruncTableProcessor::processPackage(ddlpackage::T
 	uint32_t autoIncColOid = 0;
 	uint64_t tableLockId = 0;
 	OamCache * oamcache = OamCache::makeOamCache();
-	std::vector<int> moduleIds = oamcache->getModuleIds();
+	std::vector<uint16_t> moduleIds = oamcache->getModuleIds();
 	try 
 	{	
 		//check table lock
@@ -1086,7 +1086,7 @@ TruncTableProcessor::DDLResult TruncTableProcessor::processPackage(ddlpackage::T
 			bytestream << (uint32_t) colType.compressionType;
 		}
 		
-		boost::shared_ptr<std::map<int, int> > dbRootPMMap = oamcache->getDBRootToPMMap();
+		OamCache::UintUintMap dbRootPMMap = oamcache->getDBRootToPMMap();
 		pmNum = (*dbRootPMMap)[dbRoot[0]];
 		try
 		{

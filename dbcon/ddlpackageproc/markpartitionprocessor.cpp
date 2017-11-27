@@ -92,7 +92,7 @@ MarkPartitionProcessor::DDLResult MarkPartitionProcessor::processPackage(ddlpack
 		int i = 0;
 		processID = ::getpid();
 		oam::OamCache * oamcache = OamCache::makeOamCache();
-		std::vector<int> pmList = oamcache->getModuleIds();
+		std::vector<uint16_t> pmList = oamcache->getModuleIds();
 		std::vector<uint32_t> pms;
 		for (unsigned i=0; i < pmList.size(); i++)
 		{

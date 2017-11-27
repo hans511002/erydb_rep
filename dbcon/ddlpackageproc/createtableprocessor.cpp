@@ -299,7 +299,7 @@ cout << fTxnid.id << " Create table allocOIDs got the starting oid " << fStartin
 		bytestream << dbRoots; 
 		tableDef.serialize(bytestream);
 		boost::shared_ptr<messageqcpp::ByteStream> bsIn;
-		boost::shared_ptr<std::map<int, int> > dbRootPMMap = oamcache->getDBRootToPMMap();
+		OamCache::UintUintMap dbRootPMMap = oamcache->getDBRootToPMMap();
 		pmNum = (*dbRootPMMap)[dbRoots[0]];
         // MCOL-66 The DBRM can't handle concurrent DDL					   
         boost::mutex::scoped_lock lk(dbrmMutex);

@@ -131,7 +131,7 @@ namespace dmlpackageprocessor
 			int32_t sessionId = fSessionID;
 			int i = 0;
 			OamCache * oamcache = OamCache::makeOamCache();
-			std::vector<int> pmList = oamcache->getModuleIds();
+			std::vector<uint16_t> pmList = oamcache->getModuleIds();
 			std::vector<uint32_t> pms;
 			for (unsigned i=0; i < pmList.size(); i++)
 			{
@@ -358,7 +358,7 @@ namespace dmlpackageprocessor
 	dbroot[0]=1;
 	bool metaData = false;
 	oam::OamCache * oamCache = oam::OamCache::makeOamCache();
-	std::vector<int> fPMs = oamCache->getModuleIds();
+	std::vector<uint16_t> fPMs = oamCache->getModuleIds();
 	std::map<unsigned, bool> pmStateDel;
 	string emsg;			
 	string emsgStr;
@@ -742,8 +742,7 @@ bool DeletePackageProcessor::processRowgroup(ByteStream & aRowGroup, DMLResult& 
 	return rc;
 }
 
-bool DeletePackageProcessor::receiveAll(DMLResult& result, const uint64_t uniqueId, std::vector<int>& fPMs, 
-										std::map<unsigned, bool>& pmStateDel, const uint32_t tableOid)
+bool DeletePackageProcessor::receiveAll(DMLResult& result, const uint64_t uniqueId, std::vector<uint16_t>& fPMs, std::map<unsigned, bool>& pmStateDel, const uint32_t tableOid)
 {
 	//check how many message we need to receive
 	uint32_t messagesNotReceived = 0;

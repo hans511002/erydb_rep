@@ -52,8 +52,29 @@ OamCache * OamCache::makeOamCache()
 	return oamCache;
 }
 
-OamCache::OamCache() : mtime(0), mLocalPMId(0)
-{}
+OamCache::OamCache() : mtime(0), mLocalPMId(0){
+	string localModule;
+	string moduleType;
+	string fileName = startup::StartUp::installDir() + "/local/module";
+	ifstream moduleFile (fileName.c_str());
+	char line[400];
+	while (moduleFile.getline(line, 400))
+	{
+		localModule = line;
+		break;
+	}
+	moduleFile.close();
+	mLocalPMId = 0;
+	if (!localModule.empty() ) 
+	{
+    	moduleType = localModule.substr(0,MAX_MODULE_TYPE_SIZE);
+    	mLocalPMId = atoi(localModule.substr(MAX_MODULE_TYPE_SIZE,MAX_MODULE_ID_SIZE).c_str());
+    	if (moduleType != "pm")
+    	{
+    		mLocalPMId = 0;
+    	}
+    }
+}
 
 OamCache::~OamCache()
 {}
@@ -66,7 +87,6 @@ void OamCache::checkReload()
 
 	if (config->getCurrentMTime() == mtime)
 		return;
-    getLocalPMId();
 	dbroots.clear();
 	oam.getSystemDbrootConfig(dbroots);
 
@@ -268,39 +288,9 @@ int OamCache::getOAMParentModuleId() {
 
 int OamCache::getLocalPMId()
 {
-	mutex::scoped_lock lk(cacheLock);
+	// mutex::scoped_lock lk(cacheLock);
 	// This comes from the file $INSTALL/local/module, not from the xml.
-	// Thus, it's not refreshed during checkReload().
-	if (mLocalPMId > 0)
-	{
-		return mLocalPMId;
-	}
-
-	string localModule;
-	string moduleType;
-	string fileName = startup::StartUp::installDir() + "/local/module";
-	ifstream moduleFile (fileName.c_str());
-	char line[400];
-	while (moduleFile.getline(line, 400))
-	{
-		localModule = line;
-		break;
-	}
-	moduleFile.close();
-
-	if (localModule.empty() ) 
-	{
-		mLocalPMId = 0;
-		return mLocalPMId;
-	}
-
-	moduleType = localModule.substr(0,MAX_MODULE_TYPE_SIZE);
-	mLocalPMId = atoi(localModule.substr(MAX_MODULE_TYPE_SIZE,MAX_MODULE_ID_SIZE).c_str());
-	if (moduleType != "pm")
-	{
-		mLocalPMId = 0;
-	}
-
+	// Thus, it's not refreshed during checkReload(). 
 	return mLocalPMId;
 }
 

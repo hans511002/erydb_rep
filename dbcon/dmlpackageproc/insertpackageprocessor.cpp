@@ -110,7 +110,7 @@ namespace dmlpackageprocessor
 		int rc = 0;
 		std::string errorMsg;
 		OamCache * oamcache = OamCache::makeOamCache();
-		std::vector<int> moduleIds = oamcache->getModuleIds();
+		std::vector<uint16_t> moduleIds = oamcache->getModuleIds();
 		std::vector<uint32_t> pms;		
 			
 		try
@@ -263,7 +263,7 @@ namespace dmlpackageprocessor
 				if (tmpSet)
 				{
 					dbRoot = tmp.dbRoot[0];
-					boost::shared_ptr<std::map<int, int> > dbRootPMMap = oamcache->getDBRootToPMMap();
+					OamCache::UintUintMap dbRootPMMap = oamcache->getDBRootToPMMap();
 					pmNum = (*dbRootPMMap)[dbRoot[0]];
 				
 					//@Bug 4760. validate pm value

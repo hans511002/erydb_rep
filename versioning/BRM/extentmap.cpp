@@ -3676,7 +3676,7 @@ void ExtentMap::getDbRootHWMInfo(int OID, uint16_t pmNumber, EmDbRootHWMInfo_v& 
 	// Determine List of DBRoots for specified PM, and construct map of
 	// EmDbRootHWMInfo objects.
 	tr1::unordered_map<uint16_t, EmDbRootHWMInfo> emDbRootMap;
-	vector<int> dbRootList;
+	vector<uint16_t> dbRootList;
 	getPmDbRoots( pmNumber, dbRootList );
 	if ( dbRootList.size() >0 )
 	{
@@ -5256,7 +5256,7 @@ int ExtentMap::getMinDataDBRoots(DBROOTS_struct * dbroots) {
     OamCache::UintListUintMap::element_type::iterator it;
     OamCache::UintListUintMap::element_type::iterator pmend = pmToDbrMap->end();
     int repSize = this->getRepSize();
-    std::vector<int>& modIDs = oamcache->getModuleIds();
+    std::vector<uint16_t>& modIDs = oamcache->getModuleIds();
     for (std::vector<uint16_t>::iterator mit = modIDs.begin(); mit != modIDs.end(); mit++)
     {
         if (index >= repSize || index >= dbrCount)
@@ -5264,7 +5264,7 @@ int ExtentMap::getMinDataDBRoots(DBROOTS_struct * dbroots) {
         it = pmToDbrMap->find(*mit);
         if (it == pmend || it->second.size() == 0)
             continue; 
-        std::vector<int32_t>& pmDbrs = it->second;
+        std::vector<uint16_t>& pmDbrs = it->second;
         for (int i = 0; i < pmDbrs.size(); i++)
         {
             uint16_t dbrroot = pmDbrs[i];
@@ -5286,7 +5286,7 @@ int ExtentMap::getMinDataDBRoots(DBROOTS_struct * dbroots) {
         it = pmToDbrMap->find(*mit);
         if (pmExist->find(*mit)!= pmExist->end() || it == pmend || it->second.size() == 0)
             continue;
-        std::vector<int32_t>& pmDbrs = it->second;
+        std::vector<uint16_t>& pmDbrs = it->second;
         int minDbr = 0x7FFFFFFF;
         uint16_t dbrroot = 0;
         for (int i = 0; i < pmDbrs.size(); i++)
@@ -5311,7 +5311,7 @@ int ExtentMap::getMinDataDBRoots(DBROOTS_struct * dbroots) {
         return 0;
     if (pmCount == 1)// test
     {
-        std::vector<int32_t>& pmDbrs = pmToDbrMap->find(modIDs[0])->second;
+        std::vector<uint16_t>& pmDbrs = pmToDbrMap->find(modIDs[0])->second;
         while (index < repSize && index < dbrCount && index<pmDbrs.size())
         {
             dbroots->dbRoots[index] = pmDbrs[index];

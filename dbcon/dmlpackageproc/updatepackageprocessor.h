@@ -72,7 +72,7 @@ private:
      * @return the error code
      */
     bool processRowgroup(messageqcpp::ByteStream & aRowGroup, DMLResult& result, const uint64_t uniqueId, dmlpackage::erydbDMLPackage& cpackage, std::map<unsigned, bool>& pmState,DBROOTS_struct& dbroot,bool isMeta = false);
-	bool receiveAll(DMLResult& result, const uint64_t uniqueId, std::vector<int>& fPMs, std::map<unsigned, bool>& pmState, const uint32_t tableOid);
+	bool receiveAll(DMLResult& result, const uint64_t uniqueId, std::vector<uint16_t>& fPMs, std::map<unsigned, bool>& pmState, const uint32_t tableOid);
 	};
 
 }

@@ -117,7 +117,7 @@ void logFinalStatus(
 // Construct list of all PMs.
 //   pmList      - (output) List of "all" PMs where msgs are to be sent.
 //------------------------------------------------------------------------------
-int constructPMList( std::vector<uint32_t>& pmList )
+int constructPMList( std::vector<uint16_t>& pmList )
 {
 	try {
 		// Get OAM information
@@ -156,8 +156,7 @@ int constructPMList( std::vector<uint32_t>& pmList )
 //   dbRootList - List of applicable DBRoots with PMs to be notified.
 //   pmList     - (output) List of PMs to receive msgs, based on dbRootList.
 //------------------------------------------------------------------------------
-int constructPMList( const std::vector<uint32_t>& dbRootList,
-	std::vector<uint32_t>& pmList )
+int constructPMList( const std::vector<uint16_t>& dbRootList,std::vector<uint16_t>& pmList )
 {
 	uint32_t dbRoot = 0;
 	try {
@@ -206,11 +205,7 @@ int constructPMList( const std::vector<uint32_t>& dbRootList,
 //   errMsg      - (output) Any applicable error message if nonzero return
 //                 code is returned.
 //------------------------------------------------------------------------------
-int createMsgQueClts(
-	const std::vector<uint32_t>& pmList,
-	std::vector<boost::shared_ptr<messageqcpp::MessageQueueClient> >&
-		msgQueClts,
-	std::string& errMsg)
+int createMsgQueClts(const std::vector<uint16_t>& pmList,std::vector<boost::shared_ptr<messageqcpp::MessageQueueClient> >& msgQueClts,std::string& errMsg)
 {
 	errMsg.clear();
 
@@ -261,15 +256,7 @@ int createMsgQueClts(
 //   errMsg      - (output) Any applicable error message if nonzero return
 //                 code is returned.
 //------------------------------------------------------------------------------
-int sendRequest(
-	const std::vector<boost::shared_ptr<messageqcpp::MessageQueueClient> >&
-		msgQueClts,
-	const std::vector<uint32_t>& pmList,
-	BRM::DBRM* brm,
-	const BRM::TableLockInfo& tInfo,
-	const std::string& tblName,
-	ClearTableLockThread::CLRTBLLOCK_MSGTYPE msgType,
-	std::string& errMsg)
+int sendRequest(const std::vector<boost::shared_ptr<messageqcpp::MessageQueueClient> >& msgQueClts, const std::vector<uint16_t>& pmList,BRM::DBRM* brm,	const BRM::TableLockInfo& tInfo,const std::string& tblName,	ClearTableLockThread::CLRTBLLOCK_MSGTYPE msgType,std::string& errMsg)
 {
 	unsigned int pmCount = msgQueClts.size();
 	boost::thread_group tg;
@@ -331,15 +318,8 @@ int sendRequest(
 //   errMsg      - (output) Any applicable error message if nonzero return
 //                 code is returned.
 //------------------------------------------------------------------------------
-int execBulkRollbackReq(
-	const std::vector<boost::shared_ptr<messageqcpp::MessageQueueClient> >&
-		msgQueClts,
-	const std::vector<uint32_t>& pmList,
-	BRM::DBRM* brm,
-	const BRM::TableLockInfo& tInfo,
-	const std::string& tblName,
-	bool rollbackOnly,
-	std::string& errMsg)
+int execBulkRollbackReq(const std::vector<boost::shared_ptr<messageqcpp::MessageQueueClient> >& msgQueClts,	const std::vector<uint16_t>& pmList,BRM::DBRM* brm,	const BRM::TableLockInfo& tInfo,
+	const std::string& tblName,	bool rollbackOnly,	std::string& errMsg)
 {
 	errMsg.clear();
 
@@ -379,10 +359,7 @@ int execBulkRollbackReq(
 	int rc = 0;
 	if (tInfo.state == BRM::LOADING)
 	{
-		rc = sendRequest( msgQueClts, pmList,
-			brm, tInfo, tblName,
-			ClearTableLockThread::CLRTBLLOCK_MSGTYPE_ROLLBACK,
-			errMsg );
+		rc = sendRequest( msgQueClts, pmList,brm, tInfo, tblName,ClearTableLockThread::CLRTBLLOCK_MSGTYPE_ROLLBACK,errMsg );
 	}
 
 	return rc;
@@ -403,21 +380,12 @@ int execBulkRollbackReq(
 //   errMsg      - (output) Any applicable error message if nonzero return
 //                 code is returned.
 //------------------------------------------------------------------------------
-int execFileCleanupReq(
-	const std::vector<boost::shared_ptr<messageqcpp::MessageQueueClient> >&
-		msgQueClts,
-	const std::vector<uint32_t>& pmList,
-	BRM::DBRM* brm,
-	const BRM::TableLockInfo& tInfo,
-	const std::string& tblName,
+int execFileCleanupReq(	const std::vector<boost::shared_ptr<messageqcpp::MessageQueueClient> >& msgQueClts,	const std::vector<uint16_t>& pmList,BRM::DBRM* brm,	const BRM::TableLockInfo& tInfo,const std::string& tblName,
 	std::string& errMsg)
 {
 	errMsg.clear();
 
-	int rc = sendRequest( msgQueClts, pmList,
-		brm, tInfo, tblName,
-		ClearTableLockThread::CLRTBLLOCK_MSGTYPE_CLEANUP,
-		errMsg );
+	int rc = sendRequest( msgQueClts, pmList,brm, tInfo, tblName,ClearTableLockThread::CLRTBLLOCK_MSGTYPE_CLEANUP,errMsg );
 
 	return rc;
 }
@@ -500,7 +468,7 @@ int main(int argc, char** argv)
 	execplan::erydbSystemCatalog::TableName tblName;
 	BRM::TableLockInfo tInfo;
 	std::string task;
-	std::vector<uint32_t> pmList;
+	std::vector<uint16_t> pmList;
 	int rc;
 	const std::string taskSysCat("getting system catalog information");
 	try {
@@ -618,8 +586,7 @@ int main(int argc, char** argv)
 			return rc;
 		}
 
-		rc = execBulkRollbackReq( msgQueClts, pmList,
-			&brm, tInfo, tblName.toString(), rollbackOnly, errMsg );
+		rc = execBulkRollbackReq( msgQueClts, pmList, &brm, tInfo, tblName.toString(), rollbackOnly, errMsg );
 		if (rc != 0)
 		{
 			logFinalStatus( tblName.toString(), lockID, errMsg );

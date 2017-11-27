@@ -496,7 +496,7 @@ void WEClients::write(const messageqcpp::ByteStream &msg, const BRM::DBROOTS_str
     }
     ClientList::iterator itor = fPmConnections.begin();
     oam::OamCache * oamcache = oam::OamCache::makeOamCache();
-    boost::shared_ptr<std::map<int, int> > dbRootPMMap = oamcache->getDBRootToPMMap();
+    oam::OamCache::UintUintMap dbRootPMMap = oamcache->getDBRootToPMMap();
     for (int i = 0; i < MAX_DATA_REPLICATESIZE; i++)
     {
         int dbr=dbRoot.dbRoots[i];

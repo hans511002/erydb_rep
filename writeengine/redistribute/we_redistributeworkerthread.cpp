@@ -149,7 +149,7 @@ void RedistributeWorkerThread::handleRequest()
 			{
 				memcpy(&fPlanEntry, fBs.buf(), sizeof(RedistributePlanEntry));
 				fBs.advance(sizeof(RedistributePlanEntry));
-				OamCache::dbRootPMMap_t dbrootToPM = fOamCache->getDBRootToPMMap();
+				OamCache::UintUintMap dbrootToPM = fOamCache->getDBRootToPMMap();
 				fMyId.first = fPlanEntry.source;
 				fMyId.second = (*dbrootToPM)[fMyId.first];
 				fPeerId.first = fPlanEntry.destination;

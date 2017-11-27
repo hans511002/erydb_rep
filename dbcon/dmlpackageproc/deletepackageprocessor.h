@@ -80,7 +80,7 @@ private:
       * @param tablePtr a pointer to the table that is being operated on
       */
    uint64_t fixUpRows(dmlpackage::erydbDMLPackage& cpackage, DMLResult& result, const uint64_t uniqueId, const uint32_t tableOid);
-   bool receiveAll(DMLResult& result, const uint64_t uniqueId, std::vector<int>& fPMs, std::map<unsigned, bool>& pmStateDel, const uint32_t tableOid);
+   bool receiveAll(DMLResult& result, const uint64_t uniqueId, std::vector<uint16_t>& fPMs, std::map<unsigned, bool>& pmStateDel, const uint32_t tableOid);
    
 	//bandListsByExtent bandListsMap;
 

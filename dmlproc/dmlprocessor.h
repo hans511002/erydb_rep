@@ -242,7 +242,7 @@ public:
 	 }
 	 
 	 void processBulkRollback (BRM::TableLockInfo lockInfo, BRM::DBRM * dbrm, uint64_t uniqueId, 
-			oam::OamCache::dbRootPMMap_t& dbRootPMMap, bool & lockReleased);
+			oam::OamCache::UintUintMap& dbRootPMMap, bool & lockReleased);
 	
 protected:
 };

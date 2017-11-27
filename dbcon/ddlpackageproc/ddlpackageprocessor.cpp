@@ -863,7 +863,7 @@ void DDLPackageProcessor::createFiles(erydbSystemCatalog::TableName aTableName, 
 	string errorMsg;
 	try {
 		OamCache * oamcache = OamCache::makeOamCache();
-		boost::shared_ptr<std::map<int, int> > dbRootPMMap = oamcache->getDBRootToPMMap();
+		OamCache::UintUintMap dbRootPMMap = oamcache->getDBRootToPMMap();
 		int pmNum = (*dbRootPMMap)[dbRoot.dbRoots[0]];
 			
 		fWEClient->write(bytestream, (uint32_t)pmNum);

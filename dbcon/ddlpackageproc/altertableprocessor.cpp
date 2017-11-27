@@ -236,7 +236,7 @@ AlterTableProcessor::DDLResult AlterTableProcessor::processPackage(ddlpackage::A
 	
 	VERBOSE_INFO("Getting current txnID");
 	OamCache * oamcache = OamCache::makeOamCache();
-	std::vector<int> moduleIds = oamcache->getModuleIds();
+	std::vector<uint16_t> moduleIds = oamcache->getModuleIds();
 	uint64_t uniqueId = 0;
 	//Bug 5070. Added exception handling
 	try {
@@ -575,7 +575,7 @@ void AlterTableProcessor::addColumn (uint32_t sessionID, execplan::erydbSystemCa
 			
 	int pmNum = 1;
 	OamCache * oamcache = OamCache::makeOamCache();
-	boost::shared_ptr<std::map<int, int> > dbRootPMMap = oamcache->getDBRootToPMMap();
+	OamCache::UintUintMap dbRootPMMap = oamcache->getDBRootToPMMap();
 	pmNum = (*dbRootPMMap)[dbRoot[0]];
 	
 	boost::shared_ptr<messageqcpp::ByteStream> bsIn;
@@ -1074,7 +1074,7 @@ void AlterTableProcessor::dropColumn (uint32_t sessionID, execplan::erydbSystemC
 		
 	boost::shared_ptr<messageqcpp::ByteStream> bsIn;
 	OamCache * oamcache = OamCache::makeOamCache();
-	boost::shared_ptr<std::map<int, int> > dbRootPMMap = oamcache->getDBRootToPMMap();
+	OamCache::UintUintMap dbRootPMMap = oamcache->getDBRootToPMMap();
 	pmNum = (*dbRootPMMap)[dbRoot[0]];
 
 	// MCOL-66 The DBRM can't handle concurrent DDL					   
@@ -1428,7 +1428,7 @@ void AlterTableProcessor::setColumnDefault (uint32_t sessionID, execplan::erydbS
 	
 	int pmNum = 1;
 	OamCache * oamcache = OamCache::makeOamCache();
-	boost::shared_ptr<std::map<int, int> > dbRootPMMap = oamcache->getDBRootToPMMap();
+	OamCache::UintUintMap dbRootPMMap = oamcache->getDBRootToPMMap();
 	pmNum = (*dbRootPMMap)[dbRoot[0]];
 	
 	boost::shared_ptr<messageqcpp::ByteStream> bsIn;
@@ -1507,7 +1507,7 @@ void AlterTableProcessor::dropColumnDefault (uint32_t sessionID, execplan::erydb
 	
 	int pmNum = 1;
 	OamCache * oamcache = OamCache::makeOamCache();
-	boost::shared_ptr<std::map<int, int> > dbRootPMMap = oamcache->getDBRootToPMMap();
+	OamCache::UintUintMap dbRootPMMap = oamcache->getDBRootToPMMap();
 	pmNum = (*dbRootPMMap)[dbRoot[0]];
 	
 	boost::shared_ptr<messageqcpp::ByteStream> bsIn;
@@ -1695,7 +1695,7 @@ void AlterTableProcessor::renameTable (uint32_t sessionID, execplan::erydbSystem
 		
 	boost::shared_ptr<messageqcpp::ByteStream> bsIn;
 	OamCache * oamcache = OamCache::makeOamCache();
-	boost::shared_ptr<std::map<int, int> > dbRootPMMap = oamcache->getDBRootToPMMap();
+	OamCache::UintUintMap dbRootPMMap = oamcache->getDBRootToPMMap();
 	pmNum = (*dbRootPMMap)[dbRoot[0]];
 	try
 	{		
@@ -1815,7 +1815,7 @@ void AlterTableProcessor::tableComment(uint32_t sessionID, execplan::erydbSystem
     int pmNum = 1;
     rc = fDbrm->getSysCatDBRoot(sysOid, dbRoot);
     OamCache * oamcache = OamCache::makeOamCache();
-    boost::shared_ptr<std::map<int, int> > dbRootPMMap = oamcache->getDBRootToPMMap();
+    OamCache::UintUintMap dbRootPMMap = oamcache->getDBRootToPMMap();
     pmNum = (*dbRootPMMap)[dbRoot[0]];
     if (rc != 0)
         throw std::runtime_error("Error while calling getSysCatDBRoot");
@@ -1992,7 +1992,7 @@ void AlterTableProcessor::renameColumn(uint32_t sessionID, execplan::erydbSystem
 	
 	int pmNum = 1;
 	OamCache * oamcache = OamCache::makeOamCache();
-	boost::shared_ptr<std::map<int, int> > dbRootPMMap = oamcache->getDBRootToPMMap();
+	OamCache::UintUintMap dbRootPMMap = oamcache->getDBRootToPMMap();
 	pmNum = (*dbRootPMMap)[dbRoot[0]];
 	boost::shared_ptr<messageqcpp::ByteStream> bsIn;
 	
