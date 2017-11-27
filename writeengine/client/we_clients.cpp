@@ -440,7 +440,7 @@ void WEClients::read(uint32_t key, SBS &bs)
 	if (!bs)
 		bs.reset(new ByteStream());
 }
-inline int WEClients::read(uint32_t key, const BRM::DBROOTS_struct & dbRoot, string *errorMsg = 0)
+inline int WEClients::read(uint32_t key, const BRM::DBROOTS_struct & dbRoot, string *errorMsg)
 {
     oam::OamCache * oamcache = oam::OamCache::makeOamCache();
     std::vector<uint16_t>& pms = oamcache->getDBrootPms(dbRoot);

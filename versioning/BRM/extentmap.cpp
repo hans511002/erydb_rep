@@ -5228,7 +5228,7 @@ void ExtentMap::dumpTo(ostream& os)
 }
 */
 
-/** 为一个em分配备份dbroot */
+/** 为一个新的em分配备份dbroot */
 int ExtentMap::getMinDataDBRoots(DBROOTS_struct * dbroots) {
     int emEntries = fEMShminfo->allocdSize / sizeof(struct EMEntry);
     IntMap dbrnum;
@@ -5279,34 +5279,64 @@ int ExtentMap::getMinDataDBRoots(DBROOTS_struct * dbroots) {
     }
     if (index >= repSize || index >= dbrCount)
         return 0;
-    for (std::vector<uint16_t>::iterator mit = modIDs.begin(); mit != modIDs.end(); mit++)
+    //
+    OamCache::UintUintMap dbrToPmMap = oamcache->getDBRootToPMMap();
+    OamCache::UintUintMap::element_type::iterator pmit;
+    while (pmCount >1 && index < repSize && index < dbrCount)
     {
-        if (index >= repSize || index >= dbrCount)
-            return 0;
-        it = pmToDbrMap->find(*mit);
-        if (pmExist->find(*mit)!= pmExist->end() || it == pmend || it->second.size() == 0)
-            continue;
-        std::vector<uint16_t>& pmDbrs = it->second;
         int minDbr = 0x7FFFFFFF;
         uint16_t dbrroot = 0;
-        for (int i = 0; i < pmDbrs.size(); i++)
+        for (IntMap::element_type::iterator it = dbrnum->begin(); it != dbrnum->end(); it++)
         {
-            uint16_t dbr = pmDbrs[i];
-            if (dbrExist->find(dbr) != dbrExist->end())continue;
-            iter = dbrnum->find(dbr);
-            if (iter != iend && minDbr > iter->second)
+            pmit = dbrToPmMap->find(it->first);
+            if (pmit == dbrToPmMap->end()){//error
+                break;
+            }
+            if (pmExist->find(pmit->second) != pmExist->end())//exists
+                continue;
+            if (minDbr > it->second)
             {
-                minDbr = iter->second;
-                dbrroot = iter->first;
+                minDbr = it->second;
+                dbrroot = it->first;
             }
         }
         if (dbrroot)
         {
             dbroots->dbRoots[index] = dbrroot;
-            pmExist->operator[](*mit) = index;
+            pmExist->operator[](pmit->second) = index;
             dbrExist->operator[](dbrroot) = index++;
         }
     }
+   
+    ////
+    //for (std::vector<uint16_t>::iterator mit = modIDs.begin(); mit != modIDs.end(); mit++)
+    //{
+    //    if (index >= repSize || index >= dbrCount)
+    //        return 0;
+    //    it = pmToDbrMap->find(*mit);
+    //    if (pmExist->find(*mit)!= pmExist->end() || it == pmend || it->second.size() == 0)
+    //        continue;
+    //    std::vector<uint16_t>& pmDbrs = it->second;
+    //    int minDbr = 0x7FFFFFFF;
+    //    uint16_t dbrroot = 0;
+    //    for (int i = 0; i < pmDbrs.size(); i++)
+    //    {
+    //        uint16_t dbr = pmDbrs[i];
+    //        if (dbrExist->find(dbr) != dbrExist->end())continue;
+    //        iter = dbrnum->find(dbr);
+    //        if (iter != iend && minDbr > iter->second)
+    //        {
+    //            minDbr = iter->second;
+    //            dbrroot = iter->first;
+    //        }
+    //    }
+    //    if (dbrroot)
+    //    {
+    //        dbroots->dbRoots[index] = dbrroot;
+    //        pmExist->operator[](*mit) = index;
+    //        dbrExist->operator[](dbrroot) = index++;
+    //    }
+    //}
     if (index >= repSize || index >= dbrCount)
         return 0;
     if (pmCount == 1)// test
