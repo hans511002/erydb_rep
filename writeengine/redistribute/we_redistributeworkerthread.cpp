@@ -242,7 +242,7 @@ int RedistributeWorkerThread::grabTableLock()
 	fTableLockId = 0;
 	try
 	{
-		vector<uint32_t> pms;
+		vector<uint16_t> pms;
 		pms.push_back(fMyId.second);
 		if (fMyId.second != fPeerId.second)
 			pms.push_back(fPeerId.second);
@@ -272,8 +272,7 @@ int RedistributeWorkerThread::grabTableLock()
 				int32_t txnId = 0;
 				int32_t sessionId = 0;
 				string processName = "WriteEngineServer";
-				fTableLockId = fDbrm->getTableLock(pms, fPlanEntry.table,
-						&processName, &processID, &sessionId, &txnId, BRM::LOADING );
+				fTableLockId = fDbrm->getTableLock(pms, fPlanEntry.table,&processName, &processID, &sessionId, &txnId, BRM::LOADING );
 			}
 			catch (const std::exception& ex)
 			{

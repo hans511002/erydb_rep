@@ -92,12 +92,12 @@ MarkPartitionProcessor::DDLResult MarkPartitionProcessor::processPackage(ddlpack
 		int i = 0;
 		processID = ::getpid();
 		oam::OamCache * oamcache = OamCache::makeOamCache();
-		std::vector<uint16_t> pmList = oamcache->getModuleIds();
-		std::vector<uint32_t> pms;
-		for (unsigned i=0; i < pmList.size(); i++)
-		{
-			pms.push_back((uint32_t)pmList[i]);
-		}
+		std::vector<uint16_t> pms = oamcache->getModuleIds();
+		//std::vector<uint32_t> pms;
+		//for (unsigned i=0; i < pmList.size(); i++)
+		//{
+		//	pms.push_back((uint32_t)pmList[i]);
+		//}
 			
 		try {
 			uniqueID = fDbrm->getTableLock(pms, roPair.objnum, &processName, &processID, (int32_t*)&sessionID, (int32_t*)&txnID.id, BRM::LOADING );

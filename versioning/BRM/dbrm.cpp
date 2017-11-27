@@ -3160,8 +3160,7 @@ namespace BRM {
 //        }
 //    }
 
-    uint64_t DBRM::getTableLock(const vector<uint32_t> &pmList, uint32_t tableOID,
-        string *ownerName, uint32_t *ownerPID, int32_t *ownerSessionID, int32_t *ownerTxnID, LockState state) {
+    uint64_t DBRM::getTableLock(const vector<uint16_t> &pmList, uint32_t tableOID,string *ownerName, uint32_t *ownerPID, int32_t *ownerSessionID, int32_t *ownerTxnID, LockState state) {
         ByteStream command, response;
         uint8_t err;
         uint64_t ret;
@@ -3170,7 +3169,7 @@ namespace BRM {
         vector<uint16_t> dbRootsList;
         OamCache * oamcache = OamCache::makeOamCache();
         OamCache::UintListUintMap pmDbroots = oamcache->getPMToDbrootsMap();
-        int moduleId = 0;
+        uint16_t moduleId = 0;
         for (uint32_t i = 0; i < pmList.size(); i++) {
             moduleId = pmList[i];
             vector<uint16_t> dbroots = (*pmDbroots)[moduleId];

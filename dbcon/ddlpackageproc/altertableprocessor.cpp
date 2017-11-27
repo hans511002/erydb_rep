@@ -236,7 +236,7 @@ AlterTableProcessor::DDLResult AlterTableProcessor::processPackage(ddlpackage::A
 	
 	VERBOSE_INFO("Getting current txnID");
 	OamCache * oamcache = OamCache::makeOamCache();
-	std::vector<uint16_t> moduleIds = oamcache->getModuleIds();
+	std::vector<uint16_t> pms = oamcache->getModuleIds();
 	uint64_t uniqueId = 0;
 	//Bug 5070. Added exception handling
 	try {
@@ -284,11 +284,11 @@ AlterTableProcessor::DDLResult AlterTableProcessor::processPackage(ddlpackage::A
 		std::string  processName("DDLProc");
 		int i = 0;
 				
-		std::vector<uint32_t> pms;
-		for (unsigned i=0; i < moduleIds.size(); i++)
-		{
-			pms.push_back((uint32_t)moduleIds[i]);
-		}
+		//std::vector<uint32_t> pms;
+		//for (unsigned i=0; i < moduleIds.size(); i++)
+		//{
+		//	pms.push_back((uint32_t)moduleIds[i]);
+		//}
 				
 		try {
 			tableLockId = fDbrm->getTableLock(pms, roPair.objnum, &processName, &processID, &sessionId, &txnid, BRM::LOADING );

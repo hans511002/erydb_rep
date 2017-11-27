@@ -772,9 +772,7 @@ public:
 	/* returns a unique ID (> 0) for the lock on success, 0 on failure.
 	 * Also, on failure, the ownerName, pid, and session ID parameters will be set
 	 * to the owner of one of the overlapping locks. */
-	EXPORT uint64_t getTableLock(const std::vector<uint32_t> &pmList, uint32_t tableOID,
-			std::string *ownerName, uint32_t *ownerPID, int32_t *ownerSessionID,
-			int32_t *ownerTxnID, LockState state);
+	EXPORT uint64_t getTableLock(const std::vector<uint16_t> &pmList, uint32_t tableOID,std::string *ownerName, uint32_t *ownerPID, int32_t *ownerSessionID,int32_t *ownerTxnID, LockState state);
 	EXPORT bool releaseTableLock(uint64_t id);
 	EXPORT bool changeState(uint64_t id, LockState state);
 	EXPORT bool changeOwner(uint64_t id, const std::string &ownerName, uint32_t ownerPID,
@@ -785,8 +783,7 @@ public:
 	EXPORT bool getTableLockInfo(uint64_t id, TableLockInfo *out);
 
 	/** Casual partitioning support **/
-	EXPORT int markExtentInvalid(const LBID_t lbid,
-								 execplan::erydbSystemCatalog::ColDataType colDataType) DBRM_THROW;
+	EXPORT int markExtentInvalid(const LBID_t lbid,execplan::erydbSystemCatalog::ColDataType colDataType) DBRM_THROW;
 	EXPORT int markExtentsInvalid(const std::vector<LBID_t> &lbids,
 								  const std::vector<execplan::erydbSystemCatalog::ColDataType>& colDataTypes) DBRM_THROW;
 	EXPORT int getExtentMaxMin(const LBID_t lbid, int64_t& max, int64_t& min, int32_t& seqNum) throw();

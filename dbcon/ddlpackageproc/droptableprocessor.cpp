@@ -125,7 +125,7 @@ DropTableProcessor::DDLResult DropTableProcessor::processPackage(ddlpackage::Dro
 	boost::shared_ptr<messageqcpp::ByteStream> bsIn;
 	uint64_t tableLockId = 0;
 	OamCache* oamcache = OamCache::makeOamCache();
-	std::vector<uint16_t> moduleIds = oamcache->getModuleIds();
+	std::vector<uint16_t> pms = oamcache->getModuleIds();
 
     // MCOL-66 The DBRM can't handle concurrent DDL					   
     boost::mutex::scoped_lock lk(dbrmMutex);
@@ -180,11 +180,11 @@ DropTableProcessor::DDLResult DropTableProcessor::processPackage(ddlpackage::Dro
 		std::string  processName("DDLProc");
 		int i = 0;
 			
-		std::vector<uint32_t> pms;
-		for (unsigned i=0; i < moduleIds.size(); i++)
-		{
-			pms.push_back((uint32_t)moduleIds[i]);
-		}
+		//std::vector<uint32_t> pms;
+		//for (unsigned i=0; i < moduleIds.size(); i++)
+		//{
+		//	pms.push_back((uint32_t)moduleIds[i]);
+		//}
 			
 		try {
 			tableLockId = fDbrm->getTableLock(pms, roPair.objnum, &processName, &processID, &sessionId, &txnid, BRM::LOADING );
@@ -759,7 +759,7 @@ TruncTableProcessor::DDLResult TruncTableProcessor::processPackage(ddlpackage::T
 	uint32_t autoIncColOid = 0;
 	uint64_t tableLockId = 0;
 	OamCache * oamcache = OamCache::makeOamCache();
-	std::vector<uint16_t> moduleIds = oamcache->getModuleIds();
+	std::vector<uint16_t> pms = oamcache->getModuleIds();
 	try 
 	{	
 		//check table lock
@@ -772,11 +772,11 @@ TruncTableProcessor::DDLResult TruncTableProcessor::processPackage(ddlpackage::T
 		std::string  processName("DDLProc");
 		int i = 0;
 			
-		std::vector<uint32_t> pms;
-		for (unsigned i=0; i < moduleIds.size(); i++)
-		{
-			pms.push_back((uint32_t)moduleIds[i]);
-		}
+		//std::vector<uint32_t> pms;
+		//for (unsigned i=0; i < moduleIds.size(); i++)
+		//{
+		//	pms.push_back((uint32_t)moduleIds[i]);
+		//}
 		try {
 			tableLockId = fDbrm->getTableLock(pms, roPair.objnum, &processName, &processID, &sessionId, &txnid, BRM::LOADING );
 		}

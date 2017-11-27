@@ -110,15 +110,15 @@ namespace dmlpackageprocessor
 		int rc = 0;
 		std::string errorMsg;
 		OamCache * oamcache = OamCache::makeOamCache();
-		std::vector<uint16_t> moduleIds = oamcache->getModuleIds();
-		std::vector<uint32_t> pms;		
+		std::vector<uint16_t> pms = oamcache->getModuleIds();
+		//std::vector<uint32_t> pms;		
 			
 		try
 		{
-			for (unsigned int i=0; i <moduleIds.size(); i++)
-			{			
-				pms.push_back((uint32_t)moduleIds[i]);
-			}
+			//for (unsigned int i=0; i <moduleIds.size(); i++)
+			//{			
+			//	pms.push_back((uint32_t)moduleIds[i]);
+			//}
 			
 			//cout << "single insert get transaction id " << txnid.id << endl;
 			// get the table object from the package
