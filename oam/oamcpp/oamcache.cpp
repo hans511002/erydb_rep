@@ -110,6 +110,12 @@ void OamCache::checkReload()
 	oam.getSystemConfig("pm", moduletypeconfig);
 	int moduleID = 0;
 	for (unsigned i = 0; i < moduletypeconfig.ModuleCount; i++) {
+        if ((moduletypeconfig.ModuleNetworkList[i]).DeviceName.empty()){
+            ostringstream oss;
+            oss << "OamCache::checkReload(): modle ModuleNetworkList[" << i<<"] DeviceName is null";
+            BRM::log_errno(oss.str() );
+            throw runtime_error(oss.str());
+        }
 		moduleID = atoi((moduletypeconfig.ModuleNetworkList[i]).DeviceName.substr(MAX_MODULE_TYPE_SIZE,MAX_MODULE_ID_SIZE).c_str());
 		uniquePids.insert(moduleID); 
 	}
