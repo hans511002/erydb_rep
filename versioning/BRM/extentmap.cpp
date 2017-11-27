@@ -5133,7 +5133,7 @@ unsigned ExtentMap::getPMCount() {
 void ExtentMap::getPmDbRoots( int pm, vector<int>& dbRootList )
 {
 	oam::OamCache* oamcache = oam::OamCache::makeOamCache();
-	oam::OamCache::PMDbrootsMap_t pmDbroots = oamcache->getPMToDbrootsMap();
+	oam::OamCache::UintListUintMap pmDbroots = oamcache->getPMToDbrootsMap();
 
 	dbRootList.clear();
 	dbRootList = (*pmDbroots)[pm];
@@ -5250,15 +5250,15 @@ int ExtentMap::getMinDataDBRoots(DBROOTS_struct * dbroots) {
     IntMap pmExist;
     pmExist.reset(new IntMap::element_type());
     oam::OamCache* oamcache = oam::OamCache::makeOamCache();
-    OamCache::PMDbrootsMap_t pmToDbrMap = oamcache->getPMToDbrootsMap();
+    OamCache::UintListUintMap pmToDbrMap = oamcache->getPMToDbrootsMap();
     int pmCount = oamcache->getPMCount();
     int dbrCount = oamcache->getDBRootCount();
     string oamMasterName = oamcache->getOAMParentModuleName();
-    OamCache::PMDbrootsMap_t::element_type::iterator it;
-    OamCache::PMDbrootsMap_t::element_type::iterator pmend = pmToDbrMap->end();
+    OamCache::UintListUintMap::element_type::iterator it;
+    OamCache::UintListUintMap::element_type::iterator pmend = pmToDbrMap->end();
     int repSize = this->getRepSize();
     std::vector<int>& modIDs = oamcache->getModuleIds();
-    for (std::vector<int>::iterator mit = modIDs.begin(); mit != modIDs.end(); mit++)
+    for (std::vector<uint16_t>::iterator mit = modIDs.begin(); mit != modIDs.end(); mit++)
     {
         if (index >= repSize || index >= dbrCount)
             return 0;
@@ -5268,7 +5268,7 @@ int ExtentMap::getMinDataDBRoots(DBROOTS_struct * dbroots) {
         std::vector<int32_t>& pmDbrs = it->second;
         for (int i = 0; i < pmDbrs.size(); i++)
         {
-            int dbrroot = pmDbrs[i];
+            uint16_t dbrroot = pmDbrs[i];
             if (dbrnum->find(dbrroot) == dbrnum->end())
             {
                 dbroots->dbRoots[index] = dbrroot;
@@ -5280,7 +5280,7 @@ int ExtentMap::getMinDataDBRoots(DBROOTS_struct * dbroots) {
     }
     if (index >= repSize || index >= dbrCount)
         return 0;
-    for (std::vector<int>::iterator mit = modIDs.begin(); mit != modIDs.end(); mit++)
+    for (std::vector<uint16_t>::iterator mit = modIDs.begin(); mit != modIDs.end(); mit++)
     {
         if (index >= repSize || index >= dbrCount)
             return 0;
@@ -5289,10 +5289,10 @@ int ExtentMap::getMinDataDBRoots(DBROOTS_struct * dbroots) {
             continue;
         std::vector<int32_t>& pmDbrs = it->second;
         int minDbr = 0x7FFFFFFF;
-        int dbrroot = 0;
+        uint16_t dbrroot = 0;
         for (int i = 0; i < pmDbrs.size(); i++)
         {
-            int dbr = pmDbrs[i];
+            uint16_t dbr = pmDbrs[i];
             if (dbrExist->find(dbr) != dbrExist->end())continue;
             iter = dbrnum->find(dbr);
             if (iter != iend && minDbr > iter->second)
@@ -5352,14 +5352,14 @@ int ExtentMap::getSysDataDBRoots(DBROOTS_struct * dbroots) {
     } else {
         releaseEMEntryTable(READ);
         oam::OamCache* oamcache = oam::OamCache::makeOamCache();
-        OamCache::PMDbrootsMap_t pmToDbrMap = oamcache->getPMToDbrootsMap();
+        OamCache::UintListUintMap pmToDbrMap = oamcache->getPMToDbrootsMap();
         int pmCount = oamcache->getPMCount();
         int dbrCount = oamcache->getDBRootCount();
         string oamMasterName = oamcache->getOAMParentModuleName();
         int oamMasterId = oamcache->getOAMParentModuleId();
         int index = 0;
-        OamCache::PMDbrootsMap_t::element_type::iterator it=pmToDbrMap->find(oamMasterId);
-        OamCache::PMDbrootsMap_t::element_type::iterator end = pmToDbrMap->end();
+        OamCache::UintListUintMap::element_type::iterator it=pmToDbrMap->find(oamMasterId);
+        OamCache::UintListUintMap::element_type::iterator end = pmToDbrMap->end();
         if(it==end){
             ostringstream os;
             os << "ExtentMap::getSysDataDBRoots OAMParentModuleName" << oamMasterName << " not have dbroot ";
@@ -5376,9 +5376,9 @@ int ExtentMap::getSysDataDBRoots(DBROOTS_struct * dbroots) {
         dbroots->dbRoots[index] = pmDbrs[0];
         index++;
         int repSize = this->getRepSize();
-        std::vector<int>& modIDs= oamcache->getModuleIds();
+        std::vector<uint16_t>& modIDs= oamcache->getModuleIds();
         if (pmCount > 1 ){
-            for (std::vector<int>::iterator mit = modIDs.begin(); mit != modIDs.end(); mit++) {
+            for (std::vector<uint16_t>::iterator mit = modIDs.begin(); mit != modIDs.end(); mit++) {
                 if (*mit == oamMasterId) {
                     continue;
                 }

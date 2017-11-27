@@ -218,7 +218,7 @@ struct TableLockInfo : public messageqcpp::Serializeable {
 	int32_t ownerTxnID;
 	LockState state;
 	time_t creationTime;
-	std::vector<uint32_t> dbrootList;
+	std::vector<uint16_t> dbrootList;
 
 	bool overlaps(const TableLockInfo &, const std::set<uint32_t> &sPMList) const;
 	EXPORT void serialize(messageqcpp::ByteStream &bs) const;

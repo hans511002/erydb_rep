@@ -65,6 +65,7 @@
 #include "rowgroup.h"
 #include "rowaggregation.h"
 #include "funcexpwrapper.h"
+#include "oamcache.h"
 
 namespace joblist
 {
@@ -1190,7 +1191,7 @@ private:
 	uint32_t numDBRoots;
 
     /* Pseudo column filter processing.  Think about refactoring into a separate class. */
-    bool processPseudoColFilters(uint32_t extentIndex, boost::shared_ptr<std::map<int, int> > dbRootPMMap) const;
+    bool processPseudoColFilters(uint32_t extentIndex, oam::OamCache::UintUintMap dbRootPMMap) const;
     bool processOneFilterType(int8_t colWidth, int64_t value, uint32_t type) const;
     bool processSingleFilterString(int8_t BOP, int8_t colWidth, int64_t val, const uint8_t *filterString,
       uint32_t filterCount) const;

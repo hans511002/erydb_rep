@@ -186,7 +186,7 @@ void OamCache::checkReload()
 		}
 	}
 
-	pmDbrootsMap.reset(new OamCache::IntListIntMap::element_type());
+	pmDbrootsMap.reset(new OamCache::UintListUintMap::element_type());
 	systemStorageInfo_t t;
 	t = oam.getStorageConfig();
 	DeviceDBRootList moduledbrootlist = boost::get<2>(t);
@@ -212,21 +212,21 @@ void OamCache::checkReload()
     }
 }
 
-OamCache::IntIntMap OamCache::getDBRootToPMMap()
+OamCache::UintUintMap OamCache::getDBRootToPMMap()
 {
 	mutex::scoped_lock lk(cacheLock);
 	checkReload();
 	return dbRootPMMap;
 }
 
-OamCache::IntIntMap OamCache::getDBRootToConnectionMap()
+OamCache::UintUintMap OamCache::getDBRootToConnectionMap()
 {
 	mutex::scoped_lock lk(cacheLock);
 	checkReload();
 	return dbRootConnectionMap;
 }
 
-OamCache::IntListIntMap OamCache::getPMToDbrootsMap()
+OamCache::UintListUintMap OamCache::getPMToDbrootsMap()
 {
 	mutex::scoped_lock lk(cacheLock);
 	checkReload();
@@ -337,7 +337,7 @@ std::vector<uint16_t> & OamCache::getDbrootList(uint16_t pm) {//pm =0 localpm
     checkReload();
     if (pm == 0) 
         pm = mLocalPMId;  
-    IntListIntMap::element_type::iterator it= pmDbrootsMap->find(pm);
+    UintListUintMap::element_type::iterator it= pmDbrootsMap->find(pm);
     if (it != pmDbrootsMap->end()) 
         return it->second;
     ostringstream oss;

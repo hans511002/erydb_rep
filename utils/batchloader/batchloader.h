@@ -122,8 +122,8 @@ private:
 	uint32_t fFirstPm;
 	execplan::erydbSystemCatalog::SCN fSessionId;
 	uint32_t fTableOid;
-	oam::OamCache::PMDbrootsMap_t fPmDbrootMap;
-	oam::OamCache::dbRootPMMap_t fDbrootPMmap;
+	oam::OamCache::UintListUintMap fPmDbrootMap;
+	oam::OamCache::UintUintMap fDbrootPMmap;
 };
 
 } //end of namespace

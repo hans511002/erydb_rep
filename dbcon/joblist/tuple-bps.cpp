@@ -1508,7 +1508,7 @@ bool TupleBPS::processLBIDFilter(const EMEntry &emEntry) const
 	return ret;
 }
 
-bool TupleBPS::processPseudoColFilters(uint32_t extentIndex, boost::shared_ptr<map<int, int> > dbRootPMMap) const
+bool TupleBPS::processPseudoColFilters(uint32_t extentIndex, oam::OamCache::UintUintMap dbRootPMMap) const
 {
 	if (!hasPCFilter)
 		return true;
@@ -1555,8 +1555,8 @@ void TupleBPS::makeJobs(vector<Job> *jobs)
 	uint32_t blocksPerJob;
 	LBID_t startingLBID;
 	oam::OamCache *oamCache = oam::OamCache::makeOamCache();
-	boost::shared_ptr<map<int, int> > dbRootConnectionMap = oamCache->getDBRootToConnectionMap();
-	boost::shared_ptr<map<int, int> > dbRootPMMap = oamCache->getDBRootToPMMap();
+	oam::OamCache::UintUintMap dbRootConnectionMap = oamCache->getDBRootToConnectionMap();
+	oam::OamCache::UintUintMap dbRootPMMap = oamCache->getDBRootToPMMap();
 	int localPMId = oamCache->getLocalPMId();
 
 	erydbassert(ffirstStepType == SCAN);

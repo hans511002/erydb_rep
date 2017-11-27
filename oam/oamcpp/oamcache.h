@@ -37,17 +37,17 @@ namespace oam
 
 class OamCache {
 public:
-	typedef boost::shared_ptr<std::map<uint16_t, uint16_t> > IntIntMap;
+	typedef boost::shared_ptr<std::map<uint16_t, uint16_t> > UintUintMap;
 	typedef std::vector<uint16_t> dbRoots;
-	typedef boost::shared_ptr<std::map<uint16_t, dbRoots> > IntListIntMap;
+	typedef boost::shared_ptr<std::map<uint16_t, dbRoots> > UintListUintMap;
 	EXPORT virtual ~OamCache();
 
 	EXPORT void checkReload();
 	EXPORT void forceReload() {mtime=0;}
 
-	EXPORT IntIntMap getDBRootToPMMap();
-	EXPORT IntIntMap getDBRootToConnectionMap();
-	EXPORT IntListIntMap getPMToDbrootsMap();
+	EXPORT UintUintMap getDBRootToPMMap();
+	EXPORT UintUintMap getDBRootToConnectionMap();
+	EXPORT UintListUintMap getPMToDbrootsMap();
 	EXPORT uint32_t getDBRootCount();
     EXPORT unsigned getPMCount();
 	EXPORT DBRootConfigList& getDBRootNums();
@@ -66,10 +66,10 @@ private:
 	OamCache(const OamCache &);
 	// OamCache & operator=(const OamCache &) const;
 
-    IntIntMap dbRootPMMap;
-    IntIntMap dbRootConnectionMap;
-    IntListIntMap pmDbrootsMap;
-    IntIntMap localDbrootMap;
+    UintUintMap dbRootPMMap;
+    UintUintMap dbRootConnectionMap;
+    UintListUintMap pmDbrootsMap;
+    UintUintMap localDbrootMap;
 
 	uint32_t numDBRoots;
 	time_t mtime;

@@ -314,8 +314,9 @@ void pDictionaryScan::sendPrimitiveMessages()
 	uint32_t partNum;
 	uint16_t segNum;
 	BRM::OID_t oid;
-	boost::shared_ptr<map<int, int> > dbRootConnectionMap;
-	boost::shared_ptr<map<int, int> > dbRootPMMap;
+	    
+	oam::OamCache::UintUintMap dbRootConnectionMap;
+	oam::OamCache::UintUintMap dbRootPMMap;
 	oam::OamCache *oamCache = oam::OamCache::makeOamCache();
 	int localPMId = oamCache->getLocalPMId();
 

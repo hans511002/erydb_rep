@@ -51,11 +51,11 @@ BatchLoader::BatchLoader ( uint32_t tableOid,
 	fSessionId = sessionId;
 	fTableOid = tableOid;
 	OamCache * oamcache = OamCache::makeOamCache();
-	oam::OamCache::PMDbrootsMap_t systemPmDbrootMap = oamcache->getPMToDbrootsMap();
-	std::map<int, OamCache::dbRoots>::iterator iter = systemPmDbrootMap->begin();
+	oam::OamCache::UintListUintMap systemPmDbrootMap = oamcache->getPMToDbrootsMap();
+	std::map<uint16_t, OamCache::dbRoots>::iterator iter = systemPmDbrootMap->begin();
 	//cout << "fPMs size is " << fPMs.size() << endl;
-	fPmDbrootMap.reset(new OamCache::PMDbrootsMap_t::element_type());
-	fDbrootPMmap.reset(new map<int, int>());
+	fPmDbrootMap.reset(new OamCache::UintListUintMap::element_type());
+	fDbrootPMmap.reset(new OamCache::UintUintMap::element_type());
 	for (uint32_t i=0; i < fPMs.size(); i++)
 	{
 		iter = systemPmDbrootMap->find(fPMs[i]);
@@ -184,7 +184,7 @@ void BatchLoader::selectFirstPM ( uint32_t& PMId)
 	PMId = 0;
 	if ( createdDbroot != 0)
 	{
-		std::map<int, int>::iterator iter = fDbrootPMmap->begin();
+		std::map<uint16_t, uint16_t>::iterator iter = fDbrootPMmap->begin();
 	
 		iter = fDbrootPMmap->find(createdDbroot);
 		if (iter != fDbrootPMmap->end())
@@ -207,7 +207,7 @@ void BatchLoader::selectFirstPM ( uint32_t& PMId)
 	if (!startDBRootSet)
 	{
 		std::vector<PMRootInfo> rootsExtentsBlocks;
-		std::map<int, OamCache::dbRoots>::iterator iter;
+		std::map<uint16_t, OamCache::dbRoots>::iterator iter;
 
 		//----------------------------------------------------------------------
 		// Load rootsExtentsBlocks to carry the number of extents and blocks
@@ -382,7 +382,7 @@ void BatchLoader::buildBatchDistSeqVector()
 	fPmDistSeq.clear();
 	BlIntVec aDbCntVec(fPMs.size());
 
-	std::map<int, OamCache::dbRoots>::iterator iter = fPmDbrootMap->begin();
+	std::map<uint16_t, OamCache::dbRoots>::iterator iter = fPmDbrootMap->begin();
 	for (uint32_t i=0; i < fPMs.size(); i++)
 	{
 		iter = fPmDbrootMap->find(fPMs[i]);
@@ -470,7 +470,7 @@ void BatchLoader::buildBatchDistSeqVector(uint32_t StartPm)
 	}
 
 
-	std::map<int, OamCache::dbRoots>::iterator iter = fPmDbrootMap->begin();
+	std::map<uint16_t, OamCache::dbRoots>::iterator iter = fPmDbrootMap->begin();
 	for (uint32_t i=0; i < aPms.size(); i++)
 	{
 		iter = fPmDbrootMap->find(aPms[i]);
