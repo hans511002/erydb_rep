@@ -5366,7 +5366,7 @@ int ExtentMap::getSysDataDBRoots(DBROOTS_struct * dbroots) {
             Oam::writeLog(os.str(), logging::LOG_TYPE_ERROR);
             return -1;
         }
-        std::vector<int32_t>& pmDbrs= it->second;
+        std::vector<uint16_t>& pmDbrs= it->second;
         if (pmDbrs.size() == 0) {
             ostringstream os;
             os << "ExtentMap::getSysDataDBRoots OAMParentModuleName" << oamMasterName << " not have dbroot ";
