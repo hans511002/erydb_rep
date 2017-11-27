@@ -5130,11 +5130,10 @@ unsigned ExtentMap::getPMCount() {
 // Get list of DBRoots that map to the specified PM.  DBRoot list is cached
 // internally in fPmDbRootMap after getting from erydb.xml via OAM.
 //------------------------------------------------------------------------------
-void ExtentMap::getPmDbRoots( int pm, vector<int>& dbRootList )
+void ExtentMap::getPmDbRoots( int pm, vector<uint16_t>& dbRootList )
 {
 	oam::OamCache* oamcache = oam::OamCache::makeOamCache();
 	oam::OamCache::UintListUintMap pmDbroots = oamcache->getPMToDbrootsMap();
-
 	dbRootList.clear();
 	dbRootList = (*pmDbroots)[pm];
 }

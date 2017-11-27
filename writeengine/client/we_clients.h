@@ -64,7 +64,8 @@ public:
 	 * @param bs A pointer to the ByteStream to fill in.
 	 * @note: saves a copy vs read(uint32_t, uint32_t).
 	 */
-	EXPORT void read(uint32_t key, messageqcpp::SBS &);
+    EXPORT void read(uint32_t key, messageqcpp::SBS &);
+    EXPORT int read(uint32_t key,int size, string *errorMsg=0);
 
 	/** @brief write function to write to specified PM
 	*/
@@ -103,7 +104,7 @@ public:
 
 	EXPORT void Setup();
 
-	uint64_t connectedWEServers() const { return fPmConnections.size(); }
+	uint16_t connectedWEServers() const { return fPmConnections.size(); }
 	
 	/** @brief accessor
 	 */

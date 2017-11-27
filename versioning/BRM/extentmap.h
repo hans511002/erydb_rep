@@ -863,7 +863,7 @@ private:
     unsigned getRepSize();
     unsigned getPMCount();
 	unsigned getDbRootCount();
-	void getPmDbRoots(int pm, std::vector<int>& dbRootList);
+	void getPmDbRoots(int pm, std::vector<uint16_t>& dbRootList);
 	void checkReloadConfig();
 	ShmKeys fShmKeys;
 

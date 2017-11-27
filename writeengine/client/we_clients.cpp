@@ -440,7 +440,34 @@ void WEClients::read(uint32_t key, SBS &bs)
 	if (!bs)
 		bs.reset(new ByteStream());
 }
-
+int WEClients::read(uint32_t key, int size, string *errorMsg) {
+    ByteStream::byte tmp8;
+    uint16_t msgRecived = 0;
+    boost::shared_ptr<messageqcpp::ByteStream> bsIn;
+    bsIn.reset(new ByteStream());
+    int rc = 0;
+    while (1)
+    {
+        if (msgRecived == size)
+            break;
+        read(key, bsIn);
+        if (bsIn->length() == 0) //read error
+        {
+            rc = 10;// NETWORK_ERROR;
+            break;
+        } else{
+            *bsIn >> tmp8;
+            if(errorMsg)*bsIn >> *errorMsg;
+            rc = tmp8;
+            //cout << "Got error code from WES " << rc << endl;
+            if (rc != 0)
+                break;
+            else
+                msgRecived++;
+        }
+    }
+    return rc;
+};
 void WEClients::write(const messageqcpp::ByteStream &msg, uint32_t connection)
 {
 	if (pmCount == 0)
