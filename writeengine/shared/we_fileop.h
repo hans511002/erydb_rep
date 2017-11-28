@@ -176,18 +176,8 @@ public:
     * @param hdrs (in/out) Contents of headers, if file is compressed.
     * @return returns NO_ERROR if success.
     */
-    EXPORT int          extendFile(OID oid, uint64_t emptyVal,
-                            int          width,
-                            HWM          hwm,
-                            BRM::LBID_t  startLbid,
-                            int          allocSize,
-        DBROOTS_struct&     dbRoot,
-                            uint32_t     partition,
-                            uint16_t     segment,
-                            std::string& segFile,
-                            ERYDBDataFile*&       pFile,
-                            bool&        newFile,
-                            char*        hdrs);
+    EXPORT int          extendFile(OID oid, uint64_t emptyVal,int width,HWM hwm,BRM::LBID_t  startLbid,int allocSize,DBROOTS_struct& dbRoot,
+                                   uint32_t partition,uint16_t segment,std::string& segFile,ERYDBDataFile*& pFile,bool& newFile,char* hdrs);
 
    /**
     * @brief  For alter table add column; add an extent to a specific file

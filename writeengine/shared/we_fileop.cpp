@@ -207,13 +207,13 @@ namespace WriteEngine
         uint16_t segment = 0; // should always be 0 when starting a new column
         int   rc=0;
         int i = 0;
-        oam::OamCache* oamcache = oam::OamCache::makeOamCache();
         // allocatColExtent() treats dbRoot and partition as in/out
         // arguments, so we need to pass in a non-const variable.
         DBROOTS_struct dbRootx = dbRoot;
         uint32_t partitionx = partition;
         BRM::LBID_t startLbid;
         uint32_t startBlock;
+        oam::OamCache* oamcache = oam::OamCache::makeOamCache();
         while (1)
         {
             uint16_t dbr = dbRoot[i];
@@ -511,206 +511,174 @@ namespace WriteEngine
      *    NO_ERROR if success
      *    else the applicable error code is returned
      ***********************************************************/
-    int FileOp::extendFile(
-        OID          oid,
-        uint64_t     emptyVal,
-        int          width,
-        HWM          hwm,
-        BRM::LBID_t  startLbid,
-        int          allocSize,
-        DBROOTS_struct&     dbRoot,
-        uint32_t     partition,
-        uint16_t     segment,
-        std::string& segFile,
-        ERYDBDataFile*& pFile,
-        bool&        newFile,
-        char*        hdrs)
+    int FileOp::extendFile(OID oid,uint64_t emptyVal,int width,HWM hwm,BRM::LBID_t  startLbid,int allocSize,DBROOTS_struct& dbRoot,
+                           uint32_t partition,uint16_t segment,std::string& segFile,ERYDBDataFile*& pFile,bool& newFile,char* hdrs)
     {
         int rc = NO_ERROR;
         pFile = 0;
         segFile.clear();
         newFile = false;
         char fileName[FILE_NAME_SIZE];
-
-        // If starting hwm or fbo is 0 then this is the first extent of a new file,
-        // else we are adding an extent to an existing segment file
-        if (hwm > 0) // db segment file should exist
+        oam::OamCache* oamcache = oam::OamCache::makeOamCache();
+        int dbrIndex = 0;
+        while (1)
         {
-            RETURN_ON_ERROR(oid2FileName(oid, fileName, false, dbRoot[0], partition, segment));
-            segFile = fileName;
-
-            if (!exists(fileName))
+            uint16_t dbr = dbRoot[dbrIndex];
+            dbrIndex++;
+            if (dbr == 0)break;
+            if (!oamcache->existDbroot(dbr))continue; 
+            // If starting hwm or fbo is 0 then this is the first extent of a new file,
+            // else we are adding an extent to an existing segment file
+            if (hwm > 0) // db segment file should exist
             {
-                ostringstream oss;
-                oss << "oid: " << oid << " with path " << segFile;
-                logging::Message::Args args;
-                args.add("File not found ");
-                args.add(oss.str());
-                args.add("");
-                args.add("");
-                SimpleSysLog::instance()->logMsg(args,
-                                                 logging::LOG_TYPE_ERROR,
-                                                 logging::M0001);
-                return ERR_FILE_NOT_EXIST;
-            }
-
-            pFile = openFile(oid, dbRoot[0], partition, segment,
-                             segFile, "r+b");//old file
-            if (pFile == 0)
-            {
-                ostringstream oss;
-                oss << "oid: " << oid << " with path " << segFile;
-                logging::Message::Args args;
-                args.add("Error opening file ");
-                args.add(oss.str());
-                args.add("");
-                args.add("");
-                SimpleSysLog::instance()->logMsg(args,
-                                                 logging::LOG_TYPE_ERROR,
-                                                 logging::M0001);
-                return ERR_FILE_OPEN;
-            }
-
-            if (isDebug(DEBUG_1) && getLogger())
-            {
-                std::ostringstream oss;
-                oss << "Opening existing column file" <<
-                    ": OID-" << oid <<
-                    "; DBRoot-" << dbRoot <<
-                    "; part-" << partition <<
-                    "; seg-" << segment <<
-                    "; LBID-" << startLbid <<
-                    "; hwm-" << hwm <<
-                    "; file-" << segFile;
-                getLogger()->logMsg(oss.str(), MSGLVL_INFO2);
-            }
-
-            // @bug 5349: check that new extent's fbo is not past current EOF
-            if (m_compressionType)
-            {
-                char hdrsIn[compress::ERYDBCompressInterface::HDR_BUF_LEN * 2];
-                RETURN_ON_ERROR(readHeaders(pFile, hdrsIn));
-
-                ERYDBCompressInterface compressor;
-                unsigned int ptrCount = compressor.getPtrCount(hdrsIn);
-                unsigned int chunkIndex = 0;
-                unsigned int blockOffsetWithinChunk = 0;
-                compressor.locateBlock((hwm - 1), chunkIndex, blockOffsetWithinChunk);
-
-                //std::ostringstream oss1;
-                //oss1 << "Extending compressed column file"<<
-                //   ": OID-"    << oid       <<
-                //   "; LBID-"   << startLbid <<
-                //   "; fbo-"    << hwm       <<
-                //   "; file-"   << segFile   <<
-                //   "; chkidx-" << chunkIndex<<
-                //   "; numPtrs-"<< ptrCount;
-                //getLogger()->logMsg( oss1.str(), MSGLVL_INFO2 );
-
-                if (chunkIndex >= ptrCount)
+                RETURN_ON_ERROR(oid2FileName(oid, fileName, false, dbr, partition, segment));
+                segFile = fileName; 
+                if (!exists(fileName))
                 {
                     ostringstream oss;
-                    oss << "oid: " << oid << " with path " << segFile <<
-                        "; new extent fbo " << hwm << "; number of "
-                        "compressed chunks " << ptrCount;
+                    oss << "oid: " << oid << " with path " << segFile;
                     logging::Message::Args args;
-                    args.add("compressed");
+                    args.add("File not found ");
                     args.add(oss.str());
-                    SimpleSysLog::instance()->logMsg(args,
-                                                     logging::LOG_TYPE_ERROR,
-                                                     logging::M0103);
-                    return ERR_FILE_NEW_EXTENT_FBO;
-                }
-
-                if (hdrs)
-                {
-                    memcpy(hdrs, hdrsIn, sizeof(hdrsIn));
-                }
-            } else
-            {
-                long long fileSize;
-                RETURN_ON_ERROR(getFileSize(pFile, fileSize));
-                long long calculatedFileSize = ((long long)hwm) * BYTE_PER_BLOCK;
-
-                //std::ostringstream oss2;
-                //oss2 << "Extending uncompressed column file"<<
-                //   ": OID-"    << oid       <<
-                //   "; LBID-"   << startLbid <<
-                //   "; fbo-"    << hwm       <<
-                //   "; file-"   << segFile   <<
-                //   "; filesize-"<<fileSize;
-                //getLogger()->logMsg( oss2.str(), MSGLVL_INFO2 );
-
-                if (calculatedFileSize > fileSize)
+                    args.add("");
+                    args.add("");
+                    SimpleSysLog::instance()->logMsg(args,logging::LOG_TYPE_ERROR,logging::M0001);
+                    return ERR_FILE_NOT_EXIST;
+                } 
+                pFile = openFile(oid, dbr, partition, segment, segFile, "r+b");//old file
+                if (pFile == 0)
                 {
                     ostringstream oss;
-                    oss << "oid: " << oid << " with path " << segFile <<
-                        "; new extent fbo " << hwm << "; file size (bytes) " <<
-                        fileSize;
+                    oss << "oid: " << oid << " with path " << segFile;
                     logging::Message::Args args;
-                    args.add("uncompressed");
+                    args.add("Error opening file ");
                     args.add(oss.str());
-                    SimpleSysLog::instance()->logMsg(args,
-                                                     logging::LOG_TYPE_ERROR,
-                                                     logging::M0103);
-                    return ERR_FILE_NEW_EXTENT_FBO;
+                    args.add("");
+                    args.add("");
+                    SimpleSysLog::instance()->logMsg(args,logging::LOG_TYPE_ERROR,logging::M0001);
+                    return ERR_FILE_OPEN;
                 }
-            }
-        } else // db segment file should not exist
-        {
-            RETURN_ON_ERROR(oid2FileName(oid, fileName, true, dbRoot[0], partition, segment));
-            segFile = fileName;
 
-            // if obsolete file exists, "w+b" will truncate and write over
-            pFile = openFile(fileName, "w+b");//new file
-            if (pFile == 0)
-                return ERR_FILE_CREATE;
+                if (isDebug(DEBUG_1) && getLogger())
+                {
+                    std::ostringstream oss;
+                    oss << "Opening existing column file" <<": OID-" << oid <<"; DBRoot-" << dbRoot <<"; part-" << partition <<
+                        "; seg-" << segment <<"; LBID-" << startLbid <<"; hwm-" << hwm <<"; file-" << segFile;
+                    getLogger()->logMsg(oss.str(), MSGLVL_INFO2);
+                } 
+                // @bug 5349: check that new extent's fbo is not past current EOF
+                if (m_compressionType)
+                {
+                    char hdrsIn[compress::ERYDBCompressInterface::HDR_BUF_LEN * 2];
+                    RETURN_ON_ERROR(readHeaders(pFile, hdrsIn));
 
-            newFile = true;
-            if (isDebug(DEBUG_1) && getLogger())
+                    ERYDBCompressInterface compressor;
+                    unsigned int ptrCount = compressor.getPtrCount(hdrsIn);
+                    unsigned int chunkIndex = 0;
+                    unsigned int blockOffsetWithinChunk = 0;
+                    compressor.locateBlock((hwm - 1), chunkIndex, blockOffsetWithinChunk);
+
+                    //std::ostringstream oss1;
+                    //oss1 << "Extending compressed column file"<<
+                    //   ": OID-"    << oid       <<
+                    //   "; LBID-"   << startLbid <<
+                    //   "; fbo-"    << hwm       <<
+                    //   "; file-"   << segFile   <<
+                    //   "; chkidx-" << chunkIndex<<
+                    //   "; numPtrs-"<< ptrCount;
+                    //getLogger()->logMsg( oss1.str(), MSGLVL_INFO2 );
+
+                    if (chunkIndex >= ptrCount)
+                    {
+                        ostringstream oss;
+                        oss << "oid: " << oid << " with path " << segFile <<"; new extent fbo " << hwm << "; number of ""compressed chunks " << ptrCount;
+                        logging::Message::Args args;
+                        args.add("compressed");
+                        args.add(oss.str());
+                        SimpleSysLog::instance()->logMsg(args,logging::LOG_TYPE_ERROR,logging::M0103);
+                        return ERR_FILE_NEW_EXTENT_FBO;
+                    }
+
+                    if (hdrs)
+                    {
+                        memcpy(hdrs, hdrsIn, sizeof(hdrsIn));
+                    }
+                } else
+                {
+                    long long fileSize;
+                    RETURN_ON_ERROR(getFileSize(pFile, fileSize));
+                    long long calculatedFileSize = ((long long)hwm) * BYTE_PER_BLOCK;
+
+                    //std::ostringstream oss2;
+                    //oss2 << "Extending uncompressed column file"<<
+                    //   ": OID-"    << oid       <<
+                    //   "; LBID-"   << startLbid <<
+                    //   "; fbo-"    << hwm       <<
+                    //   "; file-"   << segFile   <<
+                    //   "; filesize-"<<fileSize;
+                    //getLogger()->logMsg( oss2.str(), MSGLVL_INFO2 );
+
+                    if (calculatedFileSize > fileSize)
+                    {
+                        ostringstream oss;
+                        oss << "oid: " << oid << " with path " << segFile <<
+                            "; new extent fbo " << hwm << "; file size (bytes) " <<
+                            fileSize;
+                        logging::Message::Args args;
+                        args.add("uncompressed");
+                        args.add(oss.str());
+                        SimpleSysLog::instance()->logMsg(args,
+                                                         logging::LOG_TYPE_ERROR,
+                                                         logging::M0103);
+                        return ERR_FILE_NEW_EXTENT_FBO;
+                    }
+                }
+            } else // db segment file should not exist
             {
-                std::ostringstream oss;
-                oss << "Opening new column file" <<
-                    ": OID-" << oid <<
-                    "; DBRoot-" << dbRoot <<
-                    "; part-" << partition <<
-                    "; seg-" << segment <<
-                    "; LBID-" << startLbid <<
-                    "; hwm-" << hwm <<
-                    "; file-" << segFile;
-                getLogger()->logMsg(oss.str(), MSGLVL_INFO2);
-            }
+                RETURN_ON_ERROR(oid2FileName(oid, fileName, true, dbr, partition, segment));
+                segFile = fileName;
+                // if obsolete file exists, "w+b" will truncate and write over
+                pFile = openFile(fileName, "w+b");//new file
+                if (pFile == 0)
+                    return ERR_FILE_CREATE;
 
-            if ((m_compressionType) && (hdrs))
-            {
-                ERYDBCompressInterface compressor;
-                compressor.initHdr(hdrs, m_compressionType);
-            }
-        }
+                newFile = true;
+                if (isDebug(DEBUG_1) && getLogger())
+                {
+                    std::ostringstream oss;
+                    oss << "Opening new column file" <<": OID-" << oid <<"; DBRoot-" << dbRoot <<"; part-" << partition <<"; seg-" << segment <<
+                        "; LBID-" << startLbid <<"; hwm-" << hwm <<"; file-" << segFile;
+                    getLogger()->logMsg(oss.str(), MSGLVL_INFO2);
+                }
+
+                if ((m_compressionType) && (hdrs))
+                {
+                    ERYDBCompressInterface compressor;
+                    compressor.initHdr(hdrs, m_compressionType);
+                }
+                }
 #ifdef _MSC_VER
-        //Need to call the win version with a dir, not a file
-        if (!isDiskSpaceAvail(Config::getDBRootByNum(dbRoot), allocSize))
+            //Need to call the win version with a dir, not a file
+            if (!isDiskSpaceAvail(Config::getDBRootByNum(dbr), allocSize))
 #else
-        if (!isDiskSpaceAvail(segFile, allocSize))
+            if (!isDiskSpaceAvail(segFile, allocSize))
 #endif
-        {
-            return ERR_FILE_DISK_SPACE;
-        }
+            {
+                return ERR_FILE_DISK_SPACE;
+            }
 
-        // We set to EOF just before we start adding the blocks for the new extent.
-        // At one time, I considered changing this to seek to the HWM block, but
-        // with compressed files, this is murky; do I find and seek to the chunk
-        // containing the HWM block?  So I left as-is for now, seeking to EOF.
-        rc = setFileOffset(pFile, 0, SEEK_END);
-        if (rc != NO_ERROR)
-            return rc;
+            // We set to EOF just before we start adding the blocks for the new extent.
+            // At one time, I considered changing this to seek to the HWM block, but
+            // with compressed files, this is murky; do I find and seek to the chunk
+            // containing the HWM block?  So I left as-is for now, seeking to EOF.
+            rc = setFileOffset(pFile, 0, SEEK_END);
+            if (rc != NO_ERROR)
+                return rc;
 
-        // Initialize the contents of the extent.
-        rc = initColumnExtent(pFile, dbRoot, allocSize, emptyVal, width,
-                              newFile, // new or existing file
-                              false,   // don't expand; new extent
-                              false); // add full (not abbreviated) extent
-
+            // Initialize the contents of the extent.
+            rc = initColumnExtent(pFile, dbr, allocSize, emptyVal, width,newFile, false, false); // new or existing file
+                                    // don't expand; new extent // add full (not abbreviated) extent
+        }        
         return rc;
     }
 
