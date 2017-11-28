@@ -646,9 +646,7 @@ void SystemCatalog::buildRep()
         }
         ++iter;
     }
-    
-    bytestream << numDictCols;
-      
+    bytestream << numDictCols;      
     try
     {
 #ifdef ERYDB_DDL_DEBUG
@@ -656,9 +654,7 @@ void SystemCatalog::buildRep()
 #endif	
         int weSize = fWEClient.write(bytestream, dbRoot);
         rc = fWEClient.read(uniqueId, weSize, &errorMsg);
-#ifdef ERYDB_DDL_DEBUG
-        cout << "Create table We_SVR_WRITE_CREATETABLEFILES: " << errorMsg << endl;
-#endif 
+        if(rc)cout << "Create table We_SVR_WRITE_CREATETABLEFILES: " << errorMsg << endl;
         if (rc != 0)
         {
             //drop the newly created files
