@@ -443,7 +443,7 @@ void WEClients::read(uint32_t key, SBS &bs)
 inline int WEClients::read(uint32_t key, const BRM::DBROOTS_struct & dbRoot, string *errorMsg)
 {
     oam::OamCache * oamcache = oam::OamCache::makeOamCache();
-    std::vector<uint16_t>& pms = oamcache->getDBrootPms(dbRoot);
+    std::vector<uint16_t> pms = oamcache->getDBrootPms(dbRoot);
     return read(key, pms.size(), errorMsg);
 };
 int WEClients::read(uint32_t key, int size, string *errorMsg) {
@@ -503,7 +503,7 @@ int WEClients::write(const messageqcpp::ByteStream &msg, const BRM::DBROOTS_stru
         throw runtime_error("There is no WriteEngineServer to send message to.");
     }
     oam::OamCache * oamcache = oam::OamCache::makeOamCache(); 
-    std::vector<uint16_t>& pms=oamcache->getDBrootPms(dbRoot);
+    std::vector<uint16_t> pms=oamcache->getDBrootPms(dbRoot);
     for (std::vector<uint16_t>::iterator it=pms.begin();it!= pms.end();it++)
     {
         int connection = (*it);

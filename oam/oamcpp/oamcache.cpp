@@ -355,7 +355,7 @@ bool OamCache::existDbroot(uint16_t dbr, uint16_t pm  ) {
     }
     return false;
 };
-std::vector<uint16_t>& OamCache::getDBrootPms(const BRM::DBROOTS_struct &dbRoot) {
+std::vector<uint16_t> OamCache::getDBrootPms(const BRM::DBROOTS_struct &dbRoot) {
     int pmCount = this->getPMCount();
     std::vector<uint16_t> pmIds;
     UintUintMap dbRootPMMap = getDBRootToPMMap();
@@ -383,7 +383,7 @@ std::vector<uint16_t>& OamCache::getDBrootPms(const BRM::DBROOTS_struct &dbRoot)
             if (dbr > 0)
             {
                 uint16_t pmid = (*dbRootPMMap)[dbr];
-                if (pmMap->find(pmid) != pmMap->end())
+                if (pmMap->find(pmid) == pmMap->end())
                 {
                     (*pmMap)[pmid] = pmIds.size();
                     pmIds.push_back(pmid);
