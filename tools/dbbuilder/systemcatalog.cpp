@@ -48,13 +48,21 @@ using namespace execplan;
 using namespace ddlpackageprocessor;
 
 
-typedef boost::shared_ptr<std::map<string, uint32_t> > StringIntMap;
+typedef boost::shared_ptr<std::map<string, int> > StringIntMap;
 
 void SystemCatalog::buildRep()
 {
     BRM::DBRM* dbrm = new BRM::DBRM();
     //DDLPackageProcessor ddlProc(dbrm);
     WriteEngine::WEClients  fWEClient(WriteEngine::WEClients::DDLPROC);
+    remove();
+    cout << "Creating System Catalog..." << endl;
+    cout << endl;
+    // SYSTABLE
+    timeval startTime;
+    gettimeofday(&startTime, 0);
+    ostringstream msg;
+    WErrorCodes ec;
     ByteStream bytestream;
     uint64_t uniqueId = 0;
     uniqueId = dbrm->getUnique64();
@@ -65,12 +73,13 @@ void SystemCatalog::buildRep()
     DBROOTS_struct dbRoot;
     BRMWrapper::getInstance()->getSysDataDBRoots(&dbRoot);
     cout << "SysDataDBRoots=" << dbRoot << endl;
-    StringIntMap colMap; colMap.reset(new StringIntMap::element_type());
+    StringIntMap colMap;
+    colMap.reset(new StringIntMap::element_type());
     int compressionType = 0;
     string errorMsg;
     uint32_t partition = 0;
     uint16_t segment = 0;
-    
+
     ResourceManager rm;
     std::map<uint32_t, uint32_t> oids;
     if (rm.useHdfs())
@@ -89,17 +98,523 @@ void SystemCatalog::buildRep()
         oids[OID_SYSTABLE_AVGROWLEN] = OID_SYSTABLE_AVGROWLEN;
         oids[OID_SYSTABLE_NUMOFBLOCKS] = OID_SYSTABLE_NUMOFBLOCKS;
         oids[OID_SYSTABLE_AUTOINCREMENT] = OID_SYSTABLE_AUTOINCREMENT;
+        //SYSCOLUMN
+        oids[OID_SYSCOLUMN_SCHEMA] = OID_SYSCOLUMN_SCHEMA;
+        oids[DICTOID_SYSCOLUMN_SCHEMA] = DICTOID_SYSCOLUMN_SCHEMA;
+        oids[OID_SYSCOLUMN_TABLENAME] = OID_SYSCOLUMN_TABLENAME;
+        oids[DICTOID_SYSCOLUMN_TABLENAME] = DICTOID_SYSCOLUMN_TABLENAME;
+        oids[OID_SYSCOLUMN_COLNAME] = OID_SYSCOLUMN_COLNAME;
+        oids[DICTOID_SYSCOLUMN_COLNAME] = DICTOID_SYSCOLUMN_COLNAME;
+        oids[OID_SYSCOLUMN_OBJECTID] = OID_SYSCOLUMN_OBJECTID;
+        oids[OID_SYSCOLUMN_DICTOID] = OID_SYSCOLUMN_DICTOID;
+        oids[OID_SYSCOLUMN_LISTOBJID] = OID_SYSCOLUMN_LISTOBJID;
+        oids[OID_SYSCOLUMN_TREEOBJID] = OID_SYSCOLUMN_TREEOBJID;
+        oids[OID_SYSCOLUMN_DATATYPE] = OID_SYSCOLUMN_DATATYPE;
+        oids[OID_SYSCOLUMN_COLUMNLEN] = OID_SYSCOLUMN_COLUMNLEN;
+        oids[OID_SYSCOLUMN_COLUMNPOS] = OID_SYSCOLUMN_COLUMNPOS;
+        oids[OID_SYSCOLUMN_LASTUPDATE] = OID_SYSCOLUMN_LASTUPDATE;
+        oids[OID_SYSCOLUMN_DEFAULTVAL] = OID_SYSCOLUMN_DEFAULTVAL;
+        oids[DICTOID_SYSCOLUMN_DEFAULTVAL] = DICTOID_SYSCOLUMN_DEFAULTVAL;
+        oids[OID_SYSCOLUMN_NULLABLE] = OID_SYSCOLUMN_NULLABLE;
+        oids[OID_SYSCOLUMN_SCALE] = OID_SYSCOLUMN_SCALE;
+        oids[OID_SYSCOLUMN_PRECISION] = OID_SYSCOLUMN_PRECISION;
+        oids[OID_SYSCOLUMN_AUTOINC] = OID_SYSCOLUMN_AUTOINC;
+        oids[OID_SYSCOLUMN_DISTCOUNT] = OID_SYSCOLUMN_DISTCOUNT;
+        oids[OID_SYSCOLUMN_NULLCOUNT] = OID_SYSCOLUMN_NULLCOUNT;
+        oids[OID_SYSCOLUMN_MINVALUE] = OID_SYSCOLUMN_MINVALUE;
+        oids[DICTOID_SYSCOLUMN_MINVALUE] = DICTOID_SYSCOLUMN_MINVALUE;
+        oids[OID_SYSCOLUMN_MAXVALUE] = OID_SYSCOLUMN_MAXVALUE;
+        oids[DICTOID_SYSCOLUMN_MAXVALUE] = DICTOID_SYSCOLUMN_MAXVALUE;
+        oids[OID_SYSCOLUMN_COMPRESSIONTYPE] = OID_SYSCOLUMN_COMPRESSIONTYPE;
+        oids[OID_SYSCOLUMN_NEXTVALUE] = OID_SYSCOLUMN_NEXTVALUE;
     }
 
     ColumnDef* colDefPtr;
     ddlpackage::TableDef tableDef;
+    ddlpackage::ColumnDefList& tableDefCols = tableDef.fColumns;
     std::vector <erydbSystemCatalog::OID> oidList;//oidList.push_back(fStartingColOID + i + 1);
 
+    tableDef.fName = SYSTABLE_TABLE;
+    tableDef.fQualifiedName = new QualifiedName(SYSTABLE_TABLE.c_str(), ERYDB_SCHEMA.c_str());
+    ColumnDef *colDef;
+
     //构造 TableDef 
+    cout << "Creating SYSTABLE" << endl;
+    cout << "---------------------------------------" << endl;
+    ////////////////SYSTABLE///////////
+    // TableName
+    {
+        msg << "  Creating TableName column OID: " << OID_SYSTABLE_TABLENAME << " : " << DICTOID_SYSTABLE_TABLENAME;
+        cout << msg.str() << endl;
+        (*colMap)[SYSTABLE_TABLE + "." + TABLENAME_COL] = OID_SYSTABLE_TABLENAME;
+        (*colMap)[SYSTABLE_TABLE + "." + TABLENAME_COL + ".dic"] = DICTOID_SYSTABLE_TABLENAME;
+        oidList.push_back(OID_SYSTABLE_TABLENAME);
+        oidList.push_back(DICTOID_SYSTABLE_TABLENAME);
+        colDef = new ColumnDef();
+        colDef->fComment = "元数据表，表名字段";
+        colDef->fType = new ColumnType(DDL_DATATYPES::DDL_VARCHAR);
+        colDef->fName = TABLENAME_COL;
+        colDef->fType->fLength = 65;
+        colDef->fType->fCompressiontype = compressionType;
+        tableDefCols.push_back(colDef);
+    }
+    // Schema
+    {
+        msg << "  Creating Schema column OID: " << OID_SYSTABLE_SCHEMA << " : " << DICTOID_SYSTABLE_SCHEMA;
+        cout << msg.str() << endl;
+        (*colMap)[SYSTABLE_TABLE + "." + SCHEMA_COL] = OID_SYSTABLE_SCHEMA;
+        (*colMap)[SYSTABLE_TABLE + "." + SCHEMA_COL + ".dic"] = DICTOID_SYSTABLE_SCHEMA;
+        oidList.push_back(OID_SYSTABLE_SCHEMA);
+        oidList.push_back(DICTOID_SYSTABLE_SCHEMA);
+        colDef = new ColumnDef();
+        colDef->fType = new ColumnType(DDL_DATATYPES::DDL_VARCHAR);
+        colDef->fName = SCHEMA_COL;
+        colDef->fType->fLength = 65;
+        colDef->fType->fCompressiontype = compressionType;
+        tableDefCols.push_back(colDef);
+    }
+    // ObjectId
+    {
+        msg << "  Creating ObjectId column OID: " << OID_SYSTABLE_OBJECTID;
+        cout << msg.str() << endl;
+        (*colMap)[SYSTABLE_TABLE + "." + OBJECTID_COL] = OID_SYSTABLE_OBJECTID;
+        oidList.push_back(OID_SYSTABLE_OBJECTID);
+        colDef = new ColumnDef();
+        colDef->fType = new ColumnType(DDL_DATATYPES::DDL_INT);
+        colDef->fName = OBJECTID_COL;
+        colDef->fType->fLength = 4;
+        colDef->fType->fScale = 0;
+        colDef->fType->fCompressiontype = compressionType;
+        tableDefCols.push_back(colDef);
+    }
+    // CreateDate
+    {
+        msg << "  Creating CreateDate column OID: " << OID_SYSTABLE_CREATEDATE;
+        cout << msg.str() << endl;
+        (*colMap)[SYSTABLE_TABLE + "." + CREATEDATE_COL] = OID_SYSTABLE_CREATEDATE;
+        oidList.push_back(OID_SYSTABLE_CREATEDATE);
+        colDef = new ColumnDef();
+        colDef->fType = new ColumnType(DDL_DATATYPES::DDL_DATE);
+        colDef->fName = CREATEDATE_COL;
+        colDef->fType->fLength = 4;
+        colDef->fType->fScale = 0;
+        colDef->fType->fCompressiontype = compressionType;
+        tableDefCols.push_back(colDef);
+    }
+    // LastUpdateDate
+    {
+        msg << "  Creating LastUpdate column OID: " << OID_SYSTABLE_LASTUPDATE;
+        cout << msg.str() << endl;
+        (*colMap)[SYSTABLE_TABLE + "." + LASTUPDATE_COL] = OID_SYSTABLE_LASTUPDATE;
+        oidList.push_back(OID_SYSTABLE_LASTUPDATE);
+        colDef = new ColumnDef();
+        colDef->fType = new ColumnType(DDL_DATATYPES::DDL_DATE);
+        colDef->fName = LASTUPDATE_COL;
+        colDef->fType->fLength = 4;
+        colDef->fType->fScale = 0;
+        colDef->fType->fCompressiontype = compressionType;
+        tableDefCols.push_back(colDef);
+    }
+    // INIT
+    {
+        msg << "  Creating INIT column OID: " << OID_SYSTABLE_INIT;
+        cout << msg.str() << endl;
+        (*colMap)[SYSTABLE_TABLE + "." + INIT_COL] = OID_SYSTABLE_INIT;
+        oidList.push_back(OID_SYSTABLE_INIT);
+        colDef = new ColumnDef();
+        colDef->fType = new ColumnType(DDL_DATATYPES::DDL_INT);
+        colDef->fName = INIT_COL;
+        colDef->fType->fLength = 4;
+        colDef->fType->fScale = 0;
+        colDef->fType->fCompressiontype = compressionType;
+        tableDefCols.push_back(colDef);
+    }
+    // NEXT
+    {
+        msg << "  Creating NEXT column OID: " << OID_SYSTABLE_NEXT;
+        cout << msg.str() << endl;
+        (*colMap)[SYSTABLE_TABLE + "." + NEXT_COL] = OID_SYSTABLE_NEXT;
+        oidList.push_back(OID_SYSTABLE_NEXT);
+        colDef = new ColumnDef();
+        colDef->fType = new ColumnType(DDL_DATATYPES::DDL_INT);
+        colDef->fName = NEXT_COL;
+        colDef->fType->fLength = 4;
+        colDef->fType->fScale = 0;
+        colDef->fType->fCompressiontype = compressionType;
+        tableDefCols.push_back(colDef);
+    }
+    //NUMOFROWS
+    {
+        msg << "  Creating NUMOFROWS column OID: " << OID_SYSTABLE_NUMOFROWS;
+        cout << msg.str() << endl;
+        (*colMap)[SYSTABLE_TABLE + "." + NUMOFROWS_COL] = OID_SYSTABLE_NUMOFROWS;
+        oidList.push_back(OID_SYSTABLE_NUMOFROWS);
+        colDef = new ColumnDef();
+        colDef->fType = new ColumnType(DDL_DATATYPES::DDL_BIGINT);
+        colDef->fName = NUMOFROWS_COL;
+        colDef->fType->fLength = 8;
+        colDef->fType->fScale = 0;
+        colDef->fType->fCompressiontype = compressionType;
+        tableDefCols.push_back(colDef);
+    }
+    //AVGROWLEN
+    {
+        msg << "  Creating AVGROWLEN column OID: " << OID_SYSTABLE_AVGROWLEN;
+        cout << msg.str() << endl;
+        (*colMap)[SYSTABLE_TABLE + "." + AVGROWLEN_COL] = OID_SYSTABLE_AVGROWLEN;
+        oidList.push_back(OID_SYSTABLE_AVGROWLEN);
+        colDef = new ColumnDef();
+        colDef->fType = new ColumnType(DDL_DATATYPES::DDL_INT);
+        colDef->fName = AVGROWLEN_COL;
+        colDef->fType->fLength = 4;
+        colDef->fType->fScale = 0;
+        colDef->fType->fCompressiontype = compressionType;
+    }
+    //NUMOFBLOCKS
+    {
+        msg << "  Creating NUMOFBLOCKS column OID: " << OID_SYSTABLE_NUMOFBLOCKS;
+        cout << msg.str() << endl;
+        (*colMap)[SYSTABLE_TABLE + "." + NUMOFBLOCKS_COL] = OID_SYSTABLE_NUMOFBLOCKS;
+        oidList.push_back(OID_SYSTABLE_NUMOFBLOCKS);
+        colDef = new ColumnDef();
+        colDef->fType = new ColumnType(DDL_DATATYPES::DDL_BIGINT);
+        colDef->fName = NUMOFBLOCKS_COL;
+        colDef->fType->fLength = 8;
+        colDef->fType->fScale = 0;
+        colDef->fType->fCompressiontype = compressionType;
+        tableDefCols.push_back(colDef);
+    }
+    //AUTOINCREMENT
+    {
+        msg << "  Creating AUTOINCREMENT column OID: " << OID_SYSTABLE_AUTOINCREMENT;
+        cout << msg.str() << endl;
+        (*colMap)[SYSTABLE_TABLE + "." + NUMOFBLOCKS_COL] = OID_SYSTABLE_AUTOINCREMENT;
+        oidList.push_back(OID_SYSTABLE_AUTOINCREMENT);
+        colDef = new ColumnDef();
+        colDef->fType = new ColumnType(DDL_DATATYPES::DDL_BIGINT);
+        colDef->fName = NUMOFBLOCKS_COL;
+        colDef->fType->fLength = 8;
+        colDef->fType->fScale = 0;
+        colDef->fType->fCompressiontype = compressionType;
+    }
+    ////////////////column table///////////
+    cout << endl;
+    cout << "Creating SYSCOLUMN" << endl;
+    // Schema
+    {
+        msg << "  Creating Schema column OID: " << OID_SYSCOLUMN_SCHEMA << " : " << DICTOID_SYSCOLUMN_SCHEMA;
+        cout << msg.str() << endl;
+        (*colMap)[SYSCOLUMN_TABLE + "." + SCHEMA_COL] = OID_SYSCOLUMN_SCHEMA;
+        (*colMap)[SYSCOLUMN_TABLE + "." + SCHEMA_COL + ".dic"] = DICTOID_SYSCOLUMN_SCHEMA;
+        oidList.push_back(OID_SYSCOLUMN_SCHEMA);
+        oidList.push_back(DICTOID_SYSCOLUMN_SCHEMA);
+        colDef = new ColumnDef();
+        colDef->fType = new ColumnType(DDL_DATATYPES::DDL_VARCHAR);
+        colDef->fName = SCHEMA_COL;
+        colDef->fType->fLength = 65;
+        colDef->fType->fCompressiontype = compressionType;
+        tableDefCols.push_back(colDef);
+    }
+    // TableName
+    {
+        msg << "  Creating TableName column OID: " << OID_SYSCOLUMN_TABLENAME << " : " << DICTOID_SYSCOLUMN_TABLENAME;
+        cout << msg.str() << endl;
+        (*colMap)[SYSCOLUMN_TABLE + "." + TABLENAME_COL] = OID_SYSCOLUMN_TABLENAME;
+        (*colMap)[SYSCOLUMN_TABLE + "." + TABLENAME_COL + ".dic"] = DICTOID_SYSCOLUMN_TABLENAME;
+        oidList.push_back(OID_SYSCOLUMN_TABLENAME);
+        oidList.push_back(DICTOID_SYSCOLUMN_TABLENAME);
+        colDef = new ColumnDef();
+        colDef->fType = new ColumnType(DDL_DATATYPES::DDL_VARCHAR);
+        colDef->fName = TABLENAME_COL;
+        colDef->fType->fLength = 65;
+        colDef->fType->fCompressiontype = compressionType;
+        tableDefCols.push_back(colDef);
+    }
+    // ColumnName
+    {
+        msg << "  Creating ColumnName column OID: " << OID_SYSCOLUMN_COLNAME << " : " << DICTOID_SYSCOLUMN_COLNAME;
+        cout << msg.str() << endl;
+        (*colMap)[SYSCOLUMN_TABLE + "." + COLNAME_COL] = OID_SYSCOLUMN_COLNAME;
+        (*colMap)[SYSCOLUMN_TABLE + "." + COLNAME_COL + ".dic"] = DICTOID_SYSCOLUMN_COLNAME;
+        oidList.push_back(OID_SYSCOLUMN_COLNAME);
+        oidList.push_back(DICTOID_SYSCOLUMN_COLNAME);
+        colDef = new ColumnDef();
+        colDef->fType = new ColumnType(DDL_DATATYPES::DDL_VARCHAR);
+        colDef->fName = COLNAME_COL;
+        colDef->fType->fLength = 65;
+        colDef->fType->fCompressiontype = compressionType;
+        tableDefCols.push_back(colDef);
+    }
+    // ObjectId
+    {
+        msg << "  Creating ObjectId column OID: " << OID_SYSCOLUMN_OBJECTID;
+        cout << msg.str() << endl;
+        (*colMap)[SYSCOLUMN_TABLE + "." + OBJECTID_COL] = OID_SYSCOLUMN_OBJECTID;
+        oidList.push_back(OID_SYSCOLUMN_OBJECTID);
+        colDef = new ColumnDef();
+        colDef->fType = new ColumnType(DDL_DATATYPES::DDL_INT);
+        colDef->fName = OBJECTID_COL;
+        colDef->fType->fLength = 4;
+        colDef->fType->fScale = 0;
+        colDef->fType->fCompressiontype = compressionType;
+        tableDefCols.push_back(colDef);
+    }
+    // DictOID
+    {
+        msg << "  Creating DictOID column OID: " << OID_SYSCOLUMN_DICTOID;
+        cout << msg.str() << endl;
+        (*colMap)[SYSCOLUMN_TABLE + "." + DICTOID_COL] = OID_SYSCOLUMN_DICTOID;
+        oidList.push_back(OID_SYSCOLUMN_DICTOID);
+        colDef = new ColumnDef();
+        colDef->fType = new ColumnType(DDL_DATATYPES::DDL_INT);
+        colDef->fName = DICTOID_COL;
+        colDef->fType->fLength = 4;
+        colDef->fType->fScale = 0;
+        colDef->fType->fCompressiontype = compressionType;
+        tableDefCols.push_back(colDef);
+    }
+    // ListOID
+    {
+        msg << "  Creating ListOID column OID: " << OID_SYSCOLUMN_LISTOBJID;
+        cout << msg.str() << endl;
+        (*colMap)[SYSCOLUMN_TABLE + "." + LISTOBJID_COL] = OID_SYSCOLUMN_LISTOBJID;
+        oidList.push_back(OID_SYSCOLUMN_LISTOBJID);
+        colDef = new ColumnDef();
+        colDef->fType = new ColumnType(DDL_DATATYPES::DDL_INT);
+        colDef->fName = LISTOBJID_COL;
+        colDef->fType->fLength = 4;
+        colDef->fType->fScale = 0;
+        colDef->fType->fCompressiontype = compressionType;
+        tableDefCols.push_back(colDef);
+    }
+    // TreeOID
+    {
+        msg << "  Creating TreeOID column OID: " << OID_SYSCOLUMN_TREEOBJID;
+        cout << msg.str() << endl;
+        (*colMap)[SYSCOLUMN_TABLE + "." + TREEOBJID_COL] = OID_SYSCOLUMN_TREEOBJID;
+        oidList.push_back(OID_SYSCOLUMN_TREEOBJID);
+        colDef = new ColumnDef();
+        colDef->fType = new ColumnType(DDL_DATATYPES::DDL_INT);
+        colDef->fName = TREEOBJID_COL;
+        colDef->fType->fLength = 4;
+        colDef->fType->fScale = 0;
+        colDef->fType->fCompressiontype = compressionType;
+        tableDefCols.push_back(colDef);
+    }
+    // DataType
+    {
+        msg << "  Creating DataType column OID: " << OID_SYSCOLUMN_DATATYPE;
+        cout << msg.str() << endl;
+        (*colMap)[SYSCOLUMN_TABLE + "." + DATATYPE_COL] = OID_SYSCOLUMN_DATATYPE;
+        oidList.push_back(OID_SYSCOLUMN_DATATYPE);
+        colDef = new ColumnDef();
+        colDef->fType = new ColumnType(DDL_DATATYPES::DDL_INT);
+        colDef->fName = DATATYPE_COL;
+        colDef->fType->fLength = 4;
+        colDef->fType->fScale = 0;
+        colDef->fType->fCompressiontype = compressionType;
+        tableDefCols.push_back(colDef);
+    }
+    // ColumnLength
+    {
+        msg << "  Creating ColumnLength column OID: " << OID_SYSCOLUMN_COLUMNLEN;
+        cout << msg.str() << endl;
+        (*colMap)[SYSCOLUMN_TABLE + "." + COLUMNLEN_COL] = OID_SYSCOLUMN_COLUMNLEN;
+        oidList.push_back(OID_SYSCOLUMN_COLUMNLEN);
+        colDef = new ColumnDef();
+        colDef->fType = new ColumnType(DDL_DATATYPES::DDL_INT);
+        colDef->fName = COLUMNLEN_COL;
+        colDef->fType->fLength = 4;
+        colDef->fType->fScale = 0;
+        colDef->fType->fCompressiontype = compressionType;
+        tableDefCols.push_back(colDef);
+    }
+    // ColumnPos
+    {
+        msg << "  Creating ColumnPos column OID: " << OID_SYSCOLUMN_COLUMNPOS;
+        cout << msg.str() << endl;
+        (*colMap)[SYSCOLUMN_TABLE + "." + COLUMNPOS_COL] = OID_SYSCOLUMN_COLUMNPOS;
+        oidList.push_back(OID_SYSCOLUMN_COLUMNPOS);
+        colDef = new ColumnDef();
+        colDef->fType = new ColumnType(DDL_DATATYPES::DDL_INT);
+        colDef->fName = COLUMNPOS_COL;
+        colDef->fType->fLength = 4;
+        colDef->fType->fScale = 0;
+        colDef->fType->fCompressiontype = compressionType;
+        tableDefCols.push_back(colDef);
+    }
+    // LastUpdate
+    {
+        msg << "  Creating LastUpdate column OID: " << OID_SYSCOLUMN_LASTUPDATE;
+        cout << msg.str() << endl;
+        (*colMap)[SYSCOLUMN_TABLE + "." + LASTUPDATE_COL] = OID_SYSCOLUMN_LASTUPDATE;
+        oidList.push_back(OID_SYSCOLUMN_LASTUPDATE);
+        colDef = new ColumnDef();
+        colDef->fType = new ColumnType(DDL_DATATYPES::DDL_DATE);
+        colDef->fName = COLUMNPOS_COL;
+        colDef->fType->fLength = 4;
+        colDef->fType->fCompressiontype = compressionType;
+        tableDefCols.push_back(colDef);
+    }
+    // DefaultValue
+    {
+        msg << "  Creating DefaultValue column OID: " << OID_SYSCOLUMN_DEFAULTVAL << " : " << DICTOID_SYSCOLUMN_DEFAULTVAL;
+        cout << msg.str() << endl;
+        (*colMap)[SYSCOLUMN_TABLE + "." + DEFAULTVAL_COL] = OID_SYSCOLUMN_DEFAULTVAL;
+        (*colMap)[SYSCOLUMN_TABLE + "." + DEFAULTVAL_COL + ".dic"] = DICTOID_SYSCOLUMN_DEFAULTVAL;
+        oidList.push_back(OID_SYSCOLUMN_DEFAULTVAL);
+        oidList.push_back(DICTOID_SYSCOLUMN_DEFAULTVAL);
+        colDef = new ColumnDef();
+        colDef->fType = new ColumnType(DDL_DATATYPES::DDL_VARCHAR);
+        colDef->fName = DEFAULTVAL_COL;
+        colDef->fType->fLength = 64;
+        colDef->fType->fCompressiontype = compressionType;
+        tableDefCols.push_back(colDef);
+    }
+    // Nullable
+    {
+        msg << "  Creating Nullable column OID: " << OID_SYSCOLUMN_NULLABLE;
+        cout << msg.str() << endl;
+        (*colMap)[SYSCOLUMN_TABLE + "." + NULLABLE_COL] = OID_SYSCOLUMN_NULLABLE;
+        oidList.push_back(OID_SYSCOLUMN_NULLABLE);
+        colDef = new ColumnDef();
+        colDef->fType = new ColumnType(DDL_DATATYPES::DDL_INT);
+        colDef->fName = NULLABLE_COL;
+        colDef->fType->fLength = 4;
+        colDef->fType->fScale = 0;
+        colDef->fType->fCompressiontype = compressionType;
+        tableDefCols.push_back(colDef);
+    }
+    // Scale
+    {
+        msg << "  Creating Scale column OID: " << OID_SYSCOLUMN_SCALE;
+        cout << msg.str() << endl;
+        (*colMap)[SYSCOLUMN_TABLE + "." + SCALE_COL] = OID_SYSCOLUMN_SCALE;
+        oidList.push_back(OID_SYSCOLUMN_SCALE);
+        colDef = new ColumnDef();
+        colDef->fType = new ColumnType(DDL_DATATYPES::DDL_INT);
+        colDef->fName = SCALE_COL;
+        colDef->fType->fLength = 4;
+        colDef->fType->fScale = 0;
+        colDef->fType->fCompressiontype = compressionType;
+        tableDefCols.push_back(colDef);
+    }
+    // Precision
+    {
+        msg << "  Creating Precision column OID: " << OID_SYSCOLUMN_PRECISION;
+        cout << msg.str() << endl;
+        (*colMap)[SYSCOLUMN_TABLE + "." + PRECISION_COL] = OID_SYSCOLUMN_PRECISION;
+        oidList.push_back(OID_SYSCOLUMN_PRECISION);
+        colDef = new ColumnDef();
+        colDef->fType = new ColumnType(DDL_DATATYPES::DDL_INT);
+        colDef->fName = PRECISION_COL;
+        colDef->fType->fLength = 4;
+        colDef->fType->fScale = 0;
+        colDef->fType->fCompressiontype = compressionType;
+        tableDefCols.push_back(colDef);
+    }
+    // AutoInc
+    {
+        msg << "  Creating AutoInc column OID: " << OID_SYSCOLUMN_AUTOINC;
+        cout << msg.str() << endl;
+        (*colMap)[SYSCOLUMN_TABLE + "." + AUTOINC_COL] = OID_SYSCOLUMN_AUTOINC;
+        oidList.push_back(OID_SYSCOLUMN_AUTOINC);
+        colDef = new ColumnDef();
+        colDef->fType = new ColumnType(DDL_DATATYPES::DDL_CHAR);
+        colDef->fName = AUTOINC_COL;
+        colDef->fType->fLength = 1;
+        colDef->fType->fCompressiontype = compressionType;
+        tableDefCols.push_back(colDef);
+    }
+    // DISTCOUNT
+    {
+        msg << "  Creating DISTCOUNT column OID: " << OID_SYSCOLUMN_DISTCOUNT;
+        cout << msg.str() << endl;
+        (*colMap)[SYSCOLUMN_TABLE + "." + DISTCOUNT_COL] = OID_SYSCOLUMN_DISTCOUNT;
+        oidList.push_back(OID_SYSCOLUMN_DISTCOUNT);
+        colDef = new ColumnDef();
+        colDef->fType = new ColumnType(DDL_DATATYPES::DDL_INT);
+        colDef->fName = DISTCOUNT_COL;
+        colDef->fType->fLength = 4;
+        colDef->fType->fScale = 0;
+        colDef->fType->fCompressiontype = compressionType;
+        tableDefCols.push_back(colDef);
+    }
+    // NULLCOUNT
+    {
+        msg << "  Creating NULLCOUNT column OID: " << OID_SYSCOLUMN_NULLCOUNT;
+        cout << msg.str() << endl;
+        (*colMap)[SYSCOLUMN_TABLE + "." + NULLCOUNT_COL] = OID_SYSCOLUMN_NULLCOUNT;
+        oidList.push_back(OID_SYSCOLUMN_NULLCOUNT);
+        colDef = new ColumnDef();
+        colDef->fType = new ColumnType(DDL_DATATYPES::DDL_INT);
+        colDef->fName = NULLCOUNT_COL;
+        colDef->fType->fLength = 4;
+        colDef->fType->fScale = 0;
+        colDef->fType->fCompressiontype = compressionType;
+        tableDefCols.push_back(colDef);
+    }
+    // MINVALUE 
+    {
+        msg << "  Creating MINVALUE column OID: " << OID_SYSCOLUMN_MINVALUE << " : " << DICTOID_SYSCOLUMN_MINVALUE;
+        cout << msg.str() << endl;
+        (*colMap)[SYSCOLUMN_TABLE + "." + MINVALUE_COL] = OID_SYSCOLUMN_MINVALUE;
+        (*colMap)[SYSCOLUMN_TABLE + "." + MINVALUE_COL + ".dic"] = DICTOID_SYSCOLUMN_MINVALUE;
+        oidList.push_back(OID_SYSCOLUMN_MINVALUE);
+        oidList.push_back(DICTOID_SYSCOLUMN_MINVALUE);
+        colDef = new ColumnDef();
+        colDef->fType = new ColumnType(DDL_DATATYPES::DDL_VARCHAR);
+        colDef->fName = MINVALUE_COL;
+        colDef->fType->fLength = 65;
+        colDef->fType->fCompressiontype = compressionType;
+        tableDefCols.push_back(colDef);
+    }
+    // MAXVALUE 
+    {
+        msg << "  Creating MINVALUE column OID: " << OID_SYSCOLUMN_MAXVALUE << " : " << DICTOID_SYSCOLUMN_MAXVALUE;
+        cout << msg.str() << endl;
+        (*colMap)[SYSCOLUMN_TABLE + "." + MAXVALUE_COL] = OID_SYSCOLUMN_MAXVALUE;
+        (*colMap)[SYSCOLUMN_TABLE + "." + MAXVALUE_COL + ".dic"] = DICTOID_SYSCOLUMN_MAXVALUE;
+        oidList.push_back(OID_SYSCOLUMN_MAXVALUE);
+        oidList.push_back(DICTOID_SYSCOLUMN_MAXVALUE);
+        colDef = new ColumnDef();
+        colDef->fType = new ColumnType(DDL_DATATYPES::DDL_VARCHAR);
+        colDef->fName = MAXVALUE_COL;
+        colDef->fType->fLength = 65;
+        colDef->fType->fCompressiontype = compressionType;
+        tableDefCols.push_back(colDef);
+    }
+    // CompressionType
+    {
+        msg << "  Creating CompressionType column OID: " << OID_SYSCOLUMN_COMPRESSIONTYPE;
+        cout << msg.str() << endl;
+        (*colMap)[SYSCOLUMN_TABLE + "." + COMPRESSIONTYPE_COL] = OID_SYSCOLUMN_COMPRESSIONTYPE;
+        oidList.push_back(OID_SYSCOLUMN_COMPRESSIONTYPE);
+        colDef = new ColumnDef();
+        colDef->fType = new ColumnType(DDL_DATATYPES::DDL_INT);
+        colDef->fName = COMPRESSIONTYPE_COL;
+        colDef->fType->fLength = 4;
+        colDef->fType->fScale = 0;
+        colDef->fType->fCompressiontype = compressionType;
+        tableDefCols.push_back(colDef);
+    }
+    // nextvalue
+    {
+        msg << "  Creating NEXTVALUE column OID: " << OID_SYSCOLUMN_NEXTVALUE;
+        cout << msg.str() << endl;
+        (*colMap)[SYSCOLUMN_TABLE + "." + NEXTVALUE_COL] = OID_SYSCOLUMN_NEXTVALUE;
+        oidList.push_back(OID_SYSCOLUMN_NEXTVALUE);
+        colDef = new ColumnDef();
+        colDef->fType = new ColumnType(DDL_DATATYPES::DDL_UNSIGNED_BIGINT);
+        colDef->fName = NEXTVALUE_COL;
+        colDef->fType->fLength = 8;
+        colDef->fType->fScale = 0;
+        colDef->fType->fCompressiontype = compressionType;
+        tableDefCols.push_back(colDef);
+    }
+    /////////////////////////////////////////////////////////////////////////////
 
-    ddlpackage::ColumnDefList tableDefCols = tableDef.fColumns;
     ColumnDefList::const_iterator iter = tableDefCols.begin();
-
     uint32_t numColumns = tableDef.fColumns.size();
     uint32_t numDictCols = 0;
     for (unsigned i = 0; i < numColumns; i++)
@@ -198,9 +713,28 @@ void SystemCatalog::buildRep()
     }
     if (rc)
     {
-        cerr << errorMsg << endl;
+        cerr << errorMsg << endl; 
+        throw logic_error(errorMsg); 
     }
+    //flush data files
+    if(oids.size()>0)
+        fWriteEngine.flushDataFiles(rc, 1, oids);
+    // save brm
+    msg.str("  BRMWrapper saving state "); 
+    rc = BRMWrapper::getInstance()->saveState();
+    if (rc) throw runtime_error(msg.str() + ec.errorString(rc));
 
+    timeval endTime;
+    gettimeofday(&endTime, 0);
+    double elapsedTime =
+        (endTime.tv_sec + (endTime.tv_usec / 1000000.0)) -
+        (startTime.tv_sec + (startTime.tv_usec / 1000000.0));
+    cout << "System Catalog creation took: " << elapsedTime <<
+        " seconds to complete." << endl;
+
+    cout << endl;
+    cout << "System Catalog created" << endl;
+    cout << endl;
 }
 void SystemCatalog::build() {
     WriteEngine::TxnID txnID = 0;
@@ -237,7 +771,8 @@ void SystemCatalog::build() {
 
     ResourceManager rm;
     std::map<uint32_t, uint32_t> oids;
-    if (rm.useHdfs()) {
+    if (rm.useHdfs())
+    {
         compressionType = 2;
         oids[OID_SYSTABLE_TABLENAME] = OID_SYSTABLE_TABLENAME;
         oids[DICTOID_SYSTABLE_TABLENAME] = DICTOID_SYSTABLE_TABLENAME;
@@ -252,6 +787,7 @@ void SystemCatalog::build() {
         oids[OID_SYSTABLE_AVGROWLEN] = OID_SYSTABLE_AVGROWLEN;
         oids[OID_SYSTABLE_NUMOFBLOCKS] = OID_SYSTABLE_NUMOFBLOCKS;
         oids[OID_SYSTABLE_AUTOINCREMENT] = OID_SYSTABLE_AUTOINCREMENT;
+        
     }
 
     fWriteEngine.setTransId(1);
@@ -324,7 +860,6 @@ void SystemCatalog::build() {
     //NUMOFROWS
     msg << "  Creating NUMOFROWS column OID: " << OID_SYSTABLE_NUMOFROWS;
     cout << msg.str() << endl;
-    rc = fWriteEngine.createColumn(txnID, OID_SYSTABLE_NUMOFROWS, erydbSystemCatalog::INT, 4, dbRoot, partition, compressionType);
     if (rc) throw runtime_error(msg.str() + ec.errorString(rc));
     msg.str("");
 

@@ -592,11 +592,11 @@ uint8_t WE_DDLCommandProc::writeCreateSyscolumn(ByteStream& bs, std::string &err
 				{
 					colTuple.data = getNullValueForType(column.colType);
 				}
-				else if (MINVAL_COL == column.tableColName.column)
+				else if (MINVALUE_COL == column.tableColName.column)
 				{
 						tmpStr="";
 				}
-				else if (MAXVAL_COL == column.tableColName.column)
+				else if (MAXVALUE_COL == column.tableColName.column)
 				{
 						tmpStr="";
 				}

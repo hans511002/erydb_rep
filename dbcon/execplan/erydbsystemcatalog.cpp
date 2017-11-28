@@ -5001,9 +5001,9 @@ namespace execplan
         aCol.columnOID = OID_SYSTABLE_NEXT;
         fColinfomap[aCol.columnOID] = aCol;
 
-        aCol.colWidth = 4;
+        aCol.colWidth = 8;
         aCol.constraintType = NO_CONSTRAINT;
-        aCol.colDataType = INT;
+        aCol.colDataType = BIGINT;
         aCol.ddn = notDict;
         aCol.colPosition++;
         aCol.columnOID = OID_SYSTABLE_NUMOFROWS;
@@ -5017,9 +5017,9 @@ namespace execplan
         aCol.columnOID = OID_SYSTABLE_AVGROWLEN;
         fColinfomap[aCol.columnOID] = aCol;
 
-        aCol.colWidth = 4;
+        aCol.colWidth = 8;
         aCol.constraintType = NO_CONSTRAINT;
-        aCol.colDataType = INT;
+        aCol.colDataType = BIGINT;
         aCol.ddn = notDict;
         aCol.colPosition++;
         aCol.columnOID = OID_SYSTABLE_NUMOFBLOCKS;
@@ -5035,7 +5035,7 @@ namespace execplan
 
         fTablemap[make_table(ERYDB_SCHEMA, SYSCOLUMN_TABLE)] = SYSCOLUMN_BASE;
 
-        aCol.colWidth = 129; // @bug 4433
+        aCol.colWidth = 65; // @bug 4433
         aCol.constraintType = NOTNULL_CONSTRAINT;
         aCol.colDataType = VARCHAR;
         aCol.ddn.dictOID = DICTOID_SYSCOLUMN_SCHEMA;
@@ -5046,7 +5046,7 @@ namespace execplan
         aCol.columnOID = OID_SYSCOLUMN_SCHEMA;
         fColinfomap[aCol.columnOID] = aCol;
 
-        aCol.colWidth = 129; // @bug 4433
+        aCol.colWidth = 65; // @bug 4433
         aCol.constraintType = NOTNULL_CONSTRAINT;
         aCol.colDataType = VARCHAR;
         aCol.ddn.dictOID = DICTOID_SYSCOLUMN_TABLENAME;
@@ -5057,7 +5057,7 @@ namespace execplan
         aCol.columnOID = OID_SYSCOLUMN_TABLENAME;
         fColinfomap[aCol.columnOID] = aCol;
 
-        aCol.colWidth = 129; // @bug 4433
+        aCol.colWidth = 65; // @bug 4433
         aCol.constraintType = NOTNULL_CONSTRAINT;
         aCol.colDataType = VARCHAR;
         aCol.ddn.dictOID = DICTOID_SYSCOLUMN_COLNAME;
