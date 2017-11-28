@@ -530,14 +530,8 @@ int ColumnOp::allocRowId(const TxnID& txnid, bool useStartingExtent,
     *    ERR_FILE_EXIST if file exists
     *    ERR_FILE_CREATE if something wrong in creating the file
     ***********************************************************/
-   int ColumnOp::createColumn(Column& column,
-		int colNo,
-		int colWidth,
-		erydbSystemCatalog::ColDataType colDataType,
-		ColType colType,
-		FID dataFid,
-		DBROOTS_struct& dbRoot,
-        uint32_t partition)
+   int ColumnOp::createColumn(Column& column,int colNo,int colWidth,erydbSystemCatalog::ColDataType colDataType,
+                              ColType colType,FID dataFid,DBROOTS_struct& dbRoot,uint32_t partition)
    {
       int rc, newWidth, allocSize;
       uint64_t emptyVal = 0;

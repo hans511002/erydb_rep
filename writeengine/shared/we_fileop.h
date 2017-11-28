@@ -86,11 +86,7 @@ public:
    /**
     * @brief Create a file with a fixed file size and file id
     */
-    EXPORT int          createFile( FID fid,
-                            int & allocSize,
-                            DBROOTS_struct& dbRoot, uint32_t partition,
-                            execplan::erydbSystemCatalog::ColDataType colDataType,
-                            uint64_t emptyVal = 0, int width = 1 ) ;
+    EXPORT int          createFile( FID fid,int & allocSize,DBROOTS_struct& dbRoot, uint32_t partition,execplan::erydbSystemCatalog::ColDataType colDataType,uint64_t emptyVal = 0, int width = 1 ) ;
 
    /**
     * @brief Delete a file
@@ -360,14 +356,7 @@ public:
     * @param ioBuffSize Buffer size to be employed by setvbuf().
     * @return returns the ERYDBDataFile* of the opened file.
     */
-    EXPORT ERYDBDataFile*     openFile( FID fid,
-                            uint16_t       dbRoot,
-                            uint32_t       partition,
-                            uint16_t       segment,
-                            std::string&   segFile,
-                            const char*    mode = "r+b",
-                            int ioColSize = DEFAULT_COLSIZ,
-                            bool useTmpSuffix = false) const;
+    EXPORT ERYDBDataFile*     openFile( FID fid,uint16_t dbr,uint32_t partition,uint16_t segment,std::string& segFile,const char* mode = "r+b",int ioColSize = DEFAULT_COLSIZ,bool useTmpSuffix = false) const;
 
    /**
     * @brief Read to a buffer from a file at current location
@@ -392,12 +381,7 @@ public:
     * @param emptyVal(in) - empty value to be used for column data values
     * width (in) - width of the applicable column
     */
-    EXPORT int          reInitPartialColumnExtent( ERYDBDataFile* pFile,
-                            long long startOffset,
-                            int       nBlocks,
-                            uint64_t  emptyVal,
-                            int       width );
-
+    EXPORT int          reInitPartialColumnExtent( ERYDBDataFile* pFile,long long startOffset,int nBlocks,uint64_t  emptyVal,int width );
    /**
     * @brief Reinitialize an extent in a dictionary store file
     * @param pFile (in) ERYDBDataFile* of dictionary store file to be written to
@@ -406,33 +390,23 @@ public:
     * @param blockHdrInit(in) - data used to initialize each block header
     * @param blockHdrInitSize(in) - number of bytes in blockHdrInit
     */
-    EXPORT int          reInitPartialDctnryExtent( ERYDBDataFile* pFile,
-                            long long      startOffset,
-                            int            nBlocks,
-                            unsigned char* blockHdrInit,
-                            int            blockHdrInitSize );
+    EXPORT int          reInitPartialDctnryExtent( ERYDBDataFile* pFile,long long startOffset,int nBlocks,unsigned char* blockHdrInit,int blockHdrInitSize );
 
    /**
     * @brief Set the file to specified location based on the offset
     */
-    EXPORT int          setFileOffset( ERYDBDataFile* pFile,
-                            long long offset,
-                            int origin = SEEK_SET  ) const;
-    EXPORT int          setFileOffsetBlock( ERYDBDataFile* pFile,
-                            uint64_t lbid,
-                            int origin = SEEK_SET ) const;
+    EXPORT int          setFileOffset( ERYDBDataFile* pFile,long long offset,int origin = SEEK_SET  ) const;
+    EXPORT int          setFileOffsetBlock( ERYDBDataFile* pFile,uint64_t lbid,int origin = SEEK_SET ) const;
 
    /**
     * @brief Truncate the file to the specified file size
     */
-    EXPORT int          truncateFile( ERYDBDataFile* pFile,
-                            long long fileSize ) const;
+    EXPORT int          truncateFile( ERYDBDataFile* pFile,long long fileSize ) const;
 
    /**
     * @brief Write a buffer to a file at current location
     */
-    EXPORT int          writeFile( ERYDBDataFile* pFile,
-                            const unsigned char* buf, int bufSize ) const;
+    EXPORT int          writeFile( ERYDBDataFile* pFile,const unsigned char* buf, int bufSize ) const;
 
    /**
     * @brief set the flag to use the instance to access the brm wrapper class
@@ -458,9 +432,7 @@ private:
     FileOp(const FileOp& rhs);
     FileOp& operator=(const FileOp& rhs);
 
-    int                 createFile( const char* fileName, int fileSize, 
-                            uint64_t emptyVal, int width,
-                            DBROOTS_struct& dbRoot );
+    int                 createFile( const char* fileName, int fileSize,uint64_t emptyVal, int width,uint16_t dbr );
 
     int                 expandAbbrevColumnChunk( ERYDBDataFile* pFile,
                             uint64_t   emptyVal,
@@ -468,11 +440,7 @@ private:
                             const compress::CompChunkPtr& chunkInPtr,
                             compress::CompChunkPtr& chunkOutPt);
 
-    int                 initAbbrevCompColumnExtent( ERYDBDataFile* pFile,
-        DBROOTS_struct& dbRoot,
-                            int      nBlocks,
-                            uint64_t      emptyVal,
-                            int      width);
+    int                 initAbbrevCompColumnExtent( ERYDBDataFile* pFile, uint16_t dbr,int      nBlocks,uint64_t      emptyVal,int      width);
 
     // Initialize an extent in a column segment file
     // pFile (in) ERYDBDataFile* of column segment file to be written to
@@ -483,7 +451,7 @@ private:
     // bNewFile (in)      -  Adding extent to new file
     // bExpandExtent (in) -  Expand existing extent, or initialize new one
     // bAbbrevExtent (in) -  If adding new extent, is it abbreviated
-    int                 initColumnExtent( ERYDBDataFile* pFile,const DBROOTS_struct& dbRoot,int nBlocks,uint64_t emptyVal,int width,bool bNewFile,bool bExpandExtent,bool bAbbrevExtent );
+    int                 initColumnExtent( ERYDBDataFile* pFile, uint16_t dbr,int nBlocks,uint64_t emptyVal,int width,bool bNewFile,bool bExpandExtent,bool bAbbrevExtent );
 
     static void         initDbRootExtentMutexes();
     static void         removeDbRootExtentMutexes();

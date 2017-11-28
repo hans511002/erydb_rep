@@ -452,14 +452,7 @@ namespace WriteEngine
       *    ERR_FILE_EXIST if file exists
       *    ERR_FILE_CREATE if something wrong in creating the file
       ***********************************************************/
-    int WriteEngineWrapper::createColumn(
-        const TxnID& txnid,
-        const OID& dataOid,
-        const erydbSystemCatalog::ColDataType dataType,
-        int dataWidth,
-        DBROOTS_struct& dbRoot,
-        uint32_t partition,
-        int compressionType) {
+    int WriteEngineWrapper::createColumn(const TxnID& txnid,const OID& dataOid,const erydbSystemCatalog::ColDataType dataType,int dataWidth,DBROOTS_struct& dbRoot,uint32_t partition,int compressionType) {
         int      rc;
         Column   curCol;
 
