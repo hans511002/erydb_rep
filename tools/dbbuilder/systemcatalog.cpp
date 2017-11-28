@@ -230,7 +230,7 @@ void SystemCatalog::buildRep()
         cout << msg.str() << endl;msg.str("");
         (*colMap)[SYSTABLE_TABLE + "." + NEXT_COL] = OID_SYSTABLE_NEXT;
         oidList.push_back(OID_SYSTABLE_NEXT);
-        colDef = new ColumnDef(INIT_COL.c_str(),new ColumnType(ddlpackage::DDL_INT),NULL,NULL,NULL); 
+        colDef = new ColumnDef(NEXT_COL.c_str(),new ColumnType(ddlpackage::DDL_INT),NULL,NULL,NULL); 
         colDef->fType->fLength = 4;
         colDef->fType->fScale = 0;
         colDef->fType->fCompressiontype = compressionType;
