@@ -286,6 +286,7 @@ void SystemCatalog::buildRep()
         colDef->fType->fLength = 8;
         colDef->fType->fScale = 0;
         colDef->fType->fCompressiontype = compressionType;
+        tableDefCols.push_back(colDef);
         SYSTABLE_TABLE_col_index++;
     }
     ////////////////column table///////////
