@@ -619,11 +619,9 @@ void SystemCatalog::buildRep()
         bytestream << (uint32_t)colDefPtr->fType->fLength;
         bytestream << dbRoot;
         bytestream << (uint32_t)colDefPtr->fType->fCompressiontype;
-        
-        msg << "    "<<colDefPtr->fName <<"     dataOid:"<< dataOid<<" colWidth:"<<colDefPtr->fType->fLength<<endl;
+        if(colNum<=SYSTABLE_TABLE_col_index)msg<<SYSTABLE_TABLE ;else msg<<SYSCOLUMN_TABLE ;
+        msg << "    "<<colDefPtr->fName <<"     dataOid:"<< dataOid<<" colWidth:"<<colDefPtr->fType->fLength;
         cout << msg.str() << endl;msg.str("");
-        
-        
         if ((dataType == erydbSystemCatalog::CHAR && colDefPtr->fType->fLength > 8) ||
             (dataType == erydbSystemCatalog::VARCHAR && colDefPtr->fType->fLength > 7) ||
             (dataType == erydbSystemCatalog::VARBINARY && colDefPtr->fType->fLength > 7))
@@ -640,8 +638,8 @@ void SystemCatalog::buildRep()
             bytestream << (uint32_t)colDefPtr->fType->fLength;
             bytestream << dbRoot;
             bytestream << (uint32_t)colDefPtr->fType->fCompressiontype;
-            
-            msg << "    "<<colDefPtr->fName <<".dic dataOid:"<< dataOid<<" colWidth:"<<colDefPtr->fType->fLength<<endl;
+            if(colNum<=SYSTABLE_TABLE_col_index)msg<<SYSTABLE_TABLE ;else msg<<SYSCOLUMN_TABLE ;
+            msg << "    "<<colDefPtr->fName <<".dic dataOid:"<< dataOid<<" colWidth:"<<colDefPtr->fType->fLength;
             cout << msg.str() << endl;msg.str("");
         }
         ++iter;
