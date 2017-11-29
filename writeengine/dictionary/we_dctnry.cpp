@@ -261,7 +261,7 @@ int  Dctnry::createDctnry( const OID& dctnryOID, int colWidth,const DBROOTS_stru
         closeDctnryFile(true, oids);
         m_numBlocks = totalSize;
         m_hwm = 0;
-        rc = BRMWrapper::getInstance()->setLocalHWM(m_dctnryOID, m_partition, m_segment, m_hwm);
+        if(dbRoot.isMaster(dbr)) rc = BRMWrapper::getInstance()->setLocalHWM(m_dctnryOID, m_partition, m_segment, m_hwm);
     }
     else
     {
