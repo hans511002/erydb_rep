@@ -128,6 +128,7 @@ namespace WriteEngine
     const int   ERR_DML_LOG_NAME        = ERR_CODEBASE + 7; // DML log filename error
     const int   ERR_OPEN_DML_LOG        = ERR_CODEBASE + 8; // Open DML log file error
     const int   ERR_HDFS_BACKUP         = ERR_CODEBASE + 9; // HDFS backup error
+    const int   ERR_INVALID_DBROOT = ERR_CODEBASE + 10;// returned if the given vboid is invalid
 
     //--------------------------------------------------------------------------
     // File level error
