@@ -5339,15 +5339,15 @@ int ExtentMap::getMinDataDBRoots(DBROOTS_struct * dbroots) {
     //}
     if (index >= repSize || index >= dbrCount)
         return 0;
-    if (pmCount == 1)// test
-    {
-        std::vector<uint16_t>& pmDbrs = pmToDbrMap->find(modIDs[0])->second;
-        while (index < repSize && index < dbrCount && index<pmDbrs.size())
-        {
-            dbroots->dbRoots[index] = pmDbrs[index];
-            index++;
-        }
-    }
+    //if (pmCount == 1)// test
+    //{
+    //    std::vector<uint16_t>& pmDbrs = pmToDbrMap->find(modIDs[0])->second;
+    //    while (index < repSize && index < dbrCount && index<pmDbrs.size())
+    //    {
+    //        dbroots->dbRoots[index] = pmDbrs[index];
+    //        index++;
+    //    }
+    //}
     //sort(dbrnums.begin(), dbrnums.end());
     if (!index) {
         ostringstream oss;
@@ -5425,11 +5425,11 @@ int ExtentMap::getSysDataDBRoots(DBROOTS_struct * dbroots) {
         if (pmCount > 1 || index >= repSize || index >= dbrCount) {
             return 0;
         }
-        // test
-        while (index < repSize && index < dbrCount && index<pmDbrs.size()) {
-            dbroots->dbRoots[index] = pmDbrs[index];
-            index++;
-        }
+        //// test
+        //while (index < repSize && index < dbrCount && index<pmDbrs.size()) {
+        //    dbroots->dbRoots[index] = pmDbrs[index];
+        //    index++;
+        //}
         return 0;
     }
 };
