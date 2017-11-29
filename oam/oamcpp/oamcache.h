@@ -24,7 +24,8 @@
 #include <vector>
 #include <boost/shared_ptr.hpp>
 
-#include "liboamcpp.h"
+#include "liboam.h"
+#include "logicalpartition.h"
 
 #if defined(_MSC_VER) && defined(xxxOAMCACHE_DLLEXPORT)
 #define EXPORT __declspec(dllexport)

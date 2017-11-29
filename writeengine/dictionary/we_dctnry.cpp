@@ -197,94 +197,76 @@ int  Dctnry::createDctnry( const OID& dctnryOID, int colWidth,const DBROOTS_stru
 #ifdef PROFILE
     Stats::startParseEvent(WE_STATS_ALLOC_DCT_EXTENT);
 #endif
-    oam::OamCache* oamcache = oam::OamCache::makeOamCache();
-    int dbrIndex = 0;
-    while (dbrIndex < 4)
+    uint16_t dbr = dbRoot.getPmDbr();
+    if (dbr == 0)
+        return ERR_INVALID_DBROOT;
+    if (flag)
     {
-        uint16_t dbr = dbRoot[dbrIndex];
-        dbrIndex++;
-        if (dbr == 0)break;
-        if (!oamcache->existDbroot(dbr))continue;
-        if (flag)
-        {
-            m_dctnryOID   = dctnryOID;
-            m_partition   = partition;
-            m_segment     = segment;
-            m_dbRoot      = dbRoot;
-            RETURN_ON_ERROR( ( rc = oid2FileName( m_dctnryOID, fileName, true, m_dbRoot[0], m_partition, m_segment ) ) );
-            m_segFileName = fileName;
-    
-            // if obsolete file exists, "w+b" will truncate and write over
-            m_dFile = createDctnryFile(fileName, colWidth, "w+b", DEFAULT_BUFSIZ);
-        }
-        else
-        {
-            RETURN_ON_ERROR( setFileOffset(m_dFile, 0, SEEK_END) );
-        }
-    
+        m_dctnryOID   = dctnryOID;
+        m_partition   = partition;
+        m_segment     = segment;
+        m_dbRoot      = dbRoot;
+        RETURN_ON_ERROR( ( rc = oid2FileName( m_dctnryOID, fileName, true, dbr, m_partition, m_segment ) ) );
+        m_segFileName = fileName;
+
+        // if obsolete file exists, "w+b" will truncate and write over
+        m_dFile = createDctnryFile(fileName, colWidth, "w+b", DEFAULT_BUFSIZ);
+    }
+    else
+    {
+        RETURN_ON_ERROR( setFileOffset(m_dFile, 0, SEEK_END) );
+    }
+    if(dbRoot.isMaster(dbr)){
         rc = BRMWrapper::getInstance()->allocateDictStoreExtent((const OID)m_dctnryOID, m_dbRoot, m_partition, m_segment, startLbid, allocSize);
-        if (rc != NO_ERROR)
-        {
-            if (flag)
-            {
+        if (rc != NO_ERROR){
+            if (flag){
                 closeDctnryFile(false, oids);
             }
             return rc;
         }
-    
-        // We allocate a full extent from BRM, but only write an abbreviated 256K
-        // rows to disk for 1st extent in each store file, to conserve disk usage.
-        int totalSize = allocSize;
+    } 
+    // We allocate a full extent from BRM, but only write an abbreviated 256K
+    // rows to disk for 1st extent in each store file, to conserve disk usage.
+    int totalSize = allocSize;
+    if (flag)
+    {
+        totalSize = NUM_BLOCKS_PER_INITIAL_EXTENT;
+    }
+
+    if ( !isDiskSpaceAvail(Config::getDBRootByNum(dbr), totalSize) )
+    {
         if (flag)
         {
-            totalSize = NUM_BLOCKS_PER_INITIAL_EXTENT;
+            closeDctnryFile(false, oids);
         }
-    
-        if ( !isDiskSpaceAvail(Config::getDBRootByNum(m_dbRoot[0]), totalSize) )
-        {
-            if (flag)
-            {
+        return ERR_FILE_DISK_SPACE;
+    }
+
+#ifdef PROFILE
+    Stats::stopParseEvent(WE_STATS_ALLOC_DCT_EXTENT);
+#endif
+    if( m_dFile != NULL ) {
+        rc = FileOp::initDctnryExtent( m_dFile,dbr,totalSize,m_dctnryHeader2,m_totalHdrBytes,false );
+        if (rc != NO_ERROR){
+            if (flag){
                 closeDctnryFile(false, oids);
             }
-            return ERR_FILE_DISK_SPACE;
-        }
-    
-    #ifdef PROFILE
-        Stats::stopParseEvent(WE_STATS_ALLOC_DCT_EXTENT);
-    #endif
-        if( m_dFile != NULL ) {
-            rc = FileOp::initDctnryExtent( m_dFile,
-                                           m_dbRoot,
-                                           totalSize,
-                                           m_dctnryHeader2,
-                                           m_totalHdrBytes,
-                                           false );
-            if (rc != NO_ERROR)
-            {
-                if (flag)
-                {
-                    closeDctnryFile(false, oids);
-                }
-                return rc;
-            }
-        }
-        else
-            return ERR_FILE_CREATE;
-        if (flag)
-        {
-            closeDctnryFile(true, oids);
-            m_numBlocks = totalSize;
-            m_hwm = 0;
-            rc = BRMWrapper::getInstance()->setLocalHWM(
-                m_dctnryOID, m_partition, m_segment, m_hwm);
-        }
-        else
-        {
-            m_numBlocks = m_numBlocks + totalSize;
+            return rc;
         }
     }
-    
-
+    else
+        return ERR_FILE_CREATE;
+    if (flag)
+    {
+        closeDctnryFile(true, oids);
+        m_numBlocks = totalSize;
+        m_hwm = 0;
+        rc = BRMWrapper::getInstance()->setLocalHWM(m_dctnryOID, m_partition, m_segment, m_hwm);
+    }
+    else
+    {
+        m_numBlocks = m_numBlocks + totalSize;
+    } 
     return rc;
 }
 
@@ -307,32 +289,24 @@ int  Dctnry::expandDctnryExtent()
     off64_t oldOffset = m_dFile->tell();
 
     RETURN_ON_ERROR( setFileOffset(m_dFile, 0, SEEK_END) );
-
+    uint16_t dbr = m_dbRoot.getPmDbr();
+    if (dbr == 0)
+        return ERR_INVALID_DBROOT;
     // Based on extent size, see how many blocks to add to fill the extent
-    int blksToAdd = ( ((int)BRMWrapper::getInstance()->getExtentRows() -
-        INITIAL_EXTENT_ROWS_TO_DISK)/BYTE_PER_BLOCK ) *  PSEUDO_COL_WIDTH;
+    int blksToAdd = ( ((int)BRMWrapper::getInstance()->getExtentRows() - INITIAL_EXTENT_ROWS_TO_DISK)/BYTE_PER_BLOCK ) *  PSEUDO_COL_WIDTH;
 
     if ( !isDiskSpaceAvail(Config::getDBRootByNum(m_dbRoot[0]), blksToAdd) )
     {
         return ERR_FILE_DISK_SPACE;
     }
 
-    int rc = FileOp::initDctnryExtent( m_dFile,
-                                   m_dbRoot,
-                                   blksToAdd,
-                                   m_dctnryHeader2,
-                                   m_totalHdrBytes,
-                                   true );
+    int rc = FileOp::initDctnryExtent( m_dFile,dbr,blksToAdd,m_dctnryHeader2,m_totalHdrBytes,true );
     if (rc != NO_ERROR)
-        return rc;
-
-
+        return rc; 
     // Restore offset back to where we were before expanding the extent
     RETURN_ON_ERROR( setFileOffset(m_dFile, oldOffset, SEEK_SET) );
-
     // Update block count to reflect disk space added by expanding the extent.
     m_numBlocks = m_numBlocks + blksToAdd;
-
     return rc;
 }
 

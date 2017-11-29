@@ -68,7 +68,7 @@ uint16_t DBROOTS_struct::getPmDbr(uint16_t pmid)const{
     int dbrIndex = 0;
     while (dbrIndex < 4)
     {
-        uint16_t dbr = dbRoot[dbrIndex];
+        uint16_t dbr = dbRoots[dbrIndex];
         dbrIndex++;
         if (dbr == 0)break; 
         if (!oamcache->existDbroot(dbr,pmid))continue;

@@ -212,14 +212,14 @@ namespace WriteEngine
         uint32_t partitionx = partition;
         BRM::LBID_t startLbid;
         uint32_t startBlock;
-        oam::OamCache* oamcache = oam::OamCache::makeOamCache();
         uint16_t dbr = dbRoot.getPmDbr();
         if (dbr == 0)
             return ERR_INVALID_DBROOT;
         RETURN_ON_ERROR((rc = oid2FileName(fid, fileName, true, dbr, partition, segment)));
         if (exists(fileName))//@Bug 3196
             return ERR_FILE_EXIST;
-        if (i == 1)//dbrm 分配 em 各客户端同时执行的 worker 中调用slavecomm
+          
+        if(dbRoot.isMaster(dbr))//dbrm 分配 em 各客户端同时执行的 worker 中调用slavecomm
             RETURN_ON_ERROR(BRMWrapper::getInstance()->allocateColExtentExactFile((const OID)fid, (uint32_t)width, dbRootx, partitionx, segment, colDataType, startLbid, allocSize, startBlock));
          
         // We allocate a full extent from BRM, but only write an abbreviated 256K

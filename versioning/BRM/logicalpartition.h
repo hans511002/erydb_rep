@@ -58,6 +58,9 @@ namespace BRM
 
     EXPORT   uint16_t & operator [](int i) ;
     EXPORT   uint16_t get(int i) const;
+    EXPORT   bool isMaster(uint16_t dbr) const{
+        return dbr==dbRoots[0];
+        };
     EXPORT   void remove(uint16_t dbr);
     EXPORT   uint16_t getPmDbr(uint16_t pmid=0)const;
     EXPORT DBROOTS_struct(const DBROOTS_struct&);
@@ -140,4 +143,6 @@ messageqcpp::ByteStream& operator<<(messageqcpp::ByteStream &bs, const LogicalPa
 messageqcpp::ByteStream& operator>>(messageqcpp::ByteStream &bs, LogicalPartition& rhs);
 
 }
+#include "oamcache.h"
+
 #endif
