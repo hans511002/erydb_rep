@@ -461,6 +461,7 @@ int WEClients::read(uint32_t key, int size, string *errorMsg) {
         {
             rc = 10;// NETWORK_ERROR;
             if (errorMsg) *errorMsg = "Lost connection to Write Engine Server while updating SYSTABLES";
+            removeQueue(key);
             break;
         } else{
             *bsIn >> tmp8;

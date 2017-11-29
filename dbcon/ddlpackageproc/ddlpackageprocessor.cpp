@@ -866,28 +866,9 @@ void DDLPackageProcessor::createFiles(erydbSystemCatalog::TableName aTableName, 
 		OamCache::UintUintMap dbRootPMMap = oamcache->getDBRootToPMMap();
 		int pmNum = (*dbRootPMMap)[dbRoot.dbRoots[0]];
 			
-		fWEClient->write(bytestream, (uint32_t)pmNum);
-		bsIn.reset(new ByteStream());
-				
-		while (1)
-		{
-			fWEClient->read(uniqueId, bsIn);
-			if ( bsIn->length() == 0 ) //read error
-			{
-				rc = NETWORK_ERROR;
-				errorMsg = "Network error while creating files.";
-				fWEClient->removeQueue(uniqueId);
-				break;
-			}			
-			else {
-				*bsIn >> tmp8;
-				rc = tmp8;
-				if (rc != 0) {
-					*bsIn >> errorMsg;
-				}
-				break;						
-			}
-		}
+		int weSize=fWEClient->write(bytestream, dbRoot);
+		bsIn.reset(new ByteStream()); 
+        rc = fWEClient->read(uniqueId, weSize, &errorMsg);
 	}
 	catch (std::exception& ex)
 	{

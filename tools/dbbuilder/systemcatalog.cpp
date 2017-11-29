@@ -52,8 +52,18 @@ typedef boost::shared_ptr<std::map<string, int> > StringIntMap;
 
 void SystemCatalog::buildRep()
 {
-    BRM::DBRM* dbrm = new BRM::DBRM();
-    //DDLPackageProcessor ddlProc(dbrm);
+    boost::scoped_ptr<DBRM> dbrm(new DBRM()); 
+    DDLPackageProcessor ddlProc(dbrm.get());
+    DBROOTS_struct dbRoot;
+    BRMWrapper::getInstance()->getSysDataDBRoots(&dbRoot);
+    uint64_t uniqueId = 0;
+    uniqueId = dbrm->getUnique64();
+    cout << "SysDataDBRoots=" << dbRoot << endl;
+    erydbSystemCatalog::TableName sysTable(ERYDB_SCHEMA,SYSTABLE_TABLE);
+    ddlProc.createFiles(sysTable, dbRoot, uniqueId, 13);
+    erydbSystemCatalog::TableName sysColTable(ERYDB_SCHEMA, SYSTABLE_TABLE);
+    ddlProc.createFiles(sysColTable, dbRoot, uniqueId,28 );
+    return ;
     WriteEngine::WEClients  fWEClient(WriteEngine::WEClients::DDLPROC);
     remove();
     cout << "Creating System Catalog..." << endl;
@@ -64,16 +74,11 @@ void SystemCatalog::buildRep()
     ostringstream msg;
     WErrorCodes ec;
     ByteStream bytestream;
-    uint64_t uniqueId = 0;
-    uniqueId = dbrm->getUnique64();
     fWEClient.addQueue(uniqueId);
     BRM::TxnID txnID;
     txnID.id = 0;
     txnID.valid = 0;
     int rc = 0;
-    DBROOTS_struct dbRoot;
-    BRMWrapper::getInstance()->getSysDataDBRoots(&dbRoot);
-    cout << "SysDataDBRoots=" << dbRoot << endl;
     StringIntMap colMap;
     colMap.reset(new StringIntMap::element_type());
     int compressionType = 0;

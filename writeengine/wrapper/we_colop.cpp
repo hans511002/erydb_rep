@@ -41,6 +41,7 @@ using namespace execplan;
 
 #include "ERYDBDataFile.h"
 #include "ERYDBPolicy.h"
+#include "oamcache.h"
 
 using namespace erydbdatafile;
 
@@ -270,7 +271,7 @@ int ColumnOp::allocRowId(const TxnID& txnid, bool useStartingExtent,
 									return rc;
 								 }
 								 uint64_t emptyVal = getEmptyRowValue(newColStructList[i].colDataType, newColStructList[i].colWidth);
-								 rc = fileOp.expandAbbrevColumnExtent( pFile, dbRoot, emptyVal, newColStructList[i].colWidth);
+								 rc = fileOp.expandAbbrevColumnExtent( pFile, dbRoot[0], emptyVal, newColStructList[i].colWidth);
 								 //set hwm for this extent.
 								 fileOp.closeFile(pFile);
 								 if (rc != NO_ERROR)
@@ -1252,44 +1253,44 @@ int ColumnOp::addExtent(const Column& column,DBROOTS_struct& dbRoot,uint32_t par
     *    ERR_FILE_READ if something wrong in reading the file
     ***********************************************************/
 // @bug 5572 - HDFS usage: add *.tmp file backup flag
-   int ColumnOp::openColumnFile(Column& column,
-      std::string& segFile,
-      bool useTmpSuffix,
-      int ioBuffSize) const
+   int ColumnOp::openColumnFile(Column& column,std::string& segFile,bool useTmpSuffix,int ioBuffSize) const
    {
       if (!isValid(column))
          return ERR_INVALID_PARAM;
-
-      // open column data file
-      column.dataFile.pFile = openFile(column,column.dataFile.fDbRoot[0],column.dataFile.fPartition,column.dataFile.fSegment,column.dataFile.fSegFileName,useTmpSuffix,"r+b", ioBuffSize);
-      segFile = column.dataFile.fSegFileName;
-      if (column.dataFile.pFile == NULL)
-	  {
-		ostringstream oss;
-		oss << "oid: " << column.dataFile.fid << " with path " << segFile;
-		logging::Message::Args args;
-		logging::Message message(1);
-		args.add("Error opening file ");
-		args.add(oss.str());
-		args.add("");
-		args.add("");
-		message.format(args);
-		logging::LoggingID lid(21);
-        logging::MessageLog ml(lid);
-
-        ml.logErrorMessage( message );
-         return ERR_FILE_OPEN;
-		 
-	}
-
-      // open column bitmap file
-/*      column.bitmapFile.pFile = openFile(column.bitmapFile.fid);
-      if (column.bitmapFile.pFile == NULL) {
-         closeFile(column.dataFile.pFile );         // clear previous one
-         column.dataFile.pFile = NULL;
-         return ERR_FILE_OPEN;
+      oam::OamCache* oamcache = oam::OamCache::makeOamCache();
+      int dbrIndex = 0;
+      while (1)
+      {
+          uint16_t dbr = column.dataFile.fDbRoot[dbrIndex];
+          dbrIndex++;
+          if (dbr == 0)break;
+          if (!oamcache->existDbroot(dbr))continue;
+          // open column data file
+          column.dataFile.pFile[dbrIndex-1] = openFile(column, column.dataFile.fDbRoot[0], column.dataFile.fPartition, column.dataFile.fSegment, column.dataFile.fSegFileName, useTmpSuffix, "r+b", ioBuffSize);
+          segFile = column.dataFile.fSegFileName;
+          if (column.dataFile.pFile == NULL)
+          {
+              ostringstream oss;
+              oss << "oid: " << column.dataFile.fid << " with path " << segFile;
+              logging::Message::Args args;
+              logging::Message message(1);
+              args.add("Error opening file ");
+              args.add(oss.str());args.add("");args.add("");
+              message.format(args);
+              logging::LoggingID lid(21);
+              logging::MessageLog ml(lid);
+              ml.logErrorMessage(message);
+              return ERR_FILE_OPEN;
+          }
+          // open column bitmap file
+          /*      column.bitmapFile.pFile = openFile(column.bitmapFile.fid);
+          if (column.bitmapFile.pFile == NULL) {
+          closeFile(column.dataFile.pFile );         // clear previous one
+          column.dataFile.pFile = NULL;
+          return ERR_FILE_OPEN;
+          }
+          */
       }
-*/
       return NO_ERROR;
    }
 
