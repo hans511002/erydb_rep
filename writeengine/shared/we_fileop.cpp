@@ -283,10 +283,8 @@ namespace WriteEngine
         char oidDirName[FILE_NAME_SIZE];
         char dbDir[MAX_DB_DIR_LEVEL][MAX_DB_DIR_NAME_SIZE];
 
-        RETURN_ON_ERROR((Convertor::oid2FileName(
-            fid, tempFileName, dbDir, 0, 0)));
-        sprintf(oidDirName, "%s/%s/%s/%s",
-                dbDir[0], dbDir[1], dbDir[2], dbDir[3]);
+        RETURN_ON_ERROR((Convertor::oid2FileName(fid, tempFileName, dbDir, 0, 0)));
+        sprintf(oidDirName, "%s/%s/%s/%s",dbDir[0], dbDir[1], dbDir[2], dbDir[3]);
         //std::cout << "Deleting files for OID " << fid <<
         //             "; dirpath: " << oidDirName << std::endl;
         //need check return code.
@@ -329,19 +327,14 @@ namespace WriteEngine
         Config::getDBRootPathList(dbRootPathList);
         for (unsigned n = 0; n < fids.size(); n++)
         {
-            RETURN_ON_ERROR((Convertor::oid2FileName(
-                fids[n], tempFileName, dbDir, 0, 0)));
-            sprintf(oidDirName, "%s/%s/%s/%s",
-                    dbDir[0], dbDir[1], dbDir[2], dbDir[3]);
+            RETURN_ON_ERROR((Convertor::oid2FileName(fids[n], tempFileName, dbDir, 0, 0)));
+            sprintf(oidDirName, "%s/%s/%s/%s",dbDir[0], dbDir[1], dbDir[2], dbDir[3]);
             //std::cout << "Deleting files for OID " << fid <<
             //             "; dirpath: " << oidDirName << std::endl;
-
             for (unsigned i = 0; i < dbRootPathList.size(); i++)
             {
                 char rootOidDirName[FILE_NAME_SIZE];
-                sprintf(rootOidDirName, "%s/%s", dbRootPathList[i].c_str(),
-                        oidDirName);
-
+                sprintf(rootOidDirName, "%s/%s", dbRootPathList[i].c_str(),oidDirName);
                 if (ERYDBPolicy::remove(rootOidDirName) != 0)
                 {
                     ostringstream oss;
@@ -350,7 +343,6 @@ namespace WriteEngine
                 }
             }
         }
-
         return NO_ERROR;
     }
 
@@ -378,34 +370,39 @@ namespace WriteEngine
             RETURN_ON_ERROR((Convertor::oid2FileName(partitions[i].oid, tempFileName, dbDir, partitions[i].lp.pp, partitions[i].lp.seg)));
             sprintf(oidDirName, "%s/%s/%s/%s/%s", dbDir[0], dbDir[1], dbDir[2], dbDir[3], dbDir[4]);
             // config expects dbroot starting from 0
-            std::string rt(Config::getDBRootByNum(partitions[i].lp.dbRoot.dbRoots[0]));
-            sprintf(rootOidDirName, "%s/%s", rt.c_str(), tempFileName);
-            sprintf(partitionDirName, "%s/%s", rt.c_str(), oidDirName);
-
-            if (ERYDBPolicy::remove(rootOidDirName) != 0)
+            oam::OamCache* oamcache = oam::OamCache::makeOamCache();
+            int dbrIndex = 0;
+            int rc = 0;
+            while (1)
             {
-                ostringstream oss;
-                oss << "Unable to remove " << rootOidDirName;
-                throw std::runtime_error(oss.str());
-            }
+                uint16_t dbr = partitions[i].lp.dbRoot.dbRoots[dbrIndex];
+                dbrIndex++;
+                if (dbr == 0)break;
+                if (!oamcache->existDbroot(dbr))continue;
+                std::string rt(Config::getDBRootByNum(dbr));
+                sprintf(rootOidDirName, "%s/%s", rt.c_str(), tempFileName);
+                sprintf(partitionDirName, "%s/%s", rt.c_str(), oidDirName);
 
-            list<string> dircontents;
-            if (ERYDBPolicy::listDirectory(partitionDirName, dircontents) == 0)
-            {
-                // the directory exists, now check if empty
-                if (dircontents.size() == 0)
+                if (ERYDBPolicy::remove(rootOidDirName) != 0)
                 {
-                    // empty directory
-                    if (ERYDBPolicy::remove(partitionDirName) != 0)
+                    ostringstream oss;
+                    oss << "Unable to remove " << rootOidDirName;
+                    throw std::runtime_error(oss.str());
+                }
+                list<string> dircontents;
+                if (ERYDBPolicy::listDirectory(partitionDirName, dircontents) == 0){// the directory exists, now check if empty
+                    if (dircontents.size() == 0) // empty directory
                     {
-                        ostringstream oss;
-                        oss << "Unable to remove " << rootOidDirName;
-                        throw std::runtime_error(oss.str());
+                        if (ERYDBPolicy::remove(partitionDirName) != 0)
+                        {
+                            ostringstream oss;
+                            oss << "Unable to remove " << rootOidDirName;
+                            throw std::runtime_error(oss.str());
+                        }
                     }
                 }
-            }
+            } 
         }
-
         return NO_ERROR;
     }
 
@@ -423,10 +420,20 @@ namespace WriteEngine
     int FileOp::deleteFile(FID fid, DBROOTS_struct& dbRoot, uint32_t partition, uint16_t segment) const
     {
         char fileName[FILE_NAME_SIZE];
-
-        RETURN_ON_ERROR(getFileName(fid, fileName, dbRoot[0], partition, segment));
-
-        return (deleteFile(fileName));
+        oam::OamCache* oamcache = oam::OamCache::makeOamCache();
+        int dbrIndex = 0;
+        int rc = 0;
+        while (1)
+        {
+            uint16_t dbr = dbRoot[dbrIndex];
+            dbrIndex++;
+            if (dbr == 0)break;
+            if (!oamcache->existDbroot(dbr))continue;
+            RETURN_ON_ERROR(getFileName(fid, fileName, dbr, partition, segment));
+            rc= (deleteFile(fileName));
+            if (rc)return rc;
+        }
+        return rc;
     }
 
     /***********************************************************
@@ -453,13 +460,11 @@ namespace WriteEngine
      * RETURN:
      *    true if exists, false otherwise
      ***********************************************************/
-    bool FileOp::exists(FID fid, DBROOTS_struct& dbRoot, uint32_t partition, uint16_t segment) const
+    bool FileOp::exists(FID fid, uint16_t dbr, uint32_t partition, uint16_t segment) const
     {
         char fileName[FILE_NAME_SIZE];
-
-        if (getFileName(fid, fileName, dbRoot[0], partition, segment) != NO_ERROR)
+        if (getFileName(fid, fileName, dbr, partition, segment) != NO_ERROR)
             return false;
-
         return exists(fileName);
     }
 
@@ -474,12 +479,8 @@ namespace WriteEngine
     bool FileOp::existsOIDDir(FID fid) const
     {
         char fileName[FILE_NAME_SIZE];
-
         if (oid2DirName(fid, fileName) != NO_ERROR)
-        {
             return false;
-        }
-
         return exists(fileName);
     }
 
@@ -526,46 +527,40 @@ namespace WriteEngine
             uint16_t dbr = dbRoot[dbrIndex];
             dbrIndex++;
             if (dbr == 0)break;
-            if (!oamcache->existDbroot(dbr))continue; 
+            if (!oamcache->existDbroot(dbr))continue;
             // If starting hwm or fbo is 0 then this is the first extent of a new file,
             // else we are adding an extent to an existing segment file
             if (hwm > 0) // db segment file should exist
             {
                 RETURN_ON_ERROR(oid2FileName(oid, fileName, false, dbr, partition, segment));
-                segFile = fileName; 
+                segFile = fileName;
                 if (!exists(fileName))
                 {
                     ostringstream oss;
                     oss << "oid: " << oid << " with path " << segFile;
                     logging::Message::Args args;
-                    args.add("File not found ");
-                    args.add(oss.str());
-                    args.add("");
-                    args.add("");
-                    SimpleSysLog::instance()->logMsg(args,logging::LOG_TYPE_ERROR,logging::M0001);
+                    args.add("File not found ");args.add(oss.str());args.add("");args.add("");
+                    SimpleSysLog::instance()->logMsg(args, logging::LOG_TYPE_ERROR, logging::M0001);
                     return ERR_FILE_NOT_EXIST;
-                } 
+                }
                 pFile = openFile(oid, dbr, partition, segment, segFile, "r+b");//old file
                 if (pFile == 0)
                 {
                     ostringstream oss;
                     oss << "oid: " << oid << " with path " << segFile;
                     logging::Message::Args args;
-                    args.add("Error opening file ");
-                    args.add(oss.str());
-                    args.add("");
-                    args.add("");
-                    SimpleSysLog::instance()->logMsg(args,logging::LOG_TYPE_ERROR,logging::M0001);
+                    args.add("Error opening file ");args.add(oss.str());args.add("");args.add("");
+                    SimpleSysLog::instance()->logMsg(args, logging::LOG_TYPE_ERROR, logging::M0001);
                     return ERR_FILE_OPEN;
                 }
 
                 if (isDebug(DEBUG_1) && getLogger())
                 {
                     std::ostringstream oss;
-                    oss << "Opening existing column file" <<": OID-" << oid <<"; DBRoot-" << dbRoot <<"; part-" << partition <<
-                        "; seg-" << segment <<"; LBID-" << startLbid <<"; hwm-" << hwm <<"; file-" << segFile;
+                    oss << "Opening existing column file" << ": OID-" << oid << "; DBRoot-" << dbRoot << "; part-" << partition <<
+                        "; seg-" << segment << "; LBID-" << startLbid << "; hwm-" << hwm << "; file-" << segFile;
                     getLogger()->logMsg(oss.str(), MSGLVL_INFO2);
-                } 
+                }
                 // @bug 5349: check that new extent's fbo is not past current EOF
                 if (m_compressionType)
                 {
@@ -591,11 +586,11 @@ namespace WriteEngine
                     if (chunkIndex >= ptrCount)
                     {
                         ostringstream oss;
-                        oss << "oid: " << oid << " with path " << segFile <<"; new extent fbo " << hwm << "; number of ""compressed chunks " << ptrCount;
+                        oss << "oid: " << oid << " with path " << segFile << "; new extent fbo " << hwm << "; number of ""compressed chunks " << ptrCount;
                         logging::Message::Args args;
                         args.add("compressed");
                         args.add(oss.str());
-                        SimpleSysLog::instance()->logMsg(args,logging::LOG_TYPE_ERROR,logging::M0103);
+                        SimpleSysLog::instance()->logMsg(args, logging::LOG_TYPE_ERROR, logging::M0103);
                         return ERR_FILE_NEW_EXTENT_FBO;
                     }
 
@@ -621,9 +616,7 @@ namespace WriteEngine
                     if (calculatedFileSize > fileSize)
                     {
                         ostringstream oss;
-                        oss << "oid: " << oid << " with path " << segFile <<
-                            "; new extent fbo " << hwm << "; file size (bytes) " <<
-                            fileSize;
+                        oss << "oid: " << oid << " with path " << segFile <<"; new extent fbo " << hwm << "; file size (bytes) " <<fileSize;
                         logging::Message::Args args;
                         args.add("uncompressed");
                         args.add(oss.str());
@@ -646,8 +639,8 @@ namespace WriteEngine
                 if (isDebug(DEBUG_1) && getLogger())
                 {
                     std::ostringstream oss;
-                    oss << "Opening new column file" <<": OID-" << oid <<"; DBRoot-" << dbRoot <<"; part-" << partition <<"; seg-" << segment <<
-                        "; LBID-" << startLbid <<"; hwm-" << hwm <<"; file-" << segFile;
+                    oss << "Opening new column file" << ": OID-" << oid << "; DBRoot-" << dbRoot << "; part-" << partition << "; seg-" << segment <<
+                        "; LBID-" << startLbid << "; hwm-" << hwm << "; file-" << segFile;
                     getLogger()->logMsg(oss.str(), MSGLVL_INFO2);
                 }
 
@@ -656,7 +649,7 @@ namespace WriteEngine
                     ERYDBCompressInterface compressor;
                     compressor.initHdr(hdrs, m_compressionType);
                 }
-                }
+            }
 #ifdef _MSC_VER
             //Need to call the win version with a dir, not a file
             if (!isDiskSpaceAvail(Config::getDBRootByNum(dbr), allocSize))
@@ -676,9 +669,11 @@ namespace WriteEngine
                 return rc;
 
             // Initialize the contents of the extent.
-            rc = initColumnExtent(pFile, dbr, allocSize, emptyVal, width,newFile, false, false); // new or existing file
+            rc = initColumnExtent(pFile, dbr, allocSize, emptyVal, width, newFile, false, false); // new or existing file
                                     // don't expand; new extent // add full (not abbreviated) extent
-        }        
+            if (rc != NO_ERROR)
+                return rc;
+        }
         return rc;
     }
 
@@ -701,129 +696,97 @@ namespace WriteEngine
      * RETURN:
      *    none
      ***********************************************************/
-    int FileOp::addExtentExactFile(
-        OID          oid,
-        uint64_t     emptyVal,
-        int          width,
-        int&         allocSize,
-        DBROOTS_struct&     dbRoot,
-        uint32_t     partition,
-        uint16_t     segment,
-        execplan::erydbSystemCatalog::ColDataType colDataType,
-        std::string& segFile,
-        BRM::LBID_t& startLbid,
-        bool&        newFile,
-        char*        hdrs)
+    int FileOp::addExtentExactFile(OID oid,uint64_t emptyVal,int width,int& allocSize,DBROOTS_struct& dbRoot,uint32_t partition,
+                                   uint16_t segment,execplan::erydbSystemCatalog::ColDataType colDataType,std::string& segFile,BRM::LBID_t& startLbid,bool& newFile,char* hdrs)
     {
         int rc = NO_ERROR;
         ERYDBDataFile* pFile = 0;
         segFile.clear();
         newFile = false;
         HWM         hwm;
-
-        // Allocate the new extent in the ExtentMap
-        RETURN_ON_ERROR(BRMWrapper::getInstance()->allocateColExtentExactFile(oid, width, dbRoot, partition, segment, colDataType, startLbid, allocSize, hwm));
-
-        // Determine the existence of the "next" segment file, and either open
-        // or create the segment file accordingly.
-        if (exists(oid, dbRoot, partition, segment))
+        oam::OamCache* oamcache = oam::OamCache::makeOamCache();
+        int dbrIndex = 0;
+        while (1)
         {
-            pFile = openFile(oid, dbRoot[0], partition, segment, segFile, "r+b");//old file
-            if (pFile == 0)
+            uint16_t dbr = dbRoot[dbrIndex];
+            dbrIndex++;
+            if (dbr == 0)break;
+            if (!oamcache->existDbroot(dbr))continue;
+            if (dbrIndex == 1)
             {
-                ostringstream oss;
-                oss << "oid: " << oid << " with path " << segFile;
-                logging::Message::Args args;
-                args.add("Error opening file ");
-                args.add(oss.str());
-                args.add("");
-                args.add("");
-                SimpleSysLog::instance()->logMsg(args,
-                                                 logging::LOG_TYPE_ERROR,
-                                                 logging::M0001);
-                return ERR_FILE_OPEN;
+                // Allocate the new extent in the ExtentMap
+                RETURN_ON_ERROR(BRMWrapper::getInstance()->allocateColExtentExactFile(oid, width, dbRoot, partition, segment, colDataType, startLbid, allocSize, hwm));
             }
-
-            if (isDebug(DEBUG_1) && getLogger())
+            // Determine the existence of the "next" segment file, and either open
+            // or create the segment file accordingly.
+            if (exists(oid, dbr, partition, segment))
             {
-                std::ostringstream oss;
-                oss << "Opening existing column file" <<
-                    ": OID-" << oid <<
-                    "; DBRoot-" << dbRoot <<
-                    "; part-" << partition <<
-                    "; seg-" << segment <<
-                    "; LBID-" << startLbid <<
-                    "; hwm-" << hwm <<
-                    "; file-" << segFile;
-                getLogger()->logMsg(oss.str(), MSGLVL_INFO2);
-            }
-
-            if ((m_compressionType) && (hdrs))
+                pFile = openFile(oid, dbr, partition, segment, segFile, "r+b");//old file
+                if (pFile == 0)
+                {
+                    ostringstream oss;
+                    oss << "oid: " << oid << " with path " << segFile;
+                    logging::Message::Args args;
+                    args.add("Error opening file ");args.add(oss.str());args.add("");args.add("");
+                    SimpleSysLog::instance()->logMsg(args,logging::LOG_TYPE_ERROR,logging::M0001);
+                    return ERR_FILE_OPEN;
+                }
+                if (isDebug(DEBUG_1) && getLogger())
+                {
+                    std::ostringstream oss;
+                    oss << "Opening existing column file" <<": OID-" << oid <<"; DBRoot-" << dbRoot <<"; part-" << partition <<"; seg-" << segment <<"; LBID-" << startLbid <<"; hwm-" << hwm <<"; file-" << segFile;
+                    getLogger()->logMsg(oss.str(), MSGLVL_INFO2);
+                }
+                if ((m_compressionType) && (hdrs))
+                {
+                    rc = readHeaders(pFile, hdrs);
+                    if (rc != NO_ERROR)
+                        return rc;
+                }
+            } else
             {
-                rc = readHeaders(pFile, hdrs);
-                if (rc != NO_ERROR)
-                    return rc;
+                char fileName[FILE_NAME_SIZE];
+                RETURN_ON_ERROR(oid2FileName(oid, fileName, true, dbr, partition, segment));
+                segFile = fileName;
+                pFile = openFile(fileName, "w+b");//new file
+                if (pFile == 0)
+                    return ERR_FILE_CREATE;
+                newFile = true;
+                if (isDebug(DEBUG_1) && getLogger())
+                {
+                    std::ostringstream oss;
+                    oss << "Opening new column file" << ": OID-" << oid << "; DBRoot-" << dbRoot << "; part-" << partition << "; seg-" << segment << "; LBID-" << startLbid << "; hwm-" << hwm << "; file-" << segFile;
+                    getLogger()->logMsg(oss.str(), MSGLVL_INFO2);
+                }
+                if ((m_compressionType) && (hdrs))
+                {
+                    ERYDBCompressInterface compressor;
+                    compressor.initHdr(hdrs, m_compressionType);
+                }
             }
-        } else
-        {
-            char fileName[FILE_NAME_SIZE];
-            RETURN_ON_ERROR(oid2FileName(oid, fileName, true, dbRoot[0], partition, segment));
-            segFile = fileName;
-
-            pFile = openFile(fileName, "w+b");//new file
-            if (pFile == 0)
-                return ERR_FILE_CREATE;
-
-            newFile = true;
-            if (isDebug(DEBUG_1) && getLogger())
-            {
-                std::ostringstream oss;
-                oss << "Opening new column file" <<
-                    ": OID-" << oid <<
-                    "; DBRoot-" << dbRoot <<
-                    "; part-" << partition <<
-                    "; seg-" << segment <<
-                    "; LBID-" << startLbid <<
-                    "; hwm-" << hwm <<
-                    "; file-" << segFile;
-                getLogger()->logMsg(oss.str(), MSGLVL_INFO2);
-            }
-
-            if ((m_compressionType) && (hdrs))
-            {
-                ERYDBCompressInterface compressor;
-                compressor.initHdr(hdrs, m_compressionType);
-            }
-        }
 #ifdef _MSC_VER
-        //Need to call the win version with a dir, not a file
-        if (!isDiskSpaceAvail(Config::getDBRootByNum(dbRoot), allocSize))
+            //Need to call the win version with a dir, not a file
+            if (!isDiskSpaceAvail(Config::getDBRootByNum(dbr), allocSize))
 #else
-        if (!isDiskSpaceAvail(segFile, allocSize))
+            if (!isDiskSpaceAvail(segFile, allocSize))
 #endif
-        {
-            return ERR_FILE_DISK_SPACE;
+            {
+                return ERR_FILE_DISK_SPACE;
+            }
+
+            // We set to EOF just before we start adding the blocks for the new extent.
+            // At one time, I considered changing this to seek to the HWM block, but
+            // with compressed files, this is murky; do I find and seek to the chunk
+            // containing the HWM block?  So I left as-is for now, seeking to EOF.
+            rc = setFileOffset(pFile, 0, SEEK_END);
+            if (rc != NO_ERROR)
+                return rc;
+            // Initialize the contents of the extent.
+            rc = initColumnExtent(pFile, dbr, allocSize, emptyVal, width, newFile, false, false); // add full (not abbreviated) extent
+            closeFile(pFile);
+            if (rc != NO_ERROR)
+                return rc;
         }
-
-        // We set to EOF just before we start adding the blocks for the new extent.
-        // At one time, I considered changing this to seek to the HWM block, but
-        // with compressed files, this is murky; do I find and seek to the chunk
-        // containing the HWM block?  So I left as-is for now, seeking to EOF.
-        rc = setFileOffset(pFile, 0, SEEK_END);
-        if (rc != NO_ERROR)
-            return rc;
-
-        // Initialize the contents of the extent.
-        rc = initColumnExtent(pFile,
-                              dbRoot,
-                              allocSize,
-                              emptyVal,
-                              width,
-                              newFile, // new or existing file
-                              false,   // don't expand; new extent
-                              false); // add full (not abbreviated) extent
-
-        closeFile(pFile);
         return rc;
     }
 
@@ -1031,44 +994,28 @@ namespace WriteEngine
      * RETURN:
      *    returns NO_ERROR on success.
      ***********************************************************/
-    int FileOp::writeInitialCompColumnChunk(
-        ERYDBDataFile* pFile,
-        int      nBlocksAllocated,
-        int      nRows,
-        uint64_t emptyVal,
-        int      width,
-        char*    hdrs)
+    int FileOp::writeInitialCompColumnChunk(ERYDBDataFile* pFile,int nBlocksAllocated,int nRows,uint64_t emptyVal,int width,char* hdrs)
     {
         const int INPUT_BUFFER_SIZE = nRows * width;
         char* toBeCompressedInput = new char[INPUT_BUFFER_SIZE];
-        unsigned int userPaddingBytes = Config::getNumCompressedPadBlks() *
-            BYTE_PER_BLOCK;
-        const int OUTPUT_BUFFER_SIZE = ERYDBCompressInterface::maxCompressedSize(INPUT_BUFFER_SIZE) +
-            userPaddingBytes;
+        unsigned int userPaddingBytes = Config::getNumCompressedPadBlks() * BYTE_PER_BLOCK;
+        const int OUTPUT_BUFFER_SIZE = ERYDBCompressInterface::maxCompressedSize(INPUT_BUFFER_SIZE) + userPaddingBytes;
         unsigned char* compressedOutput = new unsigned char[OUTPUT_BUFFER_SIZE];
         unsigned int outputLen = OUTPUT_BUFFER_SIZE;
         boost::scoped_array<char> toBeCompressedInputPtr(toBeCompressedInput);
         boost::scoped_array<unsigned char> compressedOutputPtr(compressedOutput);
 
-        setEmptyBuf((unsigned char*)toBeCompressedInput,
-                    INPUT_BUFFER_SIZE, emptyVal, width);
+        setEmptyBuf((unsigned char*)toBeCompressedInput,INPUT_BUFFER_SIZE, emptyVal, width);
 
         // Compress an initialized abbreviated extent
         ERYDBCompressInterface compressor(userPaddingBytes);
-        int rc = compressor.compressBlock(toBeCompressedInput,
-                                          INPUT_BUFFER_SIZE, compressedOutput, outputLen);
-        if (rc != 0)
-        {
-            return ERR_COMP_COMPRESS;
-        }
-
+        int rc = compressor.compressBlock(toBeCompressedInput,INPUT_BUFFER_SIZE, compressedOutput, outputLen);
+        if (rc != 0) 
+            return ERR_COMP_COMPRESS; 
         // Round up the compressed chunk size
-        rc = compressor.padCompressedChunks(compressedOutput,
-                                            outputLen, OUTPUT_BUFFER_SIZE);
-        if (rc != 0)
-        {
-            return ERR_COMP_PAD_DATA;
-        }
+        rc = compressor.padCompressedChunks(compressedOutput,outputLen, OUTPUT_BUFFER_SIZE);
+        if (rc != 0) 
+            return ERR_COMP_PAD_DATA; 
 
         //  std::cout << "Uncompressed rowCount: " << nRows <<
         //      "; colWidth: "      << width   <<
@@ -1088,11 +1035,8 @@ namespace WriteEngine
         RETURN_ON_ERROR(writeHeaders(pFile, hdrs));
 
         // Write the compressed data
-        if (pFile->write(compressedOutput, outputLen) != outputLen)
-        {
-            return ERR_FILE_WRITE;
-        }
-
+        if (pFile->write(compressedOutput, outputLen) != outputLen) 
+            return ERR_FILE_WRITE; 
         return NO_ERROR;
     }
 
@@ -1112,272 +1056,234 @@ namespace WriteEngine
      * RETURN:
      *    returns NO_ERROR if success.
      ***********************************************************/
-    int FileOp::fillCompColumnExtentEmptyChunks(OID oid,
-                                                int          colWidth,
-                                                uint64_t     emptyVal,
-                                                DBROOTS_struct&     dbRoot,
-                                                uint32_t     partition,
-                                                uint16_t     segment,
-                                                HWM          hwm,
-                                                std::string& segFile,
-                                                std::string& failedTask)
+    int FileOp::fillCompColumnExtentEmptyChunks(OID oid,int colWidth,uint64_t emptyVal,DBROOTS_struct& dbRoot,uint32_t partition,uint16_t segment,HWM hwm,std::string& segFile,std::string& failedTask)
     {
         int rc = NO_ERROR;
         segFile.clear();
         failedTask.clear();
-
-        // Open the file and read the headers with the compression chunk pointers
-        // @bug 5572 - HDFS usage: incorporate *.tmp file backup flag
-        ERYDBDataFile* pFile = openFile(oid, dbRoot[0], partition, segment, segFile,
-                                        "r+b", DEFAULT_COLSIZ, true);
-        if (!pFile)
+        oam::OamCache* oamcache = oam::OamCache::makeOamCache();
+        int dbrIndex = 0;
+        while (1)
         {
-            failedTask = "Opening file";
-            ostringstream oss;
-            oss << "oid: " << oid << " with path " << segFile;
-            logging::Message::Args args;
-            args.add("Error opening file ");
-            args.add(oss.str());
-            args.add("");
-            args.add("");
-            SimpleSysLog::instance()->logMsg(args,
-                                             logging::LOG_TYPE_ERROR,
-                                             logging::M0001);
-            return ERR_FILE_OPEN;
-        }
-
-        char hdrs[ERYDBCompressInterface::HDR_BUF_LEN * 2];
-        rc = readHeaders(pFile, hdrs);
-        if (rc != NO_ERROR)
-        {
-            failedTask = "Reading headers";
-            closeFile(pFile);
-            return rc;
-        }
-
-        int userPadBytes = Config::getNumCompressedPadBlks() * BYTE_PER_BLOCK;
-        ERYDBCompressInterface compressor(userPadBytes);
-        CompChunkPtrList chunkPtrs;
-        int rcComp = compressor.getPtrList(hdrs, chunkPtrs);
-        if (rcComp != 0)
-        {
-            failedTask = "Getting header ptrs";
-            closeFile(pFile);
-            return ERR_COMP_PARSE_HDRS;
-        }
-
-        // Nothing to do if the proposed HWM is < the current block count
-        uint64_t blkCount = compressor.getBlockCount(hdrs);
-        if (blkCount > (hwm + 1))
-        {
-            closeFile(pFile);
-            return NO_ERROR;
-        }
-
-        const unsigned int ROWS_PER_EXTENT =
-            BRMWrapper::getInstance()->getExtentRows();
-        const unsigned int ROWS_PER_CHUNK =
-            ERYDBCompressInterface::UNCOMPRESSED_INBUF_LEN / colWidth;
-        const unsigned int CHUNKS_PER_EXTENT = ROWS_PER_EXTENT / ROWS_PER_CHUNK;
-
-        // If this is an abbreviated extent, we first expand to a full extent
-        // @bug 4340 - support moving the DBRoot with a single abbrev extent
-        if ((chunkPtrs.size() == 1) &&
-            ((blkCount * BYTE_PER_BLOCK) ==
-            (uint64_t)(INITIAL_EXTENT_ROWS_TO_DISK * colWidth)))
-        {
-            if (getLogger())
+            uint16_t dbr = dbRoot[dbrIndex];
+            dbrIndex++;
+            if (dbr == 0)break;
+            if (!oamcache->existDbroot(dbr))continue;
+            // Open the file and read the headers with the compression chunk pointers
+            // @bug 5572 - HDFS usage: incorporate *.tmp file backup flag
+            ERYDBDataFile* pFile = openFile(oid, dbr, partition, segment, segFile, "r+b", DEFAULT_COLSIZ, true);
+            if (!pFile)
             {
-                std::ostringstream oss;
-                oss << "Converting abbreviated partial extent to full extent for" <<
-                    ": OID-" << oid <<
-                    "; DBRoot-" << dbRoot <<
-                    "; part-" << partition <<
-                    "; seg-" << segment <<
-                    "; file-" << segFile <<
-                    "; wid-" << colWidth <<
-                    "; oldBlkCnt-" << blkCount <<
-                    "; newBlkCnt-" <<
-                    ((ROWS_PER_EXTENT * colWidth) / BYTE_PER_BLOCK);
-                getLogger()->logMsg(oss.str(), MSGLVL_INFO2);
+                failedTask = "Opening file";
+                ostringstream oss;
+                oss << "oid: " << oid << " with path " << segFile;
+                logging::Message::Args args;
+                args.add("Error opening file ");args.add(oss.str());args.add("");args.add("");
+                SimpleSysLog::instance()->logMsg(args,logging::LOG_TYPE_ERROR,logging::M0001);
+                return ERR_FILE_OPEN;
             }
-
-            off64_t   endHdrsOffset = pFile->tell();
-            rc = expandAbbrevColumnExtent(pFile, dbRoot, emptyVal, colWidth);
+            char hdrs[ERYDBCompressInterface::HDR_BUF_LEN * 2];
+            rc = readHeaders(pFile, hdrs);
             if (rc != NO_ERROR)
             {
-                failedTask = "Expanding abbreviated extent";
+                failedTask = "Reading headers";
                 closeFile(pFile);
                 return rc;
             }
-
-            CompChunkPtr chunkOutPtr;
-            rc = expandAbbrevColumnChunk(pFile, emptyVal, colWidth,
-                                         chunkPtrs[0], chunkOutPtr);
-            if (rc != NO_ERROR)
+            int userPadBytes = Config::getNumCompressedPadBlks() * BYTE_PER_BLOCK;
+            ERYDBCompressInterface compressor(userPadBytes);
+            CompChunkPtrList chunkPtrs;
+            int rcComp = compressor.getPtrList(hdrs, chunkPtrs);
+            if (rcComp != 0)
             {
-                failedTask = "Expanding abbreviated chunk";
+                failedTask = "Getting header ptrs";
                 closeFile(pFile);
-                return rc;
-            }
-            chunkPtrs[0] = chunkOutPtr; // update chunkPtrs with new chunk size
-
-            rc = setFileOffset(pFile, endHdrsOffset);
-            if (rc != NO_ERROR)
-            {
-                failedTask = "Positioning file to end of headers";
-                closeFile(pFile);
-                return rc;
+                return ERR_COMP_PARSE_HDRS;
             }
 
-            // Update block count to reflect a full extent
-            blkCount = (ROWS_PER_EXTENT * colWidth) / BYTE_PER_BLOCK;
-            compressor.setBlockCount(hdrs, blkCount);
-        }
+            // Nothing to do if the proposed HWM is < the current block count
+            uint64_t blkCount = compressor.getBlockCount(hdrs);
+            if (blkCount > (hwm + 1))
+            {
+                closeFile(pFile);
+                continue;//return NO_ERROR;
+            }
+            const unsigned int ROWS_PER_EXTENT =BRMWrapper::getInstance()->getExtentRows();
+            const unsigned int ROWS_PER_CHUNK =ERYDBCompressInterface::UNCOMPRESSED_INBUF_LEN / colWidth;
+            const unsigned int CHUNKS_PER_EXTENT = ROWS_PER_EXTENT / ROWS_PER_CHUNK;
+            // If this is an abbreviated extent, we first expand to a full extent
+            // @bug 4340 - support moving the DBRoot with a single abbrev extent
+            if ((chunkPtrs.size() == 1) &&((blkCount * BYTE_PER_BLOCK) ==(uint64_t)(INITIAL_EXTENT_ROWS_TO_DISK * colWidth)))
+            {
+                if (getLogger())
+                {
+                    std::ostringstream oss;
+                    oss << "Converting abbreviated partial extent to full extent for" <<": OID-" << oid <<"; DBRoot-" << dbr 
+                        <<"; part-" << partition <<"; seg-" << segment <<"; file-" << segFile <<"; wid-" << colWidth <<"; oldBlkCnt-" << blkCount 
+                        <<"; newBlkCnt-" <<((ROWS_PER_EXTENT * colWidth) / BYTE_PER_BLOCK);
+                    getLogger()->logMsg(oss.str(), MSGLVL_INFO2);
+                }
 
-        // Calculate the number of empty chunks we need to add to fill this extent
-        unsigned numChunksToFill = 0;
-        ldiv_t ldivResult = ldiv(chunkPtrs.size(), CHUNKS_PER_EXTENT);
-        if (ldivResult.rem != 0)
-        {
-            numChunksToFill = CHUNKS_PER_EXTENT - ldivResult.rem;
-        }
+                off64_t   endHdrsOffset = pFile->tell();
+                rc = expandAbbrevColumnExtent(pFile, dbr, emptyVal, colWidth);
+                if (rc != NO_ERROR)
+                {
+                    failedTask = "Expanding abbreviated extent";
+                    closeFile(pFile);
+                    return rc;
+                }
+
+                CompChunkPtr chunkOutPtr;
+                rc = expandAbbrevColumnChunk(pFile, emptyVal, colWidth,chunkPtrs[0], chunkOutPtr);
+                if (rc != NO_ERROR)
+                {
+                    failedTask = "Expanding abbreviated chunk";
+                    closeFile(pFile);
+                    return rc;
+                }
+                chunkPtrs[0] = chunkOutPtr; // update chunkPtrs with new chunk size
+
+                rc = setFileOffset(pFile, endHdrsOffset);
+                if (rc != NO_ERROR)
+                {
+                    failedTask = "Positioning file to end of headers";
+                    closeFile(pFile);
+                    return rc;
+                }
+
+                // Update block count to reflect a full extent
+                blkCount = (ROWS_PER_EXTENT * colWidth) / BYTE_PER_BLOCK;
+                compressor.setBlockCount(hdrs, blkCount);
+            }
+
+            // Calculate the number of empty chunks we need to add to fill this extent
+            unsigned numChunksToFill = 0;
+            ldiv_t ldivResult = ldiv(chunkPtrs.size(), CHUNKS_PER_EXTENT);
+            if (ldivResult.rem != 0)
+            {
+                numChunksToFill = CHUNKS_PER_EXTENT - ldivResult.rem;
+            }
 
 #if 0
-        std::cout << "Number of allocated blocks:     " <<
-            compressor.getBlockCount(hdrs) << std::endl;
-        std::cout << "Pointer Header Size (in bytes): " <<
-            (compressor.getHdrSize(hdrs) -
-             ERYDBCompressInterface::HDR_BUF_LEN) << std::endl;
-        std::cout << "Chunk Pointers (offset,length): " << std::endl;
-        for (unsigned k = 0; k < chunkPtrs.size(); k++)
-        {
-            std::cout << "  " << k << ". " << chunkPtrs[k].first <<
-                " , " << chunkPtrs[k].second << std::endl;
-        }
-        std::cout << std::endl;
-        std::cout << "Number of chunks to fill in: " << numChunksToFill <<
-            std::endl << std::endl;
+            std::cout << "Number of allocated blocks:     " <<compressor.getBlockCount(hdrs) << std::endl;
+            std::cout << "Pointer Header Size (in bytes): " <<(compressor.getHdrSize(hdrs) - ERYDBCompressInterface::HDR_BUF_LEN) << std::endl;
+            std::cout << "Chunk Pointers (offset,length): " << std::endl;
+            for (unsigned k = 0; k < chunkPtrs.size(); k++)
+            {
+                std::cout << "  " << k << ". " << chunkPtrs[k].first << " , " << chunkPtrs[k].second << std::endl;
+            }
+            std::cout << std::endl;
+            std::cout << "Number of chunks to fill in: " << numChunksToFill << std::endl << std::endl;
 #endif
 
-        off64_t   endOffset = 0;
+            off64_t   endOffset = 0;
 
-        // Fill in or add necessary remaining empty chunks
-        if (numChunksToFill > 0)
-        {
-            const int IN_BUF_LEN = ERYDBCompressInterface::UNCOMPRESSED_INBUF_LEN;
-            const int OUT_BUF_LEN = ERYDBCompressInterface::maxCompressedSize(IN_BUF_LEN) + userPadBytes;
-
-            // Allocate buffer, and store in scoped_array to insure it's deletion.
-            // Create scope {...} to manage deletion of buffers
+            // Fill in or add necessary remaining empty chunks
+            if (numChunksToFill > 0)
             {
-                char*          toBeCompressedBuf = new char[IN_BUF_LEN];
-                unsigned char* compressedBuf = new unsigned char[OUT_BUF_LEN];
-                boost::scoped_array<char> toBeCompressedInputPtr(toBeCompressedBuf);
-                boost::scoped_array<unsigned char>
-                    compressedOutputPtr(compressedBuf);
+                const int IN_BUF_LEN = ERYDBCompressInterface::UNCOMPRESSED_INBUF_LEN;
+                const int OUT_BUF_LEN = ERYDBCompressInterface::maxCompressedSize(IN_BUF_LEN) + userPadBytes;
 
-                // Compress and then pad the compressed chunk
-                setEmptyBuf((unsigned char*)toBeCompressedBuf,
-                            IN_BUF_LEN, emptyVal, colWidth);
-                unsigned int outputLen = OUT_BUF_LEN;
-                rcComp = compressor.compressBlock(toBeCompressedBuf,
-                                                  IN_BUF_LEN, compressedBuf, outputLen);
-                if (rcComp != 0)
+                // Allocate buffer, and store in scoped_array to insure it's deletion.
+                // Create scope {...} to manage deletion of buffers
                 {
-                    failedTask = "Compressing chunk";
-                    closeFile(pFile);
-                    return ERR_COMP_COMPRESS;
-                }
-                toBeCompressedInputPtr.reset(); // release memory
+                    char*          toBeCompressedBuf = new char[IN_BUF_LEN];
+                    unsigned char* compressedBuf = new unsigned char[OUT_BUF_LEN];
+                    boost::scoped_array<char> toBeCompressedInputPtr(toBeCompressedBuf);
+                    boost::scoped_array<unsigned char> compressedOutputPtr(compressedBuf);
 
-                rcComp = compressor.padCompressedChunks(compressedBuf,
-                                                        outputLen, OUT_BUF_LEN);
-                if (rcComp != 0)
+                    // Compress and then pad the compressed chunk
+                    setEmptyBuf((unsigned char*)toBeCompressedBuf,IN_BUF_LEN, emptyVal, colWidth);
+                    unsigned int outputLen = OUT_BUF_LEN;
+                    rcComp = compressor.compressBlock(toBeCompressedBuf,IN_BUF_LEN, compressedBuf, outputLen);
+                    if (rcComp != 0)
+                    {
+                        failedTask = "Compressing chunk";
+                        closeFile(pFile);
+                        return ERR_COMP_COMPRESS;
+                    }
+                    toBeCompressedInputPtr.reset(); // release memory
+
+                    rcComp = compressor.padCompressedChunks(compressedBuf,outputLen, OUT_BUF_LEN);
+                    if (rcComp != 0)
+                    {
+                        failedTask = "Padding compressed chunk";
+                        closeFile(pFile);
+                        return ERR_COMP_PAD_DATA;
+                    }
+
+                    // Position file to write empty chunks; default to end of headers
+                    // in case there are no chunks listed in the header
+                    off64_t   startOffset = pFile->tell();
+                    if (chunkPtrs.size() > 0)
+                    {
+                        startOffset = chunkPtrs[chunkPtrs.size() - 1].first + chunkPtrs[chunkPtrs.size() - 1].second;
+                        rc = setFileOffset(pFile, startOffset);
+                        if (rc != NO_ERROR)
+                        {
+                            failedTask = "Positioning file to begin filling chunks";
+                            closeFile(pFile);
+                            return rc;
+                        }
+                    }
+
+                    // Write chunks needed to fill out the current extent, add chunk ptr
+                    for (unsigned k = 0; k < numChunksToFill; k++)
+                    {
+                        rc = writeFile(pFile,(unsigned char*)compressedBuf,outputLen);
+                        if (rc != NO_ERROR)
+                        {
+                            failedTask = "Writing  a chunk";
+                            closeFile(pFile);
+                            return rc;
+                        }
+                        CompChunkPtr compChunk(startOffset, outputLen);
+                        chunkPtrs.push_back(compChunk);
+                        startOffset = pFile->tell();
+                    }
+                } // end of scope for boost scoped array pointers
+
+                endOffset = pFile->tell();
+
+                // Update the compressed chunk pointers in the header
+                std::vector<uint64_t> ptrs;
+                for (unsigned i = 0; i < chunkPtrs.size(); i++)
                 {
-                    failedTask = "Padding compressed chunk";
-                    closeFile(pFile);
-                    return ERR_COMP_PAD_DATA;
+                    ptrs.push_back(chunkPtrs[i].first);
                 }
+                ptrs.push_back(chunkPtrs[chunkPtrs.size() - 1].first + chunkPtrs[chunkPtrs.size() - 1].second);
+                compressor.storePtrs(ptrs, hdrs);
 
-                // Position file to write empty chunks; default to end of headers
-                // in case there are no chunks listed in the header
-                off64_t   startOffset = pFile->tell();
+                rc = writeHeaders(pFile, hdrs);
+                if (rc != NO_ERROR)
+                {
+                    failedTask = "Writing headers";
+                    closeFile(pFile);
+                    return rc;
+                }
+            }  // end of "numChunksToFill > 0"
+            else
+            {   // if no chunks to add, then set endOffset to truncate the db file
+                // strictly based on the chunks that are already in the file
                 if (chunkPtrs.size() > 0)
                 {
-                    startOffset = chunkPtrs[chunkPtrs.size() - 1].first +
-                        chunkPtrs[chunkPtrs.size() - 1].second;
-                    rc = setFileOffset(pFile, startOffset);
-                    if (rc != NO_ERROR)
-                    {
-                        failedTask = "Positioning file to begin filling chunks";
-                        closeFile(pFile);
-                        return rc;
-                    }
+                    endOffset = chunkPtrs[chunkPtrs.size() - 1].first + chunkPtrs[chunkPtrs.size() - 1].second;
                 }
+            }
 
-                // Write chunks needed to fill out the current extent, add chunk ptr
-                for (unsigned k = 0; k < numChunksToFill; k++)
+            // Truncate the file to release unused space for the extent we just filled
+            if (endOffset > 0)
+            {
+                rc = truncateFile(pFile, endOffset);
+                if (rc != NO_ERROR)
                 {
-                    rc = writeFile(pFile,
-                        (unsigned char*)compressedBuf,
-                                   outputLen);
-                    if (rc != NO_ERROR)
-                    {
-                        failedTask = "Writing  a chunk";
-                        closeFile(pFile);
-                        return rc;
-                    }
-                    CompChunkPtr compChunk(startOffset, outputLen);
-                    chunkPtrs.push_back(compChunk);
-                    startOffset = pFile->tell();
+                    failedTask = "Truncating file";
+                    closeFile(pFile);
+                    return rc;
                 }
-            } // end of scope for boost scoped array pointers
-
-            endOffset = pFile->tell();
-
-            // Update the compressed chunk pointers in the header
-            std::vector<uint64_t> ptrs;
-            for (unsigned i = 0; i < chunkPtrs.size(); i++)
-            {
-                ptrs.push_back(chunkPtrs[i].first);
-            }
-            ptrs.push_back(chunkPtrs[chunkPtrs.size() - 1].first +
-                           chunkPtrs[chunkPtrs.size() - 1].second);
-            compressor.storePtrs(ptrs, hdrs);
-
-            rc = writeHeaders(pFile, hdrs);
-            if (rc != NO_ERROR)
-            {
-                failedTask = "Writing headers";
-                closeFile(pFile);
-                return rc;
-            }
-        }  // end of "numChunksToFill > 0"
-        else
-        {   // if no chunks to add, then set endOffset to truncate the db file
-            // strictly based on the chunks that are already in the file
-            if (chunkPtrs.size() > 0)
-            {
-                endOffset = chunkPtrs[chunkPtrs.size() - 1].first +
-                    chunkPtrs[chunkPtrs.size() - 1].second;
-            }
+            } 
+            closeFile(pFile); 
         }
-
-        // Truncate the file to release unused space for the extent we just filled
-        if (endOffset > 0)
-        {
-            rc = truncateFile(pFile, endOffset);
-            if (rc != NO_ERROR)
-            {
-                failedTask = "Truncating file";
-                closeFile(pFile);
-                return rc;
-            }
-        }
-
-        closeFile(pFile);
-
         return NO_ERROR;
     }
 
@@ -1394,12 +1300,7 @@ namespace WriteEngine
      * RETURN:
      *    returns NO_ERROR if success.
      ***********************************************************/
-    int FileOp::expandAbbrevColumnChunk(
-        ERYDBDataFile* pFile,
-        uint64_t emptyVal,
-        int   colWidth,
-        const CompChunkPtr& chunkInPtr,
-        CompChunkPtr& chunkOutPtr)
+    int FileOp::expandAbbrevColumnChunk(ERYDBDataFile* pFile,uint64_t emptyVal,int colWidth,const CompChunkPtr& chunkInPtr,CompChunkPtr& chunkOutPtr)
     {
         int userPadBytes = Config::getNumCompressedPadBlks() * BYTE_PER_BLOCK;
         const int IN_BUF_LEN = ERYDBCompressInterface::UNCOMPRESSED_INBUF_LEN;
@@ -1408,24 +1309,18 @@ namespace WriteEngine
         char* toBeCompressedBuf = new char[IN_BUF_LEN];
         boost::scoped_array<char> toBeCompressedPtr(toBeCompressedBuf);
 
-        setEmptyBuf((unsigned char*)toBeCompressedBuf,
-                    IN_BUF_LEN, emptyVal, colWidth);
+        setEmptyBuf((unsigned char*)toBeCompressedBuf,IN_BUF_LEN, emptyVal, colWidth);
 
         RETURN_ON_ERROR(setFileOffset(pFile, chunkInPtr.first, SEEK_SET));
 
         char* compressedInBuf = new char[chunkInPtr.second];
         boost::scoped_array<char> compressedInBufPtr(compressedInBuf);
-        RETURN_ON_ERROR(readFile(pFile, (unsigned char*)compressedInBuf,
-                        chunkInPtr.second));
+        RETURN_ON_ERROR(readFile(pFile, (unsigned char*)compressedInBuf,chunkInPtr.second));
 
         // Uncompress an "abbreviated" chunk into our 4MB buffer
         unsigned int outputLen = IN_BUF_LEN;
         ERYDBCompressInterface compressor(userPadBytes);
-        int rc = compressor.uncompressBlock(
-            compressedInBuf,
-            chunkInPtr.second,
-            (unsigned char*)toBeCompressedBuf,
-            outputLen);
+        int rc = compressor.uncompressBlock(compressedInBuf,chunkInPtr.second,(unsigned char*)toBeCompressedBuf,outputLen);
         if (rc != 0)
         {
             return ERR_COMP_UNCOMPRESS;
@@ -1439,19 +1334,14 @@ namespace WriteEngine
 
         // Compress the data we just read, as a "full" 4MB chunk
         outputLen = OUT_BUF_LEN;
-        rc = compressor.compressBlock(
-            reinterpret_cast<char*>(toBeCompressedBuf),
-            IN_BUF_LEN,
-            compressedOutBuf,
-            outputLen);
+        rc = compressor.compressBlock(reinterpret_cast<char*>(toBeCompressedBuf),IN_BUF_LEN,compressedOutBuf,outputLen);
         if (rc != 0)
         {
             return ERR_COMP_COMPRESS;
         }
 
         // Round up the compressed chunk size
-        rc = compressor.padCompressedChunks(compressedOutBuf,
-                                            outputLen, OUT_BUF_LEN);
+        rc = compressor.padCompressedChunks(compressedOutBuf,outputLen, OUT_BUF_LEN);
         if (rc != 0)
         {
             return ERR_COMP_PAD_DATA;
@@ -1491,13 +1381,11 @@ namespace WriteEngine
     int FileOp::writeHeaders(ERYDBDataFile* pFile, const char* hdr) const
     {
         RETURN_ON_ERROR(setFileOffset(pFile, 0, SEEK_SET));
-
         // Write the headers
         if (pFile->write(hdr, ERYDBCompressInterface::HDR_BUF_LEN * 2) != ERYDBCompressInterface::HDR_BUF_LEN * 2)
         {
             return ERR_FILE_WRITE;
-        }
-
+        } 
         return NO_ERROR;
     }
 
@@ -1513,23 +1401,15 @@ namespace WriteEngine
      *    returns ERR_FILE_WRITE or ERR_FILE_SEEK if an error occurs,
      *    else returns NO_ERROR.
      ***********************************************************/
-    int FileOp::writeHeaders(ERYDBDataFile* pFile, const char* controlHdr,
-                             const char* pointerHdr, uint64_t ptrHdrSize) const
+    int FileOp::writeHeaders(ERYDBDataFile* pFile, const char* controlHdr,const char* pointerHdr, uint64_t ptrHdrSize) const
     {
         RETURN_ON_ERROR(setFileOffset(pFile, 0, SEEK_SET));
-
         // Write the control header
         if (pFile->write(controlHdr, ERYDBCompressInterface::HDR_BUF_LEN) != ERYDBCompressInterface::HDR_BUF_LEN)
-        {
             return ERR_FILE_WRITE;
-        }
-
         // Write the pointer header
         if (pFile->write(pointerHdr, ptrHdrSize) != (ssize_t)ptrHdrSize)
-        {
             return ERR_FILE_WRITE;
-        }
-
         return NO_ERROR;
     }
 
@@ -1555,13 +1435,7 @@ namespace WriteEngine
      *    returns ERR_FILE_WRITE if an error occurs,
      *    else returns NO_ERROR.
      ***********************************************************/
-    int FileOp::initDctnryExtent(
-        ERYDBDataFile*   pFile,
-        DBROOTS_struct&       dbRoot,
-        int            nBlocks,
-        unsigned char* blockHdrInit,
-        int            blockHdrInitSize,
-        bool           bExpandExtent)
+    int FileOp::initDctnryExtent(ERYDBDataFile* pFile, uint16_t dbr,int nBlocks,unsigned char* blockHdrInit,int blockHdrInitSize,bool bExpandExtent)
     {
         // @bug5769 Don't initialize extents or truncate db files on HDFS
         if (erydbdatafile::ERYDBPolicy::useHdfs())
@@ -1595,14 +1469,14 @@ namespace WriteEngine
             }
 
             // Allocate a buffer, initialize it, and use it to create the extent
-            erydbassert(dbRoot[0] > 0);
+            erydbassert(dbr > 0);
 #ifdef PROFILE
             if (bExpandExtent)
                 Stats::startParseEvent(WE_STATS_WAIT_TO_EXPAND_DCT_EXTENT);
             else
                 Stats::startParseEvent(WE_STATS_WAIT_TO_CREATE_DCT_EXTENT);
 #endif
-            boost::mutex::scoped_lock lk(*m_DbRootAddExtentMutexes[dbRoot[0]]);
+            boost::mutex::scoped_lock lk(*m_DbRootAddExtentMutexes[dbr]);
 #ifdef PROFILE
             if (bExpandExtent)
                 Stats::stopParseEvent(WE_STATS_WAIT_TO_EXPAND_DCT_EXTENT);
@@ -1618,13 +1492,8 @@ namespace WriteEngine
                 boost::scoped_array<unsigned char> writeBufPtr(writeBuf);
 
                 memset(writeBuf, 0, writeSize);
-                for (int i = 0; i < nBlocks; i++)
-                {
-                    memcpy(writeBuf + (i*BYTE_PER_BLOCK),
-                           blockHdrInit,
-                           blockHdrInitSize);
-                }
-
+                for (int i = 0; i < nBlocks; i++) 
+                    memcpy(writeBuf + (i*BYTE_PER_BLOCK),blockHdrInit,blockHdrInitSize);
 #ifdef PROFILE
                 Stats::stopParseEvent(WE_STATS_INIT_DCT_EXTENT);
                 if (bExpandExtent)
@@ -1641,16 +1510,12 @@ namespace WriteEngine
                 if (remWriteSize > 0)
                 {
                     if (pFile->write(writeBuf, remWriteSize) != remWriteSize)
-                    {
                         return ERR_FILE_WRITE;
-                    }
                 }
                 for (int j = 0; j < loopCount; j++)
                 {
                     if (pFile->write(writeBuf, writeSize) != writeSize)
-                    {
                         return ERR_FILE_WRITE;
-                    }
                 }
             }
 
@@ -1667,7 +1532,6 @@ namespace WriteEngine
                 Stats::stopParseEvent(WE_STATS_CREATE_DCT_EXTENT);
 #endif
         }
-
         return NO_ERROR;
     }
 
@@ -1730,12 +1594,7 @@ namespace WriteEngine
      *    returns ERR_FILE_WRITE if an error occurs,
      *    else returns NO_ERROR.
      ***********************************************************/
-    int FileOp::reInitPartialColumnExtent(
-        ERYDBDataFile* pFile,
-        long long startOffset,
-        int      nBlocks,
-        uint64_t emptyVal,
-        int      width)
+    int FileOp::reInitPartialColumnExtent(ERYDBDataFile* pFile,long long startOffset,int nBlocks,uint64_t emptyVal,int width)
     {
         int rc = setFileOffset(pFile, startOffset, SEEK_SET);
         if (rc != NO_ERROR)
@@ -1806,12 +1665,7 @@ namespace WriteEngine
      *    returns ERR_FILE_WRITE if an error occurs,
      *    else returns NO_ERROR.
      ***********************************************************/
-    int FileOp::reInitPartialDctnryExtent(
-        ERYDBDataFile*   pFile,
-        long long      startOffset,
-        int            nBlocks,
-        unsigned char* blockHdrInit,
-        int            blockHdrInitSize)
+    int FileOp::reInitPartialDctnryExtent(ERYDBDataFile*   pFile,long long startOffset,int nBlocks,unsigned char* blockHdrInit,int blockHdrInitSize)
     {
         int rc = setFileOffset(pFile, startOffset, SEEK_SET);
         if (rc != NO_ERROR)
@@ -2138,9 +1992,7 @@ namespace WriteEngine
      * RETURN:
      *    NO_ERROR if path is successfully constructed.
      ***********************************************************/
-    int FileOp::getDirName(FID fid, uint16_t dbRoot,
-                           uint32_t partition,
-                           std::string& dirName) const
+    int FileOp::getDirName(FID fid, uint16_t dbRoot,uint32_t partition,std::string& dirName) const
     {
         char tempFileName[FILE_NAME_SIZE];
         char dbDir[MAX_DB_DIR_LEVEL][MAX_DB_DIR_NAME_SIZE];
@@ -2171,10 +2023,7 @@ namespace WriteEngine
      *    true if exists, false otherwise
      ***********************************************************/
      // @bug 5572 - HDFS usage: add *.tmp file backup flag
-    ERYDBDataFile* FileOp::openFile(const char* fileName,
-                                    const char* mode,
-                                    const int ioColSize,
-                                    bool useTmpSuffix) const
+    ERYDBDataFile* FileOp::openFile(const char* fileName,const char* mode,const int ioColSize,bool useTmpSuffix) const
     {
         ERYDBDataFile* pFile;
         errno = 0;
@@ -2215,13 +2064,13 @@ namespace WriteEngine
     }
 
     // @bug 5572 - HDFS usage: add *.tmp file backup flag
-    ERYDBDataFile* FileOp::openFile(FID fid, uint16_t dbRoot, uint32_t partition, uint16_t segment, std::string&   segFile, const char* mode, int ioColSize, bool useTmpSuffix) const
+    ERYDBDataFile* FileOp::openFile(FID fid, uint16_t dbr, uint32_t partition, uint16_t segment, std::string&   segFile, const char* mode, int ioColSize, bool useTmpSuffix) const
     {
         char fileName[FILE_NAME_SIZE];
         int  rc;
 
         //fid2FileName( fileName, fid );
-        RETURN_ON_WE_ERROR((rc = getFileName(fid, fileName, dbRoot, partition, segment)), NULL);
+        RETURN_ON_WE_ERROR((rc = getFileName(fid, fileName, dbr, partition, segment)), NULL);
 
         // disable buffering for versionbuffer file
         if (fid <= MAX_DBROOT)
@@ -2246,8 +2095,7 @@ namespace WriteEngine
      *    ERR_FILE_NULL if file handle is NULL
      *    ERR_FILE_READ if something wrong in reading the file
      ***********************************************************/
-    int FileOp::readFile(ERYDBDataFile* pFile, unsigned char* readBuf,
-                         int readSize) const
+    int FileOp::readFile(ERYDBDataFile* pFile, unsigned char* readBuf,int readSize) const
     {
         if (pFile != NULL)
         {
@@ -2465,12 +2313,12 @@ namespace WriteEngine
     // Expand current abbreviated extent to a full extent for column segment file
     // associated with pFile.  Function leaves fileposition at end of file after
     // extent is expanded.
+    // FILE ptr to file where abbrev extent is to be expanded
+    // The DBRoot of the file with the abbreviated extent
+    // Empty value to be used in expanding the extent
+    // Width of the column (in bytes)
     //------------------------------------------------------------------------------
-    int FileOp::expandAbbrevColumnExtent(
-        ERYDBDataFile* pFile,   // FILE ptr to file where abbrev extent is to be expanded
-        const DBROOTS_struct& dbRoot,  // The DBRoot of the file with the abbreviated extent
-        uint64_t emptyVal,// Empty value to be used in expanding the extent
-        int      width)  // Width of the column (in bytes)
+    int FileOp::expandAbbrevColumnExtent(ERYDBDataFile* pFile, uint16_t dbr, uint64_t emptyVal, int width)
     {
         // Based on extent size, see how many blocks to add to fill the extent
         int blksToAdd = (((int)BRMWrapper::getInstance()->getExtentRows() -
@@ -2479,17 +2327,14 @@ namespace WriteEngine
         // Make sure there is enough disk space to expand the extent.
         RETURN_ON_ERROR(setFileOffset(pFile, 0, SEEK_END));
         // TODO-will have to address this DiskSpaceAvail check at some point
-        if (!isDiskSpaceAvail(Config::getDBRootByNum(dbRoot.get(0)), blksToAdd))
+        if (!isDiskSpaceAvail(Config::getDBRootByNum(dbr), blksToAdd))
         {
             return ERR_FILE_DISK_SPACE;
         }
 
         // Add blocks to turn the abbreviated extent into a full extent.
-        int rc = initColumnExtent(pFile, dbRoot, blksToAdd, emptyVal, width,
-                                  false,   // existing file
-                                  true,    // expand existing extent
-                                  false);  // n/a since not adding new extent
-
+        int rc = initColumnExtent(pFile, dbr, blksToAdd, emptyVal, width,false, true, false);
+        // existing file  expand existing extent  n/a since not adding new extent
         return rc;
     }
 

@@ -107,9 +107,7 @@ public:
    /**
     * @brief Delete db files corresponding to specified file id and partition
     */
-    EXPORT int          deletePartitions( const std::vector<OID>& fids, 
-                            const std::vector<BRM::PartitionInfo>& partitions )
-                            const;
+    EXPORT int          deletePartitions( const std::vector<OID>& fids, const std::vector<BRM::PartitionInfo>& partitions )const;
    
    /**
     * @brief Delete a specific database segment file.
@@ -124,8 +122,7 @@ public:
     * @brief @brief Check whether file exists or not by using file id, DBRoot,
     * partition, and segment number.
     */
-    EXPORT bool         exists( FID fid, DBROOTS_struct& dbRoot,
-                            uint32_t partition, uint16_t segment ) const;
+    EXPORT bool         exists( FID fid, uint16_t dbr,uint32_t partition, uint16_t segment ) const;
 
    /**
     * @brief Check whether a column exists or not by using file id.  Since this
@@ -142,7 +139,7 @@ public:
     * @param emptyVal Empty value used in initializing extents for this column
     * @param width    Width of this column (in bytes)
     */
-    EXPORT virtual int  expandAbbrevColumnExtent(ERYDBDataFile* pFile,const DBROOTS_struct& dbRoot,uint64_t emptyVal,int width );
+    EXPORT virtual int  expandAbbrevColumnExtent(ERYDBDataFile* pFile,uint16_t dbr,uint64_t emptyVal,int width );
 
    /**
     * @brief Add an extent to the specified Column OID and DBRoot.
@@ -194,15 +191,8 @@ public:
     * @param newFile (out) Indicates if a new file was created for the extent
     * @param hdrs (in/out) Contents of headers, if file is compressed.
     */
-    EXPORT int          addExtentExactFile(OID oid, uint64_t emptyVal,
-            int width,int& allocSize,DBROOTS_struct& dbRoot,
-                            uint32_t     partition,
-                            uint16_t     segment,
-                            execplan::erydbSystemCatalog::ColDataType colDataType,
-                            std::string& segFile,
-                            BRM::LBID_t& startLbid,
-                            bool&        newFile,
-                            char*        hdrs);
+    EXPORT int          addExtentExactFile(OID oid, uint64_t emptyVal,int width,int& allocSize,DBROOTS_struct& dbRoot,uint32_t partition,uint16_t segment,
+                                           execplan::erydbSystemCatalog::ColDataType colDataType,std::string& segFile,BRM::LBID_t& startLbid,bool& newFile,char* hdrs);
 
    /**
     * @brief Pad the specified compressed extent with empty chunks
@@ -217,15 +207,8 @@ public:
     * @param errTask (out) Task that failed if error occurs
     * @return returns NO_ERROR if success.
     */
-    EXPORT int          fillCompColumnExtentEmptyChunks(OID oid,
-                            int          colWidth,
-                            uint64_t          emptyVal,
-        DBROOTS_struct&     dbRoot,
-                            uint32_t     partition,
-                            uint16_t     segment,
-                            HWM          hwm,
-                            std::string& segFile,
-                            std::string& errTask);
+    EXPORT int          fillCompColumnExtentEmptyChunks(OID oid,int colWidth,uint64_t emptyVal,DBROOTS_struct& dbRoot,uint32_t partition,uint16_t segment,
+                                                        HWM hwm,std::string& segFile,std::string& errTask);
 
    /**
     * @brief Write the specified header info to compressed column file pFile.
@@ -244,10 +227,7 @@ public:
     * @param pointerHdr Pointer header info to be written
     * @param ptrHdrSize Size (in bytes) of pointerHdr
     */
-    EXPORT int          writeHeaders(ERYDBDataFile* pFile,
-                            const char* controlHdr,
-                            const char* pointerHdr,
-                            uint64_t ptrHdrSize) const;
+    EXPORT int          writeHeaders(ERYDBDataFile* pFile,const char* controlHdr,const char* pointerHdr,uint64_t ptrHdrSize) const;
 
    /**
     * @brief Get the Version Buffer filename for the specified fid (OID).
@@ -273,19 +253,19 @@ public:
     * @param partition (in) partition number of the file of interest
     * @param segment (in) segment number of the file of interest
     */
-    int                 getFileName( FID fid, char* fileName,uint16_t dbRoot,uint32_t partition,uint16_t segment ) const;
+    int                 getFileName( FID fid, char* fileName,uint16_t dbr,uint32_t partition,uint16_t segment ) const;
 
     /**
      * @brief Construct directory path for the specified fid (OID), DBRoot, and
      * partition number.  Directory does not have to exist, nor is it created.
      */
-    int                 getDirName( FID fid, uint16_t dbRoot,uint32_t partition,std::string& dirName) const;
+    int                 getDirName( FID fid, uint16_t dbr,uint32_t partition,std::string& dirName) const;
 
     /**
      * @brief Get the file size
      */
     EXPORT int          getFileSize( ERYDBDataFile* pFile, long long& fileSize ) const;
-    EXPORT int          getFileSize( FID fid, uint16_t dbRoot,uint32_t partition,uint16_t segment,long long& fileSize ) const;
+    EXPORT int          getFileSize( FID fid, uint16_t dbr,uint32_t partition,uint16_t segment,long long& fileSize ) const;
 
    /**
     * @brief Initialize an extent in a dictionary store file
@@ -296,12 +276,7 @@ public:
     * @param blockHdrInitSize(in) - number of bytes in blockHdrInit
     * @param bExpandExtent (in) -  Expand existing extent, or initialize new one
     */
-    EXPORT int          initDctnryExtent( ERYDBDataFile*    pFile,
-        DBROOTS_struct& dbRoot,
-                            int      nBlocks,
-                            unsigned char* blockHdrInit,
-                            int      blockHdrInitSize,
-                            bool     bExpandExtent );
+    EXPORT int          initDctnryExtent( ERYDBDataFile* pFile, uint16_t dbr,int nBlocks,unsigned char* blockHdrInit,int blockHdrInitSize,bool bExpandExtent );
 
    /**
     * @brief Check whether it is an directory
@@ -314,13 +289,12 @@ public:
     * @param nBlocks Number of 8192-byte blocks to be added
     * @return returns TRUE if file system has room for 'nBlocks', else FALSE
     */
-    EXPORT bool         isDiskSpaceAvail(const std::string& fileName,
-                            int nBlocks) const;
+    EXPORT bool         isDiskSpaceAvail(const std::string& fileName,int nBlocks) const;
 
    /**
     * @brief Convert an oid to a full file name
     */
-    EXPORT int          oid2FileName( FID fid, char* fullFileName,bool bCreateDir, uint16_t dbRoot,uint32_t partition, uint16_t segment ) const;
+    EXPORT int          oid2FileName( FID fid, char* fullFileName,bool bCreateDir, uint16_t dbr,uint32_t partition, uint16_t segment ) const;
     EXPORT int          oid2DirName( FID fid, char* oidDirName ) const;
 
    /**
@@ -330,10 +304,7 @@ public:
     * @param ioBuffSize Buffer size to be employed by setvbuf().
     * @return returns the ERYDBDataFile* of the opened file.
     */
-    EXPORT ERYDBDataFile*     openFile( const char* fileName,
-                            const char* mode = "r+b",
-                            int ioColSize = DEFAULT_COLSIZ,
-                            bool useTmpSuffix = false) const;
+    EXPORT ERYDBDataFile*     openFile( const char* fileName,const char* mode = "r+b",int ioColSize = DEFAULT_COLSIZ,bool useTmpSuffix = false) const;
 
    /**
     * @brief Open a file using an OID, dbroot, partition, and segment number.
@@ -351,8 +322,7 @@ public:
    /**
     * @brief Read to a buffer from a file at current location
     */
-    EXPORT int          readFile( ERYDBDataFile* pFile, unsigned char* readBuf,
-                            int readSize ) const;
+    EXPORT int          readFile( ERYDBDataFile* pFile, unsigned char* readBuf,int readSize ) const;
 
    /**
     * @brief Reads in 2 compression header blocks from a column segment file.
@@ -424,13 +394,9 @@ private:
 
     int                 createFile( const char* fileName, int fileSize,uint64_t emptyVal, int width,uint16_t dbr );
 
-    int                 expandAbbrevColumnChunk( ERYDBDataFile* pFile,
-                            uint64_t   emptyVal,
-                            int   colWidth,
-                            const compress::CompChunkPtr& chunkInPtr,
-                            compress::CompChunkPtr& chunkOutPt);
+    int                 expandAbbrevColumnChunk( ERYDBDataFile* pFile,uint64_t emptyVal,int colWidth,const compress::CompChunkPtr& chunkInPtr,compress::CompChunkPtr& chunkOutPt);
 
-    int                 initAbbrevCompColumnExtent( ERYDBDataFile* pFile, uint16_t dbr,int      nBlocks,uint64_t      emptyVal,int      width);
+    int                 initAbbrevCompColumnExtent( ERYDBDataFile* pFile, uint16_t dbr,int nBlocks,uint64_t emptyVal,int width);
 
     // Initialize an extent in a column segment file
     // pFile (in) ERYDBDataFile* of column segment file to be written to
@@ -446,12 +412,7 @@ private:
     static void         initDbRootExtentMutexes();
     static void         removeDbRootExtentMutexes();
 
-    int                 writeInitialCompColumnChunk( ERYDBDataFile* pFile,
-                            int      nBlocksAllocated,
-                            int      nRows,
-                            uint64_t emptyVal,
-                            int      width,
-                            char*    hdrs);
+    int                 writeInitialCompColumnChunk( ERYDBDataFile* pFile,int nBlocksAllocated,int nRows,uint64_t emptyVal,int width,char* hdrs);
 
     TxnID       m_transId;
 	bool 		m_isBulk;
@@ -496,9 +457,9 @@ inline int FileOp::getVBFileName( FID fid, char* fileName ) const
     return oid2FileName( fid, fileName, true, dbRoot, partition, segment ); 
 }
 
-inline int FileOp::getFileName( FID fid, char* fileName,uint16_t dbRoot,uint32_t partition,uint16_t segment ) const
+inline int FileOp::getFileName( FID fid, char* fileName,uint16_t dbr,uint32_t partition,uint16_t segment ) const
 {
-    return oid2FileName( fid, fileName, false, dbRoot, partition, segment );
+    return oid2FileName( fid, fileName, false, dbr, partition, segment );
 }
 
 inline TxnID FileOp::getTransId() const
