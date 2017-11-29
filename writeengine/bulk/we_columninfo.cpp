@@ -788,7 +788,6 @@ int ColumnInfo::extendColumnOldExtent(DBROOTS_struct& dbRootNext,uint32_t partit
     }
 
     curCol.dataFile.pFile        = 0;
-    curCol.dataFile.fdbr      = dbr;
     curCol.dataFile.fDbRoot      = dbRootNext;
     curCol.dataFile.fPartition   = partitionNext;
     curCol.dataFile.fSegment     = segmentNext;
@@ -1556,7 +1555,7 @@ int ColumnInfo::openDctnryStore( bool bMustExist )
     // relevant column segment file, then the corresponding dictionary
     // store file will not exist, in which case we must create
     // the store file, else we open the applicable store file.
-    if ( (bMustExist) || (colOp->exists(column.dctnry.dctnryOid,curCol.dataFile.fdbr,curCol.dataFile.fPartition,curCol.dataFile.fSegment)) )
+    if ( (bMustExist) || (colOp->exists(column.dctnry.dctnryOid,curCol.dataFile.fDbRoot.getPmDbr(),curCol.dataFile.fPartition,curCol.dataFile.fSegment)) )
     {
         // Save HWM chunk (for compressed files) if this seg file calls for it
         // @bug 5572 - HDFS usage: incorporate *.tmp file backup flag
@@ -1564,12 +1563,12 @@ int ColumnInfo::openDctnryStore( bool bMustExist )
         RETURN_ON_ERROR( saveDctnryStoreHWMChunk( useTmpSuffixDctnry ) );
 
         // @bug 5572 - HDFS usage: incorporate *.tmp file backup flag
-        rc = fStore->openDctnry(column.dctnry.dctnryOid,curCol.dataFile.fdbr,curCol.dataFile.fPartition,curCol.dataFile.fSegment,useTmpSuffixDctnry );
+        rc = fStore->openDctnry(column.dctnry.dctnryOid,curCol.dataFile.fDbRoot.getPmDbr(),curCol.dataFile.fPartition,curCol.dataFile.fSegment,useTmpSuffixDctnry );
         if (rc != NO_ERROR)
         {
             WErrorCodes ec;
             std::ostringstream oss;
-            oss << "openDctnryStore: error opening existing store file for " <<"OID-" << column.dctnry.dctnryOid  <<"; DBRoot-" << curCol.dataFile.fdbr    <<
+            oss << "openDctnryStore: error opening existing store file for " <<"OID-" << column.dctnry.dctnryOid  <<"; DBRoot-" << curCol.dataFile.fDbRoot    <<
                    "; part-"   << curCol.dataFile.fPartition << "; seg-"   << curCol.dataFile.fSegment   <<"; tmpFlag-"<< useTmpSuffixDctnry <<"; " << ec.errorString(rc);
             fLog->logMsg( oss.str(), rc, MSGLVL_ERROR );
             // Ignore return code from closing file; already in error state
@@ -1581,7 +1580,7 @@ int ColumnInfo::openDctnryStore( bool bMustExist )
             fDictBlocks.push_back(fStore->getCurLbid());
 
         std::ostringstream oss;
-        oss << "Opening existing store file for " << column.colName <<"; OID-" << column.dctnry.dctnryOid <<"; DBRoot-" << curCol.dataFile.fdbr <<"; part-" << curCol.dataFile.fPartition <<
+        oss << "Opening existing store file for " << column.colName <<"; OID-" << column.dctnry.dctnryOid <<"; DBRoot-" << curCol.dataFile.fDbRoot <<"; part-" << curCol.dataFile.fPartition <<
                "; seg-" << curCol.dataFile.fSegment   <<"; hwm-" << fStore->getHWM() <<"; file-" << fStore->getFileName();
         fLog->logMsg( oss.str(), MSGLVL_INFO2 );
     }
@@ -1602,7 +1601,7 @@ int ColumnInfo::openDctnryStore( bool bMustExist )
             return rc;
         }
 
-        rc = fStore->openDctnry(column.dctnry.dctnryOid,curCol.dataFile.fdbr,curCol.dataFile.fPartition,curCol.dataFile.fSegment,false );
+        rc = fStore->openDctnry(column.dctnry.dctnryOid,curCol.dataFile.fDbRoot.getPmDbr(),curCol.dataFile.fPartition,curCol.dataFile.fSegment,false );
         if (rc != NO_ERROR)
         {
             WErrorCodes ec;
