@@ -204,7 +204,7 @@ namespace WriteEngine
         File()         { clear(); } /** @brief constructor */
         void clear()   {
             pFile=NULL; oid = fid = hwm = 0;
-                       fPartition = fSegment  = 0;
+                       fPartition = fSegment  = fdbr=0;
                        fSegFileName.clear(); }
    };
 

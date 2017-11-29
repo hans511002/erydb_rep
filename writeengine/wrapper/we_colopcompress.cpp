@@ -63,10 +63,9 @@ ColumnOpCompress0::~ColumnOpCompress0()
 
 
 // @bug 5572 - HDFS usage: add *.tmp file backup flag
-ERYDBDataFile* ColumnOpCompress0::openFile(const Column& column, const uint16_t dbRoot, const uint32_t partition, const uint16_t segment,std::string& segFile, bool useTmpSuffix, const char* mode, const int ioBuffSize) const
+ERYDBDataFile* ColumnOpCompress0::openFile(const Column& column, const uint16_t dbr, const uint32_t partition, const uint16_t segment,std::string& segFile, bool useTmpSuffix, const char* mode, const int ioBuffSize) const
 {
-   return FileOp::openFile(column.dataFile.fid, dbRoot, partition, segment, segFile,
-       mode, column.colWidth, useTmpSuffix);
+   return FileOp::openFile(column.dataFile.fid, dbr, partition, segment, segFile,mode, column.colWidth, useTmpSuffix);
 }
 
 
@@ -139,9 +138,9 @@ ColumnOpCompress1::~ColumnOpCompress1()
 }
 
 // @bug 5572 - HDFS usage: add *.tmp file backup flag
-ERYDBDataFile* ColumnOpCompress1::openFile(const Column& column, const uint16_t dbRoot, const uint32_t partition, const uint16_t segment,std::string& segFile, bool useTmpSuffix, const char* mode, const int ioBuffSize) const
+ERYDBDataFile* ColumnOpCompress1::openFile(const Column& column, const uint16_t dbr, const uint32_t partition, const uint16_t segment,std::string& segFile, bool useTmpSuffix, const char* mode, const int ioBuffSize) const
 {
-    return m_chunkManager->getFilePtr(column, dbRoot, partition, segment, segFile,
+    return m_chunkManager->getFilePtr(column, dbr, partition, segment, segFile,
         mode, ioBuffSize, useTmpSuffix);
 }
 
@@ -180,13 +179,12 @@ int ColumnOpCompress1::flushFile(int rc, std::map<FID,FID> & columnOids)
 }
 
 
-int ColumnOpCompress1::expandAbbrevColumnExtent(ERYDBDataFile* pFile, DBROOTS_struct& dbRoot, uint64_t emptyVal, int width)
+int ColumnOpCompress1::expandAbbrevColumnExtent(ERYDBDataFile* pFile, uint16_t dbr, uint64_t emptyVal, int width)
 {
    // update the uncompressed initial chunk to full chunk
    RETURN_ON_ERROR(m_chunkManager->expandAbbrevColumnExtent(pFile, emptyVal, width));
-
    // let the base to physically expand extent.
-   return FileOp::expandAbbrevColumnExtent(pFile, dbRoot, emptyVal, width);
+   return FileOp::expandAbbrevColumnExtent(pFile, dbr, emptyVal, width);
 }
 
 
