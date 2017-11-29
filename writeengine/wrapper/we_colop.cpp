@@ -1164,7 +1164,7 @@ int ColumnOp::addExtent(const Column& column,DBROOTS_struct& dbRoot,uint32_t par
    int ColumnOp::expandAbbrevExtent(const Column& column)
    {
       uint64_t emptyVal = getEmptyRowValue(column.colDataType, column.colWidth);
-	  int rc = expandAbbrevColumnExtent(column.dataFile.pFile,column.dataFile.fDbRoot,emptyVal,column.colWidth);
+	  int rc = expandAbbrevColumnExtent(column.dataFile.pFile,column.dataFile.fdbr,emptyVal,column.colWidth);
 
 	  return rc;
    }
@@ -1266,6 +1266,7 @@ int ColumnOp::addExtent(const Column& column,DBROOTS_struct& dbRoot,uint32_t par
           if (dbr == 0)break;
           if (!oamcache->existDbroot(dbr))continue;
           // open column data file
+          column.dataFile.fdbr = dbr;
           column.dataFile.pFile = openFile(column, dbr, column.dataFile.fPartition, column.dataFile.fSegment, column.dataFile.fSegFileName, useTmpSuffix, "r+b", ioBuffSize);
           segFile = column.dataFile.fSegFileName;
           if (column.dataFile.pFile == NULL)

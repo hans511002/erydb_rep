@@ -198,7 +198,8 @@ namespace WriteEngine
         ERYDBDataFile*   pFile;               /** @brief File handle */
         uint32_t      fPartition;          /** @brief Partition for pFile*/
         uint16_t      fSegment;            /** @brief Segment for pFile */
-        DBROOTS_struct fDbRoot;             /** @brief DbRoot for pFile */
+        uint16_t      fdbr;             /** @brief DbRoot for pFile */
+        DBROOTS_struct fDbRoot;             /** @brief DbRoot for dataFile */
         std::string    fSegFileName;        /** @brief Current seg file path */
         File()         { clear(); } /** @brief constructor */
         void clear()   {
