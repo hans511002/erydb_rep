@@ -756,10 +756,9 @@ int ColumnInfo::extendColumnNewExtent(bool saveLBIDForCP,DBROOTS_struct& dbRootN
 // place when a DBRoot with a partial extent has been moved from one PM to
 // another.
 //------------------------------------------------------------------------------
-int ColumnInfo::extendColumnOldExtent(DBROOTS_struct& dbRootNext,uint32_t    partitionNext,uint16_t    segmentNext,HWM         hwmNext )
+int ColumnInfo::extendColumnOldExtent(DBROOTS_struct& dbRootNext,uint32_t partitionNext,uint16_t segmentNext,HWM hwmNext )
 {
-    const unsigned int BLKS_PER_EXTENT = 
-        (fRowsPerExtent * column.width)/BYTE_PER_BLOCK;
+    const unsigned int BLKS_PER_EXTENT = (fRowsPerExtent * column.width)/BYTE_PER_BLOCK;
     HWM hwmNextExtentBoundary = hwmNext;
 
     // Round up HWM to the end of the current extent
@@ -769,34 +768,27 @@ int ColumnInfo::extendColumnOldExtent(DBROOTS_struct& dbRootNext,uint32_t    par
         hwmNextExtentBoundary = nBlks - nRem + BLKS_PER_EXTENT - 1;
     else
         hwmNextExtentBoundary = nBlks - 1;
-
+    uint16_t dbr = dbRootNext.getPmDbr();
+    if (dbr == 0)
+        return ERR_INVALID_DBROOT;
     std::ostringstream oss;
-    oss << "Padding partial extent to extent boundary in OID-" <<
-           curCol.dataFile.fid <<
-        "; DBRoot-" << dbRootNext    <<
-        "; part-"   << partitionNext <<
-        "; seg-"    << segmentNext   <<
-        "; oldhwm-" << hwmNext       <<
-        "; newhwm-" << hwmNextExtentBoundary;
+    oss << "Padding partial extent to extent boundary in OID-" <<curCol.dataFile.fid <<"; DBRoot-" << dbRootNext <<
+        "; part-"   << partitionNext <<"; seg-"    << segmentNext   <<"; oldhwm-" << hwmNext       <<"; newhwm-" << hwmNextExtentBoundary;
     fLog->logMsg( oss.str(), MSGLVL_INFO2 );
 
     long long fileSizeBytes;
-    int rc = colOp->getFileSize( curCol.dataFile.fid,dbRootNext[0], partitionNext, segmentNext, fileSizeBytes);
+    int rc = colOp->getFileSize( curCol.dataFile.fid,dbr, partitionNext, segmentNext, fileSizeBytes);
     if (rc != NO_ERROR)
     {
         std::ostringstream oss;
-        oss << "extendColumnOldExtent: error padding partial extent for " <<
-               "column OID-" << curCol.dataFile.fid           <<
-               "; DBRoot-"   << curCol.dataFile.fDbRoot       <<
-               "; part-"     << curCol.dataFile.fPartition    <<
-               "; seg-"      << curCol.dataFile.fSegment      <<
-               "; hwm-"      << curCol.dataFile.hwm;
+        oss << "extendColumnOldExtent: error padding partial extent for " <<"column OID-" << curCol.dataFile.fid <<"; DBRoot-" << curCol.dataFile.fDbRoot <<
+               "; part-" << curCol.dataFile.fPartition    <<"; seg-" << curCol.dataFile.fSegment <<"; hwm-" << curCol.dataFile.hwm;
         fLog->logMsg( oss.str(), rc, MSGLVL_ERROR );
-
         return rc;
     }
 
     curCol.dataFile.pFile        = 0;
+    curCol.dataFile.fdbr      = dbr;
     curCol.dataFile.fDbRoot      = dbRootNext;
     curCol.dataFile.fPartition   = partitionNext;
     curCol.dataFile.fSegment     = segmentNext;
@@ -807,47 +799,32 @@ int ColumnInfo::extendColumnOldExtent(DBROOTS_struct& dbRootNext,uint32_t    par
     if (fileSizeBytes == (long long)INITIAL_EXTENT_ROWS_TO_DISK * column.width)
     {
         std::string segFile;
-
         // @bug 5572 - HDFS usage: incorporate *.tmp file backup flag 
-        ERYDBDataFile* pFile = colOp->openFile( curCol, dbRootNext[0], partitionNext, segmentNext, segFile, true );
+        ERYDBDataFile* pFile = colOp->openFile( curCol, dbr, partitionNext, segmentNext, segFile, true );
         if ( !pFile )
         {
             std::ostringstream oss;
             rc = ERR_FILE_OPEN;
-            oss << "extendColumnOldExtent: error padding partial extent for " <<
-                   "column OID-" << curCol.dataFile.fid           <<
-                   "; DBRoot-"   << curCol.dataFile.fDbRoot       <<
-                   "; part-"     << curCol.dataFile.fPartition    <<
-                   "; seg-"      << curCol.dataFile.fSegment      <<
-                   "; hwm-"      << curCol.dataFile.hwm;
+            oss << "extendColumnOldExtent: error padding partial extent for " <<"column OID-" << curCol.dataFile.fid <<"; DBRoot-" << curCol.dataFile.fDbRoot <<
+                   "; part-" << curCol.dataFile.fPartition    <<"; seg-" << curCol.dataFile.fSegment <<"; hwm-" << curCol.dataFile.hwm;
             fLog->logMsg( oss.str(), rc, MSGLVL_ERROR );
-
             return rc;
         }
 
-        rc = colOp->expandAbbrevColumnExtent( pFile, dbRootNext,column.emptyVal, column.width);
+        rc = colOp->expandAbbrevColumnExtent( pFile, dbr,column.emptyVal, column.width);
         if (rc != NO_ERROR)
         {
             std::ostringstream oss;
-            oss << "extendColumnOldExtent: error padding partial extent for " <<
-                   "column OID-" << curCol.dataFile.fid           <<
-                   "; DBRoot-"   << curCol.dataFile.fDbRoot       <<
-                   "; part-"     << curCol.dataFile.fPartition    <<
-                   "; seg-"      << curCol.dataFile.fSegment      <<
-                   "; hwm-"      << curCol.dataFile.hwm;
+            oss << "extendColumnOldExtent: error padding partial extent for " <<"column OID-" << curCol.dataFile.fid <<"; DBRoot-" << curCol.dataFile.fDbRoot <<
+                   "; part-" << curCol.dataFile.fPartition <<"; seg-" << curCol.dataFile.fSegment << "; hwm-" << curCol.dataFile.hwm;
             fLog->logMsg( oss.str(), rc, MSGLVL_CRITICAL );
             fpTableInfo->fBRMReporter.addToErrMsgEntry(oss.str());
-
             colOp->closeFile( pFile );
-
             return rc;
         }
-
         colOp->closeFile( pFile );
     }
-
     addToSegFileList( curCol.dataFile, hwmNextExtentBoundary );
-
     return NO_ERROR;
 }
 
@@ -1331,15 +1308,14 @@ int ColumnInfo::setupInitialColumnExtent(
     // Init the ColumnInfo object
     colOp->initColumn( curCol );
     colOp->setColParam( curCol, id,column.width,column.dataType,column.weType, column.mapOid,column.compressionType,&dbRoot, partition, segment );
-
+    uint16_t dbr = dbRoot.getPmDbr();
+    if (dbr == 0)
+        return ERR_INVALID_DBROOT;
     // Open the column file
-    if(!colOp->exists(column.mapOid, dbRoot, partition, segment) )
+    if(!colOp->exists(column.mapOid, dbr, partition, segment) )
     {
         std::ostringstream oss;
-        oss << "Column file does not exist for OID-" << column.mapOid <<
-           "; DBRoot-"    << dbRoot    <<
-           "; partition-" << partition <<
-           "; segment-"   << segment;
+        oss << "Column file does not exist for OID-" << column.mapOid <<"; DBRoot-"    << dbr    <<"; partition-" << partition <<"; segment-"   << segment;
         fLog->logMsg( oss.str(), ERR_FILE_NOT_EXIST, MSGLVL_ERROR );
         return ERR_FILE_NOT_EXIST;
     }
@@ -1355,24 +1331,17 @@ int ColumnInfo::setupInitialColumnExtent(
     {
         WErrorCodes ec;
         std::ostringstream oss;
-        oss << "Error opening column file for OID-" << column.mapOid <<
-            "; DBRoot-"    << dbRoot    <<
-            "; partition-" << partition <<
-            "; segment-"   << segment   <<
-            "; filename-"  << segFile   <<
-            "; " << ec.errorString(rc);
+        oss << "Error opening column file for OID-" << column.mapOid <<"; DBRoot-" << dbr <<"; partition-" << partition <<"; segment-"   << segment   <<
+            "; filename-"  << segFile   <<"; " << ec.errorString(rc);
         fLog->logMsg( oss.str(), ERR_FILE_OPEN, MSGLVL_ERROR );
         return ERR_FILE_OPEN;
     }
 
     std::ostringstream oss1;
-    oss1 << "Initializing import: "    <<
-        "Table-"      << tblName       <<
-        "; Col-"      << column.colName;
+    oss1 << "Initializing import: " <<"Table-" << tblName <<"; Col-" << column.colName;
     if (curCol.compressionType)
         oss1          << " (compressed)";
-    oss1 <<  "; OID-" << column.mapOid <<
-        "; hwm-"      << hwm;
+    oss1 <<  "; OID-" << column.mapOid <<"; hwm-" << hwm;
     if (bSkippedToNewExtent)
         oss1          << " (full; load into next extent)";
     oss1 << "; file-" << curCol.dataFile.fSegFileName;
@@ -1392,13 +1361,8 @@ int ColumnInfo::setupInitialColumnExtent(
     {
         WErrorCodes ec;
         std::ostringstream oss;
-        oss << "Error reading/positioning column file for OID-" <<
-            column.mapOid <<
-            "; DBRoot-"    << dbRoot    <<
-            "; partition-" << partition <<
-            "; segment-"   << segment   <<
-            "; filename-"  << segFile   <<
-            "; " << ec.errorString(rc);
+        oss << "Error reading/positioning column file for OID-" <<column.mapOid <<"; DBRoot-" << dbr <<"; partition-" << partition <<"; segment-"   << segment   <<
+            "; filename-"  << segFile   <<"; " << ec.errorString(rc);
         fLog->logMsg( oss.str(), rc, MSGLVL_ERROR );
         return rc;
     }
@@ -1592,11 +1556,7 @@ int ColumnInfo::openDctnryStore( bool bMustExist )
     // relevant column segment file, then the corresponding dictionary
     // store file will not exist, in which case we must create
     // the store file, else we open the applicable store file.
-    if ( (bMustExist) ||
-       (colOp->exists(column.dctnry.dctnryOid,
-        curCol.dataFile.fDbRoot,
-        curCol.dataFile.fPartition,
-        curCol.dataFile.fSegment)) )
+    if ( (bMustExist) || (colOp->exists(column.dctnry.dctnryOid,curCol.dataFile.fdbr,curCol.dataFile.fPartition,curCol.dataFile.fSegment)) )
     {
         // Save HWM chunk (for compressed files) if this seg file calls for it
         // @bug 5572 - HDFS usage: incorporate *.tmp file backup flag
@@ -1604,25 +1564,14 @@ int ColumnInfo::openDctnryStore( bool bMustExist )
         RETURN_ON_ERROR( saveDctnryStoreHWMChunk( useTmpSuffixDctnry ) );
 
         // @bug 5572 - HDFS usage: incorporate *.tmp file backup flag
-        rc = fStore->openDctnry(
-            column.dctnry.dctnryOid,
-            curCol.dataFile.fDbRoot,
-            curCol.dataFile.fPartition,
-            curCol.dataFile.fSegment,
-            useTmpSuffixDctnry );
+        rc = fStore->openDctnry(column.dctnry.dctnryOid,curCol.dataFile.fdbr,curCol.dataFile.fPartition,curCol.dataFile.fSegment,useTmpSuffixDctnry );
         if (rc != NO_ERROR)
         {
             WErrorCodes ec;
             std::ostringstream oss;
-            oss << "openDctnryStore: error opening existing store file for " <<
-                   "OID-"      << column.dctnry.dctnryOid    <<
-                   "; DBRoot-" << curCol.dataFile.fDbRoot    <<
-                   "; part-"   << curCol.dataFile.fPartition <<
-                   "; seg-"    << curCol.dataFile.fSegment   <<
-                   "; tmpFlag-"<< useTmpSuffixDctnry         <<
-                   "; " << ec.errorString(rc);
+            oss << "openDctnryStore: error opening existing store file for " <<"OID-" << column.dctnry.dctnryOid  <<"; DBRoot-" << curCol.dataFile.fdbr    <<
+                   "; part-"   << curCol.dataFile.fPartition << "; seg-"   << curCol.dataFile.fSegment   <<"; tmpFlag-"<< useTmpSuffixDctnry <<"; " << ec.errorString(rc);
             fLog->logMsg( oss.str(), rc, MSGLVL_ERROR );
-
             // Ignore return code from closing file; already in error state
             closeDctnryStore(true); // clean up loose ends
             return rc;
@@ -1632,76 +1581,45 @@ int ColumnInfo::openDctnryStore( bool bMustExist )
             fDictBlocks.push_back(fStore->getCurLbid());
 
         std::ostringstream oss;
-        oss << "Opening existing store file for " << column.colName <<
-               "; OID-"    << column.dctnry.dctnryOid    <<
-               "; DBRoot-" << curCol.dataFile.fDbRoot    <<
-               "; part-"   << curCol.dataFile.fPartition <<
-               "; seg-"    << curCol.dataFile.fSegment   <<
-               "; hwm-"    << fStore->getHWM()           <<
-               "; file-"   << fStore->getFileName();
+        oss << "Opening existing store file for " << column.colName <<"; OID-" << column.dctnry.dctnryOid <<"; DBRoot-" << curCol.dataFile.fdbr <<"; part-" << curCol.dataFile.fPartition <<
+               "; seg-" << curCol.dataFile.fSegment   <<"; hwm-" << fStore->getHWM() <<"; file-" << fStore->getFileName();
         fLog->logMsg( oss.str(), MSGLVL_INFO2 );
     }
     else
     {
         BRM::LBID_t startLbid;
-        rc = fStore->createDctnry(
-            column.dctnry.dctnryOid,
-            column.dctnryWidth,      //@bug 3313 - pass string col width
-            curCol.dataFile.fDbRoot,
-            curCol.dataFile.fPartition,
-            curCol.dataFile.fSegment,
-            startLbid);
+        rc = fStore->createDctnry(column.dctnry.dctnryOid,column.dctnryWidth,curCol.dataFile.fDbRoot, curCol.dataFile.fPartition,curCol.dataFile.fSegment,startLbid);      //@bug 3313 - pass string col width
         if (rc != NO_ERROR)
         {
             WErrorCodes ec;
             std::ostringstream oss;
-            oss << "openDctnryStore: error creating new store file for " <<
-                   "OID-"      << column.dctnry.dctnryOid    <<
-                   "; DBRoot-" << curCol.dataFile.fDbRoot    <<
-                   "; part-"   << curCol.dataFile.fPartition <<
-                   "; seg-"    << curCol.dataFile.fSegment   <<
-                   "; " << ec.errorString(rc);
+            oss << "openDctnryStore: error creating new store file for " <<"OID-" << column.dctnry.dctnryOid <<"; DBRoot-" << curCol.dataFile.fDbRoot <<"; part-" << curCol.dataFile.fPartition <<
+                   "; seg-"    << curCol.dataFile.fSegment   <<"; " << ec.errorString(rc);
             fLog->logMsg( oss.str(), rc, MSGLVL_CRITICAL );
             fpTableInfo->fBRMReporter.addToErrMsgEntry(oss.str());
-
             // Ignore return code from closing file; already in error state
             closeDctnryStore(true); // clean up loose ends
             return rc;
         }
 
-        rc = fStore->openDctnry(
-            column.dctnry.dctnryOid,
-            curCol.dataFile.fDbRoot,
-            curCol.dataFile.fPartition,
-            curCol.dataFile.fSegment,
-            false );
+        rc = fStore->openDctnry(column.dctnry.dctnryOid,curCol.dataFile.fdbr,curCol.dataFile.fPartition,curCol.dataFile.fSegment,false );
         if (rc != NO_ERROR)
         {
             WErrorCodes ec;
             std::ostringstream oss;
-            oss << "openDctnryStore: error opening new store file for " <<
-                   "OID-"      << column.dctnry.dctnryOid    <<
-                   "; DBRoot-" << curCol.dataFile.fDbRoot    <<
-                   "; part-"   << curCol.dataFile.fPartition <<
-                   "; seg-"    << curCol.dataFile.fSegment   <<
-                   "; " << ec.errorString(rc);
+            oss << "openDctnryStore: error opening new store file for " <<"OID-"      << column.dctnry.dctnryOid    <<"; DBRoot-" << curCol.dataFile.fDbRoot    <<
+                   "; part-"   << curCol.dataFile.fPartition <<"; seg-"    << curCol.dataFile.fSegment   <<"; " << ec.errorString(rc);
             fLog->logMsg( oss.str(), rc, MSGLVL_ERROR );
-
             // Ignore return code from closing file; already in error state
             closeDctnryStore(true); // clean up loose ends
             return rc;
         }
 
         std::ostringstream oss;
-        oss << "Opening new store file for " << column.colName <<
-               "; OID-"      << column.dctnry.dctnryOid    <<
-               "; DBRoot-"   << curCol.dataFile.fDbRoot    <<
-               "; part-"     << curCol.dataFile.fPartition <<
-               "; seg-"      << curCol.dataFile.fSegment   <<
-               "; file-"     << fStore->getFileName();
+        oss << "Opening new store file for " << column.colName <<"; OID-" << column.dctnry.dctnryOid <<"; DBRoot-"   << curCol.dataFile.fDbRoot <<"; part-" << curCol.dataFile.fPartition <<
+               "; seg-"      << curCol.dataFile.fSegment   <<"; file-" << fStore->getFileName();
         fLog->logMsg( oss.str(), MSGLVL_INFO2 );
     }
-
     return rc;
 }
 
