@@ -59,6 +59,7 @@ namespace BRM
     EXPORT   uint16_t & operator [](int i) ;
     EXPORT   uint16_t get(int i) const;
     EXPORT   void remove(uint16_t dbr);
+    EXPORT   uint16_t getPmDbr(uint16_t pmid=0)const;
     EXPORT DBROOTS_struct(const DBROOTS_struct&);
     EXPORT DBROOTS_struct& operator= (const DBROOTS_struct&);
     EXPORT DBROOTS_struct& set(const DBROOTS_struct&);

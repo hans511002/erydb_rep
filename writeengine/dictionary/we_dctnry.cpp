@@ -197,60 +197,32 @@ int  Dctnry::createDctnry( const OID& dctnryOID, int colWidth,const DBROOTS_stru
 #ifdef PROFILE
     Stats::startParseEvent(WE_STATS_ALLOC_DCT_EXTENT);
 #endif
-    if (flag)
+    oam::OamCache* oamcache = oam::OamCache::makeOamCache();
+    int dbrIndex = 0;
+    while (dbrIndex < 4)
     {
-        m_dctnryOID   = dctnryOID;
-        m_partition   = partition;
-        m_segment     = segment;
-        m_dbRoot      = dbRoot;
-        RETURN_ON_ERROR( ( rc = oid2FileName( m_dctnryOID, fileName, true, m_dbRoot[0], m_partition, m_segment ) ) );
-        m_segFileName = fileName;
-
-        // if obsolete file exists, "w+b" will truncate and write over
-        m_dFile = createDctnryFile(fileName, colWidth, "w+b", DEFAULT_BUFSIZ);
-    }
-    else
-    {
-        RETURN_ON_ERROR( setFileOffset(m_dFile, 0, SEEK_END) );
-    }
-
-    rc = BRMWrapper::getInstance()->allocateDictStoreExtent((const OID)m_dctnryOID, m_dbRoot, m_partition, m_segment, startLbid, allocSize);
-    if (rc != NO_ERROR)
-    {
+        uint16_t dbr = dbRoot[dbrIndex];
+        dbrIndex++;
+        if (dbr == 0)break;
+        if (!oamcache->existDbroot(dbr))continue;
         if (flag)
         {
-            closeDctnryFile(false, oids);
+            m_dctnryOID   = dctnryOID;
+            m_partition   = partition;
+            m_segment     = segment;
+            m_dbRoot      = dbRoot;
+            RETURN_ON_ERROR( ( rc = oid2FileName( m_dctnryOID, fileName, true, m_dbRoot[0], m_partition, m_segment ) ) );
+            m_segFileName = fileName;
+    
+            // if obsolete file exists, "w+b" will truncate and write over
+            m_dFile = createDctnryFile(fileName, colWidth, "w+b", DEFAULT_BUFSIZ);
         }
-        return rc;
-    }
-
-    // We allocate a full extent from BRM, but only write an abbreviated 256K
-    // rows to disk for 1st extent in each store file, to conserve disk usage.
-    int totalSize = allocSize;
-    if (flag)
-    {
-        totalSize = NUM_BLOCKS_PER_INITIAL_EXTENT;
-    }
-
-    if ( !isDiskSpaceAvail(Config::getDBRootByNum(m_dbRoot[0]), totalSize) )
-    {
-        if (flag)
+        else
         {
-            closeDctnryFile(false, oids);
+            RETURN_ON_ERROR( setFileOffset(m_dFile, 0, SEEK_END) );
         }
-        return ERR_FILE_DISK_SPACE;
-    }
-
-#ifdef PROFILE
-    Stats::stopParseEvent(WE_STATS_ALLOC_DCT_EXTENT);
-#endif
-    if( m_dFile != NULL ) {
-        rc = FileOp::initDctnryExtent( m_dFile,
-                                       m_dbRoot,
-                                       totalSize,
-                                       m_dctnryHeader2,
-                                       m_totalHdrBytes,
-                                       false );
+    
+        rc = BRMWrapper::getInstance()->allocateDictStoreExtent((const OID)m_dctnryOID, m_dbRoot, m_partition, m_segment, startLbid, allocSize);
         if (rc != NO_ERROR)
         {
             if (flag)
@@ -259,21 +231,59 @@ int  Dctnry::createDctnry( const OID& dctnryOID, int colWidth,const DBROOTS_stru
             }
             return rc;
         }
+    
+        // We allocate a full extent from BRM, but only write an abbreviated 256K
+        // rows to disk for 1st extent in each store file, to conserve disk usage.
+        int totalSize = allocSize;
+        if (flag)
+        {
+            totalSize = NUM_BLOCKS_PER_INITIAL_EXTENT;
+        }
+    
+        if ( !isDiskSpaceAvail(Config::getDBRootByNum(m_dbRoot[0]), totalSize) )
+        {
+            if (flag)
+            {
+                closeDctnryFile(false, oids);
+            }
+            return ERR_FILE_DISK_SPACE;
+        }
+    
+    #ifdef PROFILE
+        Stats::stopParseEvent(WE_STATS_ALLOC_DCT_EXTENT);
+    #endif
+        if( m_dFile != NULL ) {
+            rc = FileOp::initDctnryExtent( m_dFile,
+                                           m_dbRoot,
+                                           totalSize,
+                                           m_dctnryHeader2,
+                                           m_totalHdrBytes,
+                                           false );
+            if (rc != NO_ERROR)
+            {
+                if (flag)
+                {
+                    closeDctnryFile(false, oids);
+                }
+                return rc;
+            }
+        }
+        else
+            return ERR_FILE_CREATE;
+        if (flag)
+        {
+            closeDctnryFile(true, oids);
+            m_numBlocks = totalSize;
+            m_hwm = 0;
+            rc = BRMWrapper::getInstance()->setLocalHWM(
+                m_dctnryOID, m_partition, m_segment, m_hwm);
+        }
+        else
+        {
+            m_numBlocks = m_numBlocks + totalSize;
+        }
     }
-    else
-        return ERR_FILE_CREATE;
-    if (flag)
-    {
-        closeDctnryFile(true, oids);
-        m_numBlocks = totalSize;
-        m_hwm = 0;
-        rc = BRMWrapper::getInstance()->setLocalHWM(
-            m_dctnryOID, m_partition, m_segment, m_hwm);
-    }
-    else
-    {
-        m_numBlocks = m_numBlocks + totalSize;
-    }
+    
 
     return rc;
 }

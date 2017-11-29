@@ -29,6 +29,7 @@
 #include <sstream>
 #include "bytestream.h"
 #include "logicalpartition.h"
+#include "oamcache.h"
 
 namespace BRM
 {
@@ -62,6 +63,20 @@ uint16_t & DBROOTS_struct::operator [](int i){
 uint16_t DBROOTS_struct::get(int i)const{
     return dbRoots[i];
 };
+uint16_t DBROOTS_struct::getPmDbr(uint16_t pmid)const{
+    oam::OamCache* oamcache = oam::OamCache::makeOamCache();
+    int dbrIndex = 0;
+    while (dbrIndex < 4)
+    {
+        uint16_t dbr = dbRoot[dbrIndex];
+        dbrIndex++;
+        if (dbr == 0)break; 
+        if (!oamcache->existDbroot(dbr,pmid))continue;
+        return dbr;
+    }
+    return 0;
+};
+
 void DBROOTS_struct::remove(uint16_t dbr){
     int n=-1,j=0;
     while (++n < MAX_DATA_REPLICATESIZE && dbRoots[n]!=0 ) {

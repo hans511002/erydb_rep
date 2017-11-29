@@ -206,7 +206,6 @@ namespace WriteEngine
         char  fileName[FILE_NAME_SIZE];
         uint16_t segment = 0; // should always be 0 when starting a new column
         int   rc=0;
-        int i = 0;
         // allocatColExtent() treats dbRoot and partition as in/out
         // arguments, so we need to pass in a non-const variable.
         DBROOTS_struct dbRootx = dbRoot;
@@ -214,38 +213,33 @@ namespace WriteEngine
         BRM::LBID_t startLbid;
         uint32_t startBlock;
         oam::OamCache* oamcache = oam::OamCache::makeOamCache();
-        while (1)
-        {
-            uint16_t dbr = dbRoot[i];
-            i++;
-            if (dbr == 0)break;
-            if (!oamcache->existDbroot(dbr))continue;
-            RETURN_ON_ERROR((rc = oid2FileName(fid, fileName, true, dbr, partition, segment)));
-            if (exists(fileName))//@Bug 3196
-                return ERR_FILE_EXIST;
-            if (i == 1)//dbrm 分配 em 各客户端同时执行的 worker 中调用slavecomm
-                RETURN_ON_ERROR(BRMWrapper::getInstance()->allocateColExtentExactFile((const OID)fid, (uint32_t)width, dbRootx, partitionx, segment, colDataType, startLbid, allocSize, startBlock));
-             
-            // We allocate a full extent from BRM, but only write an abbreviated 256K
-            // rows to disk for 1st extent, to conserve disk usage for small tables.
-            // One exception here is if we have rolled off partition 0, and we are
-            // adding a column to an existing table, then we are adding a column
-            // whose first partition is not 0.  In this case, we know we are not
-            // dealing with a small table, so we init a full extent for 1st extent.
-            int totalSize = 0;
-            if (partition == 0)
-                totalSize = (INITIAL_EXTENT_ROWS_TO_DISK / BYTE_PER_BLOCK) * width;
-            else
-                totalSize = allocSize; // full extent if starting partition > 0
-                                       // Note we can't pass full file name to isDiskSpaceAvail() because the
-                                       // file does not exist yet, but passing DBRoot directory should suffice.
-            if (!isDiskSpaceAvail(Config::getDBRootByNum(dbRoot[0]), totalSize)) 
-                return ERR_FILE_DISK_SPACE; 
-            //timer.stop( "allocateColExtent" );
-            rc = createFile(fileName, totalSize, emptyVal, width, dbr);
-            if (rc)
-                return rc;
-        } 
+        uint16_t dbr = dbRoot.getPmDbr();
+        if (dbr == 0)
+            return ERR_INVALID_DBROOT;
+        RETURN_ON_ERROR((rc = oid2FileName(fid, fileName, true, dbr, partition, segment)));
+        if (exists(fileName))//@Bug 3196
+            return ERR_FILE_EXIST;
+        if (i == 1)//dbrm 分配 em 各客户端同时执行的 worker 中调用slavecomm
+            RETURN_ON_ERROR(BRMWrapper::getInstance()->allocateColExtentExactFile((const OID)fid, (uint32_t)width, dbRootx, partitionx, segment, colDataType, startLbid, allocSize, startBlock));
+         
+        // We allocate a full extent from BRM, but only write an abbreviated 256K
+        // rows to disk for 1st extent, to conserve disk usage for small tables.
+        // One exception here is if we have rolled off partition 0, and we are
+        // adding a column to an existing table, then we are adding a column
+        // whose first partition is not 0.  In this case, we know we are not
+        // dealing with a small table, so we init a full extent for 1st extent.
+        int totalSize = 0;
+        if (partition == 0)
+            totalSize = (INITIAL_EXTENT_ROWS_TO_DISK / BYTE_PER_BLOCK) * width;
+        else
+            totalSize = allocSize; // full extent if starting partition > 0
+                                   // Note we can't pass full file name to isDiskSpaceAvail() because the
+                                   // file does not exist yet, but passing DBRoot directory should suffice.
+        if (!isDiskSpaceAvail(Config::getDBRootByNum(dbRoot[0]), totalSize)) 
+            return ERR_FILE_DISK_SPACE; 
+        //timer.stop( "allocateColExtent" );
+        rc = createFile(fileName, totalSize, emptyVal, width, dbr);
+
         return rc; 
     }
 
@@ -373,7 +367,7 @@ namespace WriteEngine
             oam::OamCache* oamcache = oam::OamCache::makeOamCache();
             int dbrIndex = 0;
             int rc = 0;
-            while (1)
+            while (dbrIndex < MAX_DATA_REPLICATESIZE )
             {
                 uint16_t dbr = partitions[i].lp.dbRoot.dbRoots[dbrIndex];
                 dbrIndex++;
@@ -423,7 +417,7 @@ namespace WriteEngine
         oam::OamCache* oamcache = oam::OamCache::makeOamCache();
         int dbrIndex = 0;
         int rc = 0;
-        while (1)
+        while (dbrIndex < MAX_DATA_REPLICATESIZE )
         {
             uint16_t dbr = dbRoot[dbrIndex];
             dbrIndex++;
@@ -522,7 +516,7 @@ namespace WriteEngine
         char fileName[FILE_NAME_SIZE];
         oam::OamCache* oamcache = oam::OamCache::makeOamCache();
         int dbrIndex = 0;
-        while (1)
+        while (dbrIndex < MAX_DATA_REPLICATESIZE )
         {
             uint16_t dbr = dbRoot[dbrIndex];
             dbrIndex++;
@@ -706,7 +700,7 @@ namespace WriteEngine
         HWM         hwm;
         oam::OamCache* oamcache = oam::OamCache::makeOamCache();
         int dbrIndex = 0;
-        while (1)
+        while (dbrIndex < MAX_DATA_REPLICATESIZE )
         {
             uint16_t dbr = dbRoot[dbrIndex];
             dbrIndex++;
@@ -1063,7 +1057,7 @@ namespace WriteEngine
         failedTask.clear();
         oam::OamCache* oamcache = oam::OamCache::makeOamCache();
         int dbrIndex = 0;
-        while (1)
+        while (dbrIndex < MAX_DATA_REPLICATESIZE )
         {
             uint16_t dbr = dbRoot[dbrIndex];
             dbrIndex++;
