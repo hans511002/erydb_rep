@@ -1266,7 +1266,7 @@ int ColumnOp::addExtent(const Column& column,DBROOTS_struct& dbRoot,uint32_t par
           if (dbr == 0)break;
           if (!oamcache->existDbroot(dbr))continue;
           // open column data file
-          column.dataFile.pFile[dbrIndex-1] = openFile(column, column.dataFile.fDbRoot[0], column.dataFile.fPartition, column.dataFile.fSegment, column.dataFile.fSegFileName, useTmpSuffix, "r+b", ioBuffSize);
+          column.dataFile.pFile = openFile(column, dbr, column.dataFile.fPartition, column.dataFile.fSegment, column.dataFile.fSegFileName, useTmpSuffix, "r+b", ioBuffSize);
           segFile = column.dataFile.fSegFileName;
           if (column.dataFile.pFile == NULL)
           {
@@ -1290,8 +1290,8 @@ int ColumnOp::addExtent(const Column& column,DBROOTS_struct& dbRoot,uint32_t par
           return ERR_FILE_OPEN;
           }
           */
+          return NO_ERROR;
       }
-      return NO_ERROR;
    }
 
    /***********************************************************
