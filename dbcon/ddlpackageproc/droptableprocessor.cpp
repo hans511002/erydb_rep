@@ -265,7 +265,7 @@ DropTableProcessor::DDLResult DropTableProcessor::processPackage(ddlpackage::Dro
 		tableColRidList = systemCatalogPtr->columnRIDs( userTableName );
 
 		dictOIDList = systemCatalogPtr->dictOIDs( userTableName );
-		Oam oam;
+		//Oam oam;
 
 		//Save qualified tablename, all column, dictionary OIDs, and transaction ID into a file in ASCII format
 		for ( unsigned i=0; i < tableColRidList.size(); i++ )
@@ -1050,15 +1050,16 @@ TruncTableProcessor::DDLResult TruncTableProcessor::processPackage(ddlpackage::T
 		}
 		
 		//Get the number of tables in the database, the current table is included.
-		Oam oam;
+		//Oam oam;
 		////Calculate which dbroot the columns should start
 		//int tableCount = systemCatalogPtr->getTableCount();
 		//DBRootConfigList dbRootList = oamcache->getDBRootNums();
 		//uint16_t useDBRootIndex = tableCount % dbRootList.size();
 		//Find out the dbroot# corresponding the useDBRootIndex from oam
 		//DBROOTS_struct dbRoot= dbRootList[useDBRootIndex];
-		DBROOTS_struct dbRoot
-		oam.getMinDataDBRoots(&dbRoot);
+		DBROOTS_struct dbRoot;
+		ExtentMap em;
+		em.getMinDataDBRoots(&dbRoot);
 		
 		bytestream.restart();
 		bytestream << (ByteStream::byte) WE_SVR_WRITE_CREATETABLEFILES;

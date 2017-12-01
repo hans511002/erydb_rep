@@ -102,6 +102,7 @@ inline std::ostream & operator<<(std::ostream & os, const std::vector<uint16_t>&
     }
 	return os;
     };
+
 // Logical partition number descriptor
 struct LogicalPartition
 {

@@ -165,7 +165,7 @@ void BatchLoader::selectFirstPM (uint16_t & PMId)
 				{
 					createdDbroot = emDbRootHWMInfos[j].dbRoot;
 					//cout << " and createdDbroot is " << createdDbroot << endl;
-					rootBlocks[createdDbroot] = emDbRootHWMInfos[j].totalBlocks;
+					rootBlocks[createdDbroot[0]] = emDbRootHWMInfos[j].totalBlocks;
 				}
 			}
 			else
