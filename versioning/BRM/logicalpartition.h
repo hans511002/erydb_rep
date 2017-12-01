@@ -56,17 +56,18 @@ namespace BRM
         return dbRoot;
     };
 
-    EXPORT   uint16_t & operator [](int i) ;
-    EXPORT   uint16_t get(int i) const;
-    EXPORT   bool isMaster(uint16_t dbr) const{
+    EXPORT  uint16_t & operator [](int i) ;
+    EXPORT  uint16_t get(int i) const;
+    EXPORT  inline bool isMaster(uint16_t dbr) const{
         return dbr==dbRoots[0];
-        };
+    };
     EXPORT   void remove(uint16_t dbr);
     EXPORT   uint16_t getPmDbr(uint16_t pmid=0)const;
-    EXPORT DBROOTS_struct(const DBROOTS_struct&);
-    EXPORT DBROOTS_struct& operator= (const DBROOTS_struct&);
-    EXPORT DBROOTS_struct& set(const DBROOTS_struct&);
-    EXPORT inline  int size() const {
+    EXPORT  std::vector<uint16_t> getPms() const;
+    EXPORT  DBROOTS_struct(const DBROOTS_struct&);
+    EXPORT  DBROOTS_struct& operator= (const DBROOTS_struct&);
+    EXPORT  DBROOTS_struct& set(const DBROOTS_struct&);
+    EXPORT  inline  int size() const {
         int size = 0;
         while (size < MAX_DATA_REPLICATESIZE && dbRoots[size])
         {

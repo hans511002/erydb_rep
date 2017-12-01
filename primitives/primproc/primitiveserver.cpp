@@ -460,19 +460,7 @@ uint32_t loadBlocks (
 	return ret;
 }
 
-void loadBlock (
-	uint64_t lbid,
-	QueryContext v,
-	uint32_t t,
-	int compType,
-	void* bufferPtr,
-	bool* pWasBlockInCache,
-	uint32_t* rCount,
-	bool LBIDTrace,
-	uint32_t sessionID,
-	bool doPrefetch,
-	VSSCache *vssCache)
-{
+void loadBlock (uint64_t lbid,QueryContext v,uint32_t t,int compType,void* bufferPtr,bool* pWasBlockInCache,uint32_t* rCount,bool LBIDTrace,uint32_t sessionID,bool doPrefetch,VSSCache *vssCache){
 	bool flg = false;
 	BRM::OID_t oid;
 	BRM::VER_t txn = (BRM::VER_t)t;
@@ -514,9 +502,7 @@ void loadBlock (
 		boost::scoped_array<uint8_t> newBufferSa;
 		boost::scoped_array<char> cmpHdrBufSa;
 		boost::scoped_array<char> cmpBufSa;
-		boost::scoped_array<unsigned char> uCmpBufSa;
-
-
+		boost::scoped_array<unsigned char> uCmpBufSa; 
 
 		ptrdiff_t alignedBuffer = 0;
 		void* readBufferPtr = NULL;
@@ -533,11 +519,7 @@ void loadBlock (
 			    // load the block
 			buildOidFileName(oid, dbRoot[0], partitionNum, segmentNum, fileNamePtr);
 			int opts = directIOFlag ? ERYDBDataFile::USE_ODIRECT : 0;
-			fp = ERYDBDataFile::open(
-					 ERYDBPolicy::getType( fileNamePtr, ERYDBPolicy::PRIMPROC ),
-					 fileNamePtr,
-					 "r",
-					 opts);
+			fp = ERYDBDataFile::open(ERYDBPolicy::getType( fileNamePtr, ERYDBPolicy::PRIMPROC ),fileNamePtr,"r",opts);
 			if( fp == NULL ) {
 				int errCode = errno;
 				SUMMARY_INFO2("open failed: ", fileNamePtr);
@@ -556,13 +538,11 @@ void loadBlock (
 
 #ifndef _MSC_VER
 				if (errCode == EINVAL) {
-					throw logging::ERYDBExcept(logging::ERYDBErrorInfo::instance()->
-											 errorMsg(logging::ERR_O_DIRECT), logging::ERR_O_DIRECT);
+					throw logging::ERYDBExcept(logging::ERYDBErrorInfo::instance()->errorMsg(logging::ERR_O_DIRECT), logging::ERR_O_DIRECT);
 				}
 #endif
 				string errStr(fileNamePtr);
-				errStr += ": open: ";
-				errStr += errMsg;
+				errStr += ": open: ";errStr += errMsg;
 				throw std::runtime_error(errStr);
 			}
 

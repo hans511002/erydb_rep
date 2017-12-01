@@ -211,7 +211,7 @@ namespace dmlpackageprocessor
 				//cout << " tablelock is obtained with id " << tableLockId << endl;
 				tablelockData->setTablelock(roPair.objnum, tableLockId);
 				
-				int pmNum = 0;
+				//int pmNum = 0;
 
 				// Select PM to receive the row.
 				// 1. Get BRM information
@@ -238,10 +238,9 @@ namespace dmlpackageprocessor
 				bool tmpSet = false;
 				for (unsigned i=0; i < allInfo.size(); i++)//pms
 				{
-					BRM::EmDbRootHWMInfo_v emDbRootHWMInfos = allInfo[i];
-						
+					BRM::EmDbRootHWMInfo_v emDbRootHWMInfos = allInfo[i]; 
 					for (unsigned j=0; j < emDbRootHWMInfos.size(); j++)//dbroot
-					{					
+					{
 						if (!tmpSet)
 						{
 							tmp = emDbRootHWMInfos[j];
@@ -262,12 +261,12 @@ namespace dmlpackageprocessor
 				DBROOTS_struct dbRoot;
 				if (tmpSet)
 				{
-					dbRoot = tmp.dbRoot[0];
-					OamCache::UintUintMap dbRootPMMap = oamcache->getDBRootToPMMap();
-					pmNum = (*dbRootPMMap)[dbRoot[0]];
-				
+					dbRoot = tmp.dbRoot;
+					//OamCache::UintUintMap dbRootPMMap = oamcache->getDBRootToPMMap();
+					//pmNum = (*dbRootPMMap)[dbRoot[0]];
+				    std::vector<uint16_t> dbrPms=dbRoot.getPms();
 					//@Bug 4760. validate pm value
-					if (pmNum == 0)
+					if (dbrPms.size() == 0)
 					{
 						result.result = INSERT_ERROR;
 						ostringstream oss;
@@ -293,30 +292,29 @@ namespace dmlpackageprocessor
 				bytestream << dbRoot;
 				cpackage.write(bytestream);
 				boost::shared_ptr<messageqcpp::ByteStream> bsIn;
-				
 				ByteStream::byte rc1;
 				try
 				{
-					fWEClient->write(bytestream, (uint32_t)pmNum);
 #ifdef ERYDB_DML_DEBUG
-cout << "Single insert sending WE_SVR_SINGLE_INSERT to pm " << pmNum << endl;
+cout << "Single insert sending WE_SVR_SINGLE_INSERT to pm " << dbRoot.getPms() << endl;
 #endif	
-					
-					bsIn.reset(new ByteStream());
-					fWEClient->read(uniqueId, bsIn);
-					if ( bsIn->length() == 0 ) //read error
-					{
-						rc = NETWORK_ERROR;
-						errorMsg = "Lost connection to Write Engine Server while updating SYSTABLES";
-					}			
-					else {
-						*bsIn >> rc1;
-						if (rc1 != 0) {
-							*bsIn >> errorMsg;
-							rc = rc1;
-						}
-					}
-					
+                    int weSize = fWEClient->write(bytestream, dbRoot);
+                    rc = fWEClient->read(uniqueId, weSize, &errorMsg);
+					//fWEClient->write(bytestream, (uint32_t)pmNum);
+					//bsIn.reset(new ByteStream());
+					//fWEClient->read(uniqueId, bsIn);
+					//if ( bsIn->length() == 0 ) //read error
+					//{
+					//	rc = NETWORK_ERROR;
+					//	errorMsg = "Lost connection to Write Engine Server while updating SYSTABLES";
+					//}			
+					//else {
+					//	*bsIn >> rc1;
+					//	if (rc1 != 0) {
+					//		*bsIn >> errorMsg;
+					//		rc = rc1;
+					//	}
+					//}
 				}
 				catch (runtime_error& ex) //write error
 				{

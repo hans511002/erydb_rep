@@ -76,6 +76,10 @@ uint16_t DBROOTS_struct::getPmDbr(uint16_t pmid)const{
     }
     return 0;
 };
+std::vector<uint16_t> DBROOTS_struct::getPms()const{
+    oam::OamCache* oamcache = oam::OamCache::makeOamCache();
+    return oamcache->getDBrootPms(dbRoot);
+};
 
 void DBROOTS_struct::remove(uint16_t dbr){
     int n=-1,j=0;

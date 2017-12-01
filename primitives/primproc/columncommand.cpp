@@ -213,18 +213,7 @@ void ColumnCommand::loadData()
 	} // for
 
 	/* Do the load */
-	wasCached = primitiveprocessor::loadBlocks(lbids,
-				bpp->versionInfo,
-				bpp->txnID,
-				colType.compressionType,
-				blockPtrs,
-				&blocksRead,
-				bpp->LBIDTrace,
-				bpp->sessionID,
-				blocksToLoad,
-				&wasVersioned,
-				willPrefetch(),
-				&bpp->vssCache);
+	wasCached = primitiveprocessor::loadBlocks(lbids,bpp->versionInfo,bpp->txnID,colType.compressionType,blockPtrs,&blocksRead,bpp->LBIDTrace,bpp->sessionID,blocksToLoad,&wasVersioned,willPrefetch(),&bpp->vssCache);
 	bpp->cachedIO += wasCached;
 	bpp->physIO += blocksRead;
 	bpp->touchedBlocks += blocksToLoad;

@@ -367,7 +367,7 @@ std::vector<uint16_t> OamCache::getDBrootPms(const BRM::DBROOTS_struct &dbRoot) 
             if (dbr > 0)
             {
                 uint16_t pmid = (*dbRootPMMap)[dbr];
-                 pmIds.push_back(pmid);
+                if(pmid)pmIds.push_back(pmid);
             } else
             {
                 break;
@@ -386,7 +386,7 @@ std::vector<uint16_t> OamCache::getDBrootPms(const BRM::DBROOTS_struct &dbRoot) 
                 if (pmMap->find(pmid) == pmMap->end())
                 {
                     (*pmMap)[pmid] = pmIds.size();
-                    pmIds.push_back(pmid);
+                    if(pmid)pmIds.push_back(pmid);
                 }
             } else
             {

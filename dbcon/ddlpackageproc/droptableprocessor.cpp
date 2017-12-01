@@ -121,10 +121,11 @@ DropTableProcessor::DDLResult DropTableProcessor::processPackage(ddlpackage::Dro
 	}
 	
 	fWEClient->addQueue(uniqueId);
-	int pmNum = 1;
 	boost::shared_ptr<messageqcpp::ByteStream> bsIn;
 	uint64_t tableLockId = 0;
 	OamCache* oamcache = OamCache::makeOamCache();
+//	int pmNum = 1;
+
 	std::vector<uint16_t> pms = oamcache->getModuleIds();
 
     // MCOL-66 The DBRM can't handle concurrent DDL					   
@@ -309,33 +310,35 @@ cout << fTxnid.id << " Removing the SYSTABLEs meta data" << endl;
 			return result;
 		}
 		
-		OamCache::UintUintMap dbRootPMMap = oamcache->getDBRootToPMMap();
-		pmNum = (*dbRootPMMap)[dbRoot[0]];
+//		OamCache::UintUintMap dbRootPMMap = oamcache->getDBRootToPMMap();
+//		pmNum = (*dbRootPMMap)[dbRoot[0]];
 		try
 		{
 // #ifdef ERYDB_DDL_DEBUG
-cout << fTxnid.id << " Drop table sending WE_SVR_DELETE_SYSTABLES to pm " << pmNum << endl;
-//#endif				
-			//cout << "deleting systable entries with txnid " << txnID.id << endl;
-			fWEClient->write(bytestream, (uint32_t)pmNum);
-			while (1)
-			{
-				bsIn.reset(new ByteStream());
-				fWEClient->read(uniqueId, bsIn);
-				if ( bsIn->length() == 0 ) //read error
-				{
-					rc = NETWORK_ERROR;
-					errorMsg = "Lost connection to Write Engine Server while updating SYSTABLES";
-					break;
-				}			
-				else {
-					*bsIn >> rc;
-					if (rc != 0) {
-						*bsIn >> errorMsg;
-					}
-					break;
-				}
-			}
+cout << fTxnid.id << " Drop table sending WE_SVR_DELETE_SYSTABLES to pm " << dbRoot.getPms() << endl;
+//#endif
+            int weSize = fWEClient->write(bytestream, dbRoot);
+            rc = fWEClient->read(uniqueId, weSize, &errorMsg); 
+			////cout << "deleting systable entries with txnid " << txnID.id << endl;
+			//fWEClient->write(bytestream, (uint32_t)pmNum);
+			//while (1)
+			//{
+			//	bsIn.reset(new ByteStream());
+			//	fWEClient->read(uniqueId, bsIn);
+			//	if ( bsIn->length() == 0 ) //read error
+			//	{
+			//		rc = NETWORK_ERROR;
+			//		errorMsg = "Lost connection to Write Engine Server while updating SYSTABLES";
+			//		break;
+			//	}			
+			//	else {
+			//		*bsIn >> rc;
+			//		if (rc != 0) {
+			//			*bsIn >> errorMsg;
+			//		}
+			//		break;
+			//	}
+			//}
 		}
 		catch (runtime_error& ex) //write error
 		{
@@ -395,31 +398,33 @@ cout << fTxnid.id << " Drop table got unknown exception" << endl;
 			return result;
 		}
 		
-		pmNum = (*dbRootPMMap)[dbRoot[0]];
+		//pmNum = (*dbRootPMMap)[dbRoot[0]];
 		try
 		{
 //#ifdef ERYDB_DDL_DEBUG
-cout << fTxnid.id << " Drop table sending WE_SVR_DELETE_SYSCOLUMN to pm " << pmNum << endl;
+cout << fTxnid.id << " Drop table sending WE_SVR_DELETE_SYSCOLUMN to pm " << dbRoot.getPms() << endl;
 //#endif				
-			fWEClient->write(bytestream, (unsigned)pmNum);
-			while (1)
-			{
-				bsIn.reset(new ByteStream());
-				fWEClient->read(uniqueId, bsIn);
-				if ( bsIn->length() == 0 ) //read error
-				{
-					rc = NETWORK_ERROR;
-					errorMsg = "Lost connection to Write Engine Server while updating SYSTABLES";
-					break;
-				}			
-				else {
-					*bsIn >> rc;
-					if (rc != 0) {
-						*bsIn >> errorMsg;
-					}
-					break;
-				}
-			}
+            int weSize = fWEClient->write(bytestream, dbRoot);
+            rc = fWEClient->read(uniqueId, weSize, &errorMsg); 
+			//fWEClient->write(bytestream, (unsigned)pmNum);
+			//while (1)
+			//{
+			//	bsIn.reset(new ByteStream());
+			//	fWEClient->read(uniqueId, bsIn);
+			//	if ( bsIn->length() == 0 ) //read error
+			//	{
+			//		rc = NETWORK_ERROR;
+			//		errorMsg = "Lost connection to Write Engine Server while updating SYSTABLES";
+			//		break;
+			//	}			
+			//	else {
+			//		*bsIn >> rc;
+			//		if (rc != 0) {
+			//			*bsIn >> errorMsg;
+			//		}
+			//		break;
+			//	}
+			//}
 		}
 		catch (runtime_error& ex) //write error
 		{
@@ -753,7 +758,7 @@ TruncTableProcessor::DDLResult TruncTableProcessor::processPackage(ddlpackage::T
 		return result;
 	}
 	fWEClient->addQueue(uniqueId);
-	int pmNum = 1;
+//	int pmNum = 1;
 	boost::shared_ptr<messageqcpp::ByteStream> bsIn;
 	string errorMsg;
 	uint32_t autoIncColOid = 0;
@@ -1045,14 +1050,15 @@ TruncTableProcessor::DDLResult TruncTableProcessor::processPackage(ddlpackage::T
 		}
 		
 		//Get the number of tables in the database, the current table is included.
-		int tableCount = systemCatalogPtr->getTableCount();
 		Oam oam;
-		//Calculate which dbroot the columns should start
-		DBRootConfigList dbRootList = oamcache->getDBRootNums();
-	
-		uint16_t useDBRootIndex = tableCount % dbRootList.size();
+		////Calculate which dbroot the columns should start
+		//int tableCount = systemCatalogPtr->getTableCount();
+		//DBRootConfigList dbRootList = oamcache->getDBRootNums();
+		//uint16_t useDBRootIndex = tableCount % dbRootList.size();
 		//Find out the dbroot# corresponding the useDBRootIndex from oam
-		DBROOTS_struct dbRoot= dbRootList[useDBRootIndex];
+		//DBROOTS_struct dbRoot= dbRootList[useDBRootIndex];
+		DBROOTS_struct dbRoot
+		oam.getMinDataDBRoots(&dbRoot);
 		
 		bytestream.restart();
 		bytestream << (ByteStream::byte) WE_SVR_WRITE_CREATETABLEFILES;
@@ -1086,33 +1092,35 @@ TruncTableProcessor::DDLResult TruncTableProcessor::processPackage(ddlpackage::T
 			bytestream << (uint32_t) colType.compressionType;
 		}
 		
-		OamCache::UintUintMap dbRootPMMap = oamcache->getDBRootToPMMap();
-		pmNum = (*dbRootPMMap)[dbRoot[0]];
+//		OamCache::UintUintMap dbRootPMMap = oamcache->getDBRootToPMMap();
+//		pmNum = (*dbRootPMMap)[dbRoot[0]];
 		try
 		{
 #ifdef ERYDB_DDL_DEBUG
-cout << "Truncate table sending We_SVR_WRITE_CREATETABLEFILES to pm " << pmNum << endl;
+cout << "Truncate table sending We_SVR_WRITE_CREATETABLEFILES to pm " << dbRoot.getPms() << endl;
 #endif
-			fWEClient->write(bytestream, pmNum);
-			while (1)
-			{
-				bsIn.reset(new ByteStream());
-				fWEClient->read(uniqueId, bsIn);
-				if ( bsIn->length() == 0 ) //read error
-				{
-					rc = NETWORK_ERROR;
-					errorMsg = "Lost connection to Write Engine Server while updating SYSTABLES";
-					break;
-				}			
-				else {
-					*bsIn >> tmp8;
-					rc = tmp8;
-					if (rc != 0) {
-						*bsIn >> errorMsg;
-					}
-					break;
-				}
-			}
+            int weSize = fWEClient->write(bytestream, dbRoot);
+            rc = fWEClient->read(uniqueId, weSize, &errorMsg); 
+			//fWEClient->write(bytestream, pmNum);
+			//while (1)
+			//{
+			//	bsIn.reset(new ByteStream());
+			//	fWEClient->read(uniqueId, bsIn);
+			//	if ( bsIn->length() == 0 ) //read error
+			//	{
+			//		rc = NETWORK_ERROR;
+			//		errorMsg = "Lost connection to Write Engine Server while updating SYSTABLES";
+			//		break;
+			//	}			
+			//	else {
+			//		*bsIn >> tmp8;
+			//		rc = tmp8;
+			//		if (rc != 0) {
+			//			*bsIn >> errorMsg;
+			//		}
+			//		break;
+			//	}
+			//}
 		
 			if (rc != 0) {
 				//drop the newly created files
@@ -1124,21 +1132,23 @@ cout << "Truncate table sending We_SVR_WRITE_CREATETABLEFILES to pm " << pmNum <
 				{
 					bytestream << (uint32_t)(allOidList[i]);
 				}
-				fWEClient->write(bytestream, pmNum);
-				while (1)
-				{
-					bsIn.reset(new ByteStream());
-					fWEClient->read(uniqueId, bsIn);
-					if ( bsIn->length() == 0 ) //read error
-					{	
-						break;
-					}			
-					else {
-						*bsIn >> tmp8;
-						//rc = tmp8;
-						break;
-					}
-				}
+                int weSize = fWEClient->write(bytestream, dbRoot);
+                rc = fWEClient->read(uniqueId, weSize, &errorMsg); 
+				//fWEClient->write(bytestream, pmNum);
+				//while (1)
+				//{
+				//	bsIn.reset(new ByteStream());
+				//	fWEClient->read(uniqueId, bsIn);
+				//	if ( bsIn->length() == 0 ) //read error
+				//	{	
+				//		break;
+				//	}			
+				//	else {
+				//		*bsIn >> tmp8;
+				//		//rc = tmp8;
+				//		break;
+				//	}
+				//}
 				Message::Args args;
 				Message message(1);
 				args.add( "Truncate table failed." );
@@ -1148,7 +1158,7 @@ cout << "Truncate table sending We_SVR_WRITE_CREATETABLEFILES to pm " << pmNum <
 
 				result.result = TRUNC_ERROR;
 				result.message = message;
-		//rc = fSessionManager.setTableLock( roPair.objnum, truncTableStmt.fSessionID, processID, processName, false );
+		        //rc = fSessionManager.setTableLock( roPair.objnum, truncTableStmt.fSessionID, processID, processName, false );
 				fSessionManager.rolledback(txnID);
 				return result;
 			}		

@@ -54,6 +54,7 @@ BatchLoader::BatchLoader ( uint32_t tableOid,execplan::erydbSystemCatalog::SCN s
 	//cout << "fPMs size is " << fPMs.size() << endl;
 	fPmDbrootMap.reset(new OamCache::UintListUintMap::element_type());
 	fDbrootPMmap.reset(new OamCache::UintUintMap::element_type());
+	        
 	for (uint32_t i=0; i < fPMs.size(); i++)
 	{
 		iter = systemPmDbrootMap->find(fPMs[i]);
@@ -96,7 +97,7 @@ void BatchLoader::selectFirstPM (uint16_t & PMId)
 	scoped_ptr<DBRM> dbrmp(new DBRM());	
 	
 	//Build distVec, start from the PM where the table is created. If not in the PM list, 0 will be used.
-	uint16_t createdDbroot = 0;
+	DBROOTS_struct createdDbroot = 0;
 	int rc = 0;
 	std::vector<BRM::EmDbRootHWMInfo_v> allInfo (fPMs.size());
 	for (unsigned i = 0; i < fPMs.size(); i++)
@@ -157,12 +158,12 @@ void BatchLoader::selectFirstPM (uint16_t & PMId)
 					//newly created table
 					//cout << " This is newly created table. PM id is " << PMId;
 					startDBRootSet = true;
-					createdDbroot = emDbRootHWMInfos[j].dbRoot[0];
+					createdDbroot = emDbRootHWMInfos[j].dbRoot;
 					break;
 				}
 				else
 				{
-					createdDbroot = emDbRootHWMInfos[j].dbRoot[0];
+					createdDbroot = emDbRootHWMInfos[j].dbRoot;
 					//cout << " and createdDbroot is " << createdDbroot << endl;
 					rootBlocks[createdDbroot] = emDbRootHWMInfos[j].totalBlocks;
 				}
@@ -180,10 +181,9 @@ void BatchLoader::selectFirstPM (uint16_t & PMId)
 	// Set the default PMId to the PM with the partition 0 segment 0 extent 
 	//--------------------------------------------------------------------------
 	PMId = 0;
-	if ( createdDbroot != 0)
+	if ( createdDbroot.dbRoots[0] != 0)
 	{
 		std::map<uint16_t, uint16_t>::iterator iter = fDbrootPMmap->begin();
-	
 		iter = fDbrootPMmap->find(createdDbroot);
 		if (iter != fDbrootPMmap->end())
 			PMId = iter->second;
