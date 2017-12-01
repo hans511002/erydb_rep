@@ -5261,7 +5261,7 @@ int ExtentMap::getMinDataDBRoots(DBROOTS_struct * dbroots,uint16_t mdbr) {
     uint16_t mpmid=0;
     if(mdbr){
         dbroots->dbRoots[index] = mdbr;
-        mpmid=dbrToPmMap[mdbr];
+        mpmid=(*dbrToPmMap)[mdbr];
         pmExist->operator[](mpmid) = index;
         dbrExist->operator[](mdbr) = index++;
     }

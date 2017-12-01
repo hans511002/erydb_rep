@@ -189,14 +189,15 @@ int ddl_cleanup()
 					//create a new sets of files. Just find a dbroot according th the number of tables in syscat-1.
 					boost::shared_ptr<erydbSystemCatalog> systemCatalogPtr =erydbSystemCatalog::makeerydbSystemCatalog(1);
 					int tableCount = systemCatalogPtr->getTableCount();
-					int dbRootCnt = 1;
-					DBROOTS_struct dbRoot = 1;
-					string DBRootCount = config::Config::makeConfig()->getConfig("SystemConfig", "DBRootCount");
-					if (DBRootCount.length() != 0)
-						dbRootCnt = static_cast<int>(config::Config::fromText(DBRootCount));
+					// int dbRootCnt = 1;
+					DBROOTS_struct dbRoot;
+					//string DBRootCount = config::Config::makeConfig()->getConfig("SystemConfig", "DBRootCount");
+					//if (DBRootCount.length() != 0)
+					//	dbRootCnt = static_cast<int>(config::Config::fromText(DBRootCount));
 
-					dbRoot[0] =  ((tableCount-1) % dbRootCnt) + 1;
-					
+					//dbRoot[0] =  ((tableCount-1) % dbRootCnt) + 1;
+					ExtentMap em;
+					em.getMinDataDBRoots(&dbRoot);
 					//Create all column and dictionary files
 					erydbSystemCatalog::TableName aTableName = systemCatalogPtr->tableName(it->first);
 					ddlpackageprocessor.createFiles(aTableName,dbRoot,uniqueId, static_cast<uint32_t>(aLogInfo.oids.size()));				
