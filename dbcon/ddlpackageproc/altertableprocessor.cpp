@@ -573,10 +573,10 @@ void AlterTableProcessor::addColumn (uint32_t sessionID, execplan::erydbSystemCa
 	if (rc != 0)
 		throw std::runtime_error("Error while calling getSysCatDBRoot ");
 			
-	int pmNum = 1;
-	OamCache * oamcache = OamCache::makeOamCache();
-	OamCache::UintUintMap dbRootPMMap = oamcache->getDBRootToPMMap();
-	pmNum = (*dbRootPMMap)[dbRoot[0]];
+	//int pmNum = 1;
+	//OamCache * oamcache = OamCache::makeOamCache();
+	//OamCache::UintUintMap dbRootPMMap = oamcache->getDBRootToPMMap();
+	//pmNum = (*dbRootPMMap)[dbRoot[0]];
 	
 	boost::shared_ptr<messageqcpp::ByteStream> bsIn;
 	//Will create files on each PM as needed.
@@ -681,26 +681,28 @@ void AlterTableProcessor::addColumn (uint32_t sessionID, execplan::erydbSystemCa
 			columnDefPtr->serialize(bs);
 			//send to WES to process
 			try {
-				fWEClient->write(bs, (uint32_t)pmNum);
-				while (1)
-				{
-					bsIn.reset(new ByteStream());
-					fWEClient->read(uniqueId, bsIn);
-					if ( bsIn->length() == 0 ) //read error
-					{
-						rc = NETWORK_ERROR;
-						errorMsg = "Lost connection to Write Engine Server while updating SYSTABLES";
-						break;
-					}			
-					else {
-						*bsIn >> tmp8;
-						rc = tmp8;
-						if (rc != 0) {
-							*bsIn >> errorMsg;
-						}
-						break;
-					}
-				}			
+                int weSize = fWEClient->write(bs, dbRoot);
+                rc = fWEClient->read(uniqueId, weSize, &errorMsg);
+				//fWEClient->write(bs, (uint32_t)pmNum);
+				//while (1)
+				//{
+				//	bsIn.reset(new ByteStream());
+				//	fWEClient->read(uniqueId, bsIn);
+				//	if ( bsIn->length() == 0 ) //read error
+				//	{
+				//		rc = NETWORK_ERROR;
+				//		errorMsg = "Lost connection to Write Engine Server while updating SYSTABLES";
+				//		break;
+				//	}			
+				//	else {
+				//		*bsIn >> tmp8;
+				//		rc = tmp8;
+				//		if (rc != 0) {
+				//			*bsIn >> errorMsg;
+				//		}
+				//		break;
+				//	}
+				//}			
 			}
 			catch (runtime_error& ex) //write error
 			{		
@@ -715,7 +717,6 @@ void AlterTableProcessor::addColumn (uint32_t sessionID, execplan::erydbSystemCa
 		
 			if (rc != 0)
 			throw std::runtime_error(errorMsg);		
-			
 		}
 
 		if ((columnDefPtr->fType->fAutoincrement).compare("y") == 0)
@@ -787,9 +788,7 @@ void AlterTableProcessor::addColumn (uint32_t sessionID, execplan::erydbSystemCa
 			oidList.push_back(fStartingColOID+1);
 		}
 		else
-			oidList.push_back(fStartingColOID);
-		
-		
+			oidList.push_back(fStartingColOID); 
 		createWriteDropLogFile( ropair.objnum, uniqueId, oidList );
 		
 		//@Bug 1358,1427 Always use the first column in the table, not the first one in columnlist to prevent random result
@@ -1070,38 +1069,39 @@ void AlterTableProcessor::dropColumn (uint32_t sessionID, execplan::erydbSystemC
 	if (rc != 0)
 		throw std::runtime_error("Error while calling getSysCatDBRoot ");
 	
-	int pmNum = 1;
-		
 	boost::shared_ptr<messageqcpp::ByteStream> bsIn;
-	OamCache * oamcache = OamCache::makeOamCache();
-	OamCache::UintUintMap dbRootPMMap = oamcache->getDBRootToPMMap();
-	pmNum = (*dbRootPMMap)[dbRoot[0]];
+	//int pmNum = 1;
+	//OamCache * oamcache = OamCache::makeOamCache();
+	//OamCache::UintUintMap dbRootPMMap = oamcache->getDBRootToPMMap();
+	//pmNum = (*dbRootPMMap)[dbRoot[0]];
 
 	// MCOL-66 The DBRM can't handle concurrent DDL					   
 	boost::mutex::scoped_lock lk(dbrmMutex);
 
 	try
 	{			
-		fWEClient->write(bytestream, (uint32_t)pmNum);
+        int weSize = fWEClient->write(bytestream, dbRoot);
+        rc = fWEClient->read(uniqueId, weSize, &errorMsg);
 #ifdef ERYDB_DDL_DEBUG
-cout << "Alter table drop column sending WE_SVR_DELETE_SYSCOLUMN_ROW to pm " << pmNum << endl;
+        cout << "Alter table drop column sending WE_SVR_DELETE_SYSCOLUMN_ROW to pm " << dbRoot << endl;
 #endif	
-		while (1)
-		{
-			bsIn.reset(new ByteStream());
-			fWEClient->read(uniqueId, bsIn);
-			if ( bsIn->length() == 0 ) //read error
-			{
-				rc = NETWORK_ERROR;
-				errorMsg = "Lost connection to Write Engine Server while updating SYSTABLES";
-				break;
-			}			
-			else {
-				*bsIn >> rc;
-				*bsIn >> errorMsg;
-				break;
-			}
-		}
+		//fWEClient->write(bytestream, (uint32_t)pmNum);
+		//while (1)
+		//{
+		//	bsIn.reset(new ByteStream());
+		//	fWEClient->read(uniqueId, bsIn);
+		//	if ( bsIn->length() == 0 ) //read error
+		//	{
+		//		rc = NETWORK_ERROR;
+		//		errorMsg = "Lost connection to Write Engine Server while updating SYSTABLES";
+		//		break;
+		//	}			
+		//	else {
+		//		*bsIn >> rc;
+		//		*bsIn >> errorMsg;
+		//		break;
+		//	}
+		//}
 	}
 	catch (runtime_error& ex) //write error
 	{
@@ -1200,29 +1200,32 @@ cout << "Alter table drop column got unknown exception" << endl;
 	if (rc != 0)
 		throw std::runtime_error("Error while calling getSysCatDBRoot ");
 	
-	pmNum = (*dbRootPMMap)[dbRoot[0]];
+	//pmNum = (*dbRootPMMap)[dbRoot[0]];
 	
 	try {		
-		fWEClient->write(bytestream, (uint32_t)pmNum);
 #ifdef ERYDB_DDL_DEBUG
-cout << "Alter table drop column sending WE_SVR_UPDATE_SYSTABLE_AUTO to pm " << pmNum << endl;
+cout << "Alter table drop column sending WE_SVR_UPDATE_SYSTABLE_AUTO to pm " << dbRoot << endl;
 #endif	
-		while (1)
-		{
-			bsIn.reset(new ByteStream());
-			fWEClient->read(uniqueId, bsIn);
-			if ( bsIn->length() == 0 ) //read error
-			{
-				rc = NETWORK_ERROR;
-				errorMsg = "Lost connection to Write Engine Server while updating SYSTABLES";
-				break;
-			}			
-			else {
-				*bsIn >> rc;
-				*bsIn >> errorMsg;
-				break;
-			}
-		}
+        int weSize = fWEClient->write(bytestream, dbRoot);
+        rc = fWEClient->read(uniqueId, weSize, &errorMsg);
+
+		//fWEClient->write(bytestream, (uint32_t)pmNum);
+		//while (1)
+		//{
+		//	bsIn.reset(new ByteStream());
+		//	fWEClient->read(uniqueId, bsIn);
+		//	if ( bsIn->length() == 0 ) //read error
+		//	{
+		//		rc = NETWORK_ERROR;
+		//		errorMsg = "Lost connection to Write Engine Server while updating SYSTABLES";
+		//		break;
+		//	}			
+		//	else {
+		//		*bsIn >> rc;
+		//		*bsIn >> errorMsg;
+		//		break;
+		//	}
+		//}
 	}
 	catch (runtime_error& ex) //write error
 	{
@@ -1426,10 +1429,10 @@ void AlterTableProcessor::setColumnDefault (uint32_t sessionID, execplan::erydbS
 	if (rc != 0)
 		throw std::runtime_error("Error while calling getSysCatDBRoot");
 	
-	int pmNum = 1;
-	OamCache * oamcache = OamCache::makeOamCache();
-	OamCache::UintUintMap dbRootPMMap = oamcache->getDBRootToPMMap();
-	pmNum = (*dbRootPMMap)[dbRoot[0]];
+	//int pmNum = 1;
+	//OamCache * oamcache = OamCache::makeOamCache();
+	//OamCache::UintUintMap dbRootPMMap = oamcache->getDBRootToPMMap();
+	//pmNum = (*dbRootPMMap)[dbRoot[0]];
 	
 	boost::shared_ptr<messageqcpp::ByteStream> bsIn;
 	
@@ -1452,26 +1455,28 @@ void AlterTableProcessor::setColumnDefault (uint32_t sessionID, execplan::erydbS
 	bs << defaultValue;
 		
 	//send to WES to process
-	try {
-		fWEClient->write(bs, (uint32_t)pmNum);
-		while (1)
-		{
-			bsIn.reset(new ByteStream());
-			fWEClient->read(uniqueId, bsIn);
-			if ( bsIn->length() == 0 ) //read error
-			{
-				rc = NETWORK_ERROR;
-				errorMsg = "Lost connection to Write Engine Server while updating SYSTABLES";
-				break;
-			}			
-			else {
-				*bsIn >> rc;
-				if (rc != 0) {
-					*bsIn >> errorMsg;
-				}
-				break;
-			}
-		}			
+	try { 
+        int weSize = fWEClient->write(bs, dbRoot);
+        rc = fWEClient->read(uniqueId, weSize, &errorMsg);
+		//fWEClient->write(bs, (uint32_t)pmNum);
+		//while (1)
+		//{
+		//	bsIn.reset(new ByteStream());
+		//	fWEClient->read(uniqueId, bsIn);
+		//	if ( bsIn->length() == 0 ) //read error
+		//	{
+		//		rc = NETWORK_ERROR;
+		//		errorMsg = "Lost connection to Write Engine Server while updating SYSTABLES";
+		//		break;
+		//	}			
+		//	else {
+		//		*bsIn >> rc;
+		//		if (rc != 0) {
+		//			*bsIn >> errorMsg;
+		//		}
+		//		break;
+		//	}
+		//}			
 	}
 	catch (runtime_error& ex) //write error
 	{		
@@ -1505,10 +1510,10 @@ void AlterTableProcessor::dropColumnDefault (uint32_t sessionID, execplan::erydb
 	if (rc != 0)
 		throw std::runtime_error("Error while calling getSysCatDBRoot");
 	
-	int pmNum = 1;
-	OamCache * oamcache = OamCache::makeOamCache();
-	OamCache::UintUintMap dbRootPMMap = oamcache->getDBRootToPMMap();
-	pmNum = (*dbRootPMMap)[dbRoot[0]];
+	//int pmNum = 1;
+	//OamCache * oamcache = OamCache::makeOamCache();
+	//OamCache::UintUintMap dbRootPMMap = oamcache->getDBRootToPMMap();
+	//pmNum = (*dbRootPMMap)[dbRoot[0]];
 	
 	boost::shared_ptr<messageqcpp::ByteStream> bsIn;
 	
@@ -1529,25 +1534,27 @@ void AlterTableProcessor::dropColumnDefault (uint32_t sessionID, execplan::erydb
 		
 	//send to WES to process
 	try {
-		fWEClient->write(bs, (uint32_t)pmNum);
-		while (1)
-		{
-			bsIn.reset(new ByteStream());
-			fWEClient->read(uniqueId, bsIn);
-			if ( bsIn->length() == 0 ) //read error
-			{
-				rc = NETWORK_ERROR;
-				errorMsg = "Lost connection to Write Engine Server while updating SYSTABLES";
-				break;
-			}			
-			else {
-				*bsIn >> rc;
-				if (rc != 0) {
-					*bsIn >> errorMsg;
-				}
-				break;
-			}
-		}			
+        int weSize = fWEClient->write(bs, dbRoot);
+        rc = fWEClient->read(uniqueId, weSize, &errorMsg);
+		//fWEClient->write(bs, (uint32_t)pmNum);
+		//while (1)
+		//{
+		//	bsIn.reset(new ByteStream());
+		//	fWEClient->read(uniqueId, bsIn);
+		//	if ( bsIn->length() == 0 ) //read error
+		//	{
+		//		rc = NETWORK_ERROR;
+		//		errorMsg = "Lost connection to Write Engine Server while updating SYSTABLES";
+		//		break;
+		//	}			
+		//	else {
+		//		*bsIn >> rc;
+		//		if (rc != 0) {
+		//			*bsIn >> errorMsg;
+		//		}
+		//		break;
+		//	}
+		//}			
 	}
 	catch (runtime_error& ex) //write error
 	{		
@@ -1691,34 +1698,37 @@ void AlterTableProcessor::renameTable (uint32_t sessionID, execplan::erydbSystem
 	if (rc != 0)
 		throw std::runtime_error("Error while calling getSysCatDBRoot");
 	
-	int pmNum = 1;
-		
-	boost::shared_ptr<messageqcpp::ByteStream> bsIn;
-	OamCache * oamcache = OamCache::makeOamCache();
-	OamCache::UintUintMap dbRootPMMap = oamcache->getDBRootToPMMap();
-	pmNum = (*dbRootPMMap)[dbRoot[0]];
+	//int pmNum = 1;
+	//	
+	//boost::shared_ptr<messageqcpp::ByteStream> bsIn;
+	//OamCache * oamcache = OamCache::makeOamCache();
+	//OamCache::UintUintMap dbRootPMMap = oamcache->getDBRootToPMMap();
+	//pmNum = (*dbRootPMMap)[dbRoot[0]];
 	try
 	{		
-		fWEClient->write(bytestream, (uint32_t)pmNum);
 #ifdef ERYDB_DDL_DEBUG
-cout << "Rename table sending WE_SVR_UPDATE_SYSTABLE_TABLENAME to pm " << pmNum << endl;
+cout << "Rename table sending WE_SVR_UPDATE_SYSTABLE_TABLENAME to pm " << dbRoot << endl;
 #endif	
-		while (1)
-		{
-			bsIn.reset(new ByteStream());
-			fWEClient->read(uniqueId, bsIn);
-			if ( bsIn->length() == 0 ) //read error
-			{
-				rc = NETWORK_ERROR;
-				errorMsg = "Lost connection to Write Engine Server while updating SYSTABLES";
-				break;
-			}			
-			else {
-				*bsIn >> rc;
-				*bsIn >> errorMsg;
-				break;
-			}
-		}
+        int weSize = fWEClient->write(bytestream, dbRoot);
+        rc = fWEClient->read(uniqueId, weSize, &errorMsg);
+
+		//fWEClient->write(bytestream, (uint32_t)pmNum);
+		//while (1)
+		//{
+		//	bsIn.reset(new ByteStream());
+		//	fWEClient->read(uniqueId, bsIn);
+		//	if ( bsIn->length() == 0 ) //read error
+		//	{
+		//		rc = NETWORK_ERROR;
+		//		errorMsg = "Lost connection to Write Engine Server while updating SYSTABLES";
+		//		break;
+		//	}			
+		//	else {
+		//		*bsIn >> rc;
+		//		*bsIn >> errorMsg;
+		//		break;
+		//	}
+		//}
 	}
 	catch (runtime_error& ex) //write error
 	{
@@ -1755,29 +1765,31 @@ cout << "create table got unknown exception" << endl;
 	if (rc != 0)
 		throw std::runtime_error("Error while calling getSysCatDBRoot");
 	
-	pmNum = (*dbRootPMMap)[dbRoot[0]];
+//	pmNum = (*dbRootPMMap)[dbRoot[0]];
 	try
 	{		
-		fWEClient->write(bytestream, (unsigned)pmNum);
 #ifdef ERYDB_DDL_DEBUG
-cout << "Rename table sending WE_SVR_UPDATE_SYSCOLUMN_TABLENAME to pm " << pmNum << endl;
+cout << "Rename table sending WE_SVR_UPDATE_SYSCOLUMN_TABLENAME to pm " << dbRoot << endl;
 #endif	
-		while (1)
-		{
-			bsIn.reset(new ByteStream());
-			fWEClient->read(uniqueId, bsIn);
-			if ( bsIn->length() == 0 ) //read error
-			{
-				rc = NETWORK_ERROR;
-				errorMsg = "Lost connection to Write Engine Server while updating SYSTABLES";
-				break;
-			}			
-			else {
-				*bsIn >> rc;
-				*bsIn >> errorMsg;
-				break;
-			}
-		}
+        int weSize = fWEClient->write(bytestream, dbRoot);
+        rc = fWEClient->read(uniqueId, weSize, &errorMsg);
+        //fWEClient->write(bytestream, (unsigned)pmNum);
+		//while (1)
+		//{
+		//	bsIn.reset(new ByteStream());
+		//	fWEClient->read(uniqueId, bsIn);
+		//	if ( bsIn->length() == 0 ) //read error
+		//	{
+		//		rc = NETWORK_ERROR;
+		//		errorMsg = "Lost connection to Write Engine Server while updating SYSTABLES";
+		//		break;
+		//	}			
+		//	else {
+		//		*bsIn >> rc;
+		//		*bsIn >> errorMsg;
+		//		break;
+		//	}
+		//}
 	}
 	catch (runtime_error& ex) //write error
 	{
@@ -1812,11 +1824,11 @@ void AlterTableProcessor::tableComment(uint32_t sessionID, execplan::erydbSystem
     boost::shared_ptr<messageqcpp::ByteStream> bsIn;
     DBROOTS_struct dbRoot;
     std::string errorMsg;
-    int pmNum = 1;
     rc = fDbrm->getSysCatDBRoot(sysOid, dbRoot);
-    OamCache * oamcache = OamCache::makeOamCache();
-    OamCache::UintUintMap dbRootPMMap = oamcache->getDBRootToPMMap();
-    pmNum = (*dbRootPMMap)[dbRoot[0]];
+    //int pmNum = 1;
+    //OamCache * oamcache = OamCache::makeOamCache();
+    //OamCache::UintUintMap dbRootPMMap = oamcache->getDBRootToPMMap();
+    //pmNum = (*dbRootPMMap)[dbRoot[0]];
     if (rc != 0)
         throw std::runtime_error("Error while calling getSysCatDBRoot");
 
@@ -1935,23 +1947,25 @@ void AlterTableProcessor::tableComment(uint32_t sessionID, execplan::erydbSystem
     bs << sessionID;
     try
 	{
-		fWEClient->write(bs, (uint32_t)pmNum);
-		while (1)
-		{
-			bsIn.reset(new ByteStream());
-			fWEClient->read(uniqueId, bsIn);
-			if ( bsIn->length() == 0 ) //read error
-			{
-				rc = NETWORK_ERROR;
-				errorMsg = "Lost connection to Write Engine Server while updating SYSTABLES";
-				break;
-			}
-			else {
-				*bsIn >> rc;
-				*bsIn >> errorMsg;
-				break;
-			}
-		}
+        int weSize = fWEClient->write(bs, dbRoot);
+        rc = fWEClient->read(uniqueId, weSize, &errorMsg);
+		//fWEClient->write(bs, (uint32_t)pmNum);
+		//while (1)
+		//{
+		//	bsIn.reset(new ByteStream());
+		//	fWEClient->read(uniqueId, bsIn);
+		//	if ( bsIn->length() == 0 ) //read error
+		//	{
+		//		rc = NETWORK_ERROR;
+		//		errorMsg = "Lost connection to Write Engine Server while updating SYSTABLES";
+		//		break;
+		//	}
+		//	else {
+		//		*bsIn >> rc;
+		//		*bsIn >> errorMsg;
+		//		break;
+		//	}
+		//}
 	}
 	catch (runtime_error& ex) //write error
 	{
@@ -1990,10 +2004,10 @@ void AlterTableProcessor::renameColumn(uint32_t sessionID, execplan::erydbSystem
 	if (rc != 0)
 		throw std::runtime_error("Error while calling getSysCatDBRoot");
 	
-	int pmNum = 1;
-	OamCache * oamcache = OamCache::makeOamCache();
-	OamCache::UintUintMap dbRootPMMap = oamcache->getDBRootToPMMap();
-	pmNum = (*dbRootPMMap)[dbRoot[0]];
+	//int pmNum = 1;
+	//OamCache * oamcache = OamCache::makeOamCache();
+	//OamCache::UintUintMap dbRootPMMap = oamcache->getDBRootToPMMap();
+	//pmNum = (*dbRootPMMap)[dbRoot[0]];
 	boost::shared_ptr<messageqcpp::ByteStream> bsIn;
 	
 
@@ -2129,8 +2143,6 @@ void AlterTableProcessor::renameColumn(uint32_t sessionID, execplan::erydbSystem
 		long long nextVal = ataRenameColumn.fNewType->fNextvalue;
 		if ((tblInfo.tablewithautoincr == 1) && (colType.autoincrement) && (ataRenameColumn.fNewType->fAutoincrement.compare("y") == 0))
 			nextVal = systemCatalogPtr->nextAutoIncrValue(tableName);
-	
-			
 		bs << (uint64_t) nextVal;
 		uint32_t nullable = 1;
 		string defaultValue("");
@@ -2156,28 +2168,30 @@ void AlterTableProcessor::renameColumn(uint32_t sessionID, execplan::erydbSystem
 		if (rc != 0)
 			throw std::runtime_error("Error while calling getSysCatDBRoot");
 	
-		pmNum = (*dbRootPMMap)[dbRoot[0]];
+		//pmNum = (*dbRootPMMap)[dbRoot[0]];
 		//send to WES to process
 		try {
-			fWEClient->write(bs, (uint32_t)pmNum);
-			while (1)
-			{
-				bsIn.reset(new ByteStream());
-				fWEClient->read(uniqueId, bsIn);
-				if ( bsIn->length() == 0 ) //read error
-				{
-					rc = NETWORK_ERROR;
-					errorMsg = "Lost connection to Write Engine Server while updating SYSTABLES";
-					break;
-				}			
-				else {
-					*bsIn >> rc;
-					if (rc != 0) {
-						*bsIn >> errorMsg;
-					}
-					break;
-				}
-			}			
+            int weSize = fWEClient->write(bs, dbRoot);
+            rc = fWEClient->read(uniqueId, weSize, &errorMsg);
+   //         fWEClient->write(bs, (uint32_t)pmNum);
+			//while (1)
+			//{
+			//	bsIn.reset(new ByteStream());
+			//	fWEClient->read(uniqueId, bsIn);
+			//	if ( bsIn->length() == 0 ) //read error
+			//	{
+			//		rc = NETWORK_ERROR;
+			//		errorMsg = "Lost connection to Write Engine Server while updating SYSTABLES";
+			//		break;
+			//	}			
+			//	else {
+			//		*bsIn >> rc;
+			//		if (rc != 0) {
+			//			*bsIn >> errorMsg;
+			//		}
+			//		break;
+			//	}
+			//}			
 		}
 		catch (runtime_error& ex) //write error
 		{		
@@ -2203,7 +2217,6 @@ void AlterTableProcessor::renameColumn(uint32_t sessionID, execplan::erydbSystem
 		err = "renameColumn:Unknown exception caught";
 		throw std::runtime_error(err);
 	}
-		
 }
 
 }
