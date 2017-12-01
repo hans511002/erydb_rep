@@ -184,7 +184,7 @@ void BatchLoader::selectFirstPM (uint16_t & PMId)
 	if ( createdDbroot.dbRoots[0] != 0)
 	{
 		std::map<uint16_t, uint16_t>::iterator iter = fDbrootPMmap->begin();
-		iter = fDbrootPMmap->find(createdDbroot);
+		iter = fDbrootPMmap->find(createdDbroot[0]);
 		if (iter != fDbrootPMmap->end())
 			PMId = iter->second;
 	}
@@ -237,7 +237,7 @@ void BatchLoader::selectFirstPM (uint16_t & PMId)
 			if (!allOtherDbrootEmpty)
 				break;
 			//cout << "createdDbroot is " << createdDbroot << endl;
-			if (i != createdDbroot)
+			if (i != createdDbroot[0])
 			{
 				for ( unsigned j=0; j < rootsExtentsBlocks[i].rootInfo.size(); j++)
 				{

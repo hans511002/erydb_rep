@@ -93,7 +93,15 @@ inline messageqcpp::ByteStream& operator<<(messageqcpp::ByteStream& bs, const DB
 inline messageqcpp::ByteStream& operator>>(messageqcpp::ByteStream& bs, DBROOTS_struct& s){
     s.deserialize(bs); return bs;
     };
-
+inline std::ostream & operator<<(std::ostream & os, const std::vector<uint16_t>& vuint){
+    for (int n=0; n<vuint.size(); n++){
+        if(n>0){
+            os<<",";
+        }
+        os <<  vuint[n]  ;
+    }
+	return os;
+    };
 // Logical partition number descriptor
 struct LogicalPartition
 {
