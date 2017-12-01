@@ -5229,7 +5229,7 @@ void ExtentMap::dumpTo(ostream& os)
 */
 
 /** 为一个新的em分配备份dbroot */
-int ExtentMap::getMinDataDBRoots(DBROOTS_struct * dbroots) {
+int ExtentMap::getMinDataDBRoots(DBROOTS_struct * dbroots,uint16_t mdbr) {
     int emEntries = fEMShminfo->allocdSize / sizeof(struct EMEntry);
     IntMap dbrnum;
     dbrnum.reset(new IntMap::element_type());
@@ -5241,7 +5241,7 @@ int ExtentMap::getMinDataDBRoots(DBROOTS_struct * dbroots) {
         }
     }
     releaseEMEntryTable(READ);
-    int index = 0;
+    int index = 0; 
     IntMap::element_type::iterator iter;
     IntMap::element_type::iterator iend = dbrnum->begin();
     IntMap dbrExist;
@@ -5250,6 +5250,7 @@ int ExtentMap::getMinDataDBRoots(DBROOTS_struct * dbroots) {
     pmExist.reset(new IntMap::element_type());
     oam::OamCache* oamcache = oam::OamCache::makeOamCache();
     OamCache::UintListUintMap pmToDbrMap = oamcache->getPMToDbrootsMap();
+    OamCache::UintUintMap dbrToPmMap = oamcache->getDBRootToPMMap();
     int pmCount = oamcache->getPMCount();
     int dbrCount = oamcache->getDBRootCount();
     string oamMasterName = oamcache->getOAMParentModuleName();
@@ -5257,6 +5258,14 @@ int ExtentMap::getMinDataDBRoots(DBROOTS_struct * dbroots) {
     OamCache::UintListUintMap::element_type::iterator pmend = pmToDbrMap->end();
     int repSize = this->getRepSize();
     std::vector<uint16_t>& modIDs = oamcache->getModuleIds();
+    uint16_t mpmid=0;
+    if(mdbr){
+        dbroots->dbRoots[index] = mdbr;
+        mpmid=dbrToPmMap[mdbr];
+        pmExist->operator[](mpmid) = index;
+        dbrExist->operator[](mdbr) = index++;
+    }
+        
     for (std::vector<uint16_t>::iterator mit = modIDs.begin(); mit != modIDs.end(); mit++)
     {
         if (index >= repSize || index >= dbrCount)
@@ -5264,6 +5273,8 @@ int ExtentMap::getMinDataDBRoots(DBROOTS_struct * dbroots) {
         it = pmToDbrMap->find(*mit);
         if (it == pmend || it->second.size() == 0)
             continue; 
+        if (mpmid==*mit)//exists
+            continue;
         std::vector<uint16_t>& pmDbrs = it->second;
         for (int i = 0; i < pmDbrs.size(); i++)
         {
@@ -5280,7 +5291,6 @@ int ExtentMap::getMinDataDBRoots(DBROOTS_struct * dbroots) {
     if (index >= repSize || index >= dbrCount)
         return 0;
     //
-    OamCache::UintUintMap dbrToPmMap = oamcache->getDBRootToPMMap();
     OamCache::UintUintMap::element_type::iterator pmit;
     while (pmCount >1 && index < repSize && index < dbrCount)
     {

@@ -785,9 +785,9 @@ public:
 	EXPORT void printFL() const;
 #endif
     /** 为一个em分配备份dbroot */
-    int getMinDataDBRoots(DBROOTS_struct * dbroots);
+    int getMinDataDBRoots(DBROOTS_struct * dbroots,uint16_t mdbr=0);
     int getSysDataDBRoots(DBROOTS_struct * dbroots);
-    
+
 private:
 	static const size_t EM_INCREMENT_ROWS = 100;
 	static const size_t EM_INITIAL_SIZE = EM_INCREMENT_ROWS * 10 * sizeof(EMEntry);
