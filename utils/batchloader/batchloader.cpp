@@ -170,7 +170,7 @@ void BatchLoader::selectFirstPM (uint16_t & PMId)
 			}
 			else
 			{					
-				rootBlocks[emDbRootHWMInfos[j].dbRoot[0]] = emDbRootHWMInfos[j].totalBlocks;	
+				rootBlocks[emDbRootHWMInfos[j].dbRoot.getPmDbr()] = emDbRootHWMInfos[j].totalBlocks;	
 			}
 		}
 		if (startDBRootSet)
