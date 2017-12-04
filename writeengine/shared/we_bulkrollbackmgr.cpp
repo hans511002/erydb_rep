@@ -1258,8 +1258,7 @@ void BulkRollbackMgr::deleteDctnryExtentsV4 ( )
     uint32_t partNum = part1;
 
     // Create the object responsible for restoring the extents in the db files.
-    BulkRollbackFile* fileRestorer = makeFileRestorer(
-        fPendingDctnryStoreCompressionType);
+    BulkRollbackFile* fileRestorer = makeFileRestorer(fPendingDctnryStoreCompressionType);
     boost::scoped_ptr<BulkRollbackFile> refBulkRollbackFile(fileRestorer);
 
     // DMC-We should probably change this to build up a list of BRM changes,
@@ -1267,21 +1266,12 @@ void BulkRollbackMgr::deleteDctnryExtentsV4 ( )
     //     have restored the db files, and purged PrimProc FD and block cache.
     DBROOTS_struct dbRoots;
     dbRoots=fPendingDctnryStoreDbRoot;
-    int rc = BRMWrapper::getInstance()->rollbackDictStoreExtents_DBroot (
-        fPendingDctnryStoreOID,
-        dbRoots,
-        partNum,
-        segNums,
-        hwms );
+    int rc = BRMWrapper::getInstance()->rollbackDictStoreExtents_DBroot (fPendingDctnryStoreOID,dbRoots,partNum,segNums,hwms );
     if (rc != NO_ERROR)
     {
         WErrorCodes ec;
         std::ostringstream oss;
-        oss<< "Error rolling back dictionary extents from extent map for "<<
-            fPendingDctnryStoreOID <<
-            "; partNum-" << partNum <<
-            "; "         << ec.errorString(rc);
-
+        oss<< "Error rolling back dictionary extents from extent map for "<<fPendingDctnryStoreOID <<"; partNum-" << partNum <<"; " << ec.errorString(rc);
         throw WeException( oss.str(), ERR_BRM_BULK_RB_DCTNRY );
     }
 
@@ -1308,12 +1298,7 @@ void BulkRollbackMgr::deleteDctnryExtentsV4 ( )
         {
             WErrorCodes ec;
             std::ostringstream oss;
-            oss << "Bulk rollback error constructing path for dictionary " <<
-                fPendingDctnryStoreOID <<
-                "; dbRoot-"    << dbRoot    <<
-                "; partition-" << partNum   <<
-                "; "           << ec.errorString(rc);
-
+            oss << "Bulk rollback error constructing path for dictionary " <<fPendingDctnryStoreOID <<"; dbRoot-" << dbRoot <<"; partition-" << partNum   <<"; " << ec.errorString(rc);
             throw WeException( oss.str(), rc );
         }
 
@@ -1322,12 +1307,7 @@ void BulkRollbackMgr::deleteDctnryExtentsV4 ( )
         {
             WErrorCodes ec;
             std::ostringstream oss;
-            oss << "Bulk rollback error for dictionary " <<
-                fPendingDctnryStoreOID    <<
-                "; directory-" << dirName <<
-                "; " << segFileListErrMsg <<
-                "; " << ec.errorString(rc);
-
+            oss << "Bulk rollback error for dictionary " <<fPendingDctnryStoreOID    <<"; directory-" << dirName <<"; " << segFileListErrMsg <<"; " << ec.errorString(rc);
             throw WeException( oss.str(), rc );
         }
 
@@ -1345,8 +1325,7 @@ void BulkRollbackMgr::deleteDctnryExtentsV4 ( )
             // file is found, then roll it back, if not found, then delete it.
             for (unsigned nn=0; nn<fPendingDctnryExtents.size(); nn++)
             {
-                if ((fPendingDctnryExtents[nn].fPartNum == partNum) &&
-                    (fPendingDctnryExtents[nn].fSegNum  == segNum))
+                if ((fPendingDctnryExtents[nn].fPartNum == partNum) && (fPendingDctnryExtents[nn].fSegNum  == segNum))
                 {
                     if (fPendingDctnryExtents[nn].fWithHwm)
                     {
@@ -1362,18 +1341,12 @@ void BulkRollbackMgr::deleteDctnryExtentsV4 ( )
                 // Don't rollback an OutOfService extent in the HWM partition
                 bool bFound;
                 int extState;
-                rc = BRMWrapper::getInstance()->getExtentState(
-                    fPendingDctnryStoreOID, partNum, segNum, bFound, extState );
+                rc = BRMWrapper::getInstance()->getExtentState(fPendingDctnryStoreOID, partNum, segNum, bFound, extState );
                 if (rc != NO_ERROR)
                 {
                     WErrorCodes ec;
                     std::ostringstream oss;
-                    oss << "Bulk rollback error for dctnry store " <<
-                        fPendingDctnryStoreOID <<
-                        "; Unable to get extent state for part-" << partNum <<
-                        "; seg-" << segNum <<
-                        "; " << ec.errorString(rc);
-
+                    oss << "Bulk rollback error for dctnry store " <<fPendingDctnryStoreOID <<"; Unable to get extent state for part-" << partNum <<"; seg-" << segNum <<"; " << ec.errorString(rc);
                     throw WeException( oss.str(), rc );
                 }
                 if ((bFound) && (extState == BRM::EXTENTOUTOFSERVICE))
@@ -1383,8 +1356,7 @@ void BulkRollbackMgr::deleteDctnryExtentsV4 ( )
 
                 // Determine the exact rollback point for the extent
                 // we are rolling back to
-                uint32_t lastBlkOfCurrStripe = hwm - 
-                    (hwm % BLKS_PER_EXTENT) + BLKS_PER_EXTENT - 1;
+                uint32_t lastBlkOfCurrStripe = hwm - (hwm % BLKS_PER_EXTENT) + BLKS_PER_EXTENT - 1;
 
                 // Reinit last extent and truncate the remainder,
                 // starting with the next block following the HWM block.
@@ -1395,10 +1367,7 @@ void BulkRollbackMgr::deleteDctnryExtentsV4 ( )
                 std::string segFileName;
                 fileRestorer->buildSegmentFileName ( fPendingDctnryStoreOID,false,dbRoot[0],partNum,segNum,segFileName );    // not a column segment file
 
-                createFileDeletionEntry( fPendingDctnryStoreOID,
-                    false, // not a column segment file
-                    dbRoot, partNum, segNum,
-                    segFileName );
+                createFileDeletionEntry( fPendingDctnryStoreOID,false, dbRoot, partNum, segNum,segFileName );// not a column segment file
             }
         } // loop thru all the potential segment files in a partition
 
@@ -1471,11 +1440,7 @@ void BulkRollbackMgr::deleteDbFiles( )
 // The latter case (flag set to true) is used on connection with HDFS.
 //------------------------------------------------------------------------------
 /* static */
-int BulkRollbackMgr::getSegFileList(
-    const std::string& dirName,
-    bool bIncludeAlternateSegFileNames,
-    std::vector<uint32_t>& segList,
-    std::string& errMsg )
+int BulkRollbackMgr::getSegFileList(const std::string& dirName,bool bIncludeAlternateSegFileNames,std::vector<uint32_t>& segList,std::string& errMsg )
 {
     const unsigned int DB_FILE_PREFIX_LEN = DB_FILE_PREFIX.length();
     segList.clear();

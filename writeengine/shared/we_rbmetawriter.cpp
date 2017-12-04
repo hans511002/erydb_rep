@@ -180,7 +180,7 @@ void RBMetaWriter::saveBulkRollbackMetaData(const std::vector<Column>& columns,c
                 unsigned k = 0;
                 for (; k<dbRootHWMInfo.size(); k++)
                 {
-                    if (dbRoots[m] == dbRootHWMInfo[k].dbRoot.dbRoots[0])
+                    if (dbRoots[m] == dbRootHWMInfo[k].dbRoot.getPmDbr())
                         break;
                 }
                 if (k >= dbRootHWMInfo.size()) // logic error; should not happen
@@ -221,7 +221,7 @@ void RBMetaWriter::saveBulkRollbackMetaData(const std::vector<Column>& columns,c
                     {
                         std::string dirName;
                         FileOp fileOp(false);
-                        rc = fileOp.getDirName( dctnryStoreOids[i],dbRoot[0], partition, dirName );
+                        rc = fileOp.getDirName( dctnryStoreOids[i],dbRoot.getPmDbr(), partition, dirName );
                         if (rc != NO_ERROR)
                         {
                             WErrorCodes ec;

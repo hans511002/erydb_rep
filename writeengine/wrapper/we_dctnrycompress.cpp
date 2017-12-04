@@ -97,14 +97,14 @@ int DctnryCompress1::updateDctnryExtent(ERYDBDataFile* pFile, int nBlocks)
 
 ERYDBDataFile* DctnryCompress1::createDctnryFile(const char *name,int width,const char *mode,int ioBuffSize)
 {
-   return m_chunkManager->createDctnryFile(m_dctnryOID, width, m_dbRoot[0], m_partition, m_segment, name, mode, ioBuffSize);
+   return m_chunkManager->createDctnryFile(m_dctnryOID, width, m_dbRoot.getPmDbr(), m_partition, m_segment, name, mode, ioBuffSize);
 }
 
 
 // @bug 5572 - HDFS usage: add *.tmp file backup flag
 ERYDBDataFile* DctnryCompress1::openDctnryFile(bool useTmpSuffix)
 {
-   return m_chunkManager->getFilePtr(m_dctnryOID, m_dbRoot[0], m_partition, m_segment, m_segFileName, "r+b", DEFAULT_BUFSIZ, useTmpSuffix);
+   return m_chunkManager->getFilePtr(m_dctnryOID, m_dbRoot.getPmDbr(), m_partition, m_segment, m_segFileName, "r+b", DEFAULT_BUFSIZ, useTmpSuffix);
 }
 
 

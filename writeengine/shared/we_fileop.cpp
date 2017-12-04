@@ -198,8 +198,7 @@ namespace WriteEngine
      *    ERR_FILE_EXIST if file exists
      *    ERR_FILE_CREATE if can not create the file
      ***********************************************************/
-    int FileOp::createFile(FID fid, int& allocSize, DBROOTS_struct& dbRoot, uint32_t partition,
-                           execplan::erydbSystemCatalog::ColDataType colDataType, uint64_t emptyVal, int width)
+    int FileOp::createFile(FID fid, int& allocSize, DBROOTS_struct& dbRoot, uint32_t partition,execplan::erydbSystemCatalog::ColDataType colDataType, uint64_t emptyVal, int width)
     {
         //std::cout << "Creating file oid: " << fid <<
         //    "; compress: " << m_compressionType << std::endl;
@@ -235,7 +234,7 @@ namespace WriteEngine
             totalSize = allocSize; // full extent if starting partition > 0
                                    // Note we can't pass full file name to isDiskSpaceAvail() because the
                                    // file does not exist yet, but passing DBRoot directory should suffice.
-        if (!isDiskSpaceAvail(Config::getDBRootByNum(dbRoot[0]), totalSize)) 
+        if (!isDiskSpaceAvail(Config::getDBRootByNum(dbr), totalSize)) 
             return ERR_FILE_DISK_SPACE; 
         //timer.stop( "allocateColExtent" );
         rc = createFile(fileName, totalSize, emptyVal, width, dbr);

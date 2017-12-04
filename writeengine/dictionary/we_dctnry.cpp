@@ -295,7 +295,7 @@ int  Dctnry::expandDctnryExtent()
     // Based on extent size, see how many blocks to add to fill the extent
     int blksToAdd = ( ((int)BRMWrapper::getInstance()->getExtentRows() - INITIAL_EXTENT_ROWS_TO_DISK)/BYTE_PER_BLOCK ) *  PSEUDO_COL_WIDTH;
 
-    if ( !isDiskSpaceAvail(Config::getDBRootByNum(m_dbRoot[0]), blksToAdd) )
+    if ( !isDiskSpaceAvail(Config::getDBRootByNum(dbr), blksToAdd) )
     {
         return ERR_FILE_DISK_SPACE;
     }
@@ -483,8 +483,7 @@ int Dctnry::openDctnry(const OID& dctnryOID,const DBROOTS_struct& dbRoot,const u
     init();
 
     int extState;
-    rc=BRMWrapper::getInstance()->getLocalHWM(dctnryOID,
-        m_partition, m_segment, m_hwm, extState);
+    rc=BRMWrapper::getInstance()->getLocalHWM(dctnryOID,m_partition, m_segment, m_hwm, extState);
     if (rc!=NO_ERROR)
     {
         closeDctnryFile(false, oids);
@@ -494,9 +493,7 @@ int Dctnry::openDctnry(const OID& dctnryOID,const DBROOTS_struct& dbRoot,const u
 
     memset( m_curBlock.data, 0, sizeof(m_curBlock.data));
     m_curFbo = m_lastFbo;
-    rc = BRMWrapper::getInstance()->getBrmInfo( m_dctnryOID,
-                                                m_partition, m_segment,
-                                                m_curFbo,    m_curLbid);
+    rc = BRMWrapper::getInstance()->getBrmInfo( m_dctnryOID,m_partition, m_segment,m_curFbo,m_curLbid);
     if (rc!=NO_ERROR)
     {
         closeDctnryFile(false, oids);
@@ -550,7 +547,6 @@ int Dctnry::openDctnry(const OID& dctnryOID,const DBROOTS_struct& dbRoot,const u
 #ifdef PROFILE
     Stats::stopParseEvent(WE_STATS_OPEN_DCT_FILE);
 #endif
-
     return rc;
 }
 
@@ -626,11 +622,7 @@ void Dctnry::insertDctnry2(Signature& sig)
  *    success    - successfully write the header to block
  *    failure    - it did not  write the header to block
  ******************************************************************************/
-int Dctnry::insertDctnry(const char* buf,
-                         ColPosPair ** pos,
-                         const int totalRow, const int col,
-                         char* tokenBuf,
-                         long long& truncCount)
+int Dctnry::insertDctnry(const char* buf,ColPosPair ** pos,const int totalRow, const int col,char* tokenBuf,long long& truncCount)
 {
 #ifdef PROFILE
     Stats::startParseEvent(WE_STATS_PARSE_DCT);
@@ -904,9 +896,7 @@ int Dctnry::insertDctnry(const char* buf,
  *    success    - successfully insert the signature
  *    failure    - it did not   insert the signature
  ******************************************************************************/
-int Dctnry::insertDctnry(const int& sgnature_size,
-                         const unsigned char* sgnature_value,
-                         Token& token)
+int Dctnry::insertDctnry(const int& sgnature_size,const unsigned char* sgnature_value,Token& token)
 {
     int rc = 0;
     int i;
@@ -1272,7 +1262,9 @@ ERYDBDataFile* Dctnry::createDctnryFile(
 // @bug 5572 - HDFS usage: add *.tmp file backup flag
 ERYDBDataFile* Dctnry::openDctnryFile(bool useTmpSuffix)
 {
-    return openFile(m_dctnryOID, m_dbRoot[0], m_partition, m_segment, m_segFileName, "r+b", DEFAULT_COLSIZ, useTmpSuffix);
+    uint16_t dbr = m_dbRoot.getPmDbr();
+    assert (dbr != 0)
+    return openFile(m_dctnryOID, dbr, m_partition, m_segment, m_segFileName, "r+b", DEFAULT_COLSIZ, useTmpSuffix);
 }
 
 /*******************************************************************************

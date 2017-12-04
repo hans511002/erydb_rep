@@ -258,20 +258,20 @@ int ColumnOp::allocRowId(const TxnID& txnid, bool useStartingExtent,
 						//@Bug 4758. Check whether this is a abbreviated extent
 						else if (newColStructList[i].fCompressionType == 0)
 						{
-							rc = fileOp.getFileSize(newColStructList[i].dataOid, dbRoot[0], partition, segment, fileSizeBytes);
+							rc = fileOp.getFileSize(newColStructList[i].dataOid, dbRoot.getPmDbr(), partition, segment, fileSizeBytes);
 							if (rc != NO_ERROR)
 								return rc;
 						
 							if (fileSizeBytes == (long long)  INITIAL_EXTENT_ROWS_TO_DISK * newColStructList[i].colWidth)
 							{
-								 ERYDBDataFile* pFile = fileOp.openFile( newColStructList[i].dataOid, dbRoot[0], partition, segment, segFile );
+								 ERYDBDataFile* pFile = fileOp.openFile( newColStructList[i].dataOid, dbRoot.getPmDbr(), partition, segment, segFile );
 								 if ( !pFile )
 								 {
 									rc = ERR_FILE_OPEN;
 									return rc;
 								 }
 								 uint64_t emptyVal = getEmptyRowValue(newColStructList[i].colDataType, newColStructList[i].colWidth);
-								 rc = fileOp.expandAbbrevColumnExtent( pFile, dbRoot[0], emptyVal, newColStructList[i].colWidth);
+								 rc = fileOp.expandAbbrevColumnExtent( pFile, dbRoot.getPmDbr(), emptyVal, newColStructList[i].colWidth);
 								 //set hwm for this extent.
 								 fileOp.closeFile(pFile);
 								 if (rc != NO_ERROR)
@@ -560,9 +560,7 @@ int ColumnOp::allocRowId(const TxnID& txnid, bool useStartingExtent,
     *
     * @return
     */
-int ColumnOp::fillColumn(const TxnID& txnid, Column& column, Column& refCol, void * defaultVal, Dctnry* dctnry, 
-						ColumnOp* refColOp,const OID dictOid, 
-						const int dictColWidth, const string defaultValStr, bool autoincrement)
+int ColumnOp::fillColumn(const TxnID& txnid, Column& column, Column& refCol, void * defaultVal, Dctnry* dctnry, ColumnOp* refColOp,const OID dictOid, const int dictColWidth, const string defaultValStr, bool autoincrement)
 {
     unsigned char refColBuf[BYTE_PER_BLOCK]; //Refernce column buffer
     unsigned char colBuf[BYTE_PER_BLOCK];

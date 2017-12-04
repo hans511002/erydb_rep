@@ -482,14 +482,9 @@ namespace WriteEngine
     /**
      * @brief Fill column with default values
      */
-    int WriteEngineWrapper::fillColumn(const TxnID& txnid, const OID& dataOid,
-        const erydbSystemCatalog::ColDataType dataType, int dataWidth,
-        ColTuple defaultVal, const OID& refColOID,
-        const erydbSystemCatalog::ColDataType refColDataType,
-        int refColWidth, int refCompressionType,
-        bool isNULL, int compressionType,
-        const string& defaultValStr,
-        const OID& dictOid, bool autoincrement) {
+    int WriteEngineWrapper::fillColumn(const TxnID& txnid, const OID& dataOid,const erydbSystemCatalog::ColDataType dataType, int dataWidth,ColTuple defaultVal,
+                             const OID& refColOID,const erydbSystemCatalog::ColDataType refColDataType,int refColWidth, int refCompressionType,bool isNULL, 
+                                int compressionType,const string& defaultValStr,const OID& dictOid, bool autoincrement) {
         int      rc = NO_ERROR;
         Column   newCol;
         Column   refCol;

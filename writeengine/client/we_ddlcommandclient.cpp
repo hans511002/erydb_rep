@@ -62,27 +62,28 @@ namespace WriteEngine {
 		DBROOTS_struct dbRoot;	
 		BRM::OID_t oid = OID_SYSCOLUMN_SCHEMA;
 		fDbrm.getSysCatDBRoot(oid, dbRoot); 
-		int pmNum = 1; 
+		//int pmNum = 1; 
 		boost::shared_ptr<messageqcpp::ByteStream> bsIn;
-		
 		try {
-			fOam.getDbrootPmConfig (dbRoot[0], pmNum);
-			fWEClient->write(command, pmNum);
-			while (1)
-			{			
-				bsIn.reset(new ByteStream());
-				fWEClient->read(uniqueId, bsIn);
-				if ( bsIn->length() == 0 ) //read error
-				{
-					err = 1;
-					
-					break;
-				}			
-				else {
-					*bsIn >> err;
-					break;
-				}
-			}
+		    int weSize = fWEClient->write(bytestream, dbRoot);
+            err = fWEClient->read(uniqueId, weSize, &errorMsg); 
+			//fOam.getDbrootPmConfig (dbRoot[0], pmNum);
+			//fWEClient->write(command, pmNum);
+			//while (1)
+			//{			
+			//	bsIn.reset(new ByteStream());
+			//	fWEClient->read(uniqueId, bsIn);
+			//	if ( bsIn->length() == 0 ) //read error
+			//	{
+			//		err = 1;
+			//		
+			//		break;
+			//	}			
+			//	else {
+			//		*bsIn >> err;
+			//		break;
+			//	}
+			//}
 		}
 		catch (...)
 		{
