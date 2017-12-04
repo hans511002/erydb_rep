@@ -52,6 +52,7 @@ namespace WriteEngine {
 	{
 		ByteStream command, response;
 		uint8_t err = 0;
+		string errorMsg;
 		uint64_t uniqueId = fDbrm.getUnique64();
 		fWEClient->addQueue(uniqueId);
 		command << (ByteStream::byte)WE_UPDATE_NEXTVAL;
@@ -65,7 +66,7 @@ namespace WriteEngine {
 		//int pmNum = 1; 
 		boost::shared_ptr<messageqcpp::ByteStream> bsIn;
 		try {
-		    int weSize = fWEClient->write(bytestream, dbRoot);
+		    int weSize = fWEClient->write(command, dbRoot);
             err = fWEClient->read(uniqueId, weSize, &errorMsg); 
 			//fOam.getDbrootPmConfig (dbRoot[0], pmNum);
 			//fWEClient->write(command, pmNum);
