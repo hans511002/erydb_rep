@@ -1263,7 +1263,7 @@ ERYDBDataFile* Dctnry::createDctnryFile(
 ERYDBDataFile* Dctnry::openDctnryFile(bool useTmpSuffix)
 {
     uint16_t dbr = m_dbRoot.getPmDbr();
-    assert (dbr != 0)
+    assert (dbr != 0);
     return openFile(m_dctnryOID, dbr, m_partition, m_segment, m_segFileName, "r+b", DEFAULT_COLSIZ, useTmpSuffix);
 }
 

@@ -517,7 +517,7 @@ void loadBlock (uint64_t lbid,QueryContext v,uint32_t t,int compType,void* buffe
 		try {
 			rc = brm->lookupLocal((BRM::LBID_t)lbid,ver,flg,oid,dbRoot,partitionNum,segmentNum,fbo);
 			    // load the block
-			buildOidFileName(oid, dbRoot[0], partitionNum, segmentNum, fileNamePtr);
+			buildOidFileName(oid, dbRoot.getPmDbr(), partitionNum, segmentNum, fileNamePtr);
 			int opts = directIOFlag ? ERYDBDataFile::USE_ODIRECT : 0;
 			fp = ERYDBDataFile::open(ERYDBPolicy::getType( fileNamePtr, ERYDBPolicy::PRIMPROC ),fileNamePtr,"r",opts);
 			if( fp == NULL ) {
