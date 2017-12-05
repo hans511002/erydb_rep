@@ -1066,7 +1066,7 @@ int main(int argc, char *argv[]) {
     char hostname[128];
     gethostname(hostname, sizeof hostname);
     localHostName = hostname;
-
+    string procMon_port=sysConfig->getConfig("localhost_ProcessMonitor", "Port");
     for (unsigned int i = 0; i < sysModuleTypeConfig.moduletypeconfig.size(); i++) {
         string moduleType = sysModuleTypeConfig.moduletypeconfig[i].ModuleType;
         string moduleDesc = sysModuleTypeConfig.moduletypeconfig[i].ModuleDesc;
@@ -1665,7 +1665,7 @@ int main(int argc, char *argv[]) {
                         //set Parent Processes Port IP Address
                         string parentProcessMonitor = parentOAMModuleName + "_ProcessMonitor";
                         sysConfig->setConfig(parentProcessMonitor, "IPAddr", parentOAMModuleIPAddr);
-                        sysConfig->setConfig(parentProcessMonitor, "Port", "8800");
+                        sysConfig->setConfig(parentProcessMonitor, "Port", procMon_port);
                         sysConfig->setConfig("ProcMgr", "IPAddr", parentOAMModuleIPAddr);
                         //sysConfig->setConfig("ProcHeartbeatControl", "IPAddr", parentOAMModuleIPAddr);
                         sysConfig->setConfig("ProcStatusControl", "IPAddr", parentOAMModuleIPAddr);
@@ -1700,7 +1700,7 @@ int main(int argc, char *argv[]) {
                         //set child Process Monitor Port IP Address
                         string portName = newModuleName + "_ProcessMonitor";
                         sysConfig->setConfig(portName, "IPAddr", newModuleIPAddr);
-                        sysConfig->setConfig(portName, "Port", "8800");
+                        sysConfig->setConfig(portName, "Port", procMon_port);
                         //set child Server Monitor Port IP Address
                         portName = newModuleName + "_ServerMonitor";
                         sysConfig->setConfig(portName, "IPAddr", newModuleIPAddr);
