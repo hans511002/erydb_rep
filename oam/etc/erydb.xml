@@ -33,22 +33,22 @@
 		<Port>8605</Port>
 	</ProcHeartbeatControl>
 	-->
-	<!-- ProcessMonitor Port: 8800 - 8820 is reserved to support External Modules-->
+	<!-- ProcessMonitor Port: 8810 - 8820 is reserved to support External Modules-->
 	<localhost_ProcessMonitor>
 		<IPAddr>127.0.0.1</IPAddr>
-		<Port>8800</Port>
+		<Port>8810</Port>
 	</localhost_ProcessMonitor>
 	<dm1_ProcessMonitor>
 		<IPAddr>0.0.0.0</IPAddr>
-		<Port>8800</Port>
+		<Port>8810</Port>
 	</dm1_ProcessMonitor>
 	<um1_ProcessMonitor>
 		<IPAddr>0.0.0.0</IPAddr>
-		<Port>8800</Port>
+		<Port>8810</Port>
 	</um1_ProcessMonitor>
 	<pm1_ProcessMonitor>
 		<IPAddr>0.0.0.0</IPAddr>
-		<Port>8800</Port>
+		<Port>8810</Port>
 	</pm1_ProcessMonitor>
 	<dm1_ServerMonitor>
 		<IPAddr>0.0.0.0</IPAddr>
@@ -519,7 +519,7 @@
 	</RowAggregation>
 	<CrossEngineSupport>
 		<Host>localhost</Host>
-		<Port>3306</Port>
+		<Port>3309</Port>
 		<User>root</User>
 		<Password></Password>
 	</CrossEngineSupport>
