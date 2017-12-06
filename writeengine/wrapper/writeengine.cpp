@@ -471,8 +471,8 @@ namespace WriteEngine
         if (rc != NO_ERROR) {
             return rc;
         }
-
-        RETURN_ON_ERROR(BRMWrapper::getInstance()->setLocalHWM(dataOid, partition, 0, 0));
+        if(dbRoot.isMaster()){
+        RETURN_ON_ERROR(BRMWrapper::getInstance()->setLocalHWM(dataOid, partition, 0, 0));}
         // @bug 281 : fix for bug 281 - Add flush VM cache to clear all write buffer
         //flushVMCache();
         return rc;

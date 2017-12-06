@@ -347,7 +347,7 @@ bool OamCache::existDbroot(uint16_t dbr, uint16_t pm  ) {
     if (pm == 0)
         pm = mLocalPMId;
     if (pm == mLocalPMId)
-       return localDbrootMap->find(pm) != localDbrootMap->end();
+       return localDbrootMap->find(dbr) != localDbrootMap->end();
     std::vector<uint16_t> pmDbrlist=  getDbrootList(pm);
     for (std::vector<uint16_t>::iterator it = pmDbrlist.begin(); it != pmDbrlist.end(); it++){
         if (*it == dbr)

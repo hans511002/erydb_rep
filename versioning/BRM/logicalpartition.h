@@ -58,7 +58,10 @@ namespace BRM
 
     EXPORT  uint16_t & operator [](int i) ;
     EXPORT  uint16_t get(int i) const;
-    EXPORT  inline bool isMaster(uint16_t dbr) const{
+    EXPORT  inline bool isMaster(uint16_t dbr=0) const{
+        if(dbr==0){
+            dbr=getPmDbr();
+        }
         return dbr==dbRoots[0];
     };
     EXPORT   void remove(uint16_t dbr);
