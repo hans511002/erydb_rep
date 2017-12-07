@@ -5230,10 +5230,10 @@ void ExtentMap::dumpTo(ostream& os)
 
 /** 为一个新的em分配备份dbroot */
 int ExtentMap::getMinDataDBRoots(DBROOTS_struct * dbroots,uint16_t mdbr) {
-    int emEntries = fEMShminfo->allocdSize / sizeof(struct EMEntry);
     IntMap dbrnum;
     dbrnum.reset(new IntMap::element_type());
     grabEMEntryTable(READ);
+    int emEntries = fEMShminfo->allocdSize / sizeof(struct EMEntry);
     for (int i = 0; i < emEntries; i++) {
         if (fExtentMap[i].range.size != 0) {
             uint16_t dbr = fExtentMap[i].dbRoots[0];
@@ -5292,7 +5292,7 @@ int ExtentMap::getMinDataDBRoots(DBROOTS_struct * dbroots,uint16_t mdbr) {
         return 0;
     //
     OamCache::UintUintMap::element_type::iterator pmit;
-    while (pmCount >1 && index < repSize && index < dbrCount)
+    while (index < repSize && index < dbrCount)
     {
         int minDbr = 0x7FFFFFFF;
         uint16_t dbrroot = 0;

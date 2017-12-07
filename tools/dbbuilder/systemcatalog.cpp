@@ -61,7 +61,7 @@ void SystemCatalog::buildRep()
     cout << "SysDataDBRoots=" << dbRoot << endl;
     erydbSystemCatalog::TableName sysTable(ERYDB_SCHEMA,SYSTABLE_TABLE);
     ddlProc.createFiles(sysTable, dbRoot, uniqueId, 13);
-    erydbSystemCatalog::TableName sysColTable(ERYDB_SCHEMA, SYSTABLE_TABLE);
+    erydbSystemCatalog::TableName sysColTable(ERYDB_SCHEMA, SYSCOLUMN_TABLE);
     ddlProc.createFiles(sysColTable, dbRoot, uniqueId,28 );
     return ;
     WriteEngine::WEClients  fWEClient(WriteEngine::WEClients::DDLPROC);
