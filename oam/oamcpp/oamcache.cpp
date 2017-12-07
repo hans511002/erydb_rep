@@ -203,11 +203,11 @@ void OamCache::checkReload()
 		map<uint16_t, uint16_t>::iterator pmIter = pmToConnectionMap.find((*dbRootPMMap)[dbroots[i]]);
 		if (pmIter != pmToConnectionMap.end())
 		{
-            uint16_t pmId = (*pmIter).second;
+            uint16_t pmId = (*pmIter).first;
 			(*dbRootConnectionMap)[dbroots[i]] = (*pmIter).second;
             if (pmId== mLocalPMId)
             {
-                (*localDbrootMap)[mLocalPMId] = localDbrootMap->size();
+                (*localDbrootMap)[mLocalPMId] = pmId;
             }
 		}
 	}

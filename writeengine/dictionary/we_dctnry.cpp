@@ -47,6 +47,7 @@ using namespace BRM;
 #include "ERYDBPolicy.h"
 #include "cacheutils.h"
 using namespace erydbdatafile;
+#include "blocksize.h"
 
 namespace
 {
@@ -224,12 +225,13 @@ int  Dctnry::createDctnry( const OID& dctnryOID, int colWidth,const DBROOTS_stru
             }
             return rc;
         }
+    }else{
+        ExtentMap em;allocSize = (em.getExtentRows() * DICT_COL_WIDTH) / BLOCK_SIZE;
     } 
     // We allocate a full extent from BRM, but only write an abbreviated 256K
     // rows to disk for 1st extent in each store file, to conserve disk usage.
     int totalSize = allocSize;
-    if (flag)
-    {
+    if (flag){
         totalSize = NUM_BLOCKS_PER_INITIAL_EXTENT;
     }
 

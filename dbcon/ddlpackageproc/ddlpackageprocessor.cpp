@@ -836,11 +836,11 @@ void DDLPackageProcessor::createFiles(erydbSystemCatalog::TableName aTableName, 
 	ByteStream bytestream;
 	boost::shared_ptr<messageqcpp::ByteStream> bsIn;
 	bytestream << (ByteStream::byte)WE_SVR_WRITE_CREATETABLEFILES;
-	bytestream << (uint32_t)1;
 	bytestream << uniqueId;
+	bytestream << (uint32_t)1;
 	bytestream << numOids;
 	for (unsigned col  = 0; col < ridList.size(); col++)
-	{						
+	{
 		colType = systemCatalogPtr->colType(ridList[col].objnum);
 		bytestream << (uint32_t) ridList[col].objnum;
 		bytestream << (uint8_t) colType.colDataType;
@@ -848,7 +848,7 @@ void DDLPackageProcessor::createFiles(erydbSystemCatalog::TableName aTableName, 
 		bytestream << (uint32_t) colType.colWidth;
 		bytestream << dbRoot;
 		bytestream << (uint32_t) colType.compressionType;
-		if (colType.ddn.dictOID >= USER_OBJECT_ID)
+		if (colType.ddn.dictOID > MAX_DBROOT)
 		{
 			bytestream << (uint32_t) colType.ddn.dictOID;
 			bytestream << (uint8_t) colType.colDataType;

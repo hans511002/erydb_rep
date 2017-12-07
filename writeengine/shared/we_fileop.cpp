@@ -57,6 +57,7 @@ using namespace logging;
 #include "ERYDBFileSystem.h"
 #include "ERYDBPolicy.h"
 using namespace erydbdatafile;
+#include "blocksize.h"
 
 namespace WriteEngine
 {
@@ -218,9 +219,12 @@ namespace WriteEngine
         if (exists(fileName))//@Bug 3196
             return ERR_FILE_EXIST;
           
-        if(dbRoot.isMaster(dbr))//dbrm 分配 em 各客户端同时执行的 worker 中调用slavecomm
+        if(dbRoot.isMaster(dbr)){//dbrm 分配 em 各客户端同时执行的 worker 中调用slavecomm
             RETURN_ON_ERROR(BRMWrapper::getInstance()->allocateColExtentExactFile((const OID)fid, (uint32_t)width, dbRootx, partitionx, segment, colDataType, startLbid, allocSize, startBlock));
-         
+        }else{
+            ExtentMap em;
+            allocSize = (em.getExtentRows() * width) / BLOCK_SIZE;
+        }
         // We allocate a full extent from BRM, but only write an abbreviated 256K
         // rows to disk for 1st extent, to conserve disk usage for small tables.
         // One exception here is if we have rolled off partition 0, and we are
@@ -231,9 +235,8 @@ namespace WriteEngine
         if (partition == 0)
             totalSize = (INITIAL_EXTENT_ROWS_TO_DISK / BYTE_PER_BLOCK) * width;
         else
-            totalSize = allocSize; // full extent if starting partition > 0
-                                   // Note we can't pass full file name to isDiskSpaceAvail() because the
-                                   // file does not exist yet, but passing DBRoot directory should suffice.
+            totalSize = allocSize; 
+        // full extent if starting partition > 0   Note we can't pass full file name to isDiskSpaceAvail() because the file does not exist yet, but passing DBRoot directory should suffice.
         if (!isDiskSpaceAvail(Config::getDBRootByNum(dbr), totalSize)) 
             return ERR_FILE_DISK_SPACE; 
         //timer.stop( "allocateColExtent" );
