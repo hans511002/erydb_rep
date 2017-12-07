@@ -1592,9 +1592,9 @@ int main(int argc, char *argv[]) {
                                     } else{// good ping
                                         string IPAddress = oam.getIPAddress(newModuleHostName);
                                         if (IPAddress != newModuleIPAddr) {
-                                            string cmd = "sed -i -e '/"+ newModuleHostName +"/d' -e '/" + IPAddress + "/d'  -e /^[[:space:]]*$/d /etc/hosts ";
+                                            string cmd = "sed -i -e '/"+ newModuleHostName +"/d' -e '/" + newModuleIPAddr + "/d'  -e /^[[:space:]]*$/d /etc/hosts ";
                                             system(cmd.c_str());
-                                            cmd = "echo '" + IPAddress + " " + newModuleHostName + " >> /etc/hosts ";
+                                            cmd = "echo '" + newModuleIPAddr + " " + newModuleHostName + "' >> /etc/hosts ";
                                             system(cmd.c_str());
                                         }
                                         break;
