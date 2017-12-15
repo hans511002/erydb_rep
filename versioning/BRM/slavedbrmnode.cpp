@@ -401,7 +401,7 @@ namespace BRM {
         return 0;
     }
 
-    int SlaveDBRMNode::beginVBCopy(VER_t transID, uint16_t vbOID,const LBIDRange_v& ranges, VBRange_v& freeList, bool flushPMCache) throw() {
+    int SlaveDBRMNode::beginVBCopy(VER_t transID, uint16_t vbOID,const LBIDRange_v& ranges, VBRange_VV& freeList, bool flushPMCache) throw() {
         int64_t sum = 0;
         uint64_t maxRetries;
         uint64_t waitInterval = 50000;   // usecs to sleep between retries

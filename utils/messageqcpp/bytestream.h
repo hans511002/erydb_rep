@@ -465,6 +465,17 @@ void serializeVector(ByteStream& bs, const std::vector<T>& v)
 	for (it = v.begin(); it != v.end(); it++)
 		bs << *it;
 }
+/// Generic method to export a vector of T's that implement Serializeable
+template<typename T>
+void serializeVector(ByteStream& bs, const std::vector<std::vector<T> >& v)
+{
+	typename std::vector<std::vector<T> >::const_iterator it;
+	uint64_t size;
+	size = v.size();
+	bs << size;
+	for (it = v.begin(); it != v.end(); it++)
+		serializeVector(bs,*it);
+}
 
 /// Generic method to deserialize a vector of T's that implement Serializeable
 template<typename T>
@@ -473,7 +484,6 @@ void deserializeVector(ByteStream& bs, std::vector<T>& v)
 	uint32_t i;
 	T tmp;
 	uint64_t size;
-	
 	v.clear();
 	bs >> size;
 	for (i = 0; i < size; i++) {
@@ -481,7 +491,20 @@ void deserializeVector(ByteStream& bs, std::vector<T>& v)
 		v.push_back(tmp);
 	}
 }
-
+/// Generic method to deserialize a vector of T's that implement Serializeable
+template<typename T>
+void deserializeVector(ByteStream& bs, std::vector<std::vector<T> >& v)
+{
+	uint32_t i;
+	T tmp;
+	uint64_t size;
+	v.clear();
+	bs >> size;
+	v.resize(size);
+	for (i = 0; i < size; i++) {
+		deserializeVector(bs,v[i]);
+	}
+}
 #ifdef _MSC_VER
 //Until the API is fixed to be 64-bit clean...
 #pragma warning (push)

@@ -346,7 +346,7 @@ class SlaveDBRMNode {
 		 * It takes a DBRoot param instead of a VB OID.  The conversion is
 		 * done in the controllernode b/c the OID server is housed there.
 		 */
-		EXPORT int beginVBCopy(VER_t transID, uint16_t vbOID, const LBIDRange_v& ranges, VBRange_v& freeList, bool flushPMCache) throw();
+		EXPORT int beginVBCopy(VER_t transID, uint16_t vbOID, const LBIDRange_v& ranges, VBRange_VV& freeList, bool flushPMCache) throw();
 		
 		/** @brief Atomically unset the copy lock & update the VSS.  Beware!  Read the warning!
 		 * 

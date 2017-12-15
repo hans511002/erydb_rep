@@ -1478,7 +1478,7 @@ namespace BRM {
     void SlaveComm::do_beginVBCopy(ByteStream &msg) {
         VER_t transID;
         LBIDRange_v ranges;
-        VBRange_v freeList;
+        VBRange_VV freeList;
         uint32_t tmp32;
         DBROOTS_struct dbRoot;
         int err;
