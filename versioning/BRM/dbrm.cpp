@@ -1924,7 +1924,7 @@ namespace BRM {
     }
 
 
-    int DBRM::beginVBCopy(VER_t transID,const DBROOTS_struct& dbRoot, const LBIDRange_v& ranges, VBRange_VV& freeList) DBRM_THROW {
+    int DBRM::beginVBCopy(VER_t transID,const DBROOTS_struct& dbRoot,uint8_t dbrIndex, const LBIDRange_v& ranges, VBRange_VV& freeList) DBRM_THROW {
 #ifdef BRM_INFO
         if (fDebug) {
             TRACER_WRITELATER("beginVBCopy");
@@ -1936,7 +1936,7 @@ namespace BRM {
         ByteStream command, response;
         uint8_t err;
 
-        command << BEGIN_VB_COPY << (ByteStream::quadbyte) transID << dbRoot;
+        command << BEGIN_VB_COPY << (ByteStream::quadbyte) transID << dbRoot<<dbrIndex;
         serializeVector<LBIDRange>(command, ranges);
         err = send_recv(command, response);
         if (err != ERR_OK)

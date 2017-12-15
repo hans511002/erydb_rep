@@ -619,7 +619,7 @@ private:
                              std::vector<BRM::LBIDRange> &  rangeList);
 							 
    int processBeginVBCopy(const TxnID& txnid, const std::vector<ColStruct> & colStructList, const RIDList & ridList, 
-							VBRange_VV & freeList, std::vector<std::vector<uint32_t> > & fboLists, 
+							VBRange_v & freeList, std::vector<std::vector<uint32_t> > & fboLists, 
 							std::vector<std::vector<BRM::LBIDRange> > & rangeLists, std::vector<BRM::LBIDRange>&   rangeListTot);
 
    void setDebugLevel(const DebugLevel level)

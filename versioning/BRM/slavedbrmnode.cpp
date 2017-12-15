@@ -413,103 +413,104 @@ namespace BRM {
         return 0;
     }
 
-    int SlaveDBRMNode::beginVBCopy(VER_t transID, uint16_t vbOID,const LBIDRange_v& ranges, VBRange_VV& freeList, bool flushPMCache) throw() {
-        int64_t sum = 0;
-        uint64_t maxRetries;
-        uint64_t waitInterval = 50000;   // usecs to sleep between retries
-        uint64_t retries;
-        bool* lockedRanges = (bool*)alloca(ranges.size() * sizeof(bool));
-        bool allLocked;
-        uint32_t i;
-
-
-#ifdef BRM_DEBUG
-        if (transID < 1) {
-            cerr << "WorkerDBRMNode::beginVBCopy(): transID must be > 0" << endl;
-            return -1;
-        }
-#endif
-
-        /* XXXPAT: The controller node will wait up to 5 mins for the response.
-         * For now, this alg will try for 1 min to grab all of the locks.
-         * After that, it will release them all then grab them.  Releasing
-         * them by force opens the slight possibility of a bad result, but more
-         * likely something crashed, and there has to be some kind of recovery.  The worst
-         * case is better than stalling the system or causing the BRM to go read-only.
-         * It should be extremely rare that it has to be done.
-         */
-        maxRetries = (60 * 1000000) / waitInterval;
-
-        for (i = 0; i < ranges.size(); i++) {
-            sum += ranges[i].size;
-            lockedRanges[i] = false;
-        }
-
+    int SlaveDBRMNode::beginVBCopy(VER_t transID,const DBROOTS_struct & vbOID,uint8_t dbrIndex, const LBIDRange_v& ranges, VBRange_v& freeList, bool flushPMCache) throw() {
         try {
-            vbbm.lock(VBBM::WRITE);
-            locked[0] = true;
-            vss.lock(VSS::WRITE);
-            locked[1] = true;
-
-            /* This check doesn't need to be repeated after the retry loop below.
-             * For now, there is no other transaction that could lock these
-             * ranges.  When we support multiple transactions at once, the resource
-             * graph in the controller node should make this redundant anyway.
-             */
-            for (i = 0; i < ranges.size(); i++)
-                if (vss.isLocked(ranges[i], transID))
+            if(dbrIndex==0){
+                int64_t sum = 0;
+                uint64_t maxRetries;
+                uint64_t waitInterval = 50000;   // usecs to sleep between retries
+                uint64_t retries;
+                bool* lockedRanges = (bool*)alloca(ranges.size() * sizeof(bool));
+                bool allLocked;
+                uint32_t i;
+        
+        
+        #ifdef BRM_DEBUG
+                if (transID < 1) {
+                    cerr << "WorkerDBRMNode::beginVBCopy(): transID must be > 0" << endl;
                     return -1;
-
-            copylocks.lock(CopyLocks::WRITE);
-            locked[2] = true;
-            allLocked = false;
-            /* This version grabs all unlocked ranges in each pass.
-             * If there are locked ranges it waits and tries again.
-             */
-            retries = 0;
-            while (!allLocked && retries < maxRetries) {
-                allLocked = true;
+                }
+        #endif
+        
+                /* XXXPAT: The controller node will wait up to 5 mins for the response.
+                 * For now, this alg will try for 1 min to grab all of the locks.
+                 * After that, it will release them all then grab them.  Releasing
+                 * them by force opens the slight possibility of a bad result, but more
+                 * likely something crashed, and there has to be some kind of recovery.  The worst
+                 * case is better than stalling the system or causing the BRM to go read-only.
+                 * It should be extremely rare that it has to be done.
+                 */
+                maxRetries = (60 * 1000000) / waitInterval;
+        
                 for (i = 0; i < ranges.size(); i++) {
-                    if (!lockedRanges[i]) {
-                        if (copylocks.isLocked(ranges[i]))
-                            allLocked = false;
-                        else {
+                    sum += ranges[i].size;
+                    lockedRanges[i] = false;
+                }
+                vbbm.lock(VBBM::WRITE);
+                locked[0] = true;
+                vss.lock(VSS::WRITE);
+                locked[1] = true;
+    
+                /* This check doesn't need to be repeated after the retry loop below.
+                 * For now, there is no other transaction that could lock these
+                 * ranges.  When we support multiple transactions at once, the resource
+                 * graph in the controller node should make this redundant anyway.
+                 */
+                for (i = 0; i < ranges.size(); i++)
+                    if (vss.isLocked(ranges[i], transID))
+                        return -1;
+    
+                copylocks.lock(CopyLocks::WRITE);
+                locked[2] = true;
+                allLocked = false;
+                /* This version grabs all unlocked ranges in each pass.
+                 * If there are locked ranges it waits and tries again.
+                 */
+                retries = 0;
+                while (!allLocked && retries < maxRetries) {
+                    allLocked = true;
+                    for (i = 0; i < ranges.size(); i++) {
+                        if (!lockedRanges[i]) {
+                            if (copylocks.isLocked(ranges[i]))
+                                allLocked = false;
+                            else {
+                                copylocks.lockRange(ranges[i], transID);
+                                lockedRanges[i] = true;
+                            }
+                        }
+                    }
+                    /* PrimProc is reading at least 1 range and it could need the locks.
+                     */
+                    if (!allLocked) {
+                        copylocks.release(CopyLocks::WRITE);
+                        locked[2] = false;
+                        vss.release(VSS::WRITE);
+                        locked[1] = false;
+                        vbbm.release(VBBM::WRITE);
+                        locked[0] = false;
+                        usleep(waitInterval);
+                        retries++;
+                        vbbm.lock(VBBM::WRITE);
+                        locked[0] = true;
+                        vss.lock(VSS::WRITE);
+                        locked[1] = true;
+                        copylocks.lock(CopyLocks::WRITE);
+                        locked[2] = true;
+                    }
+                }
+    
+                if (retries >= maxRetries) {
+                    for (i = 0; i < ranges.size(); i++) {
+                        if (!lockedRanges[i]) {
+                            copylocks.forceRelease(ranges[i]);
                             copylocks.lockRange(ranges[i], transID);
                             lockedRanges[i] = true;
                         }
                     }
                 }
-                /* PrimProc is reading at least 1 range and it could need the locks.
-                 */
-                if (!allLocked) {
-                    copylocks.release(CopyLocks::WRITE);
-                    locked[2] = false;
-                    vss.release(VSS::WRITE);
-                    locked[1] = false;
-                    vbbm.release(VBBM::WRITE);
-                    locked[0] = false;
-                    usleep(waitInterval);
-                    retries++;
-                    vbbm.lock(VBBM::WRITE);
-                    locked[0] = true;
-                    vss.lock(VSS::WRITE);
-                    locked[1] = true;
-                    copylocks.lock(CopyLocks::WRITE);
-                    locked[2] = true;
-                }
-            }
 
-            if (retries >= maxRetries) {
-                for (i = 0; i < ranges.size(); i++) {
-                    if (!lockedRanges[i]) {
-                        copylocks.forceRelease(ranges[i]);
-                        copylocks.lockRange(ranges[i], transID);
-                        lockedRanges[i] = true;
-                    }
-                }
             }
-
-            vbbm.getBlocks(sum, vbOID, freeList, vss, flushPMCache);
+            vbbm.getBlocks(sum, vbOID,dbrIndex, freeList, vss, flushPMCache);
             /*
                     for (i = 0; i < ranges.size(); i++)
                         assert(copylocks.isLocked(ranges[i]));

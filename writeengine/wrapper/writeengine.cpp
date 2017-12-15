@@ -2691,7 +2691,7 @@ namespace WriteEngine
         }
 
         if (rangeListTot.size() > 0)
-            rc = BRMWrapper::getInstance()->getDbrmObject()->beginVBCopy(txnid, colStructList[0].fColDbRoot, rangeListTot, freeList);
+            rc = BRMWrapper::getInstance()->getDbrmObject()->beginVBCopy(txnid, colStructList[0].fColDbRoot,colStructList[0].fColDbRoot.getLocalDbrIndex(), rangeListTot, freeList);
         //timer.stop("beginVBCopy");
         //timer.finish();
         return rc;

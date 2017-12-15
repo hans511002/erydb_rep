@@ -314,7 +314,7 @@ class VBRange{ // : public messageqcpp::Serializeable
 		
 };
 
-typedef std::vector<std::vector<VBRange> > VBRange_VV; 
+// typedef std::vector<std::vector<VBRange> > VBRange_VV; 
 
 
 inline messageqcpp::ByteStream& operator<<(messageqcpp::ByteStream& bs, const VBRange& s){

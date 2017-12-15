@@ -516,111 +516,100 @@ namespace BRM {
     }
 
     //assumes write lock
-    void VBBM::getBlocks(int num, const DBROOTS_struct &vbOID, VBRange_VV & freeRanges, VSS& vss, bool flushPMCache) {
+    void VBBM::getBlocks(int num, const DBROOTS_struct &vbOID,uint8_t dbrIndex, VBRange_v & freeRanges, VSS& vss, bool flushPMCache) {
         uint32_t fileIndex;
         uint32_t firstFBO, lastFBO;
         vector<VBRange>::iterator it;
         vector<LBID_t> flushList; 
         freeRanges.clear();
         int oidIndex = 0;
-        uint16_t dbr = 0;
-        oam::OamCache* oamcache = oam::OamCache::makeOamCache();
-        int repSize=oamcache->getRepSize();
-        while (true)
+        uint16_t dbr = vbOID.get(dbrIndex);
+        std::vector<VBRange> &freeRg= freeRanges;
+        int blocksLeftInFile, blocksGathered = 0, i;
+        fileIndex = addVBFileIfNotExists(dbr);
+        assert(files[fileIndex].OID == dbr);
+        if ((uint32_t)num > files[fileIndex].fileSize)
         {
-            dbr = vbOID.get(oidIndex);
-            if (dbr == 0) {
-                break;
-            }
-            freeRanges.resize(oidIndex+1);
-            std::vector<VBRange> &freeRg= freeRanges[oidIndex];
-            oidIndex++;
-            int blocksLeftInFile, blocksGathered = 0, i;
-            fileIndex = addVBFileIfNotExists(dbr);
-            assert(files[fileIndex].OID == dbr);
-            if ((uint32_t)num > files[fileIndex].fileSize)
-            {
-                cout << "num = " << num << " filesize = " << files[fileIndex].fileSize << endl;
-                log("VBBM::getBlocks(): num is larger than the size of the version buffer",logging::LOG_TYPE_DEBUG);
-                throw logging::VBBMBufferOverFlowExcept("VBBM::getBlocks(): num is larger than the size of the version buffer");
-            }
-            while ((vbbm->vbCurrentSize + num) > vbbm->vbCapacity)
-            {
-                growVBBM();
-                //cout << " requested num = " << num << " and Growing vbbm ... " << endl;
-            }
-            while (blocksGathered < num)
-            {
-                blocksLeftInFile = (files[fileIndex].fileSize - files[fileIndex].nextOffset);
-                int blocksLeft = num - blocksGathered;
-                VBRange range;                 
-                range.vbOID  = files[fileIndex].OID;
-                range.vbFBO  = files[fileIndex].nextOffset;
-                range.size = (blocksLeftInFile >= blocksLeft ? blocksLeft : blocksLeftInFile);
-                makeUndoRecord(&files[fileIndex], sizeof(VBFileMetadata));
-                if (range.size == (uint32_t)blocksLeftInFile)
-                    files[fileIndex].nextOffset = 0;
-                else
-                    files[fileIndex].nextOffset += range.size;
-                blocksGathered += range.size;
-                freeRg.push_back(range);
-            }
-            //age the returned blocks out of the VB
-            for (it = freeRg.begin(); it != freeRg.end(); it++)
-            {
-                uint32_t firstChunk, lastChunk;
-                firstFBO = it->vbFBO;
-                lastFBO = it->vbFBO + it->size - 1;
-                /* Age out at least 100 blocks at a time to reduce the # of times we have to do it.
-                * How to detect when it needs to be done and when it doesn't?
-                *
-                * Split VB space into 100-block chunks.  When a chunk boundary is crossed,
-                * clear the whole chunk.
-                */
-                firstChunk = firstFBO / VBBM_CHUNK_SIZE;
-                lastChunk = lastFBO / VBBM_CHUNK_SIZE;
+            cout << "num = " << num << " filesize = " << files[fileIndex].fileSize << endl;
+            log("VBBM::getBlocks(): num is larger than the size of the version buffer",logging::LOG_TYPE_DEBUG);
+            throw logging::VBBMBufferOverFlowExcept("VBBM::getBlocks(): num is larger than the size of the version buffer");
+        }
+        while ((vbbm->vbCurrentSize + num) > vbbm->vbCapacity)
+        {
+            growVBBM();
+            //cout << " requested num = " << num << " and Growing vbbm ... " << endl;
+        }
+        while (blocksGathered < num)
+        {
+            blocksLeftInFile = (files[fileIndex].fileSize - files[fileIndex].nextOffset);
+            int blocksLeft = num - blocksGathered;
+            VBRange range;                 
+            range.vbOID  = files[fileIndex].OID;
+            range.vbFBO  = files[fileIndex].nextOffset;
+            range.size = (blocksLeftInFile >= blocksLeft ? blocksLeft : blocksLeftInFile);
+            makeUndoRecord(&files[fileIndex], sizeof(VBFileMetadata));
+            if (range.size == (uint32_t)blocksLeftInFile)
+                files[fileIndex].nextOffset = 0;
+            else
+                files[fileIndex].nextOffset += range.size;
+            blocksGathered += range.size;
+            freeRg.push_back(range);
+        }
+        //age the returned blocks out of the VB
+        for (it = freeRg.begin(); it != freeRg.end(); it++)
+        {
+            uint32_t firstChunk, lastChunk;
+            firstFBO = it->vbFBO;
+            lastFBO = it->vbFBO + it->size - 1;
+            /* Age out at least 100 blocks at a time to reduce the # of times we have to do it.
+            * How to detect when it needs to be done and when it doesn't?
+            *
+            * Split VB space into 100-block chunks.  When a chunk boundary is crossed,
+            * clear the whole chunk.
+            */
+            firstChunk = firstFBO / VBBM_CHUNK_SIZE;
+            lastChunk = lastFBO / VBBM_CHUNK_SIZE;
 
-                // if the current range falls in the middle of a chunk and doesn't span chunks,
-                // there's nothing to do b/c the chunk is assumed to have been cleared already
-                if (((firstFBO % VBBM_CHUNK_SIZE) != 0) && (firstChunk == lastChunk))
-                    continue;
+            // if the current range falls in the middle of a chunk and doesn't span chunks,
+            // there's nothing to do b/c the chunk is assumed to have been cleared already
+            if (((firstFBO % VBBM_CHUNK_SIZE) != 0) && (firstChunk == lastChunk))
+                continue;
 
-                // round up to the next chunk boundaries
-                if ((firstFBO % VBBM_CHUNK_SIZE) != 0)   // this implies the range spans chunks
-                    firstFBO = (firstChunk + 1) * VBBM_CHUNK_SIZE;  // the first FBO of the next chunk
-                lastFBO = ((lastChunk + 1) * VBBM_CHUNK_SIZE - 1);  // the last FBO of the last chunk
-                                                                    // don't go past the end of the file
-                if (lastFBO > files[fileIndex].fileSize / BLOCK_SIZE)
-                    lastFBO = files[fileIndex].fileSize / BLOCK_SIZE;
-                // at this point [firstFBO, lastFBO] is the range to age out.
-                // ugh, walk the whole vbbm looking for matches.
-                for (i = 0; i < vbbm->vbCapacity; i++) {
-                    int oi = 0;
-                    for (oi = 0; oi < repSize; oi++) {
-                        if (storage[i].vbOids[oi] == dbr) 
-                            break;
-                    }
-                    if (oi < repSize) {
-                        if (storage[i].lbid != -1 && storage[i].vbOids[oi] == dbr && storage[i].vbFbo.fbos[oi] >= firstFBO && storage[i].vbFbo.fbos[oi] <= lastFBO)
+            // round up to the next chunk boundaries
+            if ((firstFBO % VBBM_CHUNK_SIZE) != 0)   // this implies the range spans chunks
+                firstFBO = (firstChunk + 1) * VBBM_CHUNK_SIZE;  // the first FBO of the next chunk
+            lastFBO = ((lastChunk + 1) * VBBM_CHUNK_SIZE - 1);  // the last FBO of the last chunk
+                                                                // don't go past the end of the file
+            if (lastFBO > files[fileIndex].fileSize / BLOCK_SIZE)
+                lastFBO = files[fileIndex].fileSize / BLOCK_SIZE;
+            // at this point [firstFBO, lastFBO] is the range to age out.
+            // ugh, walk the whole vbbm looking for matches.
+            for (i = 0; i < vbbm->vbCapacity; i++) {
+                int oi = 0;
+                for (oi = 0; oi < repSize; oi++) {
+                    if (storage[i].vbOids[oi] == dbr) 
+                        break;
+                }
+                if (oi < repSize) {
+                    if (storage[i].lbid != -1 && storage[i].vbOids[oi] == dbr && storage[i].vbFbo.fbos[oi] >= firstFBO && storage[i].vbFbo.fbos[oi] <= lastFBO)
+                    {
+                        if (vss.isEntryLocked(storage[i].lbid, storage[i].verID))
                         {
-                            if (vss.isEntryLocked(storage[i].lbid, storage[i].verID))
-                            {
-                                ostringstream msg;
-                                msg << "VBBM::getBlocks(): version buffer overflow. Increase VersionBufferFileSize. Overflow occured in aged blocks. Requested NumBlocks:VbOid:vbFBO:lastFBO = "
-                                    << num << ":" << vbOID << ":" << firstFBO << ":" << lastFBO << " lbid locked is " << storage[i].lbid << endl;
-                                log(msg.str(), logging::LOG_TYPE_CRITICAL);
-                                freeRanges.clear();
-                                throw logging::VBBMBufferOverFlowExcept(msg.str());
-                            }
-                            vss.removeEntry(storage[i].lbid, storage[i].verID, &flushList);
-                            removeEntry(storage[i].lbid, storage[i].verID);
+                            ostringstream msg;
+                            msg << "VBBM::getBlocks(): version buffer overflow. Increase VersionBufferFileSize. Overflow occured in aged blocks. Requested NumBlocks:VbOid:vbFBO:lastFBO = "
+                                << num << ":" << vbOID << ":" << firstFBO << ":" << lastFBO << " lbid locked is " << storage[i].lbid << endl;
+                            log(msg.str(), logging::LOG_TYPE_CRITICAL);
+                            freeRanges.clear();
+                            throw logging::VBBMBufferOverFlowExcept(msg.str());
                         }
+                        vss.removeEntry(storage[i].lbid, storage[i].verID, &flushList);
+                        removeEntry(storage[i].lbid, storage[i].verID);
                     }
                 }
             }
-            if (flushPMCache && !flushList.empty())
-                cacheutils::flushPrimProcAllverBlocks(flushList); 
-        } 
+        }
+        if (flushPMCache && !flushList.empty())
+            cacheutils::flushPrimProcAllverBlocks(flushList); 
     }
 
     //read lock

@@ -1478,7 +1478,7 @@ namespace BRM {
     void SlaveComm::do_beginVBCopy(ByteStream &msg) {
         VER_t transID;
         LBIDRange_v ranges;
-        VBRange_VV freeList;
+        VBRange_v freeList;
         uint32_t tmp32;
         DBROOTS_struct dbRoot;
         int err;
@@ -1491,6 +1491,8 @@ namespace BRM {
         msg >> tmp32;
         transID = tmp32;
         msg >> dbRoot;
+        uint8_t dbrIndex;
+        msg >>dbrIndex;
         deserializeVector(msg, ranges);
 
         if (printOnly) {
@@ -1500,8 +1502,7 @@ namespace BRM {
                 cout << "   start=" << ranges[i].start << " size=" << ranges[i].size << endl;
             return;
         }
-
-        err = slave->beginVBCopy(transID, dbRoot[0], ranges, freeList, firstSlave && !standalone);
+        err = slave->beginVBCopy(transID, dbRoot,dbrIndex, ranges, freeList, firstSlave && !standalone);
         reply << (uint8_t)err;
         if (err == ERR_OK)
             serializeVector(reply, freeList);

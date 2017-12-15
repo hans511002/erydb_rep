@@ -1394,7 +1394,7 @@ cleanup:
     }
 
     int BRMWrapper::writeVB(ERYDBDataFile* pSourceFile, const VER_t transID, const OID weOid, std::vector<uint32_t>& fboList, 
-                            std::vector<LBIDRange>& rangeList, DbFileOp* pFileOp, VBRange_VV& freeList, const DBROOTS_struct& dbRoot, bool skipBeginVBCopy)
+                            std::vector<LBIDRange>& rangeList, DbFileOp* pFileOp, VBRange_v& freeList, const DBROOTS_struct& dbRoot, bool skipBeginVBCopy)
     {
         if (erydbdatafile::ERYDBPolicy::useHdfs())
             return 0;
@@ -1456,7 +1456,7 @@ cleanup:
             //if (rc != NO_ERROR)
             //	return rc;
 
-            rc = dbrm->beginVBCopy(transID, dbRoot, rangeList, freeList);
+            rc = dbrm->beginVBCopy(transID, dbRoot,dbRoot.getLocalDbrIndex(), rangeList, freeList);
             if (rc != NO_ERROR)
             {
                 switch (rc)
@@ -1474,15 +1474,10 @@ cleanup:
             cout << "\nAfter beginCopy and get a freeList=" << freeList.size() << endl;
             cout << "\tfreeList size=" << freeList.size() << endl;
             for (i = 0; i < freeList.size(); i++)
-            {
-                VBRange_v & freeRg=freeList[i];
-                cout << "\nfreeRg size=" << freeRg.size() << endl;
-                for (int oi = 0; oi < freeRg.size(); oi++)
-                {
-                    cout << "\t VBOid : " << freeRg[i].vbOID;
-                    cout << " VBFBO : " << freeRg[i].vbFBO;
-                    cout << " Size : " << freeRg[i].size << endl;
-                }
+            { 
+                cout << "\t VBOid : " << freeList[i].vbOID;
+                cout << " VBFBO : " << freeList[i].vbFBO;
+                cout << " Size : " << freeList[i].size << endl; 
             }
         }
         /*	for (i = 0; i < freeList.size(); i++)
@@ -1524,7 +1519,7 @@ cleanup:
         }
 
         k = 0;
-        VBRange_v& freeRg=freeList[dbrIndex];
+        VBRange_v& freeRg=freeList;
         vbOid = freeRg[0].vbOID;
         assert(vbOid==fileInfo.oid);
         rangeListCount = 0;
