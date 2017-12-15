@@ -3591,17 +3591,12 @@ namespace WriteEngine
 #endif
 
         vector<LBIDRange>   rangeListTot;
-        VBRange_VV freeList;
+        VBRange_v freeList;
         vector<vector<uint32_t> > fboLists;
         vector<vector<LBIDRange> > rangeLists;
         bool isMaster=colStructList[0].fColDbRoot.isMaster();
         ExtentMap em; int repSize = em.getRepSize();
-        if(isMaster){
-            rc = processBeginVBCopy(txnid, colStructList, ridList, freeList, fboLists, rangeLists, rangeListTot);
-        }else{// 获取本地dbrm 中的值
-            
-        }
-        
+        rc = processBeginVBCopy(txnid, colStructList, ridList, freeList, fboLists, rangeLists, rangeListTot);
         if (rc != NO_ERROR) {
             if (isMaster && rangeListTot.size() > 0)
                 BRMWrapper::getInstance()->writeVBEnd(txnid, rangeListTot);
