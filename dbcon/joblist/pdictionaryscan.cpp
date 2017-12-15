@@ -307,7 +307,7 @@ void pDictionaryScan::sendPrimitiveMessages()
 {
   	LBIDRange_v::iterator it;
 	HWM_t hwm;
-  	uint32_t fbo;
+  	FBO_struct fbo;
 	ByteStream primMsg(65536);
 	DBRM dbrm;
 	DBROOTS_struct dbroot;
@@ -329,14 +329,7 @@ void pDictionaryScan::sendPrimitiveMessages()
 		for (; it != fDictlbids.end() && !cancelled(); it++)
 		{
 			LBID_t	msgLbidStart = it->start;
-        	dbrm.lookupLocal(msgLbidStart,
-						(BRM::VER_t)fVerId.currentScn,
-						false,
-						oid,
-                        dbroot,
-						partNum,
-						segNum,
-						fbo);
+        	dbrm.lookupLocal(msgLbidStart,(BRM::VER_t)fVerId.currentScn,false,oid,dbroot,partNum,segNum,fbo);
 
 			// Bug5741 If we are local only and this doesn't belongs to us, skip it
 			if (fLocalQuery == execplan::erydbSelectExecutionPlan::LOCAL_QUERY)
@@ -354,31 +347,28 @@ void pDictionaryScan::sendPrimitiveMessages()
 			// fDictlbids list, so extState is extraneous info at this point.
 			int extState;
 			dbrm.getLocalHWM(oid, partNum, segNum, hwm, extState);
-
-			uint32_t remainingLbids = fMsgsExpect = 
-				( (hwm > (fbo + it->size - 1)) ? (it->size) : (hwm - fbo + 1) );
-
+			uint32_t remainingLbids = fMsgsExpect = ( (hwm > (fbo[0] + it->size - 1)) ? (it->size) : (hwm - fbo[0] + 1) );
 			uint32_t msgLbidCount   =  fLogicalBlocksPerScan;
-
+			uint16_t dbr=dbroot[0];
 			while ( remainingLbids && !cancelled())
 			{
 				if ( remainingLbids < msgLbidCount)
 					msgLbidCount = remainingLbids;
 
-				if (dbRootConnectionMap->find(dbroot[0]) == dbRootConnectionMap->end())
+				if (dbRootConnectionMap->find(dbr) == dbRootConnectionMap->end())
                 {
                     // MCOL-259 force a reload of the xml. This usualy fixes it.
 					Logger log;
 					log.logMessage(logging::LOG_TYPE_DEBUG, "dictionary forcing reload of erydb.xml for dbRootConnectionMap");
                     oamCache->forceReload();
                     dbRootConnectionMap = oamCache->getDBRootToConnectionMap();
-                    if (dbRootConnectionMap->find(dbroot[0]) == dbRootConnectionMap->end())
+                    if (dbRootConnectionMap->find(dbr) == dbRootConnectionMap->end())
                     {
 						log.logMessage(logging::LOG_TYPE_DEBUG, "dictionary still not in dbRootConnectionMap");
                         throw ERYDBExcept(ERR_DATA_OFFLINE);
                     }
                 }
-				sendAPrimitiveMessage(primMsg, msgLbidStart, msgLbidCount, (*dbRootConnectionMap)[dbroot[0]]);
+				sendAPrimitiveMessage(primMsg, msgLbidStart, msgLbidCount, (*dbRootConnectionMap)[dbr]);
 				primMsg.restart();
 
 				mutex.lock();

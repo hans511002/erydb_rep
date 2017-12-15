@@ -313,6 +313,10 @@ class VBRange{ // : public messageqcpp::Serializeable
 		EXPORT virtual void deserialize(messageqcpp::ByteStream& bs);
 		
 };
+
+typedef std::vector<std::vector<VBRange> > VBRange_VV; 
+
+
 inline messageqcpp::ByteStream& operator<<(messageqcpp::ByteStream& bs, const VBRange& s){
     s.serialize(bs); return bs;
     };

@@ -149,11 +149,6 @@ inline std::ostream & operator<<(std::ostream & os, const std::vector<uint16_t>&
             memcpy(&fbos,&e.fbos,sizeof(FBO_struct&));
 	        return *this;
 	    };
-        EXPORT inline FBO_struct& operator= (const FBO_struct& e)
-        {
-            memcpy(&fbos, &e.fbos, sizeof(FBO_struct&));
-            return *this;
-        };
         EXPORT inline FBO_struct& operator= (uint32_t fbo)
         {
             fbos[0] = fbo;

@@ -495,7 +495,7 @@ namespace BRM {
     }
 
     //assumes write lock
-    void VBBM::getBlocks(int num, const DBROOTS_struct &vbOID, vector<std::vector<VBRange>>& freeRanges, VSS& vss, bool flushPMCache) {
+    void VBBM::getBlocks(int num, const DBROOTS_struct &vbOID, VBRange_VV & freeRanges, VSS& vss, bool flushPMCache) {
         uint32_t fileIndex;
         uint32_t firstFBO, lastFBO;
         vector<VBRange>::iterator it;

@@ -1765,14 +1765,15 @@ namespace BRM {
         }
 #endif
         bool locked[2] = { false, false };
-        set<OID_t> vbOIDs;
-        set<OID_t>::iterator vbIt;
+        //set<DBROOTS_struct> vbOIDs;
+        //set<DBROOTS_struct>::iterator vbIt;
         vector<LBID_t> lbidList;
         uint32_t i, size;
-        uint32_t tmp32;
-        OID_t vbOID;
+        //uint32_t tmp32;
+        //OID_t vbOID;
         int err;
-
+        DBROOTS_struct vbOID;
+        FBO_struct fbo;
         set<_entry> lbidPruner;
         set<_entry>::iterator it;
 
@@ -1787,18 +1788,26 @@ namespace BRM {
             // prune the list; will leave at most 1 entry per 1024-lbid range
             for (i = 0, size = lbidList.size(); i < size; i++)
                 lbidPruner.insert(_entry(lbidList[i]));
-
+            ExtentMap em; int repSize = em.getRepSize();
+            std::map<uint16_t, uint16_t> dbrExists;
             // get the VB oids
             for (it = lbidPruner.begin(); it != lbidPruner.end(); ++it) {
-                err = vbbm->lookup(it->lbid, transID, vbOID, tmp32);
+                err = vbbm->lookup(it->lbid, transID, vbOID, fbo);
                 if (err)   // this error will be caught by DML; more appropriate to handle it there
                     continue;
-                vbOIDs.insert(vbOID);
+                //vbOIDs.insert(vbOID);
+                // get the dbroots
+                for (int i = 0; i < repSize; i++)
+                {
+                    if (dbrExists.find(vbOID[i]) != dbrExists.end())
+                    {
+                        dbrExists[vbOID[i]] = (vbOID[i]);
+                        dbroots->push_back(vbOID[i]);
+                    }
+                }
             }
-
-            // get the dbroots
-            for (vbIt = vbOIDs.begin(); vbIt != vbOIDs.end(); ++vbIt) {
-                dbroots->push_back(*vbIt);    
+             
+            //for (vbIt = vbOIDs.begin(); vbIt != vbOIDs.end(); ++vbIt) {
                 //err = getDBRootOfVBOID(*vbIt);
                 //if (err) {
                 //    ostringstream os;
@@ -1807,7 +1816,7 @@ namespace BRM {
                 //    return ERR_FAILURE;
                 //}
                 //dbroots->push_back((uint16_t)err);
-            }
+            //}
 
             vss->release(VSS::READ);
             locked[1] = false;
@@ -1822,7 +1831,6 @@ namespace BRM {
                 vss->release(VSS::READ);
             return -1;
         }
-
     }
 
     int DBRM::getUncommittedLBIDs(VER_t transID, vector<LBID_t>& lbidList) throw() {
@@ -3492,7 +3500,7 @@ namespace BRM {
         DBROOTS_struct dbRoot;
         uint32_t partitionNum;
         uint16_t segmentNum;
-        uint32_t fileBlockOffset;
+        FBO_struct fileBlockOffset;
 
         // 2) Get the list of uncommitted lbids for the transaction, if we weren't given one.
         if (plbidList == NULL) {
