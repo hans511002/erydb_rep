@@ -1006,18 +1006,15 @@ int VSS::checkConsistency(const VBBM &vbbm, ExtentMap &em) const
 
 	/* Test 1 */
 
-	OID_t oid;
-	uint32_t fbo;
+	DBROOTS_struct oid;
+	FBO_struct fbo;
 
 	for (i = 0; i < vss->capacity; i++) {
 		if (storage[i].lbid != -1) {
 			if (storage[i].vbFlag) {
-				err = vbbm.lookup(storage[i].lbid, storage[i].verID, oid,
-								   fbo);
+				err = vbbm.lookup(storage[i].lbid, storage[i].verID, oid,fbo);
 				if (err != 0) {
-					cerr << "VSS: lbid=" << storage[i].lbid << " verID=" <<
-							storage[i].verID << " vbFlag=true isn't in the VBBM" <<
-							endl;
+					cerr << "VSS: lbid=" << storage[i].lbid << " verID=" <<storage[i].verID << " vbFlag=true isn't in the VBBM" <<endl;
 					throw logic_error("VSS::checkConsistency(): a VSS entry with vbflag set is not in the VBBM");
 				}
 			}

@@ -65,6 +65,20 @@ namespace BRM
             return dbr==dbRoots[0];
         };
         EXPORT   int remove(uint16_t dbr);
+        EXPORT inline  int getLocalDbrIndex() {
+            return getDbrIndex(getPmDbr());
+        };
+        EXPORT inline  int getDbrIndex(uint16_t dbr) {
+            if(dbr){
+                 int size = 0;
+                while (size < MAX_DATA_REPLICATESIZE && dbRoots[size])
+                {
+                    if(dbr==dbRoots[size] )
+                        return size;
+                }
+            }
+            return -1;
+        };
         EXPORT   uint16_t getPmDbr(uint16_t pmid=0)const;
         EXPORT  std::vector<uint16_t> getPms() const;
         EXPORT  DBROOTS_struct(const DBROOTS_struct&);
@@ -115,8 +129,11 @@ inline std::ostream & operator<<(std::ostream & os, const std::vector<uint16_t>&
             memset(fbos,0,sizeof(BRM::FBO_struct));
             };
     	EXPORT inline FBO_struct(int32_t fbo){
-    	    fbos[0]=fbo;
-    	};
+            fbos[0] = fbo;
+            fbos[1] = fbo;
+            fbos[2] = fbo;
+            fbos[3] = fbo;
+        };
         EXPORT inline uint32_t  operator [](int i) const{
             return fbos[i];
             };
@@ -152,6 +169,9 @@ inline std::ostream & operator<<(std::ostream & os, const std::vector<uint16_t>&
         EXPORT inline FBO_struct& operator= (uint32_t fbo)
         {
             fbos[0] = fbo;
+            fbos[1] = fbo;
+            fbos[2] = fbo;
+            fbos[3] = fbo;
             return *this;
         };
         EXPORT  inline  int size() const {

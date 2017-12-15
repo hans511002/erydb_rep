@@ -248,7 +248,7 @@ namespace WriteEngine
     //------------------------------------------------------------------------------
     // Get BRM information based on a specfic OID, DBRoot, partition, and segment.
     //------------------------------------------------------------------------------
-    int   BRMWrapper::getBrmInfo(const OID oid, const uint32_t partition, const uint16_t segment, const int       fbo, LBID_t&         lbid)
+    int   BRMWrapper::getBrmInfo(const OID oid, const uint32_t partition, const uint16_t segment, const int fbo, LBID_t& lbid)
     {
         // SHARED_NOTHING: lookupLocal() usage okay if segNum unique.
         // If segment number is not unique across physical partition, then would
@@ -260,7 +260,7 @@ namespace WriteEngine
     // Get starting LBID from BRM for a specfic OID, partition, segment, and
     // block offset.
     //------------------------------------------------------------------------------
-    int   BRMWrapper::getStartLbid(const OID oid, const uint32_t partition, const uint16_t segment, const int       fbo, LBID_t&         lbid)
+    int   BRMWrapper::getStartLbid(const OID oid, const uint32_t partition, const uint16_t segment, const int fbo, LBID_t& lbid)
     {
         // SHARED_NOTHING: lookupLocalStartLbid() usage okay if segNum unique.
         // If segment number is not unique across physical partition, then would
@@ -272,7 +272,7 @@ namespace WriteEngine
     //------------------------------------------------------------------------------
     // Get the real physical offset based on the LBID
     //------------------------------------------------------------------------------
-    int  BRMWrapper::getFboOffset(const uint64_t lbid, DBROOTS_struct& dbRoot, uint32_t& partition, uint16_t& segment, int&       fbo)
+    int  BRMWrapper::getFboOffset(const uint64_t lbid, DBROOTS_struct& dbRoot, uint32_t& partition, uint16_t& segment, int& fbo)
     {
         int oid;
         // according to Patric, extendmap don't need vbflag, thus verid =0
@@ -284,10 +284,12 @@ namespace WriteEngine
     //------------------------------------------------------------------------------
     // Get the real physical offset based on the LBID
     //------------------------------------------------------------------------------
-    int  BRMWrapper::getFboOffset(const uint64_t lbid, int& oid, DBROOTS_struct& dbRoot, uint32_t& partition, uint16_t& segment, int&       fbo)
+    int  BRMWrapper::getFboOffset(const uint64_t lbid, int& oid, DBROOTS_struct& dbRoot, uint32_t& partition, uint16_t& segment, int&fbo)
     {
         // according to Patric, extendmap don't need vbflag, thus verid =0
-        int rc = dbrm->lookupLocal((uint64_t)lbid, 0, false, (BRM::OID_t&)oid,dbRoot, partition, segment,(uint32_t&)fbo);
+        FBO_struct fbos;
+        int rc = dbrm->lookupLocal((uint64_t)lbid, 0, false, (BRM::OID_t&)oid,dbRoot, partition, segment,fbos);
+        fbo=fbos[0];
         return getRC(rc, ERR_BRM_LOOKUP_FBO);
     }
 
@@ -717,7 +719,7 @@ namespace WriteEngine
             RETURN_ON_WE_ERROR(fileOp.getVBFileName(fileInfo.oid, fileName), NULL);
         } else
         {
-            RETURN_ON_WE_ERROR(fileOp.getFileName(fileInfo.oid, fileName, fileInfo.fDbRoot.get(0), fileInfo.fPartition, fileInfo.fSegment), NULL);
+            RETURN_ON_WE_ERROR(fileOp.getFileName(fileInfo.oid, fileName, fileInfo.fDbRoot.getPmDbr(), fileInfo.fPartition, fileInfo.fSegment), NULL);
         }
         // disable buffering for versionbuffer file by passing USE_NOVBUF
         pFile = ERYDBDataFile::open(ERYDBPolicy::getType(fileName, ERYDBPolicy::WRITEENG), fileName, mode, ERYDBDataFile::USE_NOVBUF);
@@ -743,7 +745,7 @@ namespace WriteEngine
         std::vector<LBIDRange> lbidRangeList;
         LBIDRange   range;
         OID_t       vbOid, weOid, currentVbOid;
-        uint32_t   vbFbo, weFbo;
+        FBO_struct   vbFbo, weFbo;
         size_t      i;
         bool        vbFlag;
         DBROOTS_struct vbDbRoot, weDbRoot;
@@ -786,9 +788,9 @@ namespace WriteEngine
         sourceFileInfo.oid = currentVbOid;
         sourceFileInfo.fPartition = 0;
         sourceFileInfo.fSegment = 0;
-        size_t rootCnt = Config::DBRootCount();
+        //size_t rootCnt = Config::DBRootCount();
         // sourceFileInfo.fDbRoot = vbOid+1;// (vbOid % rootCnt) + 1;
-        sourceFileInfo.fDbRoot[0] = vbOid + 1;//versionbuffer dbroot
+        //sourceFileInfo.fDbRoot[0] = vbOid + 1;//versionbuffer dbroot
         ERYDBDataFile* pSourceFile = NULL;
         ERYDBDataFile* pTargetFile;
 
@@ -822,9 +824,9 @@ namespace WriteEngine
                 //timer.stop("lookupLocalEX");
                 if (!pSourceFile)
                 {
-                    vbOid = currentVbOid = weDbRoot[0];
+                    vbOid = currentVbOid = weDbRoot.getPmDbr();
                     sourceFileInfo.oid = currentVbOid;
-                    sourceFileInfo.fDbRoot[0] = vbOid;//versionbuffer dbroot
+                    sourceFileInfo.fDbRoot = weDbRoot;//versionbuffer dbroot
                     RETURN_ON_NULL((pSourceFile = openFile(sourceFileInfo, "r+b")), ERR_VB_FILE_NOT_EXIST);
                 }
                 Column column;
@@ -856,27 +858,22 @@ namespace WriteEngine
 
                 if (isDebug(DEBUG_3))
 #ifndef __LP64__
-                    printf(
-                    "\n\tuncommitted lbid - lbidList[i]=%lld weOid =%d weFbo=%d verID=%d, weDbRoot=%d",
-                    lbidList[i], weOid, weFbo, outVer, weDbRoot[0]);
+                    printf("\n\tuncommitted lbid - lbidList[i]=%lld weOid =%d weFbo=%d verID=%d, weDbRoot=%d",lbidList[i], weOid, weFbo[0], outVer, weDbRoot.getPmDbr());
 #else
-                    printf(
-                    "\n\tuncommitted lbid - lbidList[i]=%ld weOid =%d weFbo=%d verID=%d, weDbRoot=%d",
-                    lbidList[i], weOid, weFbo, outVer, weDbRoot[0]);
+                    printf("\n\tuncommitted lbid - lbidList[i]=%ld weOid =%d weFbo=%d verID=%d, weDbRoot=%d",lbidList[i], weOid, weFbo[0], outVer, weDbRoot.getPmDbr());
 #endif
                 //look for the block in the version buffer
                 //timer.start("lookupLocalVB");
                 RETURN_ON_WE_ERROR(dbrm->lookupLocal(lbidList[i], outVer, true, vbOid, vbDbRoot, vbPartitionNum, vbSegmentNum, vbFbo), ERR_BRM_LOOKUP_FBO);
+                vbOid=vbDbRoot.getPmDbr();
+                int dbrIndex=vbDbRoot.getLocalDbrIndex();
                 //timer.stop("lookupLocalVB");
                 if (isDebug(DEBUG_3))
 #ifndef __LP64__
-                    printf("\n\tuncommitted lbid - lbidList[i]=%lld vbOid =%d vbFbo=%d\n",
-                           lbidList[i], vbOid, vbFbo);
+                    printf("\n\tuncommitted lbid - lbidList[i]=%lld vbOid =%d vbFbo=%d\n",lbidList[i], vbOid, vbFbo[dbrIndex]);
 #else
-                    printf("\n\tuncommitted lbid - lbidList[i]=%ld vbOid =%d vbFbo=%d\n",
-                           lbidList[i], vbOid, vbFbo);
+                    printf("\n\tuncommitted lbid - lbidList[i]=%ld vbOid =%d vbFbo=%d\n",lbidList[i], vbOid, vbFbo[dbrIndex]);
 #endif
-
                 //@Bug 2293 Version buffer file information cannot be obtained from lookupLocal
                 if (vbOid != currentVbOid)
                 {
@@ -886,7 +883,7 @@ namespace WriteEngine
                     sourceFileInfo.oid = currentVbOid;
                     sourceFileInfo.fPartition = 0;
                     sourceFileInfo.fSegment = 0;
-                    sourceFileInfo.fDbRoot[0] = vbOid;// (vbOid % rootCnt) + 1;
+                    sourceFileInfo.fDbRoot = vbDbRoot;// (vbOid % rootCnt) + 1;
                     RETURN_ON_NULL((pSourceFile = openFile(sourceFileInfo, "r+b")), ERR_VB_FILE_NOT_EXIST);
                 }
 
@@ -915,7 +912,7 @@ namespace WriteEngine
                     goto cleanup;
                 }
                 //timer.start("copyVBBlock");
-                rc = copyVBBlock(pSourceFile, pTargetFile, vbFbo, weFbo, &fileOp, column);
+                rc = copyVBBlock(pSourceFile, pTargetFile, vbFbo[dbrIndex], weFbo[dbrIndex], &fileOp, column);
                 //timer.stop("copyVBBlock");
                 if (rc != NO_ERROR)
                 {
@@ -984,7 +981,7 @@ cleanup:
         OID_t       vbOid;
         OID_t       weOid;
         OID_t       currentVbOid = static_cast<OID_t>(-1);
-        uint32_t   vbFbo, weFbo;
+        FBO_struct  vbFbo, weFbo;
         size_t      i;
         VER_t       verID = (VER_t)transID;
 
@@ -1070,21 +1067,18 @@ cleanup:
             //look for the block in extentmap
             //timer.start("lookupLocalEX");
             rc = dbrm->lookupLocal(lbidList[i], /*transID*/verID, false, weOid, weDbRoot, wePartitionNum, weSegmentNum, weFbo);
-
             if (rc != 0)
             {
                 std::ostringstream oss;
                 BRM::errString(rc, errorMsg);
-                oss << "lookupLocal from extent map error encountered while looking up lbid:verID " << lbidList[i] << ":"
+                oss << "lookupLocal from extent map error encountered while looking up lbid:verID " << lbidList[i] << ":" 
                     << (uint32_t)verID << " and error code is " << rc << " with message " << errorMsg;
                 throw std::runtime_error(oss.str());
             }
-
             //Check whether this lbid is on this PM.
-            dbrootPmMapItor = dbrootPmMap.find(weDbRoot[0]);//不只检查第一目录
+            dbrootPmMapItor = dbrootPmMap.find(weDbRoot.getPmDbr());//不只检查第一目录
             if (dbrootPmMapItor == dbrootPmMap.end())
                 continue;
-
             //timer.stop("lookupLocalEX");
             Column column;
             execplan::erydbSystemCatalog::ColType colType = systemCatalogPtr->colType(weOid);
@@ -1121,17 +1115,14 @@ cleanup:
                 fileOp.chunkManager(NULL);
             else
                 fileOp.chunkManager(&chunkManager);
+            int dbrIndex=weDbRoot.getLocalDbrIndex();
 
             if (isDebug(DEBUG_3))
             {
 #ifndef __LP64__
-                printf(
-                    "\n\tuncommitted lbid - lbidList[i]=%lld weOid =%d weFbo=%d verID=%d, weDbRoot=%d",
-                    lbidList[i], weOid, weFbo, verID, weDbRoot[0]);
+                printf("\n\tuncommitted lbid - lbidList[i]=%lld weOid =%d weFbo=%d verID=%d, weDbRoot=%d",lbidList[i], weOid, weFbo[dbrIndex], verID, weDbRoot.getPmDbr());
 #else
-                printf(
-                    "\n\tuncommitted lbid - lbidList[i]=%ld weOid =%d weFbo=%d verID=%d, weDbRoot=%d",
-                    lbidList[i], weOid, weFbo, verID, weDbRoot[0]);
+                printf("\n\tuncommitted lbid - lbidList[i]=%ld weOid =%d weFbo=%d verID=%d, weDbRoot=%d",lbidList[i], weOid, weFbo[dbrIndex], verID, weDbRoot.getPmDbr());
 #endif
             }
             //look for the block in the version buffer
@@ -1145,7 +1136,8 @@ cleanup:
                     << (uint32_t)verID << " and error code is " << rc << " with message " << errorMsg;
                 throw std::runtime_error(oss.str());
             }
-
+            vbOid=vbDbRoot.getPmDbr();
+            dbrIndex=vbDbRoot.getLocalDbrIndex();
             if (pSourceFile == 0) //@Bug 2314. Optimize the version buffer open times.
             {
                 currentVbOid = vbOid;
@@ -1169,11 +1161,9 @@ cleanup:
             if (isDebug(DEBUG_3))
             {
 #ifndef __LP64__
-                printf("\n\tuncommitted lbid - lbidList[i]=%lld vbOid =%d vbFbo=%d\n",
-                       lbidList[i], vbOid, vbFbo);
+                printf("\n\tuncommitted lbid - lbidList[i]=%lld vbOid =%d vbFbo=%d\n",lbidList[i], vbOid, vbFbo[dbrIndex]);
 #else
-                printf("\n\tuncommitted lbid - lbidList[i]=%ld vbOid =%d vbFbo=%d\n",
-                       lbidList[i], vbOid, vbFbo);
+                printf("\n\tuncommitted lbid - lbidList[i]=%ld vbOid =%d vbFbo=%d\n",lbidList[i], vbOid, vbFbo[dbrIndex]);
 #endif
             }
             //@Bug 2293 Version buffer file information cannot be obtained from lookupLocal
@@ -1241,7 +1231,7 @@ cleanup:
                 BRM::errString(rc, errorMsg);
                 goto cleanup;
             }
-            rc = copyVBBlock(pSourceFile, pTargetFile, vbFbo, weFbo, &fileOp, column);
+            rc = copyVBBlock(pSourceFile, pTargetFile, vbFbo[dbrIndex], weFbo[dbrIndex], &fileOp, column);
 
             //cout << "WES rolled block " << lbidList[i] << endl;
             if (rc != 0)

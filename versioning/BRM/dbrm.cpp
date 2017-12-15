@@ -220,7 +220,7 @@ namespace BRM {
                 ret = vbbm->lookup(lbid, verid, dbRoot, fileBlockOffset);
                 vbbm->release(VBBM::READ);
                 locked[0] = false;
-                oid = dbRoot[0];
+                oid = dbRoot.getPmDbr();
                 if (ret < 0) {
                     vss->lock(VSS::READ);
                     locked[1] = true;
@@ -1799,7 +1799,7 @@ namespace BRM {
                 // get the dbroots
                 for (int i = 0; i < repSize; i++)
                 {
-                    if (dbrExists.find(vbOID[i]) != dbrExists.end())
+                    if (vbOID[i] && dbrExists.find(vbOID[i]) != dbrExists.end())
                     {
                         dbrExists[vbOID[i]] = (vbOID[i]);
                         dbroots->push_back(vbOID[i]);

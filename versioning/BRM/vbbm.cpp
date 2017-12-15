@@ -61,6 +61,7 @@ namespace bi = boost::interprocess;
 #define VBBM_DLLEXPORT
 #include "vbbm.h"
 #undef VBBM_DLLEXPORT
+#include "extentmap.h"
 
 #define VBBM_MAGIC_V1 0x7b27ec13
 #define VBBM_MAGIC_V2 0x1fb58c7a
@@ -75,8 +76,8 @@ namespace BRM {
     VBBMEntry::VBBMEntry() {
         lbid = -1;
         verID = 0;
-        vbOID = 0;
-        vbFBO = 0;
+        //vbOID = 0;
+        //vbFBO = 0;
         next = -1;
     }
 
@@ -389,7 +390,7 @@ namespace BRM {
     }
 
     //write lock
-    void VBBM::insert(LBID_t lbid, VER_t verID, const FBO_struct & vbFBO, bool loading) {
+    void VBBM::insert(LBID_t lbid, VER_t verID, const DBROOTS_struct &vbOids,const FBO_struct & vbFbo, bool loading) {
         VBBMEntry entry;
 
 #ifdef BRM_DEBUG
@@ -420,8 +421,11 @@ namespace BRM {
 
         entry.lbid = lbid;
         entry.verID = verID;
-        entry.vbOID = vbOID;
-        entry.vbFBO = vbFBO;
+        entry.vbOids = vbOids;
+        entry.vbFbo = vbFbo; 
+    
+       // entry.vbOID = vbOID;
+        //entry.vbFBO = vbFBO;
 
         // check for resize
         if (vbbm->vbCurrentSize == vbbm->vbCapacity)
@@ -801,19 +805,19 @@ namespace BRM {
                         }
 
         /* Test 4a - verify the uniqueness of vbOID, vbFBO fields */
-        for (i = 0; i < vbbm->vbCapacity; i++)
-            if (storage[i].lbid != -1)
-                for (j = i + 1; j < vbbm->vbCapacity; j++)
-                    if (storage[j].lbid != -1)
-                        if (storage[j].vbOID == storage[i].vbOID &&
-                            storage[j].vbFBO == storage[i].vbFBO) {
-                            cerr << "VBBM: lbid1=" << storage[i].lbid << " lbid2=" <<
-                                storage[j].lbid << " verID1=" << storage[i].verID <<
-                                " verID2=" << storage[j].verID << " share vbOID=" <<
-                                storage[j].vbOID << " vbFBO=" << storage[j].vbFBO <<
-                                endl;
+        for (i = 0; i < vbbm->vbCapacity; i++){
+            if (storage[i].lbid != -1){
+                for (j = i + 1; j < vbbm->vbCapacity; j++){
+                    if (storage[j].lbid != -1){
+                        if (storage[j].vbOids[0] == storage[i].vbOids[0] && storage[j].vbFbo[0] == storage[i].vbFbo[0]) {
+                            cerr << "VBBM: lbid1=" << storage[i].lbid << " lbid2=" << storage[j].lbid << " verID1=" << storage[i].verID <<
+                                " verID2=" << storage[j].verID << " share vbOID=" <<storage[j].vbOids << " vbFBO=" << storage[j].vbFbo <<endl;
                             throw logic_error("VBBM::checkConsistency(): 2 VBBM entries share space in the VB");
                         }
+                    }
+                }
+            }
+        }
         return 0;
     }
 
@@ -852,15 +856,18 @@ namespace BRM {
             log_errno("VBBM::load()");
             throw runtime_error("VBBM::load(): Failed to read entry number");
         }
-
+        BRM::ExtentMap em; int repSize = em.getRepSize();
         for (i = 0; i < vbbmEntries; i++) {
             if (in->read((char *)&entry, sizeof(entry)) != sizeof(entry)) {
                 log_errno("VBBM::load()");
                 throw runtime_error("VBBM::load(): Failed to load entry");
             }
-            insert(entry.lbid, entry.verID, entry.vbOID, entry.vbFBO, true);
+            insert(entry.lbid, entry.verID, entry.vbOids, entry.vbFbo, true);
             //confirmChanges();
-            addVBFileIfNotExists(entry.vbOID);
+            for (int oi = 0; oi < repSize; oi++) {
+                if (entry.vbOids[oi]) 
+                    addVBFileIfNotExists(entry.vbOids[oi]);
+            }
         }
 
         /* This will load the saved file data from 2.2, but it is not compatible with
@@ -919,7 +926,7 @@ namespace BRM {
                 log_errno("VBBM::load()");
                 throw runtime_error("VBBM::load(): Failed to load entry");
             }
-            insert(entry.lbid, entry.verID, entry.vbOID, entry.vbFBO, true);
+            insert(entry.lbid, entry.verID, entry.vbOids, entry.vbFbo, true);
         }
 
     }

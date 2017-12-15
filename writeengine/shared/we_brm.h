@@ -128,7 +128,7 @@ public:
     /**
      * @brief Get last "local" HWM, partition, and segment for an OID and DBRoot
      */
-    EXPORT int getLastHWM_DBroot( OID oid,DBROOTS_struct&   dbRoot,uint32_t&  partition,uint16_t&  segment,HWM&        hwm,int&        status,bool&       bFound);
+    EXPORT int getLastHWM_DBroot( OID oid,DBROOTS_struct& dbRoot,uint32_t&  partition,uint16_t&  segment,HWM& hwm,int& status,bool& bFound);
 
     /**
      * @brief Get HWM for a specific OID, partition, and segment
