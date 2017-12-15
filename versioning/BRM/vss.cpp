@@ -399,8 +399,7 @@ void VSS::insert(LBID_t lbid, VER_t verID, bool vbFlag, bool locked, bool loadin
 
 //assumes write lock is held and that it is properly sized already
 //metadata is modified by the caller
-void VSS::_insert(VSSEntry& e, VSSShmsegHeader *dest, int *destHash,
-				  VSSEntry *destStorage, bool loading)
+void VSS::_insert(VSSEntry& e, VSSShmsegHeader *dest, int *destHash,VSSEntry *destStorage, bool loading)
 {
 	int hashIndex, insertIndex;
 
@@ -431,8 +430,7 @@ void VSS::_insert(VSSEntry& e, VSSShmsegHeader *dest, int *destHash,
 }
 
 //assumes read lock is held
-int VSS::lookup(LBID_t lbid, const QueryContext_vss &verInfo, VER_t txnID, VER_t *outVer,
-				bool *vbFlag, bool vbOnly) const
+int VSS::lookup(LBID_t lbid, const QueryContext_vss &verInfo, VER_t txnID, VER_t *outVer,bool *vbFlag, bool vbOnly) const
 {
 	int hashIndex, maxVersion = -1, minVersion = -1, currentIndex;
 	VSSEntry *listEntry, *maxEntry = NULL;

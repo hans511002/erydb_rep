@@ -174,10 +174,9 @@ class VBBM : public Undoable {
 
 		EXPORT void lock(OPS op);
 		EXPORT void release(OPS op);
-		EXPORT int lookup(LBID_t lbid, VER_t ver, OID_t &oid, uint32_t &fbo) const;
-		EXPORT void insert(LBID_t lbid, VER_t ver, OID_t oid, uint32_t fbo, bool loading = false);
-		EXPORT void getBlocks(int num, OID_t vbOID, std::vector<VBRange> &vbRanges, VSS& vss,
-				bool flushPMCache);
+		EXPORT int lookup(LBID_t lbid, VER_t ver,   FBO_struct &fbo ) const;
+		EXPORT void insert(LBID_t lbid, VER_t ver, const FBO_struct &fbo, bool loading = false);
+		EXPORT void getBlocks(int num, const DBROOTS_struct &vbOID, std::vector<VBRange> &vbRanges, VSS& vss,bool flushPMCache);
 		EXPORT void removeEntry(LBID_t, VER_t ver);
 
 		EXPORT int size() const;

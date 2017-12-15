@@ -393,7 +393,7 @@ namespace BRM {
     }
 
     //write lock
-    void VBBM::insert(LBID_t lbid, VER_t verID, OID_t vbOID, uint32_t vbFBO, bool loading) {
+    void VBBM::insert(LBID_t lbid, VER_t verID, const FBO_struct & vbFBO, bool loading) {
         VBBMEntry entry;
 
 #ifdef BRM_DEBUG
@@ -474,7 +474,7 @@ namespace BRM {
     }
 
     //assumes read lock is held
-    int VBBM::lookup(LBID_t lbid, VER_t verID, OID_t &oid, uint32_t &fbo) const {
+    int VBBM::lookup(LBID_t lbid, VER_t verID, FBO_struct &fbo) const {
         int index, prev, bucket;
 
         //#ifdef BRM_DEBUG
@@ -498,7 +498,7 @@ namespace BRM {
     }
 
     //assumes write lock
-    void VBBM::getBlocks(int num, OID_t vbOID, vector<VBRange>& freeRanges, VSS& vss, bool flushPMCache) {
+    void VBBM::getBlocks(int num, const DBROOTS_struct &vbOID, vector<VBRange>& freeRanges, VSS& vss, bool flushPMCache) {
         int blocksLeftInFile, blocksGathered = 0, i;
         uint32_t fileIndex;
         uint32_t firstFBO, lastFBO;
