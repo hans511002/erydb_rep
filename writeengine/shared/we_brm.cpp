@@ -1347,7 +1347,7 @@ cleanup:
         RETURN_ON_ERROR(getFboOffset(lbid, dbRoot, partition, segment, fbo));
 
         fboList.push_back(fbo);
-        std::vector<VBRange> freeList;
+        VBRange_VV freeList;
         int rc = writeVB(pFile, transID, oid, fboList, rangeList, pFileOp, freeList, dbRoot);
         //writeVBEnd(transID,rangeList);
         return rc;
@@ -1394,7 +1394,7 @@ cleanup:
     }
 
     int BRMWrapper::writeVB(ERYDBDataFile* pSourceFile, const VER_t transID, const OID weOid, std::vector<uint32_t>& fboList, 
-                            std::vector<LBIDRange>& rangeList, DbFileOp* pFileOp, std::vector<VBRange>& freeList, const DBROOTS_struct& dbRoot, bool skipBeginVBCopy)
+                            std::vector<LBIDRange>& rangeList, DbFileOp* pFileOp, VBRange_VV& freeList, const DBROOTS_struct& dbRoot, bool skipBeginVBCopy)
     {
         if (erydbdatafile::ERYDBPolicy::useHdfs())
             return 0;
@@ -1475,9 +1475,14 @@ cleanup:
             cout << "\tfreeList size=" << freeList.size() << endl;
             for (i = 0; i < freeList.size(); i++)
             {
-                cout << "\t VBOid : " << freeList[i].vbOID;
-                cout << " VBFBO : " << freeList[i].vbFBO;
-                cout << " Size : " << freeList[i].size << endl;
+                VBRange_v & freeRg=freeList[i];
+                cout << "\nfreeRg size=" << freeRg.size() << endl;
+                for (int oi = 0; oi < freeRg.size(); oi++)
+                {
+                    cout << "\t VBOid : " << freeRg[i].vbOID;
+                    cout << " VBFBO : " << freeRg[i].vbFBO;
+                    cout << " Size : " << freeRg[i].size << endl;
+                }
             }
         }
         /*	for (i = 0; i < freeList.size(); i++)
@@ -1491,9 +1496,10 @@ cleanup:
         // Open the first version buffer file
         File fileInfo;
         //   size_t rootCnt = Config::DBRootCount();
-        fileInfo.oid = freeList[0].vbOID;
+        fileInfo.oid =dbRoot.getPmDbr();// freeList[0].vbOID;
         fileInfo.fPartition = 0;
         fileInfo.fSegment = 0;
+        int dbrIndex=dbRoot.getDbrIndex(fileInfo.oid);
         //    fileInfo.fDbRoot = (freeList[0].vbOID % rootCnt) + 1;
         fileInfo.fDbRoot = dbRoot;
         mutex::scoped_lock lk(vbFileLock);
@@ -1518,26 +1524,26 @@ cleanup:
         }
 
         k = 0;
-        vbOid = freeList[0].vbOID;
+        VBRange_v& freeRg=freeList[dbrIndex];
+        vbOid = freeRg[0].vbOID;
+        assert(vbOid==fileInfo.oid);
         rangeListCount = 0;
         //cout << "writeVBEntry is putting the follwing lbids into VSS and freelist size is " << freeList.size() <<  endl;	 
-        for (i = 0; i < freeList.size(); i++)
+        for (i = 0; i < freeRg.size(); i++)
         {
             rangeListCount += k;
             processedBlocks = rangeListCount; // store the number of blocks processed till now for this file
-            if (vbOid == freeList[i].vbOID)
+            if (vbOid == freeRg[i].vbOID)
             {
                 // This call to copyVBBlock will consume whole of the freeList[i]
                 k = 0;
-                rc = copyVBBlock(pSourceFile, weOid, pTargetFile, fileInfo.oid, fboList, freeList[i], k, pFileOp, rangeListCount);
+                rc = copyVBBlock(pSourceFile, weOid, pTargetFile, fileInfo.oid, fboList, freeRg[i], k, pFileOp, rangeListCount);
                 //cout << "processedBlocks:k = " << processedBlocks <<":"<<k << endl;	
-
                 if (rc != NO_ERROR)
                     goto cleanup;
-
                 for (; processedBlocks < (k + rangeListCount); processedBlocks++)
                 {
-                    rc = dbrm->writeVBEntry(transID, rangeList[processedBlocks].start,freeList[i].vbOID, freeList[i].vbFBO + (processedBlocks - rangeListCount));
+                    rc = dbrm->writeVBEntry(transID, rangeList[processedBlocks].start,freeRg[i].vbOID, freeRg[i].vbFBO + (processedBlocks - rangeListCount));
                     //cout << (uint64_t)rangeList[processedBlocks].start << endl;
                     if (rc != NO_ERROR)
                     {

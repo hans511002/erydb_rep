@@ -639,7 +639,7 @@ public:
 	 * @note The caller must do a rollback or commit immediately after getting ERR_DEADLOCK (6).
 	 * @return 0 on success, non-0 on error (see brmtypes.h)
 	 */
-	EXPORT int beginVBCopy(VER_t transID,const DBROOTS_struct& dbRoot, const LBIDRange_v& ranges, VBRange_v& freeList) DBRM_THROW;
+	EXPORT int beginVBCopy(VER_t transID,const DBROOTS_struct& dbRoot, const LBIDRange_v& ranges, VBRange_VV& freeList) DBRM_THROW;
 	
 	/** @brief Atomically unset the copy lock & update the VSS.  Beware!  Read the warning!
 	 * 
@@ -651,8 +651,7 @@ public:
 	 * have been an element in beginVBCopy's ranges.
 	 * @return 0 on success, non-0 on error (see brmtypes.h)
 	 */
-	EXPORT int endVBCopy(VER_t transID, const LBIDRange_v& ranges) 
-			DBRM_THROW;
+	EXPORT int endVBCopy(VER_t transID, const LBIDRange_v& ranges) DBRM_THROW;
 	
 	/** @brief Commit the changes made for the given transaction.
 	 *

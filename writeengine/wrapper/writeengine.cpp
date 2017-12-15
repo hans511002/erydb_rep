@@ -2564,9 +2564,8 @@ namespace WriteEngine
      *    NO_ERROR if success
      *    others if something wrong in inserting the value
      ***********************************************************/
-    int WriteEngineWrapper::processVersionBuffer(ERYDBDataFile* pFile, const TxnID& txnid,
-        const ColStruct& colStruct, int width,
-        int totalRow, const RID* rowIdArray, vector<LBIDRange> &  rangeList) {
+    int WriteEngineWrapper::processVersionBuffer(ERYDBDataFile* pFile, const TxnID& txnid,const ColStruct& colStruct, int width,
+                                                int totalRow, const RID* rowIdArray, vector<LBIDRange> &  rangeList) {
         if (erydbdatafile::ERYDBPolicy::useHdfs())
             return 0;
 
@@ -2598,14 +2597,13 @@ namespace WriteEngine
                 lastFbo = curFbo;
             }
         }
-        std::vector<VBRange> freeList;
+        VBRange_VV freeList;
         rc = BRMWrapper::getInstance()->writeVB(pFile, verId, colStruct.dataOid, fboList, rangeList, colOp, freeList, colStruct.fColDbRoot);
         return rc;
     }
 
-    int WriteEngineWrapper::processVersionBuffers(ERYDBDataFile* pFile, const TxnID& txnid,
-        const ColStruct& colStruct, int width,
-        int totalRow, const RIDList& ridList,vector<LBIDRange> &   rangeList) {
+    int WriteEngineWrapper::processVersionBuffers(ERYDBDataFile* pFile, const TxnID& txnid,const ColStruct& colStruct, int width,
+                                                int totalRow, const RIDList& ridList,vector<LBIDRange> &   rangeList) {
         if (erydbdatafile::ERYDBPolicy::useHdfs())
             return 0;
 
@@ -2638,14 +2636,13 @@ namespace WriteEngine
         }
 
         //cout << "calling writeVB with blocks " << rangeList.size() << endl;
-        std::vector<VBRange> freeList;
+        VBRange_VV freeList;
         rc = BRMWrapper::getInstance()->writeVB(pFile, verId, colStruct.dataOid, fboList, rangeList, colOp, freeList, colStruct.fColDbRoot);
-
         return rc;
     }
 
     int WriteEngineWrapper::processBeginVBCopy(const TxnID& txnid, const vector<ColStruct>& colStructList, const RIDList& ridList,
-        std::vector<VBRange>& freeList, vector<vector<uint32_t> >& fboLists, vector<vector<LBIDRange> >& rangeLists,
+        VBRange_VV& freeList, vector<vector<uint32_t> >& fboLists, vector<vector<LBIDRange> >& rangeLists,
         vector<LBIDRange>&   rangeListTot) {
         if (erydbdatafile::ERYDBPolicy::useHdfs())
             return 0;
@@ -3572,14 +3569,8 @@ namespace WriteEngine
         return rc;
     }
 
-    int WriteEngineWrapper::writeColumnRec(const TxnID& txnid,
-        const ColStructList& colStructList,
-        const ColValueList& colValueList,
-        vector<void *>& colOldValueList,
-        const RIDList& ridList,
-        const int32_t tableOid,
-        bool convertStructFlag,
-        ColTupleList::size_type nRows) {
+    int WriteEngineWrapper::writeColumnRec(const TxnID& txnid,const ColStructList& colStructList, const ColValueList& colValueList,vector<void *>& colOldValueList,
+        const RIDList& ridList,const int32_t tableOid,bool convertStructFlag,ColTupleList::size_type nRows) {
         bool           bExcp;
         int            rc = 0;
         void*          valArray = NULL;
@@ -3600,12 +3591,19 @@ namespace WriteEngine
 #endif
 
         vector<LBIDRange>   rangeListTot;
-        std::vector<VBRange> freeList;
+        VBRange_VV freeList;
         vector<vector<uint32_t> > fboLists;
         vector<vector<LBIDRange> > rangeLists;
-        rc = processBeginVBCopy(txnid, colStructList, ridList, freeList, fboLists, rangeLists, rangeListTot);
+        bool isMaster=colStructList[0].fColDbRoot.isMaster();
+        ExtentMap em; int repSize = em.getRepSize();
+        if(isMaster){
+            rc = processBeginVBCopy(txnid, colStructList, ridList, freeList, fboLists, rangeLists, rangeListTot);
+        }else{// 获取本地dbrm 中的值
+            
+        }
+        
         if (rc != NO_ERROR) {
-            if (rangeListTot.size() > 0)
+            if (isMaster && rangeListTot.size() > 0)
                 BRMWrapper::getInstance()->writeVBEnd(txnid, rangeListTot);
             switch (rc) {
                 case BRM::ERR_DEADLOCK: return ERR_BRM_DEAD_LOCK;
@@ -3633,8 +3631,6 @@ namespace WriteEngine
             // set params
             colOp->initColumn(curCol);
             colOp->setColParam(curCol, 0, curColStruct.colWidth,curColStruct.colDataType, curColStruct.colType, curColStruct.dataOid,curColStruct.fCompressionType, &curColStruct.fColDbRoot,curColStruct.fColPartition, curColStruct.fColSegment);
-
-
             ColExtsInfo aColExtsInfo = aTbaleMetaData->getColExtsInfo(curColStruct.dataOid);
             ColExtsInfo::iterator it = aColExtsInfo.begin();
             while (it != aColExtsInfo.end()) {
@@ -3673,40 +3669,53 @@ namespace WriteEngine
       //timer.start("processVersionBuffers");
             //vector<LBIDRange>   rangeList;
            // rc = processVersionBuffers(curCol.dataFile.pFile, txnid, curColStruct, curColStruct.colWidth, totalRow, ridList, rangeList);
-            std::vector<VBRange> curFreeList;
-            uint32_t blockUsed = 0;
+            
             if (!erydbdatafile::ERYDBPolicy::useHdfs()) {
-                if (rangeListTot.size() > 0) {
-                    if (freeList[0].size >= (blocksProcessed + rangeLists[i].size())) {
-                        aRange.vbOID = freeList[0].vbOID;
-                        aRange.vbFBO = freeList[0].vbFBO + blocksProcessed;
-                        aRange.size = rangeLists[i].size();
-                        curFreeList.push_back(aRange);
-                        //cout << "range size = " << aRange.size <<" and blocksProcessed = " << blocksProcessed<< endl;
-                    } else {
-                        aRange.vbOID = freeList[0].vbOID;
-                        aRange.vbFBO = freeList[0].vbFBO + blocksProcessed;
-                        aRange.size = freeList[0].size - blocksProcessed;
-                        blockUsed = aRange.size;
-                        curFreeList.push_back(aRange);
-                        if (freeList.size() > 1) {
-                            aRange.vbOID = freeList[1].vbOID;
-                            aRange.vbFBO = freeList[1].vbFBO + blocksProcessedThisOid;
-                            aRange.size = rangeLists[i].size() - blockUsed;
-                            curFreeList.push_back(aRange);
-                            blocksProcessedThisOid += aRange.size;
-                        } else {
-                            rc = 1;
+                if ( rangeListTot.size() > 0) { 
+                    VBRange_VV curAllFreeList;
+                    curAllFreeList.resize(repSize);
+                    for(int oi=0;oi<repSize;oi++){
+                        if(!curColStruct.fColDbRoot[oi]){
                             break;
                         }
-                        //cout << "curFreeList size = " << curFreeList.size() << endl;
+                        VBRange_v &curFreeList=curAllFreeList[oi];
+                        VBRange_v &freeRg=freeList[oi];
 
+                        uint32_t blockUsed = 0;
+                        if (freeRg[0].size >= (blocksProcessed + rangeLists[i].size())) {
+                            aRange.vbOID = freeRg[0].vbOID;
+                            aRange.vbFBO = freeRg[0].vbFBO + blocksProcessed;
+                            aRange.size = rangeLists[i].size();
+                            curFreeList.push_back(aRange);
+                            //cout << "range size = " << aRange.size <<" and blocksProcessed = " << blocksProcessed<< endl;
+                        } else {
+                            aRange.vbOID = freeRg[0].vbOID;
+                            aRange.vbFBO = freeRg[0].vbFBO + blocksProcessed;
+                            aRange.size = freeRg[0].size - blocksProcessed;
+                            blockUsed = aRange.size;
+                            curFreeList.push_back(aRange);
+                            if (freeRg.size() > 1) {
+                                aRange.vbOID = freeRg[1].vbOID;
+                                aRange.vbFBO = freeRg[1].vbFBO + blocksProcessedThisOid;
+                                aRange.size = rangeLists[i].size() - blockUsed;
+                                curFreeList.push_back(aRange);
+                                blocksProcessedThisOid += aRange.size;
+                            } else {
+                                rc = 1;
+                                break;
+                            }
+                            //cout << "curFreeList size = " << curFreeList.size() << endl;
+                        }
                     }
-
                     blocksProcessed += rangeLists[i].size();
-
                     //timer.start("Delete:writeVB");
-                    rc = BRMWrapper::getInstance()->writeVB(curCol.dataFile.pFile, (BRM::VER_t)txnid,curColStruct.dataOid, fboLists[i], rangeLists[i],colOp, curFreeList, curColStruct.fColDbRoot, true);
+                    if(isMaster){
+                        rc = BRMWrapper::getInstance()->writeVB(curCol.dataFile.pFile, (BRM::VER_t)txnid,curColStruct.dataOid, fboLists[i], rangeLists[i],colOp, curAllFreeList, curColStruct.fColDbRoot, true);
+                    }else{
+                        // 只copy
+                        rc = BRMWrapper::getInstance()->writeVB(curCol.dataFile.pFile, (BRM::VER_t)txnid,curColStruct.dataOid, fboLists[i], 
+                            rangeLists[i],colOp, curAllFreeList, curColStruct.fColDbRoot, true);
+                    }
                 }
             }
             //timer.stop("Delete:writeVB");	
@@ -3774,7 +3783,7 @@ namespace WriteEngine
                     bExcp = true;
                 }
                 if (bExcp) {
-                    if (rangeListTot.size() > 0)
+                    if (isMaster && rangeListTot.size() > 0)
                         BRMWrapper::getInstance()->writeVBEnd(txnid, rangeListTot);
                     return ERR_PARSING;
                 }
@@ -3813,7 +3822,7 @@ namespace WriteEngine
         //if (erydbdatafile::ERYDBPolicy::useHdfs())
         //			cacheutils::dropPrimProcFdCache();
         //timer.stop("Delete:purgePrimProcFdCache");
-        if (rangeListTot.size() > 0)
+        if (isMaster && rangeListTot.size() > 0)
             BRMWrapper::getInstance()->writeVBEnd(txnid, rangeListTot);
         //timer.stop("Delete:writecolrec");	
         //#ifdef PROFILE

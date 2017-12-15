@@ -1718,8 +1718,7 @@ namespace BRM {
         return ERR_OK;
     }
 
-    int DBRM::writeVBEntry(VER_t transID, LBID_t lbid, OID_t vbOID,
-        uint32_t vbFBO) DBRM_THROW {
+    int DBRM::writeVBEntry(VER_t transID, LBID_t lbid, OID_t vbOID,uint32_t vbFBO) DBRM_THROW {
 
 #ifdef BRM_INFO
         if (fDebug) {
@@ -1925,7 +1924,7 @@ namespace BRM {
     }
 
 
-    int DBRM::beginVBCopy(VER_t transID,const DBROOTS_struct& dbRoot, const LBIDRange_v& ranges, VBRange_v& freeList) DBRM_THROW {
+    int DBRM::beginVBCopy(VER_t transID,const DBROOTS_struct& dbRoot, const LBIDRange_v& ranges, VBRange_VV& freeList) DBRM_THROW {
 #ifdef BRM_INFO
         if (fDebug) {
             TRACER_WRITELATER("beginVBCopy");

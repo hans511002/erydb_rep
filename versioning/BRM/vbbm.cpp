@@ -472,7 +472,24 @@ namespace BRM {
         destStorage[insertIndex] = e;
         destHash[hashIndex] = insertIndex;
     }
-
+    //assumes read lock is held
+    VBBMEntry * VBBM::lookup(LBID_t lbid, VER_t verID) const {
+        int index, prev, bucket;
+        //#ifdef BRM_DEBUG
+        if (lbid < 0) {
+            log("VBBM::lookup(): lbid must be >= 0", logging::LOG_TYPE_DEBUG);
+            throw invalid_argument("VBBM::lookup(): lbid must be >= 0");
+        }
+        if (verID < 0) {
+            log("VBBM::lookup(): verID must be > 1)", logging::LOG_TYPE_DEBUG);
+            throw invalid_argument("VBBM::lookup(): verID must be > 1)");
+        }
+        //#endif
+        index = getIndex(lbid, verID, prev, bucket);
+        if (index == -1)
+            return 0;
+        return &storage[index];
+    }
     //assumes read lock is held
     int VBBM::lookup(LBID_t lbid, VER_t verID, DBROOTS_struct &vbOids, FBO_struct &fbo) const {
         int index, prev, bucket;

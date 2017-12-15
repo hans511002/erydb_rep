@@ -348,8 +348,7 @@ namespace BRM {
     }
 
 
-    int SlaveDBRMNode::writeVBEntry(VER_t transID, LBID_t lbid, OID_t vbOID,
-        uint32_t vbFBO) throw() {
+    int SlaveDBRMNode::writeVBEntry(VER_t transID, LBID_t lbid, OID_t vbOID,uint32_t vbFBO) throw() {
         VER_t oldVerID;
 
         /*
@@ -371,25 +370,38 @@ namespace BRM {
             // larger version numbers imply more recent changes.  If we ever change that
             // assumption, we'll need to revise the vbRollback() fcns as well.
             oldVerID = vss.getCurrentVersion(lbid, NULL);
-
-            if (oldVerID == transID)
+            if (oldVerID == transID){       
+                VBBMEntry * vbe=vbbm.lookup(lbid,transID) ;//²éÕÒ½Úµã
+                if(rc){
+                    return -1;
+                }
+                ExtentMap em; int repSize = em.getRepSize();
+                for (int n=0; n<repSize; n++){
+                    if(vbe.vbOids[n]==vbOID){
+                        vbe.vbFbo[n]=vbFBO;
+                        break;
+                    }else if(vbe.vbOids[n]==0){
+                        vbe.vbOids[n]=vbOID;
+                        vbe.vbFbo[n]=vbFBO;
+                        break;
+                    }
+                }
                 return 0;
-            else if (oldVerID > transID) {
+            }else if (oldVerID > transID) {
                 ostringstream str;
-
-                str << "WorkerDBRMNode::writeVBEntry(): Overlapping transactions detected.  "
-                    "Transaction " << transID << " cannot overwrite blocks written by "
-                    "transaction " << oldVerID;
+                str << "WorkerDBRMNode::writeVBEntry(): Overlapping transactions detected.   Transaction " << transID << " cannot overwrite blocks written by transaction " << oldVerID;
                 log(str.str());
                 return ERR_OLDTXN_OVERWRITING_NEWTXN;
             }
-
-            vbbm.insert(lbid, oldVerID, vbOID, vbFBO);
+            DBROOTS_struct vbOids;
+            FBO_struct vbFbo;
+            vbOids[0]=vbOID;
+            vbFbo[0]=vbFBO;
+            vbbm.insert(lbid, oldVerID, vbOids, vbFbo);
             if (oldVerID > 0)
                 vss.setVBFlag(lbid, oldVerID, true);
             else
                 vss.insert(lbid, oldVerID, true, false);
-
             // XXXPAT:  There's a problem if we use transID as the new version here.  
             // Need to use at least oldVerID + 1.  OldverID can be > TransID
             vss.insert(lbid, transID, false, true);

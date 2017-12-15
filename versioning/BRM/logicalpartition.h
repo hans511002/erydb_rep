@@ -65,10 +65,10 @@ namespace BRM
             return dbr==dbRoots[0];
         };
         EXPORT   int remove(uint16_t dbr);
-        EXPORT inline  int getLocalDbrIndex() {
+        EXPORT inline  int getLocalDbrIndex() const{
             return getDbrIndex(getPmDbr());
         };
-        EXPORT inline  int getDbrIndex(uint16_t dbr) {
+        EXPORT inline  int getDbrIndex(uint16_t dbr) const{
             if(dbr){
                  int size = 0;
                 while (size < MAX_DATA_REPLICATESIZE && dbRoots[size])
