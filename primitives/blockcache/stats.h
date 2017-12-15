@@ -55,7 +55,7 @@ public:
 		DBROOTS_struct dbroot;
 		uint32_t partNum;
 		uint16_t segNum;
-		uint32_t fbo;
+		FBO_struct fbo;
 		brm.lookupLocal(lbid, 0, false, oid, dbroot, partNum, segNum, fbo);
 		return oid;
 	}

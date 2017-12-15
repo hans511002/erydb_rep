@@ -518,7 +518,7 @@ void ColumnCommand::projectResult()
 		DBROOTS_struct l_dbroot;
 		uint32_t partNum;
 		uint16_t segNum;
-		uint32_t fbo;
+		FBO_struct fbo;
 		brm.lookupLocal(lbid, 0, false, oid, l_dbroot, partNum, segNum, fbo);
 
 		os << __FILE__ << " error on projection for oid " << oid << " lbid " << lbid;
@@ -598,7 +598,7 @@ void ColumnCommand::projectResultRG(RowGroup &rg, uint32_t pos)
 		DBROOTS_struct dbroot;
 		uint32_t partNum;
 		uint16_t segNum;
-		uint32_t fbo;
+		FBO_struct fbo;
 		brm.lookupLocal(lbid, 0, false, oid, dbroot, partNum, segNum, fbo);
 
 		os << __FILE__ << " error on projectResultRG for oid " << oid << " lbid " << lbid;
@@ -889,7 +889,7 @@ const int64_t ColumnCommand::getLastLbid()
 	BRM::OID_t oid;
 	uint32_t partNum;
 	uint16_t segNum;
-	uint32_t fbo;
+	FBO_struct fbo;
 
 	dbrm.lookupLocal(primMsg->LBID, bpp->versionNum, false, oid, dbRoot, partNum, segNum, fbo);
 	gotDBRoot = true;

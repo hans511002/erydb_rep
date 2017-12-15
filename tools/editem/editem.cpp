@@ -693,7 +693,7 @@ int dumpLBID(LBID_t lbid)
 	DBROOTS_struct dbRoot;
 	uint32_t partNum;
 	uint16_t segNum;
-	uint32_t fbo;
+	FBO_struct fbo;
 	int rc;
 	rc = emp->lookupLocal(lbid, ver, false, oid, dbRoot, partNum, segNum, fbo);
 	erydbassert(rc == 0);
@@ -701,7 +701,7 @@ int dumpLBID(LBID_t lbid)
 		"; DbRoot "     << dbRoot  <<
 		"; partition# " << partNum <<
 		"; segment# "   << segNum  <<
-		"; at FBO "     << fbo     << endl;
+		"; at FBO "     << fbo[0]    << endl;
 	return 0;
 }
 

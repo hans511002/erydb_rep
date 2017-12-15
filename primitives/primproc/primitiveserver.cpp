@@ -219,7 +219,7 @@ void prefetchBlocks(const uint64_t lbid,
 	uint32_t partNum;
 	uint16_t segNum;
 	uint32_t hwm;
-	uint32_t fbo;
+	FBO_struct fbo;
 	uint32_t lowfbo;
 	uint32_t highfbo;
 	BRM::OID_t oid;
@@ -263,7 +263,7 @@ void prefetchBlocks(const uint64_t lbid,
 		goto cleanup;
 	}
 
-	lowfbo = fbo - (lbid - lowlbid);
+	lowfbo = fbo[0] - (lbid - lowlbid);
 	highfbo = lowfbo + blocksReadAhead - 1;
 	range.start = lowlbid;
 	if (hwm < highfbo)
@@ -547,7 +547,7 @@ void loadBlock (uint64_t lbid,QueryContext v,uint32_t t,int compType,void* buffe
 			}
 
 			//  fd >= 0 must be true, otherwise above exception thrown.
-			offset = (uint64_t)fbo * (uint64_t)DATA_BLOCK_SIZE;
+			offset = (uint64_t)fbo[0] * (uint64_t)DATA_BLOCK_SIZE;
 			idx = offset / (4 * 1024 * 1024);
 
 			errno = 0;

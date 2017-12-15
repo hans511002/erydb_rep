@@ -1293,13 +1293,14 @@ void ioManager::buildOidFileName(const BRM::OID_t oid, const uint16_t dbr, const
 	//cout << "Oid2Filename o: " << oid << " n: " << file_name << endl;
 }
 
-const int ioManager::localLbidLookup(BRM::LBID_t lbid,BRM::VER_t verid,bool vbFlag,BRM::OID_t& oid,DBROOTS_struct& dbRoot,uint32_t& partitionNum,uint16_t& segmentNum,uint32_t& fileBlockOffset)
+const int ioManager::localLbidLookup(BRM::LBID_t lbid,BRM::VER_t verid,bool vbFlag,BRM::OID_t& oid,DBROOTS_struct& dbRoot,uint32_t& partitionNum,
+    uint16_t& segmentNum,uint32_t& fileBlockOffset)
 {
 	if (primitiveprocessor::noVB > 0)
 		vbFlag = false;
-
-	int rc = fdbrm.lookupLocal(lbid,verid,vbFlag,oid,dbRoot,partitionNum,segmentNum,fileBlockOffset);
-
+    FBO_struct fbo;
+	int rc = fdbrm.lookupLocal(lbid,verid,vbFlag,oid,dbRoot,partitionNum,segmentNum,fbo);
+    fileBlockOffset=fbo[0];
 	return rc;
 }
 

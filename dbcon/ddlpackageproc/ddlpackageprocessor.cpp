@@ -1599,9 +1599,9 @@ int DDLPackageProcessor::rollBackTransaction(uint64_t uniqueId, BRM::TxnID txnID
     bytestream << sessionID;
     bytestream << (uint32_t)txnID.id;
     fWEClient->write_to_all(bytestream);
-    int weSize = fWEClient->getPmCount();
+    weSize = fWEClient->getPmCount();
     fWEClient->write_to_all(bytestream);
-    int rc = fWEClient->read(uniqueId, weSize, &errorMsg);
+    rc = fWEClient->read(uniqueId, weSize, &errorMsg);
     if (rc)
     {
         fWEClient->removeQueue(uniqueId);
