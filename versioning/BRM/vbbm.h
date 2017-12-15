@@ -81,9 +81,10 @@ struct VBFileMetadata {
 
 struct VBBMEntry {
 	LBID_t lbid;
+	FBO_struct vbFbo;
 	VER_t verID;
-	OID_t vbOID;
-	uint32_t vbFBO;
+	//OID_t vbOID;
+	//uint32_t vbFBO;
 	int next;
 	EXPORT VBBMEntry();
 };

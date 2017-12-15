@@ -40,48 +40,49 @@
 namespace BRM 
 {
     union DBROOTS_struct {
-    uint16_t	dbRoots[MAX_DATA_REPLICATESIZE];
-    uint64_t dbRoot;
+        uint16_t	dbRoots[MAX_DATA_REPLICATESIZE];
+        uint64_t dbRoot;
+    
+    	EXPORT DBROOTS_struct();
+    	EXPORT DBROOTS_struct(uint64_t dbRoot){
+    	    dbRoots[0]=dbRoot&0xFFFF;
+    	    dbRoots[1]=(dbRoot>>16) &0xFFFF;
+    	    dbRoots[2]=(dbRoot>>32) &0xFFFF;
+    	    dbRoots[3]=(dbRoot>>48) &0xFFFF;
+    	};
+        EXPORT   uint64_t getUintVal() {
+            uint64_t dbRoot=0;
+            dbRoot=(uint64_t)dbRoots[3]<<48 + (uint64_t)dbRoots[2]<<32 + (uint64_t)dbRoots[1]<<16 + (uint64_t)dbRoots[0];
+            return dbRoot;
+        };
 
-	EXPORT DBROOTS_struct();
-	EXPORT DBROOTS_struct(uint64_t dbRoot){
-	    dbRoots[0]=dbRoot&0xFFFF;
-	    dbRoots[1]=(dbRoot>>16) &0xFFFF;
-	    dbRoots[2]=(dbRoot>>32) &0xFFFF;
-	    dbRoots[3]=(dbRoot>>48) &0xFFFF;
+        EXPORT  uint16_t & operator [](int i) ;
+        EXPORT  uint16_t get(int i) const;
+        EXPORT  inline bool isMaster(uint16_t dbr=0) const{
+            if(dbr==0){
+                dbr=getPmDbr();
+            }
+            return dbr==dbRoots[0];
+        };
+        EXPORT   int remove(uint16_t dbr);
+        EXPORT   uint16_t getPmDbr(uint16_t pmid=0)const;
+        EXPORT  std::vector<uint16_t> getPms() const;
+        EXPORT  DBROOTS_struct(const DBROOTS_struct&);
+        EXPORT  DBROOTS_struct& operator= (const DBROOTS_struct&);
+        EXPORT  DBROOTS_struct& set(const DBROOTS_struct&);
+        EXPORT  inline  int size() const {
+            int size = 0;
+            while (size < MAX_DATA_REPLICATESIZE && dbRoots[size])
+            {
+                size++;
+            }
+            return size;
+        };
+    
+        EXPORT void serialize(messageqcpp::ByteStream &bs) const;
+    	EXPORT void deserialize(messageqcpp::ByteStream &bs);
 	};
-    EXPORT   uint64_t getUintVal() {
-        uint64_t dbRoot=0;
-        dbRoot=(uint64_t)dbRoots[3]<<48 + (uint64_t)dbRoots[2]<<32 + (uint64_t)dbRoots[1]<<16 + (uint64_t)dbRoots[0];
-        return dbRoot;
-    };
-
-    EXPORT  uint16_t & operator [](int i) ;
-    EXPORT  uint16_t get(int i) const;
-    EXPORT  inline bool isMaster(uint16_t dbr=0) const{
-        if(dbr==0){
-            dbr=getPmDbr();
-        }
-        return dbr==dbRoots[0];
-    };
-    EXPORT   void remove(uint16_t dbr);
-    EXPORT   uint16_t getPmDbr(uint16_t pmid=0)const;
-    EXPORT  std::vector<uint16_t> getPms() const;
-    EXPORT  DBROOTS_struct(const DBROOTS_struct&);
-    EXPORT  DBROOTS_struct& operator= (const DBROOTS_struct&);
-    EXPORT  DBROOTS_struct& set(const DBROOTS_struct&);
-    EXPORT  inline  int size() const {
-        int size = 0;
-        while (size < MAX_DATA_REPLICATESIZE && dbRoots[size])
-        {
-            size++;
-        }
-    };
-
-    EXPORT void serialize(messageqcpp::ByteStream &bs) const;
-	EXPORT void deserialize(messageqcpp::ByteStream &bs);
-};
-
+	
 EXPORT bool operator==( const BRM::DBROOTS_struct&, const BRM::DBROOTS_struct&);
 EXPORT bool operator!=( const BRM::DBROOTS_struct&, const BRM::DBROOTS_struct&);
 EXPORT bool operator>( const BRM::DBROOTS_struct&, const BRM::DBROOTS_struct&);
@@ -105,7 +106,107 @@ inline std::ostream & operator<<(std::ostream & os, const std::vector<uint16_t>&
     }
 	return os;
     };
-
+	    
+    struct FBO_struct {
+        DBROOTS_struct vbOids;
+        int fbos[MAX_DATA_REPLICATESIZE];
+    
+        EXPORT FBO_struct(){
+            memset(fbos,0,sizeof(BRM::FBO_struct));
+            };
+    	EXPORT FBO_struct(int32_t fbo){
+    	    fbos[0]=fbo;
+    	};
+        EXPORT  uint32_t  operator [](int i) const{
+            return fbos[i];
+            };
+        EXPORT  void set(int i,int32_t fbo){
+            fbos[i]=fbo;
+            };
+        EXPORT   int remove(uint16_t dbr){
+            int i=vbOids.remove(dbr);
+            if(i>=0){
+                return remove(i);
+            }
+            return -1;
+        };
+        EXPORT   int32_t remove(int i){
+            assert(i<MAX_DATA_REPLICATESIZE);
+            uint32_t fbo=fbos[i];
+            int j=i;
+            for (j=i; j < MAX_DATA_REPLICATESIZE-1 ; j++){
+                if(!fbos[j+1])
+                    break;
+                fbos[j]=fbos[j+1];
+            }
+            fbos[j]=0;
+            return fbo;
+        };
+        EXPORT  FBO_struct(const FBO_struct& e){
+            memcpy(&fbos,&e.fbos,sizeof(FBO_struct&));
+        };
+        EXPORT  FBO_struct& operator= (const FBO_struct& e){
+            memcpy(&fbos,&e.fbos,sizeof(FBO_struct&));
+	        return *this;
+	    };
+        EXPORT  inline  int size() const {
+            int size = 0;
+            while (size < MAX_DATA_REPLICATESIZE && fbos[size])
+            {
+                size++;
+            }
+            return size;
+        };
+    
+    EXPORT void serialize(messageqcpp::ByteStream &bs) const{
+        for (int n=0; n<MAX_DATA_REPLICATESIZE; n++){
+        bs<<fbos[n];
+    }};
+    EXPORT void deserialize(messageqcpp::ByteStream &bs){
+        for (int n=0; n<MAX_DATA_REPLICATESIZE; n++){
+        bs>>fbos[n];
+    }};
+    };
+    
+inline EXPORT bool operator==( const BRM::FBO_struct& a, const BRM::FBO_struct& b){
+    for (int n=0; n<MAX_DATA_REPLICATESIZE; n++)
+    {
+        if(a.fbos[n] != b.fbos[n]){
+            return false;
+        }
+    }
+    return true;
+    };
+inline EXPORT bool operator!=( const BRM::FBO_struct&a, const BRM::FBO_struct&b){return !(a==b);};
+inline EXPORT bool operator>( const BRM::FBO_struct&a, const BRM::FBO_struct&b);
+inline EXPORT bool operator>=( const BRM::FBO_struct&a, const BRM::FBO_struct&b);
+inline EXPORT bool operator<( const BRM::FBO_struct&a, const BRM::FBO_struct&b);
+inline EXPORT bool operator<=( const BRM::FBO_struct&a, const BRM::FBO_struct&b);
+inline EXPORT std::ostream & operator<<(std::ostream & os, const FBO_struct &a){
+    for (int n=0; n<MAX_DATA_REPLICATESIZE; n++){
+        if(n>0){
+            os<<".";
+        }
+        os <<  a.fbos[n]  ;
+    }
+	return os;
+	};
+inline EXPORT std::istream & operator>>(std::istream & is, FBO_struct & a){
+    for (int n=0; n<MAX_DATA_REPLICATESIZE; n++){
+        if(n>0){
+            is.ignore();
+        }
+        is >>  a.fbos[n] ;
+    }
+	return is;
+	};
+inline messageqcpp::ByteStream& operator<<(messageqcpp::ByteStream& bs, const FBO_struct& s){
+    s.serialize(bs); return bs;
+    };
+inline messageqcpp::ByteStream& operator>>(messageqcpp::ByteStream& bs, FBO_struct& s){
+    s.deserialize(bs); return bs;
+    };
+   
 // Logical partition number descriptor
 struct LogicalPartition
 {

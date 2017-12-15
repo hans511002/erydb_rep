@@ -298,11 +298,12 @@ struct CreateStripeColumnExtentsArgOut {
 typedef std::vector<LBIDRange> LBIDRange_v; 
 
 /// Describes a contiguous range of blocks in the Version Buffer
-class VBRange : public messageqcpp::Serializeable {
+class VBRange{ // : public messageqcpp::Serializeable 
 
 	public:
-		OID_t vbOID;
-		uint32_t vbFBO;
+	    FBO_struct vbFBO;
+		//OID_t vbOID;
+		//uint32_t vbFBO;
 		uint32_t size;
 
 		EXPORT VBRange();
@@ -311,8 +312,14 @@ class VBRange : public messageqcpp::Serializeable {
 		EXPORT virtual ~VBRange();
 		EXPORT virtual void serialize(messageqcpp::ByteStream& bs) const;
 		EXPORT virtual void deserialize(messageqcpp::ByteStream& bs);
+		
 };
-
+inline messageqcpp::ByteStream& operator<<(messageqcpp::ByteStream& bs, const VBRange& s){
+    s.serialize(bs); return bs;
+    };
+inline messageqcpp::ByteStream& operator>>(messageqcpp::ByteStream& bs, VBRange& s){
+    s.deserialize(bs); return bs;
+    };
 // Structure used to return HWM information for each DbRoot in a PM
 struct EmDbRootHWMInfo {
 	uint32_t	partitionNum; // last partition in dbRoot

@@ -81,7 +81,7 @@ std::vector<uint16_t> DBROOTS_struct::getPms()const{
     return oamcache->getDBrootPms(dbRoot);
 };
 
-void DBROOTS_struct::remove(uint16_t dbr){
+int DBROOTS_struct::remove(uint16_t dbr){
     int n=-1,j=0;
     while (++n < MAX_DATA_REPLICATESIZE && dbRoots[n]!=0 ) {
         if( dbRoots[n] == dbr){
@@ -91,9 +91,10 @@ void DBROOTS_struct::remove(uint16_t dbr){
                 dbRoots[j]=dbRoots[j+1];
             }
             dbRoots[j]=0;
-            break;
+            return n;
         }
     }
+    return -1;
 };
 
 void DBROOTS_struct::serialize(messageqcpp::ByteStream &bs) const{
