@@ -301,9 +301,8 @@ typedef std::vector<LBIDRange> LBIDRange_v;
 class VBRange{ // : public messageqcpp::Serializeable 
 
 	public:
-	    FBO_struct vbFBO;
-		//OID_t vbOID;
-		//uint32_t vbFBO;
+		OID_t vbOID;
+		uint32_t vbFBO;
 		uint32_t size;
 
 		EXPORT VBRange();

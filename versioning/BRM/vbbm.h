@@ -75,13 +75,14 @@ class VSS;
 
 struct VBFileMetadata {
 	OID_t OID;
-	uint64_t fileSize;
-	uint64_t nextOffset;
+	uint32_t fileSize;
+	uint32_t nextOffset;
 };
 
 struct VBBMEntry {
 	LBID_t lbid;
-	FBO_struct vbFbo;
+    DBROOTS_struct vbOids;
+    FBO_struct vbFbo;
 	VER_t verID;
 	//OID_t vbOID;
 	//uint32_t vbFBO;
@@ -174,9 +175,9 @@ class VBBM : public Undoable {
 
 		EXPORT void lock(OPS op);
 		EXPORT void release(OPS op);
-		EXPORT int lookup(LBID_t lbid, VER_t ver,   FBO_struct &fbo ) const;
+		EXPORT int lookup(LBID_t lbid, VER_t ver, DBROOTS_struct &vbOids, FBO_struct &fbo ) const;
 		EXPORT void insert(LBID_t lbid, VER_t ver, const FBO_struct &fbo, bool loading = false);
-		EXPORT void getBlocks(int num, const DBROOTS_struct &vbOID, std::vector<VBRange> &vbRanges, VSS& vss,bool flushPMCache);
+		EXPORT void getBlocks(int num, const DBROOTS_struct &vbOID, std::vector<std::vector<VBRange>> &vbRanges, VSS& vss,bool flushPMCache);
 		EXPORT void removeEntry(LBID_t, VER_t ver);
 
 		EXPORT int size() const;

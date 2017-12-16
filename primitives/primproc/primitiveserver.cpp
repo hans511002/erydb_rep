@@ -498,7 +498,7 @@ void loadBlock (uint64_t lbid,QueryContext v,uint32_t t,int compType,void* buffe
 	// if this block is locked by this session, don't cache it, just read it directly from disk
 	if (txn > 0 && ver == txn && !flg && !noVB) {
 		uint64_t offset;
-		uint32_t fbo;
+        FBO_struct fbo;
 		boost::scoped_array<uint8_t> newBufferSa;
 		boost::scoped_array<char> cmpHdrBufSa;
 		boost::scoped_array<char> cmpBufSa;
@@ -1050,15 +1050,7 @@ int DictScanJob::operator()()
 		}
 
 		for (uint16_t i = 0; i < runCount; ++i) {
-			loadBlock(cmd->LBID,
-					  verInfo,
-					  cmd->Hdr.TransactionID,
-					  cmd->CompType,
-					  data,
-					  &wasBlockInCache,
-					  &blocksRead,
-					  fLBIDTraceOn,
-					  session);
+			loadBlock(cmd->LBID,verInfo,cmd->Hdr.TransactionID,cmd->CompType,data,&wasBlockInCache,&blocksRead,fLBIDTraceOn,session);
 			pproc.setBlockPtr((int*) data);
 			pproc.p_TokenByScan(cmd, output, output_buf_size, utf8, eqFilter);
 
@@ -1244,8 +1236,7 @@ struct BPPHandler
 
 		// make the new BPP object
 		bppv.reset(new BPPV());
-		bpp.reset(new BatchPrimitiveProcessor(bs, fPrimitiveServerPtr->prefetchThreshold(),
-											  bppv->getSendThread()));
+		bpp.reset(new BatchPrimitiveProcessor(bs, fPrimitiveServerPtr->prefetchThreshold(),bppv->getSendThread()));
 		if (bs.length() > 0)
 			bs >> initMsgsLeft;
 		else {

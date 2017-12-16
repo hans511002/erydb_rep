@@ -122,8 +122,7 @@ public:
 	 * 
 	 * @return 0 on success, non-0 on error (see brmtypes.h)
 	 */
-	EXPORT int lookupLocal(LBID_t lbid, VER_t verid, bool vbFlag, OID_t& oid,
-		DBROOTS_struct& dbRoot, uint32_t& partitionNum, uint16_t& segmentNum, uint32_t& fileBlockOffset) throw();
+	EXPORT int lookupLocal(LBID_t lbid, VER_t verid, bool vbFlag, OID_t& oid,DBROOTS_struct& dbRoot, uint32_t& partitionNum, uint16_t& segmentNum, FBO_struct &fileBlockOffset) throw();
 
 	/** @brief Get the LBID assigned to the given OID, block offset, partion, and segment.
 	 *

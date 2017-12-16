@@ -62,7 +62,8 @@ public:
 	EXPORT std::string getSystemName();
 	EXPORT std::string getModuleName();
     EXPORT std::vector<uint16_t> getDBrootPms(const BRM::DBROOTS_struct &dbRoot);
-     
+    EXPORT unsigned  getRepSize();
+    
 private:
 	OamCache();
 	OamCache(const OamCache &);

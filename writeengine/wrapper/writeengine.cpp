@@ -2605,8 +2605,7 @@ namespace WriteEngine
 
     int WriteEngineWrapper::processVersionBuffers(ERYDBDataFile* pFile, const TxnID& txnid,
         const ColStruct& colStruct, int width,
-        int totalRow, const RIDList& ridList,
-        vector<LBIDRange> &   rangeList) {
+        int totalRow, const RIDList& ridList,vector<LBIDRange> &   rangeList) {
         if (erydbdatafile::ERYDBPolicy::useHdfs())
             return 0;
 
@@ -2627,8 +2626,7 @@ namespace WriteEngine
             if (successFlag) {
                 if (curFbo != lastFbo) {
                     //cout << "processVersionBuffer is processing lbid  " << lbid << endl;
-                    RETURN_ON_ERROR(BRMWrapper::getInstance()->getBrmInfo(
-                        colStruct.dataOid, colStruct.fColPartition, colStruct.fColSegment, curFbo, lbid));
+                    RETURN_ON_ERROR(BRMWrapper::getInstance()->getBrmInfo(colStruct.dataOid, colStruct.fColPartition, colStruct.fColSegment, curFbo, lbid));
                     //cout << "processVersionBuffer is processing lbid  " << lbid << endl;
                     fboList.push_back((uint32_t)curFbo);
                     range.start = lbid;
@@ -2677,8 +2675,7 @@ namespace WriteEngine
                 if (successFlag) {
                     if (curFbo != lastFbo) {
                         //cout << "processVersionBuffer is processing curFbo  " << curFbo << endl;
-                        RETURN_ON_ERROR(BRMWrapper::getInstance()->getBrmInfo(
-                            colStructList[j].dataOid, colStructList[j].fColPartition, colStructList[j].fColSegment, curFbo, lbid));
+                        RETURN_ON_ERROR(BRMWrapper::getInstance()->getBrmInfo(colStructList[j].dataOid, colStructList[j].fColPartition, colStructList[j].fColSegment, curFbo, lbid));
                         //cout << "beginVBCopy is processing lbid:transaction  " << lbid <<":"<<txnid<< endl;
                         fboList.push_back((uint32_t)curFbo);
                         range.start = lbid;
@@ -3635,10 +3632,7 @@ namespace WriteEngine
 
             // set params
             colOp->initColumn(curCol);
-            colOp->setColParam(curCol, 0, curColStruct.colWidth,
-                curColStruct.colDataType, curColStruct.colType, curColStruct.dataOid,
-                curColStruct.fCompressionType, &curColStruct.fColDbRoot,
-                curColStruct.fColPartition, curColStruct.fColSegment);
+            colOp->setColParam(curCol, 0, curColStruct.colWidth,curColStruct.colDataType, curColStruct.colType, curColStruct.dataOid,curColStruct.fCompressionType, &curColStruct.fColDbRoot,curColStruct.fColPartition, curColStruct.fColSegment);
 
 
             ColExtsInfo aColExtsInfo = aTbaleMetaData->getColExtsInfo(curColStruct.dataOid);
@@ -3712,10 +3706,7 @@ namespace WriteEngine
                     blocksProcessed += rangeLists[i].size();
 
                     //timer.start("Delete:writeVB");
-                    rc = BRMWrapper::getInstance()->
-                        writeVB(curCol.dataFile.pFile, (BRM::VER_t)txnid,
-                            curColStruct.dataOid, fboLists[i], rangeLists[i],
-                            colOp, curFreeList, curColStruct.fColDbRoot, true);
+                    rc = BRMWrapper::getInstance()->writeVB(curCol.dataFile.pFile, (BRM::VER_t)txnid,curColStruct.dataOid, fboLists[i], rangeLists[i],colOp, curFreeList, curColStruct.fColDbRoot, true);
                 }
             }
             //timer.stop("Delete:writeVB");	
@@ -4213,7 +4204,15 @@ namespace WriteEngine
         // BUG 4312
         RemoveTxnFromLBIDMap(txnid);
 
-        return BRMWrapper::getInstance()->rollBackVersion(txnid, sessionId);
+        OamCache * oamCache= OamCache::makeOamCache();
+        if (oamCache->getLocalPMId() == oamCache->getOAMParentModuleId())
+        {
+        //return BRMWrapper::getInstance()->rollBackVersion(txnid, sessionId);
+            return 0;
+        } else
+        {
+            return 0;
+        }
     }
 
     int WriteEngineWrapper::updateNextValue(const TxnID txnId, const OID& columnoid, const uint64_t nextVal, const uint32_t sessionID, DBROOTS_struct& dbRoot) {

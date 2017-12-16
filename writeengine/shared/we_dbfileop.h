@@ -61,162 +61,78 @@ public:
    /**
     * @brief Get an entry within a subblock
     */
-    EXPORT void          getSubBlockEntry( unsigned char* blockBuf,
-                                           const int sbid,
-                                           const int entryNo,
-                                           const int width,
-                                           void* pStruct ) ;
+    EXPORT void          getSubBlockEntry( unsigned char* blockBuf,const int sbid,const int entryNo,const int width,void* pStruct ) ;
 
    /**
     * @brief Get an entry within a subblock using block information
     */
-    void                 getSubBlockEntry( DataBlock* block,
-                                           const int sbid,
-                                           const int entryNo,
-                                           const int width,
-                                           void* pStruct )
+    void                 getSubBlockEntry( DataBlock* block,const int sbid,const int entryNo,const int width,void* pStruct )
     { getSubBlockEntry( block->data, sbid, entryNo, width, pStruct );}
 
    /**
     * @brief Read DB file to a buffer
     */
-    EXPORT virtual int   readDBFile(       ERYDBDataFile* pFile,
-                                           unsigned char* readBuf,
-                                           const uint64_t lbid,
-                                           const bool isFbo = false );
-    EXPORT int           readDBFile(       CommBlock& cb,
-                                           unsigned char* readBuf,
-                                           const uint64_t lbid );
-
-    EXPORT int           readDBFile(       ERYDBDataFile* pFile,
-                                           DataBlock* block,
-                                           const uint64_t lbid,
-                                           const bool isFbo = false );
-    int                  readDBFile(       CommBlock& cb,
-                                           DataBlock* block,
-                                           const uint64_t lbid )
-    { return readDBFile( cb, block->data, lbid );}
+    EXPORT virtual int   readDBFile(       ERYDBDataFile* pFile,unsigned char* readBuf,const uint64_t lbid,const bool isFbo = false );
+    EXPORT int           readDBFile(       CommBlock& cb,unsigned char* readBuf,const uint64_t lbid );
+    EXPORT int           readDBFile(       ERYDBDataFile* pFile,DataBlock* block,const uint64_t lbid,const bool isFbo = false );
+    int                  readDBFile(       CommBlock& cb,DataBlock* block,const uint64_t lbid ){ return readDBFile( cb, block->data, lbid );}
 
    /**
     * @brief Get an entry within a subblock and also populate block buffer
     *
     */
-    EXPORT const int     readSubBlockEntry(ERYDBDataFile* pFile,
-                                           DataBlock* block,
-                                           const uint64_t lbid,
-                                           const int sbid,
-                                           const int entryNo,
-                                           const int width,
-                                           void* pStruct ) ;
+    EXPORT const int     readSubBlockEntry(ERYDBDataFile* pFile,DataBlock* block,const uint64_t lbid,const int sbid,const int entryNo,const int width,void* pStruct ) ;
 
-    EXPORT const int     readSubBlockEntry(CommBlock& cb,
-                                           DataBlock* block,
-                                           const uint64_t lbid,
-                                           const int sbid,
-                                           const int entryNo,
-                                           const int width,
-                                           void* pStruct );
+    EXPORT const int     readSubBlockEntry(CommBlock& cb,DataBlock* block,const uint64_t lbid,const int sbid,const int entryNo,const int width,void* pStruct );
 
    /**
     * @brief Set an entry within a subblock
     */
-    EXPORT void          setSubBlockEntry( unsigned char* blockBuf,
-                                           const int sbid,
-                                           const int entryNo,
-                                           const int width,
-                                           const void* pStruct ) ;
+    EXPORT void          setSubBlockEntry( unsigned char* blockBuf,const int sbid,const int entryNo,const int width,const void* pStruct ) ;
 
    /**
     * @brief Set an entry within a subblock using block information
     */
-    void                 setSubBlockEntry( DataBlock* block,
-                                           const int sbid,
-                                           const int entryNo,
-                                           const int width,
-                                           const void* pStruct )
+    void                 setSubBlockEntry( DataBlock* block,const int sbid,const int entryNo,const int width,const void* pStruct )
     { block->dirty = true;
-      setSubBlockEntry( block->data, sbid, entryNo, width, pStruct ); }
+      setSubBlockEntry( block->data, sbid, entryNo, width, pStruct ); 
+    }
 
    /**
     * @brief Lbid Write a buffer to a DB file
     */
-    EXPORT virtual int   writeDBFile(      ERYDBDataFile* pFile,
-                                           const unsigned char* writeBuf,
-                                           const uint64_t lbid,
-                                           const int numOfBlock = 1 );
-    EXPORT int           writeDBFile(      CommBlock& cb,
-                                           const unsigned char* writeBuf,
-                                           const uint64_t lbid,
-                                           const int numOfBlock = 1 );
+    EXPORT virtual int   writeDBFile(      ERYDBDataFile* pFile,const unsigned char* writeBuf,const uint64_t lbid,const int numOfBlock = 1 );
+    EXPORT int           writeDBFile(      CommBlock& cb,const unsigned char* writeBuf,const uint64_t lbid,const int numOfBlock = 1 );
 
    /**
     * @brief Write designated block(s) w/o writing to Version Buffer or cache.
     */
-    EXPORT  int          writeDBFileNoVBCache(CommBlock & cb,
-                                           const unsigned char * writeBuf,
-                                           const int fbo,
-                                           const int numOfBlock = 1);
-    EXPORT virtual int   writeDBFileNoVBCache(ERYDBDataFile *pFile,
-                                           const unsigned char * writeBuf,
-                                           const int fbo,
-                                           const int numOfBlock = 1);
+    EXPORT  int          writeDBFileNoVBCache(CommBlock & cb,const unsigned char * writeBuf,const int fbo,const int numOfBlock = 1);
+    EXPORT virtual int   writeDBFileNoVBCache(ERYDBDataFile *pFile,const unsigned char * writeBuf,const int fbo,const int numOfBlock = 1);
 
-    int                  writeDBFile(      ERYDBDataFile* pFile,
-                                           DataBlock* block,
-                                           const uint64_t lbid )
-    { block->dirty=false; return writeDBFile( pFile, block->data, lbid ); }
-    int                  writeDBFile(      CommBlock& cb,
-                                           DataBlock* block,
-                                           const uint64_t lbid )
-    { return writeDBFile( cb, block->data, lbid ); }
+    int                  writeDBFile(      ERYDBDataFile* pFile,DataBlock* block,const uint64_t lbid ){ block->dirty=false; return writeDBFile( pFile, block->data, lbid ); }
+    int                  writeDBFile(      CommBlock& cb,DataBlock* block,const uint64_t lbid ){ return writeDBFile( cb, block->data, lbid ); }
 
-    EXPORT virtual int   writeDBFileFbo(   ERYDBDataFile* pFile,
-                                           const unsigned char* writeBuf,
-                                           const uint64_t fbo,
-                                           const int numOfBlock  );
+    EXPORT virtual int   writeDBFileFbo(   ERYDBDataFile* pFile,const unsigned char* writeBuf,const uint64_t fbo,const int numOfBlock  );
 
-    int                  writeDBFileNoVBCache(CommBlock & cb,
-                                           DataBlock * block,
-                                           const int fbo)
-    { return writeDBFileNoVBCache(cb, block->data, fbo); }
+    int                  writeDBFileNoVBCache(CommBlock & cb,DataBlock * block,const int fbo){ return writeDBFileNoVBCache(cb, block->data, fbo); }
 
    /**
     * @brief Write a sub block entry directly to a DB file
     */
-    EXPORT const int     writeSubBlockEntry(ERYDBDataFile* pFile,
-                                           DataBlock* block,
-                                           const uint64_t lbid,
-                                           const int sbid,
-                                           const int entryNo,
-                                           const int width,
-                                           void* pStruct );
+    EXPORT const int     writeSubBlockEntry(ERYDBDataFile* pFile,DataBlock* block,const uint64_t lbid,const int sbid,const int entryNo,const int width,void* pStruct );
 
-    EXPORT const int     writeSubBlockEntry(CommBlock& cb,
-                                           DataBlock* block,
-                                           const uint64_t lbid,
-                                           const int sbid,
-                                           const int entryNo,
-                                           const int width,
-                                           void* pStruct ) ;
+    EXPORT const int     writeSubBlockEntry(CommBlock& cb,DataBlock* block,const uint64_t lbid,const int sbid,const int entryNo,const int width,void* pStruct ) ;
 
    /**
     * @brief Write to version buffer
     */
-    EXPORT const int     writeVB(          ERYDBDataFile* pFile,
-                                           const OID oid,
-                                           const uint64_t lbid );
+    EXPORT const int     writeVB(          ERYDBDataFile* pFile,const OID oid,const uint64_t lbid );
+    EXPORT virtual int   readDbBlocks(     ERYDBDataFile* pFile,unsigned char* readBuf,uint64_t fbo,size_t n);
 
-    EXPORT virtual int   readDbBlocks(     ERYDBDataFile* pFile,
-                                           unsigned char* readBuf,
-                                           uint64_t fbo,
-                                           size_t n);
+    EXPORT virtual int   restoreBlock(     ERYDBDataFile* pFile,const unsigned char* writeBuf,uint64_t fbo);
 
-    EXPORT virtual int   restoreBlock(     ERYDBDataFile* pFile,
-                                           const unsigned char* writeBuf,
-                                           uint64_t fbo);
-
-    EXPORT virtual ERYDBDataFile* getFilePtr(const Column& column,
-                                           bool useTmpSuffix);
+    EXPORT virtual ERYDBDataFile* getFilePtr(const Column& column,bool useTmpSuffix);
 
     virtual void chunkManager(ChunkManager* ptr) { m_chunkManager = ptr;  }
     virtual ChunkManager* chunkManager()         { return m_chunkManager; }

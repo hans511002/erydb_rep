@@ -322,6 +322,10 @@ string OamCache::getModuleName()
 
 	return moduleName; 
 }
+unsigned  OamCache::getRepSize() {
+    BRM::ExtentMap em;
+    return em.getRepSize();
+};
 
 unsigned OamCache::getPMCount() {
     mutex::scoped_lock lk(cacheLock);

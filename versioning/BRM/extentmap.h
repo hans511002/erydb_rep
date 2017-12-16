@@ -267,7 +267,7 @@ public:
 	 * with LBID
 	 * @return 0 on success, -1 on error
 	 */
-	EXPORT int lookupLocal(LBID_t LBID, int& OID, DBROOTS_struct& dbRoot, uint32_t& partitionNum, uint16_t& segmentNum, uint32_t& fileBlockOffset);
+	EXPORT int lookupLocal(LBID_t LBID, int& OID, DBROOTS_struct& dbRoot, uint32_t& partitionNum, uint16_t& segmentNum, FBO_struct& fileBlockOffset);
 
 	/** @brief Look up the LBID associated with a given OID, offset, partition, and segment.
 	 *
@@ -307,11 +307,7 @@ public:
 	 *        containing the given offset
 	 * @return 0 on success, -1 on error
 	 */
-	int lookupLocalStartLbid(int OID,
-							 uint32_t partitionNum,
-							 uint16_t segmentNum,
-							 uint32_t fileBlockOffset,
-							 LBID_t& LBID);
+	int lookupLocalStartLbid(int OID,uint32_t partitionNum,uint16_t segmentNum,uint32_t fileBlockOffset,LBID_t& LBID);
 
 	/** @brief Get a complete list of LBID ranges assigned to an OID
 	 *
@@ -338,12 +334,7 @@ public:
 	 * @param extents (out) list of lbids, numBlks, and fbo for new extents
 	 * @return 0 on success, -1 on error
 	 */
-	EXPORT void createStripeColumnExtents(
-					const std::vector<CreateStripeColumnExtentsArgIn>& cols,
-					DBROOTS_struct& dbRoot,
-					uint32_t& partitionNum,
-					uint16_t& segmentNum,
-                    std::vector<CreateStripeColumnExtentsArgOut>& extents);
+	EXPORT void createStripeColumnExtents(const std::vector<CreateStripeColumnExtentsArgIn>& cols,DBROOTS_struct& dbRoot,uint32_t& partitionNum,uint16_t& segmentNum,std::vector<CreateStripeColumnExtentsArgOut>& extents);
 
 	/** @brief Allocates an extent for a column file
 	 * 
@@ -370,16 +361,8 @@ public:
 	 */
 	// @bug 4091: To be deprecated as public function.  Should just be a
 	// private function used by createStripeColumnExtents().
-	EXPORT void createColumnExtent_DBroot(int OID,
-					uint32_t  colWidth,
-					DBROOTS_struct&  dbRoot,
-                    execplan::erydbSystemCatalog::ColDataType colDataType,
-					uint32_t& partitionNum,
-					uint16_t& segmentNum,
-					LBID_t&    lbid,
-					int&       allocdsize,
-					uint32_t& startBlockOffset,
-					bool       useLock = true);
+	EXPORT void createColumnExtent_DBroot(int OID,uint32_t  colWidth,DBROOTS_struct&  dbRoot,execplan::erydbSystemCatalog::ColDataType colDataType,uint32_t& partitionNum,
+					uint16_t& segmentNum,LBID_t&    lbid,int&       allocdsize,uint32_t& startBlockOffset,bool       useLock = true);
 
 	/** @brief Allocates extent for exact file that is specified
 	 * 
@@ -435,10 +418,7 @@ public:
 	 * @param segmentNum Last segment in partitionNum to be kept.
 	 * @param hwm HWM to be assigned to the last extent that is kept.
 	 */
-	EXPORT void rollbackColumnExtents(int oid,
-					uint32_t partitionNum,
-					uint16_t segmentNum,
-					HWM_t     hwm);
+	EXPORT void rollbackColumnExtents(int oid,uint32_t partitionNum,uint16_t segmentNum,HWM_t     hwm);
 
 	/** @brief Rollback (delete) set of extents for specified OID & DBRoot.
 	 *
@@ -787,7 +767,13 @@ public:
     /** 为一个em分配备份dbroot */
     int getMinDataDBRoots(DBROOTS_struct * dbroots,uint16_t mdbr=0);
     int getSysDataDBRoots(DBROOTS_struct * dbroots);
-
+ 
+    EXPORT unsigned getFilesPerColumnPartition();
+    unsigned getExtentsPerSegmentFile();
+    unsigned getRepSize();
+    unsigned getPMCount();
+    unsigned getDbRootCount();
+    void getPmDbRoots(int pm, std::vector<uint16_t>& dbRootList);
 private:
 	static const size_t EM_INCREMENT_ROWS = 100;
 	static const size_t EM_INITIAL_SIZE = EM_INCREMENT_ROWS * 10 * sizeof(EMEntry);
@@ -858,12 +844,7 @@ private:
 	void growFLShmseg();
 	void finishChanges();
 
-	EXPORT unsigned getFilesPerColumnPartition();
-	unsigned getExtentsPerSegmentFile();
-    unsigned getRepSize();
-    unsigned getPMCount();
-	unsigned getDbRootCount();
-	void getPmDbRoots(int pm, std::vector<uint16_t>& dbRootList);
+
 	void checkReloadConfig();
 	ShmKeys fShmKeys;
 

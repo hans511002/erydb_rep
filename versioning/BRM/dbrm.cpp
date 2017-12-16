@@ -191,7 +191,7 @@ namespace BRM {
     }
 
     // @bug 1055+.  New functions added for multiple files per OID enhancement.
-    int DBRM::lookupLocal(LBID_t lbid, VER_t verid, bool vbFlag, OID_t& oid, DBROOTS_struct& dbRoot, uint32_t& partitionNum, uint16_t& segmentNum, uint32_t& fileBlockOffset) throw() {
+    int DBRM::lookupLocal(LBID_t lbid, VER_t verid, bool vbFlag, OID_t& oid, DBROOTS_struct& dbRoot, uint32_t& partitionNum, uint16_t& segmentNum, FBO_struct &fileBlockOffset) throw() {
 #ifdef BRM_INFO
         if (fDebug) {
             TRACER_WRITELATER("lookupLocal(lbid,ver,..)");
@@ -217,9 +217,10 @@ namespace BRM {
             else {
                 vbbm->lock(VBBM::READ);
                 locked[0] = true;
-                ret = vbbm->lookup(lbid, verid, oid, fileBlockOffset);
+                ret = vbbm->lookup(lbid, verid, dbRoot, fileBlockOffset);
                 vbbm->release(VBBM::READ);
                 locked[0] = false;
+                oid = dbRoot[0];
                 if (ret < 0) {
                     vss->lock(VSS::READ);
                     locked[1] = true;

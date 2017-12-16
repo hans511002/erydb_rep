@@ -1403,7 +1403,8 @@ cleanup:
         newfboList.swap(*fboList);
     }
 
-    int BRMWrapper::writeVB(ERYDBDataFile* pSourceFile, const VER_t transID, const OID weOid, std::vector<uint32_t>& fboList, std::vector<LBIDRange>& rangeList, DbFileOp* pFileOp, std::vector<VBRange>& freeList, const DBROOTS_struct& dbRoot, bool skipBeginVBCopy)
+    int BRMWrapper::writeVB(ERYDBDataFile* pSourceFile, const VER_t transID, const OID weOid, std::vector<uint32_t>& fboList, 
+                            std::vector<LBIDRange>& rangeList, DbFileOp* pFileOp, std::vector<VBRange>& freeList, const DBROOTS_struct& dbRoot, bool skipBeginVBCopy)
     {
         if (erydbdatafile::ERYDBPolicy::useHdfs())
             return 0;

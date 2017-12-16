@@ -1683,7 +1683,7 @@ int ExtentMap::lookup(LBID_t lbid, LBID_t& firstLbid, LBID_t& lastLbid)
 }
 
 // @bug 1055+.  New functions added for multiple files per OID enhancement.
-int ExtentMap::lookupLocal(LBID_t lbid, int& OID, DBROOTS_struct& dbRoot, uint32_t& partitionNum, uint16_t& segmentNum, uint32_t& fileBlockOffset)
+int ExtentMap::lookupLocal(LBID_t lbid, int& OID, DBROOTS_struct& dbRoot, uint32_t& partitionNum, uint16_t& segmentNum, FBO_struct & fileBlockOffset)
 {
 #ifdef BRM_INFO
         if (fDebug)

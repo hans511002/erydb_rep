@@ -108,29 +108,29 @@ inline std::ostream & operator<<(std::ostream & os, const std::vector<uint16_t>&
     };
 	    
     struct FBO_struct {
-        DBROOTS_struct vbOids;
-        int fbos[MAX_DATA_REPLICATESIZE];
+        //DBROOTS_struct vbOids;
+        uint32_t fbos[MAX_DATA_REPLICATESIZE];
     
         EXPORT FBO_struct(){
             memset(fbos,0,sizeof(BRM::FBO_struct));
             };
-    	EXPORT FBO_struct(int32_t fbo){
+    	EXPORT inline FBO_struct(int32_t fbo){
     	    fbos[0]=fbo;
     	};
-        EXPORT  uint32_t  operator [](int i) const{
+        EXPORT inline uint32_t  operator [](int i) const{
             return fbos[i];
             };
-        EXPORT  void set(int i,int32_t fbo){
+        EXPORT inline  void set(int i,int32_t fbo){
             fbos[i]=fbo;
             };
-        EXPORT   int remove(uint16_t dbr){
-            int i=vbOids.remove(dbr);
-            if(i>=0){
-                return remove(i);
-            }
-            return -1;
-        };
-        EXPORT   int32_t remove(int i){
+        //EXPORT   int remove(uint16_t dbr){
+        //    int i=vbOids.remove(dbr);
+        //    if(i>=0){
+        //        return remove(i);
+        //    }
+        //    return -1;
+        //};
+        EXPORT inline  int32_t remove(int i){
             assert(i<MAX_DATA_REPLICATESIZE);
             uint32_t fbo=fbos[i];
             int j=i;
@@ -142,13 +142,23 @@ inline std::ostream & operator<<(std::ostream & os, const std::vector<uint16_t>&
             fbos[j]=0;
             return fbo;
         };
-        EXPORT  FBO_struct(const FBO_struct& e){
+        EXPORT inline FBO_struct(const FBO_struct& e){
             memcpy(&fbos,&e.fbos,sizeof(FBO_struct&));
         };
-        EXPORT  FBO_struct& operator= (const FBO_struct& e){
+        EXPORT inline FBO_struct& operator= (const FBO_struct& e){
             memcpy(&fbos,&e.fbos,sizeof(FBO_struct&));
 	        return *this;
 	    };
+        EXPORT inline FBO_struct& operator= (const FBO_struct& e)
+        {
+            memcpy(&fbos, &e.fbos, sizeof(FBO_struct&));
+            return *this;
+        };
+        EXPORT inline FBO_struct& operator= (uint32_t fbo)
+        {
+            fbos[0] = fbo;
+            return *this;
+        };
         EXPORT  inline  int size() const {
             int size = 0;
             while (size < MAX_DATA_REPLICATESIZE && fbos[size])

@@ -267,8 +267,7 @@ void DbFileOp::setSubBlockEntry( unsigned char* blockBuf, const int sbid,
  *    NO_ERROR if success
  *    other number if something wrong
  ***********************************************************/
-int DbFileOp::writeDBFile( CommBlock& cb, const unsigned char* writeBuf, 
-                           const uint64_t lbid, const int numOfBlock ) 
+int DbFileOp::writeDBFile( CommBlock& cb, const unsigned char* writeBuf, const uint64_t lbid, const int numOfBlock ) 
 { 
     CacheKey key;
     int ret;
@@ -430,9 +429,7 @@ const int DbFileOp::writeVB( ERYDBDataFile* pFile, const OID oid, const uint64_t
 
     if (transId !=((TxnID)INVALID_NUM))
     { 
-        rc= BRMWrapper::getInstance()->writeVB( pFile,
-                                                (const VER_t)transId,
-                                                oid, lbid, this );
+        rc= BRMWrapper::getInstance()->writeVB( pFile,(const VER_t)transId,oid, lbid, this );
 //@Bug 4671. The error is already logged by worker node.
 /*        if (rc != NO_ERROR) 
         { 

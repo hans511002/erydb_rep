@@ -1557,71 +1557,123 @@ int DDLPackageProcessor::rollBackTransaction(uint64_t uniqueId, BRM::TxnID txnID
 	bytestream << sessionID;
 	bytestream << (uint32_t)txnID.id;
 	uint32_t msgRecived = 0;
-	fWEClient->write_to_all(bytestream);
-	boost::shared_ptr<messageqcpp::ByteStream> bsIn;
-	bsIn.reset(new ByteStream());
-	int rc = 0;
-	ByteStream::byte tmp8;
 	std::string errorMsg;
-	while (1)
-	{
-		if (msgRecived == fWEClient->getPmCount())
-			break;
-		fWEClient->read(uniqueId, bsIn);
-		if ( bsIn->length() == 0 ) //read error
-		{
-			rc = NETWORK_ERROR;
-			fWEClient->removeQueue(uniqueId);
-			break;
-		}			
-		else {
-			*bsIn >> tmp8;
-			rc = tmp8;
-			if (rc != 0) {
-				*bsIn >> errorMsg;
-				fWEClient->removeQueue(uniqueId);
-				break;
-			}
-			else
-				msgRecived++;						
-		}
-	}
-					
-	if ((msgRecived == fWEClient->getPmCount()) && (rc == 0))
-	{
-		bytestream.restart();
-		bytestream << (ByteStream::byte) WE_SVR_ROLLBACK_VERSION;
-		bytestream << uniqueId;
-		bytestream << sessionID;
-		bytestream << (uint32_t) txnID.id;
-		fWEClient->write_to_all(bytestream);
-		bsIn.reset(new ByteStream());
-		msgRecived = 0;
-		while (1)
-		{
-			if (msgRecived == fWEClient->getPmCount())
-				break;
-			fWEClient->read(uniqueId, bsIn);
-			if ( bsIn->length() == 0 ) //read error
-			{
-				fWEClient->removeQueue(uniqueId);
-				break;
-			}			
-			else {
-				*bsIn >> tmp8;
-				rc = tmp8;
-				if (rc != 0) {
-					*bsIn >> errorMsg;
-					fWEClient->removeQueue(uniqueId);
-					break;
-				}
-				else
-					msgRecived++;
-							
-			}
-		}
-	}
-	return rc;
+    int weSize = fWEClient->getPmCount();
+	fWEClient->write_to_all(bytestream);
+    int rc=fWEClient->read(uniqueId, weSize, &errorMsg);
+    if (rc)
+    {
+        fWEClient->removeQueue(uniqueId);
+        return rc;
+    }
+
+	//boost::shared_ptr<messageqcpp::ByteStream> bsIn;
+	//bsIn.reset(new ByteStream());
+	//ByteStream::byte tmp8;
+	//while (1)
+	//{
+	//	if (msgRecived == fWEClient->getPmCount())
+	//		break;
+	//	fWEClient->read(uniqueId, bsIn);
+	//	if ( bsIn->length() == 0 ) //read error
+	//	{
+	//		rc = NETWORK_ERROR;
+	//		fWEClient->removeQueue(uniqueId);
+	//		break;
+	//	}			
+	//	else {
+	//		*bsIn >> tmp8;
+	//		rc = tmp8;
+	//		if (rc != 0) {
+	//			*bsIn >> errorMsg;
+	//			fWEClient->removeQueue(uniqueId);
+	//			break;
+	//		}
+	//		else
+	//			msgRecived++;						
+	//	}
+	//}
+    bytestream.restart();
+    bytestream << (ByteStream::byte) WE_SVR_ROLLBACK_VERSION;
+    bytestream << uniqueId;
+    bytestream << sessionID;
+    bytestream << (uint32_t)txnID.id;
+    fWEClient->write_to_all(bytestream);
+    int weSize = fWEClient->getPmCount();
+    fWEClient->write_to_all(bytestream);
+    int rc = fWEClient->read(uniqueId, weSize, &errorMsg);
+    if (rc)
+    {
+        fWEClient->removeQueue(uniqueId);
+        return rc;
+    }
+     
+    fWEClient->removeQueue(uniqueId);
+    std::vector<BRM::LBID_t> lbidList;
+    rc = fDbrm->getUncommittedLBIDs(txnID.id, lbidList);
+    if (rc != 0)
+    {
+        std::string brmMsg;
+        errorMsg = "DBRM getUncommittedLBIDs [ ";
+        BRM::errString(rc, brmMsg);
+        errorMsg += brmMsg;
+        errorMsg += "]";
+        return rc;
+    }
+    BRM::LBIDRange   range;
+    std::vector<BRM::LBIDRange> lbidRangeList;
+    for (size_t i = 0; i < lbidList.size(); i++)
+    {
+        range.start = lbidList[i];
+        range.size = 1;
+        lbidRangeList.push_back(range);
+    }
+    rc = fDbrm->vbRollback(txnID.id, lbidRangeList);
+    if (rc != 0)
+    {
+        std::string brmMsg;
+        errorMsg = "DBRM vbRollback [ ";
+        BRM::errString(rc, brmMsg);
+        errorMsg += brmMsg;
+        errorMsg += "]";
+        return rc;
+    }
+    return rc;
+	//if ((msgRecived == fWEClient->getPmCount()) && (rc == 0))
+	//{
+	//	bytestream.restart();
+	//	bytestream << (ByteStream::byte) WE_SVR_ROLLBACK_VERSION;
+	//	bytestream << uniqueId;
+	//	bytestream << sessionID;
+	//	bytestream << (uint32_t) txnID.id;
+	//	fWEClient->write_to_all(bytestream);
+	//	bsIn.reset(new ByteStream());
+	//	msgRecived = 0;
+	//	while (1)
+	//	{
+	//		if (msgRecived == fWEClient->getPmCount())
+	//			break;
+	//		fWEClient->read(uniqueId, bsIn);
+	//		if ( bsIn->length() == 0 ) //read error
+	//		{
+	//			fWEClient->removeQueue(uniqueId);
+	//			break;
+	//		}			
+	//		else {
+	//			*bsIn >> tmp8;
+	//			rc = tmp8;
+	//			if (rc != 0) {
+	//				*bsIn >> errorMsg;
+	//				fWEClient->removeQueue(uniqueId);
+	//				break;
+	//			}
+	//			else
+	//				msgRecived++;
+	//						
+	//		}
+	//	}
+	//}
+	//return rc;
 }
 
 int DDLPackageProcessor::commitTransaction(uint64_t uniqueId, BRM::TxnID txnID)
