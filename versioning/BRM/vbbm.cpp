@@ -555,6 +555,8 @@ namespace BRM {
             blocksGathered += range.size;
             freeRg.push_back(range);
         }
+        oam::OamCache* oamcache = oam::OamCache::makeOamCache();
+        int repSize = oamcache->getRepSize();
         //age the returned blocks out of the VB
         for (it = freeRg.begin(); it != freeRg.end(); it++)
         {
@@ -856,13 +858,13 @@ namespace BRM {
     void VBBM::loadVersion1(ERYDBDataFile* in) {
         int vbbmEntries, i;
         VBBMEntry entry;
-
         clear();
         if (in->read((char *)&vbbmEntries, 4) != 4) {
             log_errno("VBBM::load()");
             throw runtime_error("VBBM::load(): Failed to read entry number");
         }
-        BRM::ExtentMap em; int repSize = em.getRepSize();
+        oam::OamCache* oamcache = oam::OamCache::makeOamCache();
+        int repSize = oamcache->getRepSize();
         for (i = 0; i < vbbmEntries; i++) {
             if (in->read((char *)&entry, sizeof(entry)) != sizeof(entry)) {
                 log_errno("VBBM::load()");

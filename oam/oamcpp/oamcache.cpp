@@ -74,6 +74,14 @@ OamCache::OamCache() : mtime(0), mLocalPMId(0){
     		mLocalPMId = 0;
     	}
     }
+	config::Config *cf = config::Config::makeConfig();
+    string exrepsize = cf->getConfig("SystemConfig", "PMreplicateCount");
+ 	extentDBRreplicateSize = cf->uFromText(exrepsize);
+	if (extentDBRreplicateSize == 0)
+		extentDBRreplicateSize = 1;
+    if (extentDBRreplicateSize > 4) {
+        extentDBRreplicateSize = 4;
+    }
 }
 
 OamCache::~OamCache()
@@ -95,6 +103,14 @@ void OamCache::checkReload()
 	erydbassert(txt != "");
 	numDBRoots = config->fromText(txt);
 
+    string exrepsize = config->getConfig("SystemConfig", "PMreplicateCount");
+ 	extentDBRreplicateSize = config->uFromText(exrepsize);
+	if (extentDBRreplicateSize == 0)
+		extentDBRreplicateSize = 1;
+    if (extentDBRreplicateSize > 4) {
+        extentDBRreplicateSize = 4;
+    }
+    
     dbRootPMMap.reset(new map<uint16_t, uint16_t>());
     localDbrootMap.reset(new map<uint16_t, uint16_t>());
     
@@ -323,8 +339,7 @@ string OamCache::getModuleName()
 	return moduleName; 
 }
 unsigned  OamCache::getRepSize() {
-    BRM::ExtentMap em;
-    return em.getRepSize();
+    return extentDBRreplicateSize;
 };
 
 unsigned OamCache::getPMCount() {

@@ -134,7 +134,7 @@ inline std::ostream & operator<<(std::ostream & os, const std::vector<uint16_t>&
             fbos[2] = fbo;
             fbos[3] = fbo;
         };
-        EXPORT inline uint32_t  operator [](int i) const{
+        EXPORT inline uint32_t & operator [](int i) {
             return fbos[i];
             };
         EXPORT inline  void set(int i,int32_t fbo){

@@ -1787,7 +1787,8 @@ namespace BRM {
             // prune the list; will leave at most 1 entry per 1024-lbid range
             for (i = 0, size = lbidList.size(); i < size; i++)
                 lbidPruner.insert(_entry(lbidList[i]));
-            ExtentMap em; int repSize = em.getRepSize();
+            oam::OamCache* oamcache = oam::OamCache::makeOamCache();
+            int repSize = oamcache->getRepSize();
             std::map<uint16_t, uint16_t> dbrExists;
             // get the VB oids
             for (it = lbidPruner.begin(); it != lbidPruner.end(); ++it) {
@@ -1924,7 +1925,7 @@ namespace BRM {
     }
 
 
-    int DBRM::beginVBCopy(VER_t transID,const DBROOTS_struct& dbRoot,uint8_t dbrIndex, const LBIDRange_v& ranges, VBRange_VV& freeList) DBRM_THROW {
+    int DBRM::beginVBCopy(VER_t transID,const DBROOTS_struct& dbRoot,uint8_t dbrIndex, const LBIDRange_v& ranges, VBRange_v& freeList) DBRM_THROW {
 #ifdef BRM_INFO
         if (fDebug) {
             TRACER_WRITELATER("beginVBCopy");

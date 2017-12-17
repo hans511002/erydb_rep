@@ -372,17 +372,16 @@ namespace BRM {
             oldVerID = vss.getCurrentVersion(lbid, NULL);
             if (oldVerID == transID){       
                 VBBMEntry * vbe=vbbm.lookup(lbid,transID) ;//²éÕÒ½Úµã
-                if(rc){
-                    return -1;
-                }
-                ExtentMap em; int repSize = em.getRepSize();
+                assert(vbe!=0);
+                oam::OamCache* oamcache = oam::OamCache::makeOamCache();
+                int repSize = oamcache->getRepSize();
                 for (int n=0; n<repSize; n++){
-                    if(vbe.vbOids[n]==vbOID){
-                        vbe.vbFbo[n]=vbFBO;
+                    if(vbe->vbOids[n]==vbOID){
+                        vbe->vbFbo.set(n,vbFBO);
                         break;
-                    }else if(vbe.vbOids[n]==0){
-                        vbe.vbOids[n]=vbOID;
-                        vbe.vbFbo[n]=vbFBO;
+                    }else if(vbe->vbOids[n]==0){
+                        vbe->vbOids[n]=vbOID;
+                        vbe->vbFbo.set(n,vbFBO);
                         break;
                     }
                 }
@@ -414,16 +413,19 @@ namespace BRM {
     }
 
     int SlaveDBRMNode::beginVBCopy(VER_t transID,const DBROOTS_struct & vbOID,uint8_t dbrIndex, const LBIDRange_v& ranges, VBRange_v& freeList, bool flushPMCache) throw() {
+        uint32_t i;
+        int64_t sum = 0;
+        bool* lockedRanges = (bool*)alloca(ranges.size() * sizeof(bool));
         try {
+            for (i = 0; i < ranges.size(); i++) {
+                sum += ranges[i].size;
+                lockedRanges[i] = false;
+            }
             if(dbrIndex==0){
-                int64_t sum = 0;
                 uint64_t maxRetries;
                 uint64_t waitInterval = 50000;   // usecs to sleep between retries
                 uint64_t retries;
-                bool* lockedRanges = (bool*)alloca(ranges.size() * sizeof(bool));
-                bool allLocked;
-                uint32_t i;
-        
+                bool allLocked; 
         
         #ifdef BRM_DEBUG
                 if (transID < 1) {
@@ -442,10 +444,7 @@ namespace BRM {
                  */
                 maxRetries = (60 * 1000000) / waitInterval;
         
-                for (i = 0; i < ranges.size(); i++) {
-                    sum += ranges[i].size;
-                    lockedRanges[i] = false;
-                }
+                
                 vbbm.lock(VBBM::WRITE);
                 locked[0] = true;
                 vss.lock(VSS::WRITE);
@@ -534,7 +533,6 @@ namespace BRM {
     int SlaveDBRMNode::endVBCopy(VER_t transID, const LBIDRange_v& ranges)
         throw() {
         LBIDRange_v::const_iterator it;
-
         try {
             copylocks.lock(CopyLocks::WRITE);
             locked[2] = true;

@@ -76,6 +76,7 @@ private:
 
 	uint32_t numDBRoots;
 	time_t mtime;
+	int extentDBRreplicateSize;
 	DBRootConfigList dbroots;
 	std::vector<uint16_t> moduleIds;
 	std::string OAMParentModuleName;
