@@ -89,8 +89,8 @@ CreateTableProcessor::DDLResult CreateTableProcessor::processPackage(ddlpackage:
 	VERBOSE_INFO("Getting current txnID");
 
 	//Check whether the table is existed already
-	boost::shared_ptr<erydbSystemCatalog> systemCatalogPtr =
-		erydbSystemCatalog::makeerydbSystemCatalog(createTableStmt.fSessionID);
+	
+	boost::shared_ptr<erydbSystemCatalog> systemCatalogPtr =erydbSystemCatalog::makeerydbSystemCatalog(createTableStmt.fSessionID);
 	execplan::erydbSystemCatalog::TableName tableName;
 	tableName.schema = tableDef.fQualifiedName->fSchema;
 	tableName.table = tableDef.fQualifiedName->fName;

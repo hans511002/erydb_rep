@@ -1405,9 +1405,9 @@ namespace WriteEngine
         dbRoot = curColStruct.fColDbRoot;
         int  extState;
         bool extFound;
-        RETURN_ON_ERROR(BRMWrapper::getInstance()->getLastHWM_DBroot(
-            curColStruct.dataOid, dbRoot, partitionNum, segmentNum, hwm,
-            extState, extFound));
+        
+        
+        RETURN_ON_ERROR(BRMWrapper::getInstance()->getLastHWM_DBroot(curColStruct.dataOid, dbRoot, partitionNum, segmentNum, hwm,extState, extFound));
 
         for (i = 0; i < colStructList.size(); i++) {
             colStructList[i].fColPartition = partitionNum;
@@ -1415,10 +1415,10 @@ namespace WriteEngine
             colStructList[i].fColDbRoot = dbRoot;
         }
         oldHwm = hwm; //Save this info for rollback
+        
+        
         //need to pass real dbRoot, partition, and segment to setColParam
-        colOp->setColParam(curCol, 0, curColStruct.colWidth, curColStruct.colDataType,
-            curColStruct.colType, curColStruct.dataOid, curColStruct.fCompressionType,
-            &dbRoot, partitionNum, segmentNum);
+        colOp->setColParam(curCol, 0, curColStruct.colWidth, curColStruct.colDataType,curColStruct.colType, curColStruct.dataOid, curColStruct.fCompressionType,&dbRoot, partitionNum, segmentNum);
 
         string segFile;
         rc = colOp->openColumnFile(curCol, segFile, false); // @bug 5572 HDFS tmp file
@@ -1446,9 +1446,9 @@ namespace WriteEngine
         newDctnryStructList = dctnryStructList;
         std::vector<boost::shared_ptr<DBRootExtentTracker> >   dbRootExtentTrackers;
         bool bUseStartExtent = true;
-        rc = colOp->allocRowId(txnid, bUseStartExtent,
-            curCol, (uint64_t)totalRow, rowIdArray, hwm, newExtent, rowsLeft, newHwm, newFile, newColStructList, newDctnryStructList,
-            dbRootExtentTrackers, false, false, 0);
+        
+        
+        rc = colOp->allocRowId(txnid, bUseStartExtent,curCol, (uint64_t)totalRow, rowIdArray, hwm, newExtent, rowsLeft, newHwm, newFile, newColStructList, newDctnryStructList,dbRootExtentTrackers, false, false, 0);
 
         if ((rc == ERR_FILE_DISK_SPACE) && newExtent) {
             for (i = 0; i < newColStructList.size(); i++) {
@@ -1490,12 +1490,12 @@ namespace WriteEngine
         }
 
         TableMetaData* aTableMetaData = TableMetaData::makeTableMetaData(tableOid);
+            
+            
+            
         //..Expand initial abbreviated extent if any RID in 1st extent is > 256K
-     // DMC-SHARED_NOTHING_NOTE: Is it safe to assume only part0 seg0 is abbreviated?
-        if ((partitionNum == 0) &&
-            (segmentNum == 0) &&
-            ((totalRow - rowsLeft) > 0) &&
-            (rowIdArray[totalRow - rowsLeft - 1] >= (RID)INITIAL_EXTENT_ROWS_TO_DISK)) {
+        // DMC-SHARED_NOTHING_NOTE: Is it safe to assume only part0 seg0 is abbreviated?
+        if ((partitionNum == 0) && (segmentNum == 0) && ((totalRow - rowsLeft) > 0) && (rowIdArray[totalRow - rowsLeft - 1] >= (RID)INITIAL_EXTENT_ROWS_TO_DISK)) {
             for (unsigned k = 1; k < colStructList.size(); k++) {
                 Column expandCol;
                 colOp = m_colOp[op(colStructList[k].fCompressionType)];
@@ -1535,10 +1535,10 @@ namespace WriteEngine
                 dctnryStructList[i].fColPartition = partitionNum;
                 dctnryStructList[i].fColSegment = segmentNum;
                 dctnryStructList[i].fColDbRoot = dbRoot;
-                rc = dctnry->openDctnry(dctnryStructList[i].dctnryOid,
-                    dctnryStructList[i].fColDbRoot, dctnryStructList[i].fColPartition,
-                    dctnryStructList[i].fColSegment,
-                    false); // @bug 5572 HDFS tmp file
+                
+                
+                
+                rc = dctnry->openDctnry(dctnryStructList[i].dctnryOid,dctnryStructList[i].fColDbRoot, dctnryStructList[i].fColPartition,dctnryStructList[i].fColSegment,false); // @bug 5572 HDFS tmp file
                 if (rc != NO_ERROR)
                     return rc;
 

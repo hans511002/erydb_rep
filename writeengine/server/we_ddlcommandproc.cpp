@@ -283,8 +283,8 @@ uint8_t WE_DDLCommandProc::writeSystable(ByteStream& bs, std::string &err)
             // TODO: This may be redundant
             static boost::mutex dbrmMutex;
             boost::mutex::scoped_lock lk(dbrmMutex);
-			error = fWEWrapper.insertColumnRec_SYS(txnID, colStructs, colValuesList,
-											dctnryStructList, dctnryValueList, SYSCOLUMN_BASE);
+                
+			error = fWEWrapper.insertColumnRec_SYS(txnID, colStructs, colValuesList,dctnryStructList, dctnryValueList, SYSCOLUMN_BASE);
 
 			if (error != WriteEngine::NO_ERROR)
 			{
