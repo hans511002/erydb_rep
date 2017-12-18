@@ -1007,7 +1007,7 @@ const char* eryshowpartitions(UDF_INIT* initid, UDF_ARGS* args,
 
 	ostringstream output;
 	output.setf(ios::left, ios::adjustfield);
-	output << setw(10) << "Part#"
+	output << setw(30) << "Part#"
 	       << setw(30) << "Min"
 	       << setw(30) << "Max" << "Status";
 
@@ -1026,7 +1026,7 @@ const char* eryshowpartitions(UDF_INIT* initid, UDF_ARGS* args,
 	{
 		ostringstream oss;
 		oss << partIt->first;
-		output << "\n  " << setw(10) << oss.str();
+		output << "\n  " << setw(30) << oss.str();
 		if (partIt->second.status & CPINVALID)
 		{
 			output << setw(30) << "N/A" << setw(30) << "N/A";
@@ -1797,7 +1797,7 @@ const char* eryshowpartitionsbyvalue(UDF_INIT* initid, UDF_ARGS* args,
 			if (noPartFound)
 			{
 				output.setf(ios::left, ios::adjustfield);
-				output << setw(10) << "Part#"
+				output << setw(30) << "Part#"
 					<< setw(30) << "Min"
 					<< setw(30) << "Max" << "Status";
 			}
@@ -1806,7 +1806,7 @@ const char* eryshowpartitionsbyvalue(UDF_INIT* initid, UDF_ARGS* args,
 			// print part info
 			ostringstream oss;
 			oss << mapit->first;
-			output << "\n  " << setw(10) << oss.str();
+			output << "\n  " << setw(30) << oss.str();
 			if (mapit->second.status & CPINVALID)
 			{
 				output << setw(30) << "N/A" << setw(30) << "N/A";
