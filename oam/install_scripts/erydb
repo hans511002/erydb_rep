@@ -39,12 +39,6 @@ if [ $InstallDir != "/usr/local/erydb" ]; then
 	export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$InstallDir/lib:$InstallDir/mysql/lib/mysql
 fi
 
-#hadoop
-plugin=`$ERYDB_INSTALL_DIR/bin/getConfig SystemConfig DataFilePlugin`
-if [ -n "$plugin" ]; then
-	setenv=`$InstallDir/bin/getConfig SystemConfig DataFileEnvFile`
-	. $InstallDir/bin/$setenv >/dev/null 2>&1
-fi
 
 if [ -e $InstallDir/lib/libjemalloc.so ]; then
 	export LD_PRELOAD=$InstallDir/lib/libjemalloc.so
@@ -57,10 +51,6 @@ test -f $InstallDir/post/functions && . $InstallDir/post/functions
 mt=`module_type`
 mid=`module_id`
 
-has_um=`$InstallDir/bin/getConfig SystemModuleConfig ModuleCount2`
-if [ "x$has_um" = x ]; then
-	has_um=0
-fi
 
 user=$USER
 if [ -z "$user" ]; then
@@ -84,6 +74,16 @@ start() {
 		echo "EryDB Database Platform already running"
 		exit 0
 	fi
+    #hadoop
+    plugin=`$ERYDB_INSTALL_DIR/bin/getConfig SystemConfig DataFilePlugin`
+    if [ -n "$plugin" ]; then
+    	setenv=`$InstallDir/bin/getConfig SystemConfig DataFileEnvFile`
+    	. $InstallDir/bin/$setenv >/dev/null 2>&1
+    fi
+    has_um=`$InstallDir/bin/getConfig SystemModuleConfig ModuleCount2`
+    if [ "x$has_um" = x ]; then
+    	has_um=0
+    fi
 
 	(mkdir -p /var/lock/subsys && touch /var/lock/subsys/erydb) >/dev/null 2>&1
 

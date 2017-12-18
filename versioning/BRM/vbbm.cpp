@@ -412,7 +412,7 @@ namespace BRM {
                 logging::LOG_TYPE_DEBUG);
             throw invalid_argument("VBBM::insert(): vbOID must be the OID of a Version Buffer file");
         }
-        if (vbFBO > (files[i].fileSize / BLOCK_SIZE) || vbFBO < 0) {
+        if (vbFBO > (files[i].fileSize ) || vbFBO < 0) {
             log("VBBM::insert(): vbFBO is out of bounds for that vbOID",
                 logging::LOG_TYPE_DEBUG);
             throw invalid_argument("VBBM::insert(): vbFBO is out of bounds for that vbOID");
@@ -582,8 +582,8 @@ namespace BRM {
                 firstFBO = (firstChunk + 1) * VBBM_CHUNK_SIZE;  // the first FBO of the next chunk
             lastFBO = ((lastChunk + 1) * VBBM_CHUNK_SIZE - 1);  // the last FBO of the last chunk
                                                                 // don't go past the end of the file
-            if (lastFBO > files[fileIndex].fileSize / BLOCK_SIZE)
-                lastFBO = files[fileIndex].fileSize / BLOCK_SIZE;
+            if (lastFBO > files[fileIndex].fileSize)
+                lastFBO = files[fileIndex].fileSize ;
             // at this point [firstFBO, lastFBO] is the range to age out.
             // ugh, walk the whole vbbm looking for matches.
             for (i = 0; i < vbbm->vbCapacity; i++) {
