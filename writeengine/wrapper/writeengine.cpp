@@ -1760,9 +1760,9 @@ namespace WriteEngine
                 successFlag = colOp->calculateRowId(lastRid, BYTE_PER_BLOCK / width, width, curFbo, curBio);
                 if (successFlag) {
                     if (curFbo != lastFbo) {
-                        RETURN_ON_ERROR(BRMWrapper::getInstance()->getBrmInfo(
-                            colStructList[i].dataOid, colStructList[i].fColPartition,
-                            colStructList[i].fColSegment, curFbo, lbid));
+                        
+                        
+                        RETURN_ON_ERROR(BRMWrapper::getInstance()->getBrmInfo(colStructList[i].dataOid, colStructList[i].fColPartition,colStructList[i].fColSegment, curFbo, lbid));
                         lbids.push_back((BRM::LBID_t)lbid);
                         colDataTypes.push_back(colStructList[i].colDataType);
                     }
@@ -1776,11 +1776,11 @@ namespace WriteEngine
             successFlag = colOp->calculateRowId(lastRid, BYTE_PER_BLOCK / width, width, curFbo, curBio);
             if (successFlag) {
                 if (curFbo != lastFbo) {
-                    RETURN_ON_ERROR(AddLBIDtoList(txnid,
-                        lbids,
-                        colDataTypes,
-                        newColStructList[i],
-                        curFbo));
+                     RETURN_ON_ERROR(AddLBIDtoList(txnid,lbids,colDataTypes,newColStructList[i],curFbo));
+                   
+                    
+                    
+                    
                 }
             }
         }
@@ -3466,8 +3466,8 @@ namespace WriteEngine
                 // handling versioning
                 vector<LBIDRange>   rangeList;
                 if (versioning) {
-                    rc = processVersionBuffer(curCol.dataFile.pFile, txnid, colStructList[i],
-                        colStructList[i].colWidth, totalRow1, rowIdArray, rangeList);
+                    
+                    rc = processVersionBuffer(curCol.dataFile.pFile, txnid, colStructList[i],colStructList[i].colWidth, totalRow1, rowIdArray, rangeList);
                     if (rc != NO_ERROR) {
                         if (colStructList[i].fCompressionType == 0) {
                             curCol.dataFile.pFile->flush();
