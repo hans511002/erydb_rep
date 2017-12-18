@@ -95,7 +95,7 @@ EOD
 		if [ $mid -eq 1 ]; then
 			echo "update compressiontype to backend" >>/tmp/upgrade-status.log.$$
 			cat >/tmp/erydb_upgrade.sql <<EOD
-select calonlinealter('alter table syscolumn add (compressiontype int)') as xxx;
+select eryonlinealter('alter table syscolumn add (compressiontype int)') as xxx;
 update syscolumn set compressiontype=0 where compressiontype is null;
 EOD
 			cat /tmp/erydb_upgrade.sql >>/tmp/upgrade-status.log.$$
@@ -185,7 +185,7 @@ EOD
 		if [ $mid -eq 1 ]; then
 			echo "update autoincrement to backend" >>/tmp/upgrade-status.log.$$
 			cat >/tmp/erydb_upgrade.sql <<EOD
-select calonlinealter('alter table systable add (autoincrement int)') as xxx;
+select eryonlinealter('alter table systable add (autoincrement int)') as xxx;
 update systable set autoincrement=0 where autoincrement is null;
 EOD
 			cat /tmp/erydb_upgrade.sql >>/tmp/upgrade-status.log.$$
@@ -276,7 +276,7 @@ EOD
 		if [ $mid -eq 1 ]; then
 			echo "update nextvalue to backend" >>/tmp/upgrade-status.log.$$
 			cat >/tmp/erydb_upgrade.sql <<EOD
-select calonlinealter('alter table syscolumn add (nextvalue bigint)') as xxx;
+select eryonlinealter('alter table syscolumn add (nextvalue bigint)') as xxx;
 update syscolumn set nextvalue=1 where nextvalue is null;
 update syscolumn set autoincrement='n' where autoincrement is null;
 EOD

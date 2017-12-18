@@ -176,9 +176,9 @@ File /r ..\..\..\mysql\sql\share\ukrainian
 SetOutPath $INSTDIR\tmp
 SetOutPath $INSTDIR\sql
 File ..\..\dbcon\mysql\dumpcat_mysql.sql
-File ..\..\dbcon\mysql\calsetuserpriority.sql
-File ..\..\dbcon\mysql\calremoveuserpriority.sql
-File ..\..\dbcon\mysql\calshowprocesslist.sql
+File ..\..\dbcon\mysql\erysetuserpriority.sql
+File ..\..\dbcon\mysql\eryremoveuserpriority.sql
+File ..\..\dbcon\mysql\eryshowprocesslist.sql
 
 WriteRegStr HKLM Software\erydb\EryDB "" $INSTDIR
 WriteRegStr HKLM Software\erydb\EryDB "ErydbHome" $INSTDIR\etc
@@ -355,9 +355,9 @@ RMDir /r $INSTDIR\share\swedish
 RMDir /r $INSTDIR\share\ukrainian
 
 Delete $INSTDIR\sql\dumpcat_mysql.sql
-Delete $INSTDIR\sql\calsetuserpriority.sql
-Delete $INSTDIR\sql\calremoveuserpriority.sql
-Delete $INSTDIR\sql\calshowprocesslist.sql
+Delete $INSTDIR\sql\erysetuserpriority.sql
+Delete $INSTDIR\sql\eryremoveuserpriority.sql
+Delete $INSTDIR\sql\eryshowprocesslist.sql
 
 Delete $INSTDIR\my_save.ini
 Rename $INSTDIR\my.ini $INSTDIR\my_save.ini

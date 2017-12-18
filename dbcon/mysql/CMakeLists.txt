@@ -77,9 +77,9 @@ set_target_properties(is_erydb_files PROPERTIES VERSION 1.0.0 SOVERSION 1)
 install(TARGETS erymysql is_erydb_tables is_erydb_columns is_erydb_extents is_erydb_files DESTINATION ${ENGINE_LIBDIR} COMPONENT storage-engine)
 install(FILES syscatalog_mysql.sql 
               dumpcat_mysql.sql 
-              calsetuserpriority.sql 
-              calremoveuserpriority.sql 
-              calshowprocesslist.sql 
+              erysetuserpriority.sql 
+              eryremoveuserpriority.sql 
+              eryshowprocesslist.sql 
               erydb_info.sql
               my.cnf
               DESTINATION ${ENGINE_MYSQLDIR} COMPONENT storage-engine)
@@ -97,7 +97,7 @@ install(PROGRAMS install_erydb_mysql.sh mysql-erydb dumpcat.pl
 #liberymysql_la_CPPFLAGS = -I/usr/include/libxml2 -I../../../mysql/include -I../../../mysql/sql -I../../../mysql/regex -DMYSQL_DYNAMIC_PLUGIN $(AM_CPPFLAGS)
 #include_HEADERS = erydb_mysql.h
 #
-#dist_mysql_DATA = syscatalog_mysql.sql dumpcat_mysql.sql calsetuserpriority.sql calremoveuserpriority.sql calshowprocesslist.sql my.cnf
+#dist_mysql_DATA = syscatalog_mysql.sql dumpcat_mysql.sql erysetuserpriority.sql eryremoveuserpriority.sql eryshowprocesslist.sql my.cnf
 #dist_mysql_SCRIPTS = install_erydb_mysql.sh mysql-erydb dumpcat.pl
 #
 #liberymysql_la-ha_erydb.lo: ha_erydb.cpp

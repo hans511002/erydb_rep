@@ -171,19 +171,19 @@ namespace
 
         // Install the user priority stored procedures
         sprintf_s(cmdLine, cmdLineLen,
-			"%s\\bin\\mysql.exe --defaults-file=%s\\my.ini --user=root --force < %s\\sql\\calsetuserpriority.sql > nul 2>&1",
+			"%s\\bin\\mysql.exe --defaults-file=%s\\my.ini --user=root --force < %s\\sql\\erysetuserpriority.sql > nul 2>&1",
 			installDir.c_str(), installDir.c_str(), installDir.c_str());
 		rc = system(cmdLine);
 		rc = 0;
 
         sprintf_s(cmdLine, cmdLineLen,
-			"%s\\bin\\mysql.exe --defaults-file=%s\\my.ini --user=root --force < %s\\sql\\calremoveuserpriority.sql > nul 2>&1",
+			"%s\\bin\\mysql.exe --defaults-file=%s\\my.ini --user=root --force < %s\\sql\\eryremoveuserpriority.sql > nul 2>&1",
 			installDir.c_str(), installDir.c_str(), installDir.c_str());
 		rc = system(cmdLine);
 		rc = 0;
 
         sprintf_s(cmdLine, cmdLineLen,
-			"%s\\bin\\mysql.exe --defaults-file=%s\\my.ini --user=root --force < %s\\sql\\calshowprocesslist.sql > nul 2>&1",
+			"%s\\bin\\mysql.exe --defaults-file=%s\\my.ini --user=root --force < %s\\sql\\eryshowprocesslist.sql > nul 2>&1",
 			installDir.c_str(), installDir.c_str(), installDir.c_str());
 		rc = system(cmdLine);
 		rc = 0;

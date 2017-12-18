@@ -1,8 +1,8 @@
 Select max(l_shipdate) from lineitem;
-select calgetstats();
+select erygetstats();
 select now();
 Select max(l_shipdate) from lineitem;
-select calgetstats();
+select erygetstats();
 quit
 
 

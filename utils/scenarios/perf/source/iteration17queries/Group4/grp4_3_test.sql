@@ -1,8 +1,8 @@
 Select sum(l_orderkey) from lineitem where l_suppkey < 100000;
-select calgetstats();
+select erygetstats();
 select now();
 Select sum(l_orderkey) from lineitem where l_suppkey < 100000;
-select calgetstats();
+select erygetstats();
 quit
 
 

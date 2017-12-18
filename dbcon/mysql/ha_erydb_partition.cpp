@@ -802,7 +802,7 @@ std::string  ha_erydb_impl_markpartitions_(
 	qualifiedName->fName = tableName.table;
 	MarkPartitionStatement* stmt = new MarkPartitionStatement(qualifiedName);
 	stmt->fSessionID = tid2sid(current_thd->thread_id);
-	stmt->fSql = "caldisablepartitions";
+	stmt->fSql = "erydisablepartitions";
 	stmt->fOwner = tableName.schema;
 	stmt->fPartitions = partitionNums;
 	string msg = "Partitions are disabled successfully" ;
@@ -822,7 +822,7 @@ std::string  ha_erydb_impl_restorepartitions_(
 	qualifiedName->fName = tableName.table;
 	RestorePartitionStatement* stmt = new RestorePartitionStatement(qualifiedName);
 	stmt->fSessionID = tid2sid(current_thd->thread_id);
-	stmt->fSql = "calenablepartitions";
+	stmt->fSql = "eryenablepartitions";
 	stmt->fOwner = tableName.schema;
 	stmt->fPartitions = partitionNums;
 	string msg;
@@ -843,7 +843,7 @@ std::string  ha_erydb_impl_droppartitions_(
 	qualifiedName->fName = tableName.table;
 	DropPartitionStatement* stmt = new DropPartitionStatement(qualifiedName);
 	stmt->fSessionID = tid2sid(current_thd->thread_id);
-	stmt->fSql = "caldroppartitions";
+	stmt->fSql = "erydroppartitions";
 	stmt->fOwner = tableName.schema;
 	stmt->fPartitions = partitionNums;
 	string msg = "Partitions are dropped successfully" ;
@@ -866,7 +866,7 @@ extern "C"
 #ifdef _MSC_VER
 __declspec(dllexport)
 #endif
-my_bool calshowpartitions_init(UDF_INIT* initid, UDF_ARGS* args, char* message)
+my_bool eryshowpartitions_init(UDF_INIT* initid, UDF_ARGS* args, char* message)
 {
 	if (args->arg_count < 2 ||
 		  args->arg_count > 3 ||
@@ -893,7 +893,7 @@ my_bool calshowpartitions_init(UDF_INIT* initid, UDF_ARGS* args, char* message)
 #ifdef _MSC_VER
 __declspec(dllexport)
 #endif
-void calshowpartitions_deinit(UDF_INIT* initid)
+void eryshowpartitions_deinit(UDF_INIT* initid)
 {
 	delete initid->ptr;
 }
@@ -901,7 +901,7 @@ void calshowpartitions_deinit(UDF_INIT* initid)
 #ifdef _MSC_VER
 __declspec(dllexport)
 #endif
-const char* calshowpartitions(UDF_INIT* initid, UDF_ARGS* args,
+const char* eryshowpartitions(UDF_INIT* initid, UDF_ARGS* args,
 					char* result, unsigned long* length,
 					char* is_null, char* error)
 {
@@ -1071,7 +1071,7 @@ const char* calshowpartitions(UDF_INIT* initid, UDF_ARGS* args,
 	#ifdef _MSC_VER
 __declspec(dllexport)
 #endif
-my_bool caldisablepartitions_init(UDF_INIT* initid, UDF_ARGS* args, char* message)
+my_bool erydisablepartitions_init(UDF_INIT* initid, UDF_ARGS* args, char* message)
 {
 	bool err = false;
 
@@ -1106,7 +1106,7 @@ my_bool caldisablepartitions_init(UDF_INIT* initid, UDF_ARGS* args, char* messag
 #ifdef _MSC_VER
 __declspec(dllexport)
 #endif
-const char* caldisablepartitions(UDF_INIT* initid, UDF_ARGS* args,
+const char* erydisablepartitions(UDF_INIT* initid, UDF_ARGS* args,
 					char* result, unsigned long* length,
 					char* is_null, char* error)
 {
@@ -1144,7 +1144,7 @@ const char* caldisablepartitions(UDF_INIT* initid, UDF_ARGS* args,
 #ifdef _MSC_VER
 __declspec(dllexport)
 #endif
-void caldisablepartitions_deinit(UDF_INIT* initid)
+void erydisablepartitions_deinit(UDF_INIT* initid)
 {
 }
 
@@ -1155,7 +1155,7 @@ void caldisablepartitions_deinit(UDF_INIT* initid)
 #ifdef _MSC_VER
 __declspec(dllexport)
 #endif
-my_bool calenablepartitions_init(UDF_INIT* initid, UDF_ARGS* args, char* message)
+my_bool eryenablepartitions_init(UDF_INIT* initid, UDF_ARGS* args, char* message)
 {
 	bool err = false;
 	if (args->arg_count < 2 || args->arg_count > 3)
@@ -1190,7 +1190,7 @@ my_bool calenablepartitions_init(UDF_INIT* initid, UDF_ARGS* args, char* message
 #ifdef _MSC_VER
 __declspec(dllexport)
 #endif
-const char* calenablepartitions(UDF_INIT* initid, UDF_ARGS* args,
+const char* eryenablepartitions(UDF_INIT* initid, UDF_ARGS* args,
 					char* result, unsigned long* length,
 					char* is_null, char* error)
 {
@@ -1227,7 +1227,7 @@ const char* calenablepartitions(UDF_INIT* initid, UDF_ARGS* args,
 #ifdef _MSC_VER
 __declspec(dllexport)
 #endif
-void calenablepartitions_deinit(UDF_INIT* initid)
+void eryenablepartitions_deinit(UDF_INIT* initid)
 {
 }
 
@@ -1238,7 +1238,7 @@ void calenablepartitions_deinit(UDF_INIT* initid)
 #ifdef _MSC_VER
 __declspec(dllexport)
 #endif
-my_bool caldroppartitions_init(UDF_INIT* initid, UDF_ARGS* args, char* message)
+my_bool erydroppartitions_init(UDF_INIT* initid, UDF_ARGS* args, char* message)
 {
 	bool err = false;
 	if (args->arg_count < 2 || args->arg_count > 3)
@@ -1273,7 +1273,7 @@ my_bool caldroppartitions_init(UDF_INIT* initid, UDF_ARGS* args, char* message)
 #ifdef _MSC_VER
 __declspec(dllexport)
 #endif
-const char* caldroppartitions(UDF_INIT* initid, UDF_ARGS* args,
+const char* erydroppartitions(UDF_INIT* initid, UDF_ARGS* args,
                               char* result, unsigned long* length,
                               char* is_null, char* error)
 {
@@ -1311,7 +1311,7 @@ const char* caldroppartitions(UDF_INIT* initid, UDF_ARGS* args,
 #ifdef _MSC_VER
 __declspec(dllexport)
 #endif
-void caldroppartitions_deinit(UDF_INIT* initid)
+void erydroppartitions_deinit(UDF_INIT* initid)
 {
 }
 
@@ -1322,7 +1322,7 @@ void caldroppartitions_deinit(UDF_INIT* initid)
 #ifdef _MSC_VER
 __declspec(dllexport)
 #endif
-void caldroppartitionsbyvalue_deinit(UDF_INIT* initid)
+void erydroppartitionsbyvalue_deinit(UDF_INIT* initid)
 {
 }
 
@@ -1330,7 +1330,7 @@ void caldroppartitionsbyvalue_deinit(UDF_INIT* initid)
 #ifdef _MSC_VER
 __declspec(dllexport)
 #endif
-my_bool caldroppartitionsbyvalue_init(UDF_INIT* initid, UDF_ARGS* args, char* message)
+my_bool erydroppartitionsbyvalue_init(UDF_INIT* initid, UDF_ARGS* args, char* message)
 {
 	bool err = false;
 	if (args->arg_count < 4 || args->arg_count > 5)
@@ -1367,7 +1367,7 @@ my_bool caldroppartitionsbyvalue_init(UDF_INIT* initid, UDF_ARGS* args, char* me
 #ifdef _MSC_VER
 __declspec(dllexport)
 #endif
-const char* caldroppartitionsbyvalue(UDF_INIT* initid, UDF_ARGS* args,
+const char* erydroppartitionsbyvalue(UDF_INIT* initid, UDF_ARGS* args,
 					char* result, unsigned long* length,
 					char* is_null, char* error)
 {
@@ -1397,7 +1397,7 @@ const char* caldroppartitionsbyvalue(UDF_INIT* initid, UDF_ARGS* args,
 #ifdef _MSC_VER
 __declspec(dllexport)
 #endif
-void caldisablepartitionsbyvalue_deinit(UDF_INIT* initid)
+void erydisablepartitionsbyvalue_deinit(UDF_INIT* initid)
 {
 }
 
@@ -1405,7 +1405,7 @@ void caldisablepartitionsbyvalue_deinit(UDF_INIT* initid)
 #ifdef _MSC_VER
 __declspec(dllexport)
 #endif
-my_bool caldisablepartitionsbyvalue_init(UDF_INIT* initid, UDF_ARGS* args, char* message)
+my_bool erydisablepartitionsbyvalue_init(UDF_INIT* initid, UDF_ARGS* args, char* message)
 {
 	bool err = false;
 	if (args->arg_count < 4 || args->arg_count > 5)
@@ -1438,7 +1438,7 @@ my_bool caldisablepartitionsbyvalue_init(UDF_INIT* initid, UDF_ARGS* args, char*
 #ifdef _MSC_VER
 __declspec(dllexport)
 #endif
-const char* caldisablepartitionsbyvalue(UDF_INIT* initid, UDF_ARGS* args,
+const char* erydisablepartitionsbyvalue(UDF_INIT* initid, UDF_ARGS* args,
 					char* result, unsigned long* length,
 					char* is_null, char* error)
 {
@@ -1468,7 +1468,7 @@ const char* caldisablepartitionsbyvalue(UDF_INIT* initid, UDF_ARGS* args,
 #ifdef _MSC_VER
 __declspec(dllexport)
 #endif
-void calenablepartitionsbyvalue_deinit(UDF_INIT* initid)
+void eryenablepartitionsbyvalue_deinit(UDF_INIT* initid)
 {
 }
 
@@ -1476,7 +1476,7 @@ void calenablepartitionsbyvalue_deinit(UDF_INIT* initid)
 #ifdef _MSC_VER
 __declspec(dllexport)
 #endif
-my_bool calenablepartitionsbyvalue_init(UDF_INIT* initid, UDF_ARGS* args, char* message)
+my_bool eryenablepartitionsbyvalue_init(UDF_INIT* initid, UDF_ARGS* args, char* message)
 {
 	bool err = false;
 	if (args->arg_count < 4 || args->arg_count > 5)
@@ -1509,7 +1509,7 @@ my_bool calenablepartitionsbyvalue_init(UDF_INIT* initid, UDF_ARGS* args, char* 
 #ifdef _MSC_VER
 __declspec(dllexport)
 #endif
-const char* calenablepartitionsbyvalue(UDF_INIT* initid, UDF_ARGS* args,
+const char* eryenablepartitionsbyvalue(UDF_INIT* initid, UDF_ARGS* args,
 					char* result, unsigned long* length,
 					char* is_null, char* error)
 {
@@ -1538,7 +1538,7 @@ const char* calenablepartitionsbyvalue(UDF_INIT* initid, UDF_ARGS* args,
 #ifdef _MSC_VER
 __declspec(dllexport)
 #endif
-my_bool calshowpartitionsbyvalue_init(UDF_INIT* initid, UDF_ARGS* args, char* message)
+my_bool eryshowpartitionsbyvalue_init(UDF_INIT* initid, UDF_ARGS* args, char* message)
 {
 	bool err = false;
 	if (args->arg_count < 4 || args->arg_count > 5)
@@ -1571,7 +1571,7 @@ my_bool calshowpartitionsbyvalue_init(UDF_INIT* initid, UDF_ARGS* args, char* me
 #ifdef _MSC_VER
 __declspec(dllexport)
 #endif
-void calshowpartitionsbyvalue_deinit(UDF_INIT* initid)
+void eryshowpartitionsbyvalue_deinit(UDF_INIT* initid)
 {
 	delete initid->ptr;
 }
@@ -1579,7 +1579,7 @@ void calshowpartitionsbyvalue_deinit(UDF_INIT* initid)
 #ifdef _MSC_VER
 __declspec(dllexport)
 #endif
-const char* calshowpartitionsbyvalue(UDF_INIT* initid, UDF_ARGS* args,
+const char* eryshowpartitionsbyvalue(UDF_INIT* initid, UDF_ARGS* args,
 					char* result, unsigned long* length,
 					char* is_null, char* error)
 {

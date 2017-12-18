@@ -6,7 +6,7 @@ and p_size <= 5
 and p_partkey = l_partkey
 group by l_shipdate
 order by 1;
-Select calgetstats();
+Select erygetstats();
 Select now();
 select l_shipdate, sum(l_extendedprice), avg(p_retailprice) 
 from part, lineitem
@@ -16,5 +16,5 @@ and p_size <= 5
 and p_partkey = l_partkey
 group by l_shipdate
 order by 1;
-Select calgetstats();
+Select erygetstats();
 quit

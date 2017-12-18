@@ -5,4 +5,4 @@ where o_orderdate > '1997-08-01' and o_totalprice < 1365
 and l_shipdate >  '1997-08-01' and l_suppkey < 10000000
 group by o_orderpriority
 order by o_orderpriority;
-select calflushcache();
+select eryflushcache();

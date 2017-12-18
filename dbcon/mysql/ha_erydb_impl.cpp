@@ -1729,7 +1729,7 @@ extern "C"
 #ifdef _MSC_VER
 __declspec(dllexport)
 #endif
-const char* calgetstats(UDF_INIT* initid, UDF_ARGS* args,
+const char* erygetstats(UDF_INIT* initid, UDF_ARGS* args,
 					char* result, unsigned long* length,
 					char* is_null, char* error)
 {
@@ -1753,7 +1753,7 @@ const char* calgetstats(UDF_INIT* initid, UDF_ARGS* args,
 #ifdef _MSC_VER
 __declspec(dllexport)
 #endif
-my_bool calgetstats_init(UDF_INIT* initid, UDF_ARGS* args, char* message)
+my_bool erygetstats_init(UDF_INIT* initid, UDF_ARGS* args, char* message)
 {
 	if (args->arg_count != 0)
 	{
@@ -1769,14 +1769,14 @@ my_bool calgetstats_init(UDF_INIT* initid, UDF_ARGS* args, char* message)
 #ifdef _MSC_VER
 __declspec(dllexport)
 #endif
-void calgetstats_deinit(UDF_INIT* initid)
+void erygetstats_deinit(UDF_INIT* initid)
 {
 }
 
 #ifdef _MSC_VER
 __declspec(dllexport)
 #endif
-long long calsettrace(UDF_INIT* initid, UDF_ARGS* args,
+long long erysettrace(UDF_INIT* initid, UDF_ARGS* args,
 							char* is_null, char* error)
 {
 	THD* thd = current_thd;
@@ -1796,7 +1796,7 @@ long long calsettrace(UDF_INIT* initid, UDF_ARGS* args,
 #ifdef _MSC_VER
 __declspec(dllexport)
 #endif
-my_bool calsettrace_init(UDF_INIT* initid, UDF_ARGS* args, char* message)
+my_bool erysettrace_init(UDF_INIT* initid, UDF_ARGS* args, char* message)
 {
 	if (args->arg_count != 1 || args->arg_type[0] != INT_RESULT)
 	{
@@ -1810,7 +1810,7 @@ my_bool calsettrace_init(UDF_INIT* initid, UDF_ARGS* args, char* message)
 #ifdef _MSC_VER
 __declspec(dllexport)
 #endif
-void calsettrace_deinit(UDF_INIT* initid)
+void erysettrace_deinit(UDF_INIT* initid)
 {
 }
 
@@ -1838,7 +1838,7 @@ const char* invalidParmSizeMessage(uint64_t size, size_t& len)
 #ifdef _MSC_VER
 __declspec(dllexport)
 #endif
-const char* calsetparms(UDF_INIT* initid, UDF_ARGS* args,
+const char* erysetparms(UDF_INIT* initid, UDF_ARGS* args,
 					char* result, unsigned long* length,
 					char* is_null, char* error)
 {
@@ -1898,7 +1898,7 @@ const char* calsetparms(UDF_INIT* initid, UDF_ARGS* args,
 #ifdef _MSC_VER
 __declspec(dllexport)
 #endif
-my_bool calsetparms_init(UDF_INIT* initid, UDF_ARGS* args, char* message)
+my_bool erysetparms_init(UDF_INIT* initid, UDF_ARGS* args, char* message)
 {
 	if (args->arg_count != 2 || args->arg_type[0] != STRING_RESULT || args->arg_type[1] != STRING_RESULT)
 	{
@@ -1943,14 +1943,14 @@ my_bool calsetparms_init(UDF_INIT* initid, UDF_ARGS* args, char* message)
 #ifdef _MSC_VER
 __declspec(dllexport)
 #endif
-void calsetparms_deinit(UDF_INIT* initid)
+void erysetparms_deinit(UDF_INIT* initid)
 {
 }
 
 #ifdef _MSC_VER
 __declspec(dllexport)
 #endif
-my_bool calviewtablelock_init(UDF_INIT* initid, UDF_ARGS* args, char* message)
+my_bool eryviewtablelock_init(UDF_INIT* initid, UDF_ARGS* args, char* message)
 {
 	if (args->arg_count == 2 && (args->arg_type[0] != STRING_RESULT || args->arg_type[1] != STRING_RESULT))
 	{
@@ -1982,7 +1982,7 @@ my_bool calviewtablelock_init(UDF_INIT* initid, UDF_ARGS* args, char* message)
 #ifdef _MSC_VER
 __declspec(dllexport)
 #endif
-const char* calviewtablelock(UDF_INIT* initid, UDF_ARGS* args,
+const char* eryviewtablelock(UDF_INIT* initid, UDF_ARGS* args,
 					char* result, unsigned long* length,
 					char* is_null, char* error)
 {
@@ -2024,14 +2024,14 @@ const char* calviewtablelock(UDF_INIT* initid, UDF_ARGS* args,
 #ifdef _MSC_VER
 __declspec(dllexport)
 #endif
-void calviewtablelock_deinit(UDF_INIT* initid)
+void eryviewtablelock_deinit(UDF_INIT* initid)
 {
 }
 
 #ifdef _MSC_VER
 __declspec(dllexport)
 #endif
-my_bool calcleartablelock_init(UDF_INIT* initid, UDF_ARGS* args, char* message)
+my_bool erycleartablelock_init(UDF_INIT* initid, UDF_ARGS* args, char* message)
 {
 	if ((args->arg_count != 1) || (args->arg_type[0] != INT_RESULT))
 	{
@@ -2048,7 +2048,7 @@ my_bool calcleartablelock_init(UDF_INIT* initid, UDF_ARGS* args, char* message)
 #ifdef _MSC_VER
 __declspec(dllexport)
 #endif
-const char* calcleartablelock(UDF_INIT* initid, UDF_ARGS* args,
+const char* erycleartablelock(UDF_INIT* initid, UDF_ARGS* args,
 					char* result, unsigned long* length,
 					char* is_null, char* error)
 {
@@ -2077,14 +2077,14 @@ const char* calcleartablelock(UDF_INIT* initid, UDF_ARGS* args,
 #ifdef _MSC_VER
 __declspec(dllexport)
 #endif
-void calcleartablelock_deinit(UDF_INIT* initid)
+void erycleartablelock_deinit(UDF_INIT* initid)
 {
 }
 
 #ifdef _MSC_VER
 __declspec(dllexport)
 #endif
-my_bool callastinsertid_init(UDF_INIT* initid, UDF_ARGS* args, char* message)
+my_bool erylastinsertid_init(UDF_INIT* initid, UDF_ARGS* args, char* message)
 {
 	if (args->arg_count == 2 && (args->arg_type[0] != STRING_RESULT || args->arg_type[1] != STRING_RESULT))
 	{
@@ -2116,7 +2116,7 @@ my_bool callastinsertid_init(UDF_INIT* initid, UDF_ARGS* args, char* message)
 #ifdef _MSC_VER
 __declspec(dllexport)
 #endif
-long long callastinsertid(UDF_INIT* initid, UDF_ARGS* args,
+long long erylastinsertid(UDF_INIT* initid, UDF_ARGS* args,
 					char* is_null, char* error)
 {
 	THD* thd = current_thd;
@@ -2172,21 +2172,21 @@ long long callastinsertid(UDF_INIT* initid, UDF_ARGS* args,
 #ifdef _MSC_VER
 __declspec(dllexport)
 #endif
-void callastinsertid_deinit(UDF_INIT* initid)
+void erylastinsertid_deinit(UDF_INIT* initid)
 {
 }
 
 #ifdef _MSC_VER
 __declspec(dllexport)
 #endif
-void calflushcache_deinit(UDF_INIT* initid)
+void eryflushcache_deinit(UDF_INIT* initid)
 {
 }
 
 #ifdef _MSC_VER
 __declspec(dllexport)
 #endif
-long long calflushcache(UDF_INIT* initid, UDF_ARGS* args,
+long long eryflushcache(UDF_INIT* initid, UDF_ARGS* args,
 							char* is_null, char* error)
 {
 	return static_cast<long long>(cacheutils::flushPrimProcCache());
@@ -2195,7 +2195,7 @@ long long calflushcache(UDF_INIT* initid, UDF_ARGS* args,
 #ifdef _MSC_VER
 __declspec(dllexport)
 #endif
-my_bool calflushcache_init(UDF_INIT* initid, UDF_ARGS* args, char* message)
+my_bool eryflushcache_init(UDF_INIT* initid, UDF_ARGS* args, char* message)
 {
 	if (args->arg_count != 0)
 	{
@@ -2208,12 +2208,12 @@ my_bool calflushcache_init(UDF_INIT* initid, UDF_ARGS* args, char* message)
 
 static const unsigned long TraceSize = 16 * 1024;
 
-//mysqld will call this with only 766 bytes available in result no matter what we asked for in calgettrace_init()
+//mysqld will call this with only 766 bytes available in result no matter what we asked for in erygettrace_init()
 // if we return a pointer that is not result, mysqld will take our pointer and use it, freeing up result
 #ifdef _MSC_VER
 __declspec(dllexport)
 #endif
-const char* calgettrace(UDF_INIT* initid, UDF_ARGS* args,
+const char* erygettrace(UDF_INIT* initid, UDF_ARGS* args,
 					char* result, unsigned long* length,
 					char* is_null, char* error)
 {
@@ -2252,7 +2252,7 @@ const char* calgettrace(UDF_INIT* initid, UDF_ARGS* args,
 #ifdef _MSC_VER
 __declspec(dllexport)
 #endif
-my_bool calgettrace_init(UDF_INIT* initid, UDF_ARGS* args, char* message)
+my_bool erygettrace_init(UDF_INIT* initid, UDF_ARGS* args, char* message)
 {
 #if 0
 	if (args->arg_count != 0)
@@ -2270,14 +2270,14 @@ my_bool calgettrace_init(UDF_INIT* initid, UDF_ARGS* args, char* message)
 #ifdef _MSC_VER
 __declspec(dllexport)
 #endif
-void calgettrace_deinit(UDF_INIT* initid)
+void erygettrace_deinit(UDF_INIT* initid)
 {
 }
 
 #ifdef _MSC_VER
 __declspec(dllexport)
 #endif
-const char* calgetversion(UDF_INIT* initid, UDF_ARGS* args,
+const char* erygetversion(UDF_INIT* initid, UDF_ARGS* args,
 					char* result, unsigned long* length,
 					char* is_null, char* error)
 {
@@ -2290,7 +2290,7 @@ const char* calgetversion(UDF_INIT* initid, UDF_ARGS* args,
 #ifdef _MSC_VER
 __declspec(dllexport)
 #endif
-my_bool calgetversion_init(UDF_INIT* initid, UDF_ARGS* args, char* message)
+my_bool erygetversion_init(UDF_INIT* initid, UDF_ARGS* args, char* message)
 {
 	if (args->arg_count != 0)
 	{
@@ -2304,14 +2304,14 @@ my_bool calgetversion_init(UDF_INIT* initid, UDF_ARGS* args, char* message)
 #ifdef _MSC_VER
 __declspec(dllexport)
 #endif
-void calgetversion_deinit(UDF_INIT* initid)
+void erygetversion_deinit(UDF_INIT* initid)
 {
 }
 
 #ifdef _MSC_VER
 __declspec(dllexport)
 #endif
-const char* calgetsqlcount(UDF_INIT* initid, UDF_ARGS* args,
+const char* erygetsqlcount(UDF_INIT* initid, UDF_ARGS* args,
 					char* result, unsigned long* length,
 					char* is_null, char* error)
 {
@@ -2352,7 +2352,7 @@ const char* calgetsqlcount(UDF_INIT* initid, UDF_ARGS* args,
 #ifdef _MSC_VER
 __declspec(dllexport)
 #endif
-my_bool calgetsqlcount_init(UDF_INIT* initid, UDF_ARGS* args, char* message)
+my_bool erygetsqlcount_init(UDF_INIT* initid, UDF_ARGS* args, char* message)
 {
 	if (args->arg_count != 0)
 	{
@@ -2366,7 +2366,7 @@ my_bool calgetsqlcount_init(UDF_INIT* initid, UDF_ARGS* args, char* message)
 #ifdef _MSC_VER
 __declspec(dllexport)
 #endif
-void calgetsqlcount_deinit(UDF_INIT* initid)
+void erygetsqlcount_deinit(UDF_INIT* initid)
 {
 }
 

@@ -38,42 +38,42 @@ INSTALL PLUGIN erydb_files SONAME 'is_erydb_files.so';
 DELETE FROM mysql.func WHERE name='caldisablepartition';
 DELETE FROM mysql.func WHERE name='caldroppartition';
 DELETE FROM mysql.func WHERE name='calenablepartition';
-DELETE FROM mysql.func WHERE name='caldisablepartitions';
-DELETE FROM mysql.func WHERE name='calenablepartitions';
-DELETE FROM mysql.func WHERE name='caldroppartitions';
-DELETE FROM mysql.func WHERE name='calshowpartitions';
-DELETE FROM mysql.func WHERE name='caldroppartitionsbyvalue';
-DELETE FROM mysql.func WHERE name='caldisablepartitionsbyvalue';
-DELETE FROM mysql.func WHERE name='calenablepartitionsbyvalue';
-DELETE FROM mysql.func WHERE name='calshowpartitionsbyvalue';
+DELETE FROM mysql.func WHERE name='erydisablepartitions';
+DELETE FROM mysql.func WHERE name='eryenablepartitions';
+DELETE FROM mysql.func WHERE name='erydroppartitions';
+DELETE FROM mysql.func WHERE name='eryshowpartitions';
+DELETE FROM mysql.func WHERE name='erydroppartitionsbyvalue';
+DELETE FROM mysql.func WHERE name='erydisablepartitionsbyvalue';
+DELETE FROM mysql.func WHERE name='eryenablepartitionsbyvalue';
+DELETE FROM mysql.func WHERE name='eryshowpartitionsbyvalue';
 -- these functions moved libs
-DROP FUNCTION caldisablepartitions;
-DROP FUNCTION calenablepartitions;
-DROP FUNCTION caldroppartitions;
-DROP FUNCTION calshowpartitions;
-DROP FUNCTION caldroppartitionsbyvalue;
-DROP FUNCTION caldisablepartitionsbyvalue;
-DROP FUNCTION calenablepartitionsbyvalue;
-DROP FUNCTION calshowpartitionsbyvalue;
-CREATE FUNCTION calgetstats RETURNS STRING SONAME 'liberymysql.so';
-CREATE FUNCTION calsettrace RETURNS INTEGER SONAME 'liberymysql.so';
-CREATE FUNCTION calsetparms RETURNS STRING SONAME 'liberymysql.so';
-CREATE FUNCTION calflushcache RETURNS INTEGER SONAME 'liberymysql.so';
-CREATE FUNCTION calgettrace RETURNS STRING SONAME 'liberymysql.so';
-CREATE FUNCTION calgetversion RETURNS STRING SONAME 'liberymysql.so';
-CREATE FUNCTION calonlinealter RETURNS INTEGER SONAME 'liberymysql.so';
-CREATE FUNCTION calviewtablelock RETURNS STRING SONAME 'liberymysql.so';
-CREATE FUNCTION calcleartablelock RETURNS STRING SONAME 'liberymysql.so';
-CREATE FUNCTION caldisablepartitions RETURNS STRING SONAME 'liberymysql.so';
-CREATE FUNCTION calenablepartitions RETURNS STRING SONAME 'liberymysql.so';
-CREATE FUNCTION caldroppartitions RETURNS STRING SONAME 'liberymysql.so';
-CREATE FUNCTION calshowpartitions RETURNS STRING SONAME 'liberymysql.so';
-CREATE FUNCTION callastinsertid RETURNS INTEGER SONAME 'liberymysql.so';
-CREATE FUNCTION caldroppartitionsbyvalue RETURNS STRING SONAME 'liberymysql.so';
-CREATE FUNCTION caldisablepartitionsbyvalue RETURNS STRING SONAME 'liberymysql.so';
-CREATE FUNCTION calenablepartitionsbyvalue RETURNS STRING SONAME 'liberymysql.so';
-CREATE FUNCTION calshowpartitionsbyvalue RETURNS STRING SONAME 'liberymysql.so';
-CREATE FUNCTION calgetsqlcount RETURNS STRING SONAME 'liberymysql.so';
+DROP FUNCTION erydisablepartitions;
+DROP FUNCTION eryenablepartitions;
+DROP FUNCTION erydroppartitions;
+DROP FUNCTION eryshowpartitions;
+DROP FUNCTION erydroppartitionsbyvalue;
+DROP FUNCTION erydisablepartitionsbyvalue;
+DROP FUNCTION eryenablepartitionsbyvalue;
+DROP FUNCTION eryshowpartitionsbyvalue;
+CREATE FUNCTION erygetstats RETURNS STRING SONAME 'liberymysql.so';
+CREATE FUNCTION erysettrace RETURNS INTEGER SONAME 'liberymysql.so';
+CREATE FUNCTION erysetparms RETURNS STRING SONAME 'liberymysql.so';
+CREATE FUNCTION eryflushcache RETURNS INTEGER SONAME 'liberymysql.so';
+CREATE FUNCTION erygettrace RETURNS STRING SONAME 'liberymysql.so';
+CREATE FUNCTION erygetversion RETURNS STRING SONAME 'liberymysql.so';
+CREATE FUNCTION eryonlinealter RETURNS INTEGER SONAME 'liberymysql.so';
+CREATE FUNCTION eryviewtablelock RETURNS STRING SONAME 'liberymysql.so';
+CREATE FUNCTION erycleartablelock RETURNS STRING SONAME 'liberymysql.so';
+CREATE FUNCTION erydisablepartitions RETURNS STRING SONAME 'liberymysql.so';
+CREATE FUNCTION eryenablepartitions RETURNS STRING SONAME 'liberymysql.so';
+CREATE FUNCTION erydroppartitions RETURNS STRING SONAME 'liberymysql.so';
+CREATE FUNCTION eryshowpartitions RETURNS STRING SONAME 'liberymysql.so';
+CREATE FUNCTION erylastinsertid RETURNS INTEGER SONAME 'liberymysql.so';
+CREATE FUNCTION erydroppartitionsbyvalue RETURNS STRING SONAME 'liberymysql.so';
+CREATE FUNCTION erydisablepartitionsbyvalue RETURNS STRING SONAME 'liberymysql.so';
+CREATE FUNCTION eryenablepartitionsbyvalue RETURNS STRING SONAME 'liberymysql.so';
+CREATE FUNCTION eryshowpartitionsbyvalue RETURNS STRING SONAME 'liberymysql.so';
+CREATE FUNCTION erygetsqlcount RETURNS STRING SONAME 'liberymysql.so';
 CREATE FUNCTION erydbpm RETURNS INTEGER soname 'liberymysql.so';
 CREATE FUNCTION erydbdbroot RETURNS INTEGER soname 'liberymysql.so';
 CREATE FUNCTION erydbsegment RETURNS INTEGER soname 'liberymysql.so';
@@ -136,9 +136,9 @@ flush privileges;
 EOD
 
 $installdir/mysql/bin/mysql --defaults-file=$df --user=root $pwprompt mysql 2>/dev/null <$installdir/mysql/syscatalog_mysql.sql
-$installdir/mysql/bin/mysql --defaults-file=$df --user=root $pwprompt mysql 2>/dev/null <$installdir/mysql/calsetuserpriority.sql
-$installdir/mysql/bin/mysql --defaults-file=$df --user=root $pwprompt mysql 2>/dev/null <$installdir/mysql/calremoveuserpriority.sql
-$installdir/mysql/bin/mysql --defaults-file=$df --user=root $pwprompt mysql 2>/dev/null <$installdir/mysql/calshowprocesslist.sql
+$installdir/mysql/bin/mysql --defaults-file=$df --user=root $pwprompt mysql 2>/dev/null <$installdir/mysql/erysetuserpriority.sql
+$installdir/mysql/bin/mysql --defaults-file=$df --user=root $pwprompt mysql 2>/dev/null <$installdir/mysql/eryremoveuserpriority.sql
+$installdir/mysql/bin/mysql --defaults-file=$df --user=root $pwprompt mysql 2>/dev/null <$installdir/mysql/eryshowprocesslist.sql
 $installdir/mysql/bin/mysql --defaults-file=$df --user=root $pwprompt mysql 2>/dev/null <$installdir/mysql/erydb_info.sql
 
 sed -i 's/erydb_compression_type=1/erydb_compression_type=2/' $installdir/mysql/my.cnf >/dev/null 2>&1

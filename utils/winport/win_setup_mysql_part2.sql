@@ -1,14 +1,14 @@
 INSTALL PLUGIN erydb SONAME 'liberymysql.dll';
-CREATE FUNCTION calgetstats RETURNS STRING SONAME 'liberymysql.dll';
-CREATE FUNCTION calsettrace RETURNS INTEGER SONAME 'liberymysql.dll';
-CREATE FUNCTION calsetparms RETURNS STRING SONAME 'liberymysql.dll';
-CREATE FUNCTION calflushcache RETURNS INTEGER SONAME 'liberymysql.dll';
-CREATE FUNCTION calgettrace RETURNS STRING SONAME 'liberymysql.dll';
-CREATE FUNCTION calgetversion RETURNS STRING SONAME 'liberymysql.dll';
-CREATE FUNCTION calonlinealter RETURNS INTEGER SONAME 'liberymysql.dll';
-CREATE FUNCTION calviewtablelock RETURNS STRING SONAME 'liberymysql.dll';
-CREATE FUNCTION calcleartablelock RETURNS STRING SONAME 'liberymysql.dll';
-CREATE FUNCTION calgetsqlcount RETURNS STRING SONAME 'liberymysql.dll';
+CREATE FUNCTION erygetstats RETURNS STRING SONAME 'liberymysql.dll';
+CREATE FUNCTION erysettrace RETURNS INTEGER SONAME 'liberymysql.dll';
+CREATE FUNCTION erysetparms RETURNS STRING SONAME 'liberymysql.dll';
+CREATE FUNCTION eryflushcache RETURNS INTEGER SONAME 'liberymysql.dll';
+CREATE FUNCTION erygettrace RETURNS STRING SONAME 'liberymysql.dll';
+CREATE FUNCTION erygetversion RETURNS STRING SONAME 'liberymysql.dll';
+CREATE FUNCTION eryonlinealter RETURNS INTEGER SONAME 'liberymysql.dll';
+CREATE FUNCTION eryviewtablelock RETURNS STRING SONAME 'liberymysql.dll';
+CREATE FUNCTION erycleartablelock RETURNS STRING SONAME 'liberymysql.dll';
+CREATE FUNCTION erygetsqlcount RETURNS STRING SONAME 'liberymysql.dll';
 
 create database if not exists erydbsys;
 use erydbsys;

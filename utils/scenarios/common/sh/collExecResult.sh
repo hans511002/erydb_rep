@@ -82,7 +82,7 @@ function getSQLTestStats {
          sfn=$fileName
       fi
       cat $sfn | grep erydbStart >tmp1.txt
-      cat $pathName/$sfn.log|grep erydb |grep -v now |grep -v calgetstats >tmp2.txt
+      cat $pathName/$sfn.log|grep erydb |grep -v now |grep -v erygetstats >tmp2.txt
 
 #
       cat tmp1.txt |
@@ -95,7 +95,7 @@ function getSQLTestStats {
 #
 # get query stat information
 #
-      cat $pathName/$sfn.log|grep erydbStats|grep -v calgetstats|sed 's/\;//g'|sed 's/-/ /g'|sed 's/MB//g'|sed 's/|//g' >tmp2.txt
+      cat $pathName/$sfn.log|grep erydbStats|grep -v erygetstats|sed 's/\;//g'|sed 's/-/ /g'|sed 's/MB//g'|sed 's/|//g' >tmp2.txt
       cat tmp1.txt |
       while read c1 c2 c3 idx qNum restofLine; do
          statLine=`cat tmp2.txt |grep "erydbStats ( ${idx} ${qNum} )"`

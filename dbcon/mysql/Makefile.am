@@ -24,7 +24,7 @@ liberymysql_la_LDFLAGS = -version-info 1:0:0 $(erydb_common_ldflags) $(erydb_com
 liberymysql_la_CPPFLAGS = -I/usr/include/libxml2 -I../../../mysql/include -I../../../mysql/sql -I../../../mysql/regex -DMYSQL_DYNAMIC_PLUGIN $(AM_CPPFLAGS)
 include_HEADERS = erydb_mysql.h
 
-dist_mysql_DATA = syscatalog_mysql.sql dumpcat_mysql.sql calsetuserpriority.sql calremoveuserpriority.sql calshowprocesslist.sql my.cnf
+dist_mysql_DATA = syscatalog_mysql.sql dumpcat_mysql.sql erysetuserpriority.sql eryremoveuserpriority.sql eryshowprocesslist.sql my.cnf
 dist_mysql_SCRIPTS = install_erydb_mysql.sh mysql-erydb dumpcat.pl
 
 test:

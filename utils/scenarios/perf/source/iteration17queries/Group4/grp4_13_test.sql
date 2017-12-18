@@ -17,7 +17,7 @@ group by l_returnflag,
 order by 
 	l_returnflag,
 	l_linestatus;
-select calgetstats();
+select erygetstats();
 select now();
 select 
 	l_returnflag,
@@ -38,7 +38,7 @@ group by l_returnflag,
 order by 
 	l_returnflag,
 	l_linestatus;
-select calgetstats();
+select erygetstats();
 quit
 
 

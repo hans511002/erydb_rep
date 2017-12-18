@@ -1,8 +1,8 @@
 Select min(l_suppkey) from lineitem;
-select calgetstats();
+select erygetstats();
 select now();
 Select min(l_suppkey) from lineitem;
-select calgetstats();
+select erygetstats();
 quit
 
 

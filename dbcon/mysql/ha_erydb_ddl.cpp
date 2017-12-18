@@ -1085,7 +1085,7 @@ int ProcessDDLStatement(string& ddlStatement, string& schema, const string& tabl
 				int compressionType = compressionTypeIn;
 				if ( comment.length() > 0 )
 				{
-					//@Bug 3782 This is for synchronization after calonlinealter to use
+					//@Bug 3782 This is for synchronization after eryonlinealter to use
 					algorithm::to_upper(comment);
 					regex pat("[[:space:]]*SCHEMA[[:space:]]+SYNC[[:space:]]+ONLY", regex_constants::extended);
 					if (regex_search(comment, pat))
@@ -2095,7 +2095,7 @@ extern "C"
 #ifdef _MSC_VER
 __declspec(dllexport)
 #endif
-long long calonlinealter(UDF_INIT* initid, UDF_ARGS* args,
+long long eryonlinealter(UDF_INIT* initid, UDF_ARGS* args,
 					char* is_null, char* error)
 {
 	string stmt(args->args[0], args->lengths[0]);
@@ -2131,7 +2131,7 @@ long long calonlinealter(UDF_INIT* initid, UDF_ARGS* args,
 #ifdef _MSC_VER
 __declspec(dllexport)
 #endif
-my_bool calonlinealter_init(UDF_INIT* initid, UDF_ARGS* args, char* message)
+my_bool eryonlinealter_init(UDF_INIT* initid, UDF_ARGS* args, char* message)
 {
 	if (args->arg_count != 1 || args->arg_type[0] != STRING_RESULT)
 	{
@@ -2144,7 +2144,7 @@ my_bool calonlinealter_init(UDF_INIT* initid, UDF_ARGS* args, char* message)
 #ifdef _MSC_VER
 __declspec(dllexport)
 #endif
-void calonlinealter_deinit(UDF_INIT* initid)
+void eryonlinealter_deinit(UDF_INIT* initid)
 {
 }
 

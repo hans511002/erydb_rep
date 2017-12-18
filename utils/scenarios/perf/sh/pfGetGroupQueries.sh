@@ -11,7 +11,7 @@ function getGroupQueries {
    while read gid queryNum fileName; do
       ((idx++))
       if [ $tt = "D" ] || [ $tt = "C" ]; then
-         echo select \'erydbFlush \( $idx $queryNum \)\', calflushcache\(\)\; >> $scriptFileName
+         echo select \'erydbFlush \( $idx $queryNum \)\', eryflushcache\(\)\; >> $scriptFileName
       fi 
 #
       if  [ $dt = "M" ]; then
@@ -25,7 +25,7 @@ function getGroupQueries {
 #
       if  [ $dt = "M" ]; then
          echo select \'erydbEnd   \( $idx $queryNum \)\', now\(\)\; >> $scriptFileName
-         echo select \'erydbStats \( $idx $queryNum \)\', calgetstats\(\)\; >> $scriptFileName
+         echo select \'erydbStats \( $idx $queryNum \)\', erygetstats\(\)\; >> $scriptFileName
       else
          echo select \'erydbEnd   \( $idx $queryNum \)\', sysdate from dual\; >> $scriptFileName
          echo select \'erydbStats \( $idx $queryNum \)\', erydb.getstats\(\) from dual\; >> $scriptFileName
@@ -41,7 +41,7 @@ function getGroupQueries {
          cat /root/genii/utils/scenarios/perf/sql/$groupNum/$fileName >>$scriptFileName
          if  [ $dt = "M" ]; then
             echo select \'erydbEnd   \( $idx $queryNum \)\', now\(\)\; >> $scriptFileName
-            echo select \'erydbStats \( $idx $queryNum \)\', calgetstats\(\)\; >> $scriptFileName
+            echo select \'erydbStats \( $idx $queryNum \)\', erygetstats\(\)\; >> $scriptFileName
          else
             echo select \'erydbEnd   \( $idx $queryNum \)\', sysdate from dual\; >> $scriptFileName
             echo select \'erydbStats \( $idx $queryNum \)\', erydb.getstats\(\) from dual\; >> $scriptFileName

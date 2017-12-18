@@ -345,9 +345,9 @@ SET(CPACK_RPM_storage-engine_USER_FILELIST
 "/usr/local/erydb/mysql/syscatalog_mysql.sql"
 "/usr/local/erydb/mysql/dumpcat_mysql.sql"
 "/usr/local/erydb/mysql/dumpcat.pl"
-"/usr/local/erydb/mysql/calsetuserpriority.sql"
-"/usr/local/erydb/mysql/calremoveuserpriority.sql"
-"/usr/local/erydb/mysql/calshowprocesslist.sql"
+"/usr/local/erydb/mysql/erysetuserpriority.sql"
+"/usr/local/erydb/mysql/eryremoveuserpriority.sql"
+"/usr/local/erydb/mysql/eryshowprocesslist.sql"
 "/usr/local/erydb/mysql/erydb_info.sql"
 ${ignored})
 
