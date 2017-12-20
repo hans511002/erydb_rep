@@ -1564,7 +1564,9 @@ cleanup:
         {
             pTargetFile->flush();
         }
-        writeVBEnd(transID, rangeList);
+        if(dbrIndex==0){
+            writeVBEnd(transID, rangeList);
+        }
         return rc;
     }
     void BRMWrapper::writeVBEnd(const VER_t transID, std::vector<LBIDRange>& rangeList)
