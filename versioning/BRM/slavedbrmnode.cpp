@@ -101,8 +101,7 @@ namespace BRM {
     int SlaveDBRMNode::createColumnExtent_DBroot(OID_t oid,uint32_t  colWidth,DBROOTS_struct&  dbRoot,
         execplan::erydbSystemCatalog::ColDataType colDataType,uint32_t& partitionNum,uint16_t& segmentNum,LBID_t& lbid,int& allocdSize,uint32_t& startBlockOffset) throw() {
         try {
-            em.createColumnExtent_DBroot(oid, colWidth, dbRoot, colDataType,
-                partitionNum, segmentNum, lbid, allocdSize, startBlockOffset);
+            em.createColumnExtent_DBroot(oid, colWidth, dbRoot, colDataType,partitionNum, segmentNum, lbid, allocdSize, startBlockOffset);
         } catch (exception& e) {
             cerr << e.what() << endl;
             return -1;
@@ -118,8 +117,7 @@ namespace BRM {
     int SlaveDBRMNode::createColumnExtentExactFile(OID_t oid,uint32_t  colWidth,DBROOTS_struct&  dbRoot,uint32_t  partitionNum,uint16_t  segmentNum,
         execplan::erydbSystemCatalog::ColDataType colDataType,LBID_t& lbid,int& allocdSize,uint32_t& startBlockOffset) throw() {
         try {
-            em.createColumnExtentExactFile(oid, colWidth, dbRoot, partitionNum,
-                segmentNum, colDataType, lbid, allocdSize, startBlockOffset);
+            em.createColumnExtentExactFile(oid, colWidth, dbRoot, partitionNum,segmentNum, colDataType, lbid, allocdSize, startBlockOffset);
         } catch (exception& e) {
             cerr << e.what() << endl;
             return -1;
@@ -134,8 +132,7 @@ namespace BRM {
     //------------------------------------------------------------------------------
     int SlaveDBRMNode::createDictStoreExtent(OID_t oid,DBROOTS_struct& dbRoot,uint32_t  partitionNum,uint16_t  segmentNum,LBID_t& lbid,int& allocdSize) throw() {
         try {
-            em.createDictStoreExtent(oid, dbRoot, partitionNum,
-                segmentNum, lbid, allocdSize);
+            em.createDictStoreExtent(oid, dbRoot, partitionNum,segmentNum, lbid, allocdSize);
         } catch (exception& e) {
             cerr << e.what() << endl;
             return -1;
@@ -150,8 +147,7 @@ namespace BRM {
     //------------------------------------------------------------------------------
     int SlaveDBRMNode::rollbackColumnExtents_DBroot(OID_t oid,bool bDeleteAll,DBROOTS_struct& dbRoot,uint32_t partitionNum,uint16_t segmentNum,HWM_t hwm) throw() {
         try {
-            em.rollbackColumnExtents_DBroot(
-                oid, bDeleteAll, dbRoot, partitionNum, segmentNum, hwm);
+            em.rollbackColumnExtents_DBroot(oid, bDeleteAll, dbRoot, partitionNum, segmentNum, hwm);
         } catch (exception& e) {
             cerr << e.what() << endl;
             return -1;
@@ -168,8 +164,7 @@ namespace BRM {
     //------------------------------------------------------------------------------
     int SlaveDBRMNode::rollbackDictStoreExtents_DBroot(OID_t oid,DBROOTS_struct& dbRoot,uint32_t partitionNum,const vector<uint16_t>& segNums,const vector<HWM_t>& hwms) throw() {
         try {
-            em.rollbackDictStoreExtents_DBroot(
-                oid, dbRoot, partitionNum, segNums, hwms);
+            em.rollbackDictStoreExtents_DBroot(oid, dbRoot, partitionNum, segNums, hwms);
         } catch (exception& e) {
             cerr << e.what() << endl;
             return -1;
@@ -261,9 +256,7 @@ namespace BRM {
     // Set the HWM for the specified OID, partition, and segment.  Used to set the
     // HWM for a specific dictionary or column segment file.
     //------------------------------------------------------------------------------
-    int SlaveDBRMNode::setLocalHWM(OID_t oid, uint32_t partitionNum,
-        uint16_t segmentNum, HWM_t hwm, bool firstNode) throw() {
-
+    int SlaveDBRMNode::setLocalHWM(OID_t oid, uint32_t partitionNum,uint16_t segmentNum, HWM_t hwm, bool firstNode) throw() {
         try {
             em.setLocalHWM(oid, partitionNum, segmentNum, hwm, firstNode);
         } catch (exception& e) {

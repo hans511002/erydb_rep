@@ -683,9 +683,7 @@ uint8_t WE_DDLCommandProc::writeCreateSyscolumn(ByteStream& bs, std::string &err
 				dctnryValueList.push_back(dctColList[n]);
 			}
 			//fWEWrapper.setDebugLevel(WriteEngine::DEBUG_3);
-			error = fWEWrapper.insertColumnRec_SYS(txnID, colStructs, colValuesList,
-								dctnryStructList, dctnryValueList, SYSCOLUMN_BASE);
-
+			error = fWEWrapper.insertColumnRec_SYS(txnID, colStructs, colValuesList,dctnryStructList, dctnryValueList, SYSCOLUMN_BASE);
 			if (erydbdatafile::ERYDBPolicy::useHdfs())
 			{		
 				rc1 = fWEWrapper.flushDataFiles(error, txnID, oids);
@@ -888,9 +886,7 @@ uint8_t WE_DDLCommandProc::writeSyscolumn(ByteStream& bs, std::string & err)
 				else if (COLUMNLEN_COL == column.tableColName.column)
 				{
 					//@Bug 2089 Disallow zero length char and varch column to be created
-					if (dataType == erydbSystemCatalog::CHAR ||
-						dataType == erydbSystemCatalog::VARCHAR ||
-						dataType == erydbSystemCatalog::VARBINARY)
+					if (dataType == erydbSystemCatalog::CHAR || dataType == erydbSystemCatalog::VARCHAR || dataType == erydbSystemCatalog::VARBINARY)
 					{
 						if (colDefPtr->fType->fLength <= 0)
 						{
@@ -1048,8 +1044,7 @@ uint8_t WE_DDLCommandProc::writeSyscolumn(ByteStream& bs, std::string & err)
 			fWEWrapper.startTransaction(txnID);
 			int rc1 = 0;
 								
-			error = fWEWrapper.insertColumnRec_SYS(txnID, colStructs, colValuesList,
-								dctnryStructList, dctnryValueList, SYSCOLUMN_BASE);
+			error = fWEWrapper.insertColumnRec_SYS(txnID, colStructs, colValuesList,dctnryStructList, dctnryValueList, SYSCOLUMN_BASE);
 			
 			if (erydbdatafile::ERYDBPolicy::useHdfs())
 			{		
@@ -2154,8 +2149,7 @@ uint8_t WE_DDLCommandProc::updateSyscolumnNextvalCol(ByteStream& bs, std::string
 	fWEWrapper.setTransId(txnID);
 	fWEWrapper.startTransaction(txnID);
 	
-	rc = fWEWrapper.updateColumnRec(txnID, colExtentsStruct, colValuesList, colOldValuesList,
-			ridLists, dctnryExtentsStruct, dctnryValueList, SYSCOLUMN_BASE);
+	rc = fWEWrapper.updateColumnRec(txnID, colExtentsStruct, colValuesList, colOldValuesList,ridLists, dctnryExtentsStruct, dctnryValueList, SYSCOLUMN_BASE);
 	
 	if (rc != NO_ERROR)
 	{
@@ -2347,8 +2341,7 @@ uint8_t WE_DDLCommandProc::updateSyscolumnTablename(ByteStream& bs, std::string 
 	fWEWrapper.setBulkFlag(false);
 	fWEWrapper.startTransaction(txnID);
 	
-	rc = fWEWrapper.updateColumnRec(txnID, colExtentsStruct, colValuesList, colOldValuesList,
-			ridLists, dctnryExtentsStruct, dctnryValueList, SYSCOLUMN_BASE);
+	rc = fWEWrapper.updateColumnRec(txnID, colExtentsStruct, colValuesList, colOldValuesList,ridLists, dctnryExtentsStruct, dctnryValueList, SYSCOLUMN_BASE);
 	if (rc != NO_ERROR)
 	{
 		// build the logging message
@@ -2518,8 +2511,7 @@ uint8_t WE_DDLCommandProc::updateSystableAuto(ByteStream& bs, std::string & err)
 	fWEWrapper.setBulkFlag(false);
 	fWEWrapper.startTransaction(txnID);
 	
-	rc = fWEWrapper.updateColumnRec(txnID, colExtentsStruct, colValuesList, colOldValuesList,
-				ridLists, dctnryExtentsStruct, dctnryValueList, SYSCOLUMN_BASE);
+	rc = fWEWrapper.updateColumnRec(txnID, colExtentsStruct, colValuesList, colOldValuesList,ridLists, dctnryExtentsStruct, dctnryValueList, SYSCOLUMN_BASE);
 
 	if (rc != NO_ERROR)
 	{
@@ -2706,8 +2698,7 @@ uint8_t WE_DDLCommandProc::updateSystableTablename(ByteStream& bs, std::string &
 	fWEWrapper.setBulkFlag(false);
 	fWEWrapper.startTransaction(txnID);
 	
-	rc = fWEWrapper.updateColumnRec(txnID, colExtentsStruct, colValuesList, colOldValuesList,
-				ridLists, dctnryExtentsStruct, dctnryValueList, SYSCOLUMN_BASE);
+	rc = fWEWrapper.updateColumnRec(txnID, colExtentsStruct, colValuesList, colOldValuesList,ridLists, dctnryExtentsStruct, dctnryValueList, SYSCOLUMN_BASE);
 	
 	if (rc != NO_ERROR)
 	{
@@ -2931,8 +2922,7 @@ uint8_t WE_DDLCommandProc::updateSystablesTablename(ByteStream& bs, std::string 
 	fWEWrapper.setBulkFlag(false);
 	fWEWrapper.startTransaction(txnID);
 	
-	rc = fWEWrapper.updateColumnRec(txnID, colExtentsStruct, colValuesList, colOldValuesList,
-				ridLists, dctnryExtentsStruct, dctnryValueList, SYSCOLUMN_BASE);
+	rc = fWEWrapper.updateColumnRec(txnID, colExtentsStruct, colValuesList, colOldValuesList,ridLists, dctnryExtentsStruct, dctnryValueList, SYSCOLUMN_BASE);
 	
 	if (rc != NO_ERROR)
 	{
@@ -3114,8 +3104,7 @@ uint8_t WE_DDLCommandProc::updateSystablesTablename(ByteStream& bs, std::string 
 	}
 
 	// call the write engine to update the row
-	rc = fWEWrapper.updateColumnRec(txnID, colExtentsStruct, colValuesList, colOldValuesList,
-			ridLists, dctnryExtentsStruct, dctnryValueList, SYSCOLUMN_BASE);
+	rc = fWEWrapper.updateColumnRec(txnID, colExtentsStruct, colValuesList, colOldValuesList,ridLists, dctnryExtentsStruct, dctnryValueList, SYSCOLUMN_BASE);
 	if (rc != NO_ERROR)
 	{
 		// build the logging message
@@ -3337,8 +3326,7 @@ uint8_t WE_DDLCommandProc::fillNewColumn(ByteStream& bs, std::string& err)
 	std::map<uint32_t,uint32_t> oids;
 	oids[dataOid] = dataOid;
 	oids[refColOID] = refColOID;
-	rc = fWEWrapper.fillColumn(txnID, dataOid, dataType, dataWidth, defaultVal,refColOID, refColDataType,
-			 refColWidth, refCompressionType, isNULL, compressionType, defaultValStr, dictOid, autoincrement);
+	rc = fWEWrapper.fillColumn(txnID, dataOid, dataType, dataWidth, defaultVal,refColOID, refColDataType,refColWidth, refCompressionType, isNULL, compressionType, defaultValStr, dictOid, autoincrement);
 	if ( rc != 0 )
 	{
 		WErrorCodes ec;
@@ -3386,9 +3374,7 @@ uint8_t WE_DDLCommandProc::writeTruncateLog(ByteStream& bs, std::string& err)
 	std::ostringstream oss;
 	oss << tableOid;
 	DDLLogFileName += "DDL_TRUNCATETABLE_Log_" + oss.str();
-	boost::scoped_ptr<erydbdatafile::ERYDBDataFile> DDLLogFile(ERYDBDataFile::open(
-								ERYDBPolicy::getType(DDLLogFileName.c_str(), ERYDBPolicy::WRITEENG),
-								DDLLogFileName.c_str(), "w", 0));
+	boost::scoped_ptr<erydbdatafile::ERYDBDataFile> DDLLogFile(ERYDBDataFile::open(ERYDBPolicy::getType(DDLLogFileName.c_str(), ERYDBPolicy::WRITEENG),DDLLogFileName.c_str(), "w", 0));
 
 	if (!DDLLogFile)
 	{
@@ -3456,9 +3442,7 @@ uint8_t WE_DDLCommandProc::writeDropPartitionLog(ByteStream& bs, std::string& er
 	std::ostringstream oss;
 	oss << tableOid;
 	DDLLogFileName += "DDL_DROPPARTITION_Log_" + oss.str();
-	boost::scoped_ptr<erydbdatafile::ERYDBDataFile> DDLLogFile(ERYDBDataFile::open(
-								ERYDBPolicy::getType(DDLLogFileName.c_str(), ERYDBPolicy::WRITEENG),
-								DDLLogFileName.c_str(), "w", 0));
+	boost::scoped_ptr<erydbdatafile::ERYDBDataFile> DDLLogFile(ERYDBDataFile::open(ERYDBPolicy::getType(DDLLogFileName.c_str(), ERYDBPolicy::WRITEENG),DDLLogFileName.c_str(), "w", 0));
 	if (!DDLLogFile)
 	{
 		err = "DDL drop partitions log file cannot be created";
@@ -3526,9 +3510,7 @@ uint8_t WE_DDLCommandProc::writeDropTableLog(ByteStream& bs, std::string& err)
 	std::ostringstream oss;
 	oss << tableOid;
 	DDLLogFileName += "DDL_DROPTABLE_Log_" + oss.str();
-	boost::scoped_ptr<erydbdatafile::ERYDBDataFile> DDLLogFile(ERYDBDataFile::open(
-								ERYDBPolicy::getType(DDLLogFileName.c_str(), ERYDBPolicy::WRITEENG),
-								DDLLogFileName.c_str(), "w", 0));
+	boost::scoped_ptr<erydbdatafile::ERYDBDataFile> DDLLogFile(ERYDBDataFile::open(ERYDBPolicy::getType(DDLLogFileName.c_str(), ERYDBPolicy::WRITEENG),DDLLogFileName.c_str(), "w", 0));
 	if (!DDLLogFile)
 	{
 		err = "DDL drop table log file cannot be created";
@@ -3672,9 +3654,7 @@ uint8_t WE_DDLCommandProc::fetchDDLLog(ByteStream& bs, std::string& err)
 		{
 			//Read the file to get oids
 			//cout << "Found file " << fileNames[i] << endl;
-			boost::scoped_ptr<erydbdatafile::ERYDBDataFile> ddlLogFile(ERYDBDataFile::open(
-								ERYDBPolicy::getType(fileNames[i].c_str(), ERYDBPolicy::WRITEENG),
-								fileNames[i].c_str(), "r", 0));
+			boost::scoped_ptr<erydbdatafile::ERYDBDataFile> ddlLogFile(ERYDBDataFile::open(ERYDBPolicy::getType(fileNames[i].c_str(), ERYDBPolicy::WRITEENG),fileNames[i].c_str(), "r", 0));
 			if ( !ddlLogFile )
 				continue;
 
@@ -3708,9 +3688,7 @@ uint8_t WE_DDLCommandProc::fetchDDLLog(ByteStream& bs, std::string& err)
 			pos = fileNames[i].find ("DDL_DROPPARTITION_Log_") ;
 			if ( pos != string::npos )
 			{
-				boost::scoped_ptr<erydbdatafile::ERYDBDataFile> ddlLogFile(ERYDBDataFile::open(
-								ERYDBPolicy::getType(fileNames[i].c_str(), ERYDBPolicy::WRITEENG),
-								fileNames[i].c_str(), "r", 0));
+				boost::scoped_ptr<erydbdatafile::ERYDBDataFile> ddlLogFile(ERYDBDataFile::open(ERYDBPolicy::getType(fileNames[i].c_str(), ERYDBPolicy::WRITEENG),fileNames[i].c_str(), "r", 0));
 				BRM::LogicalPartition partition;
 				vector<BRM::LogicalPartition> partitionNums;
 				//find the table oid
@@ -3753,9 +3731,7 @@ uint8_t WE_DDLCommandProc::fetchDDLLog(ByteStream& bs, std::string& err)
 				pos = fileNames[i].find ("DDL_TRUNCATETABLE_Log_") ;
 				if ( pos != string::npos )
 				{
-					boost::scoped_ptr<erydbdatafile::ERYDBDataFile> ddlLogFile(ERYDBDataFile::open(
-								ERYDBPolicy::getType(fileNames[i].c_str(), ERYDBPolicy::WRITEENG),
-								fileNames[i].c_str(), "r", 0));
+					boost::scoped_ptr<erydbdatafile::ERYDBDataFile> ddlLogFile(ERYDBDataFile::open(ERYDBPolicy::getType(fileNames[i].c_str(), ERYDBPolicy::WRITEENG),fileNames[i].c_str(), "r", 0));
 					if ( !ddlLogFile )
 					{
 						continue;
@@ -4006,8 +3982,7 @@ uint8_t WE_DDLCommandProc::updateSyscolumnSetDefault(messageqcpp::ByteStream& bs
 
 	// call the write engine to update the row
 	
-	if (NO_ERROR != fWEWrapper.updateColumnRec(txnID, colExtentsStruct, colValuesList, colOldValuesList,
-			ridLists, dctnryExtentsStruct, dctnryValueList, SYSCOLUMN_BASE))
+	if (NO_ERROR != fWEWrapper.updateColumnRec(txnID, colExtentsStruct, colValuesList, colOldValuesList,ridLists, dctnryExtentsStruct, dctnryValueList, SYSCOLUMN_BASE))
 	{
 		err = "WE: Update failed on: " + atableName.table;
 		rc = 1;
@@ -4470,8 +4445,7 @@ uint8_t WE_DDLCommandProc::updateSyscolumnRenameColumn(messageqcpp::ByteStream& 
 	}
 	
 	// call the write engine to update the row
-	if (NO_ERROR != fWEWrapper.updateColumnRec(txnID, colExtentsStruct, colValuesList, colOldValuesList,
-			ridLists, dctnryExtentsStruct, dctnryValueList, SYSCOLUMN_BASE))
+	if (NO_ERROR != fWEWrapper.updateColumnRec(txnID, colExtentsStruct, colValuesList, colOldValuesList,ridLists, dctnryExtentsStruct, dctnryValueList, SYSCOLUMN_BASE))
 	{
 		err = "WE: Update failed on: " + atableName.table;
 		rc = 1;
