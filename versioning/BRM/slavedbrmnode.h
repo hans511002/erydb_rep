@@ -327,7 +327,7 @@ class SlaveDBRMNode {
 		 * first.
 		 * @return 0 on success, -1 on error
 		 */
-		EXPORT int writeVBEntry(VER_t transID, LBID_t lbid, OID_t vbOID, uint32_t vbFBO) throw();
+		EXPORT int writeVBEntry(VER_t transID, LBID_t lbid,uint8_t dbrIdx, OID_t vbOID, uint32_t vbFBO) throw();
 		
 		/** @brief Atomically prepare to copy data to the version buffer
 		 * 

@@ -1494,7 +1494,7 @@ cleanup:
         fileInfo.oid =dbRoot.getPmDbr();// freeList[0].vbOID;
         fileInfo.fPartition = 0;
         fileInfo.fSegment = 0;
-        int dbrIndex=dbRoot.getDbrIndex(fileInfo.oid);
+        uint8_t dbrIndex=dbRoot.getDbrIndex(fileInfo.oid);
         //    fileInfo.fDbRoot = (freeList[0].vbOID % rootCnt) + 1;
         fileInfo.fDbRoot = dbRoot;
         mutex::scoped_lock lk(vbFileLock);
@@ -1537,7 +1537,7 @@ cleanup:
                     goto cleanup;
                 for (; processedBlocks < (k + rangeListCount); processedBlocks++)
                 {
-                    rc = dbrm->writeVBEntry(transID, rangeList[processedBlocks].start,freeList[i].vbOID, freeList[i].vbFBO + (processedBlocks - rangeListCount));
+                    rc = dbrm->writeVBEntry(transID, rangeList[processedBlocks].start,dbrIndex ,freeList[i].vbOID, freeList[i].vbFBO + (processedBlocks - rangeListCount));
                     //cout << (uint64_t)rangeList[processedBlocks].start << endl;
                     if (rc != NO_ERROR)
                     {

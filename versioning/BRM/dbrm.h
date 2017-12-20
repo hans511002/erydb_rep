@@ -594,7 +594,7 @@ public:
 	 * first.
 	 * @return 0 on success, non-0 on error (see brmtypes.h)
 	 */
-	EXPORT int writeVBEntry(VER_t transID, LBID_t lbid, OID_t vbOID, uint32_t vbFBO) DBRM_THROW;
+	EXPORT int writeVBEntry(VER_t transID, LBID_t lbid,uint8_t dbrIdx, OID_t vbOID, uint32_t vbFBO) DBRM_THROW;
 	
 	/** @brief Retrieves a list of uncommitted LBIDs.
 	 * 

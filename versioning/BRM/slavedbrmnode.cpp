@@ -348,7 +348,7 @@ namespace BRM {
     }
 
 
-    int SlaveDBRMNode::writeVBEntry(VER_t transID, LBID_t lbid, OID_t vbOID,uint32_t vbFBO) throw() {
+    int SlaveDBRMNode::writeVBEntry(VER_t transID, LBID_t lbid,uint8_t dbrIdx, OID_t vbOID,uint32_t vbFBO) throw() {
         VER_t oldVerID;
 
         /*
@@ -373,18 +373,20 @@ namespace BRM {
             if (oldVerID == transID){       
                 VBBMEntry * vbe=vbbm.lookup(lbid,transID) ;//²éÕÒ½Úµã
                 assert(vbe!=0);
-                oam::OamCache* oamcache = oam::OamCache::makeOamCache();
-                int repSize = oamcache->getRepSize();
-                for (int n=0; n<repSize; n++){
-                    if(vbe->vbOids[n]==vbOID){
-                        vbe->vbFbo.set(n,vbFBO);
-                        break;
-                    }else if(vbe->vbOids[n]==0){
-                        vbe->vbOids[n]=vbOID;
-                        vbe->vbFbo.set(n,vbFBO);
-                        break;
-                    }
-                }
+                vbe->vbOids[dbrIdx]=vbOID;
+                vbe->vbFbo.set(dbrIdx,vbFBO);
+                //oam::OamCache* oamcache = oam::OamCache::makeOamCache();
+                //int repSize = oamcache->getRepSize();
+                //for (int n=0; n<repSize; n++){
+                //    if(vbe->vbOids[n]==vbOID){
+                //        vbe->vbFbo.set(n,vbFBO);
+                //        break;
+                //    }else if(vbe->vbOids[n]==0){
+                //        vbe->vbOids[n]=vbOID;
+                //        vbe->vbFbo.set(n,vbFBO);
+                //        break;
+                //    }
+                //}
                 return 0;
             }else if (oldVerID > transID) {
                 ostringstream str;
@@ -394,8 +396,8 @@ namespace BRM {
             }
             DBROOTS_struct vbOids;
             FBO_struct vbFbo;
-            vbOids[0]=vbOID;
-            vbFbo[0]=vbFBO;
+            vbOids[dbrIdx]=vbOID;
+            vbFbo[dbrIdx]=vbFBO;
             vbbm.insert(lbid, oldVerID, vbOids, vbFbo);
             if (oldVerID > 0)
                 vss.setVBFlag(lbid, oldVerID, true);

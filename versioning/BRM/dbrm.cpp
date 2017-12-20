@@ -1718,8 +1718,7 @@ namespace BRM {
         return ERR_OK;
     }
 
-    int DBRM::writeVBEntry(VER_t transID, LBID_t lbid, OID_t vbOID,uint32_t vbFBO) DBRM_THROW {
-
+    int DBRM::writeVBEntry(VER_t transID, LBID_t lbid, uint8_t dbrIdx,OID_t vbOID,uint32_t vbFBO) DBRM_THROW {
 #ifdef BRM_INFO
         if (fDebug) {
             TRACER_WRITELATER("writeVBEntry");
@@ -1730,11 +1729,9 @@ namespace BRM {
             TRACER_WRITE;
         }
 #endif
-
         ByteStream command, response;
         uint8_t err;
-
-        command << WRITE_VB_ENTRY << (uint32_t)transID << (uint64_t)lbid << (uint32_t)vbOID << vbFBO;
+        command << WRITE_VB_ENTRY << (uint32_t)transID << (uint64_t)lbid<<dbrIdx << (uint32_t)vbOID << vbFBO;
         err = send_recv(command, response);
         if (err != ERR_OK)
             return err;

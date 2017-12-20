@@ -1441,6 +1441,7 @@ namespace BRM {
     void SlaveComm::do_writeVBEntry(ByteStream &msg) {
         VER_t transID;
         LBID_t lbid;
+        uint8_t dbrIdx;
         OID_t vbOID;
         uint32_t vbFBO, tmp;
         uint64_t tmp64;
@@ -1455,17 +1456,16 @@ namespace BRM {
         transID = tmp;
         msg >> tmp64;
         lbid = tmp64;
+        msg >> dbrIdx;
         msg >> tmp;
         vbOID = tmp;
         msg >> vbFBO;
 
         if (printOnly) {
-            cout << "writeVBEntry: transID=" << transID << " lbid=" << lbid << " vbOID=" <<
-                vbOID << " vbFBO=" << vbFBO << endl;
+            cout << "writeVBEntry: transID=" << transID << " lbid=" << lbid <<" dbrIdx="<<dbrIdx<< " vbOID=" <<vbOID << " vbFBO=" << vbFBO << endl;
             return;
         }
-
-        err = slave->writeVBEntry(transID, lbid, vbOID, vbFBO);
+        err = slave->writeVBEntry(transID, lbid,dbrIdx, vbOID, vbFBO);
         reply << (uint8_t)err;
 #ifdef BRM_VERBOSE
         cerr << "WorkerComm: do_writeVBEntry() err code is " << err << endl;

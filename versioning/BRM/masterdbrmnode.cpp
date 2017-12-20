@@ -740,10 +740,7 @@ void MasterDBRMNode::distribute(ByteStream *msg) {
 // (or any subsequent function) which calls gatherResponses() outside the
 // scope of msgProcessor() which instead uses the halting flag for error
 // handling.
-int MasterDBRMNode::gatherResponses(uint8_t cmd,
-    uint32_t cmdMsgLength,
-    vector<ByteStream*>* responses,
-    bool& readErrFlag) throw() {
+int MasterDBRMNode::gatherResponses(uint8_t cmd,uint32_t cmdMsgLength,vector<ByteStream*>* responses,bool& readErrFlag) throw() {
     int i;
     ByteStream *tmp = 0;
     readErrFlag = false;
