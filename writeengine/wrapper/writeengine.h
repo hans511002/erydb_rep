@@ -556,7 +556,7 @@ public:
     */
    EXPORT int processBatchVersions(const TxnID& txnid, std::vector<Column> columns, std::vector<BRM::LBIDRange> &  rangeList);
    
-   EXPORT void writeVBEnd(const TxnID& txnid, std::vector<BRM::LBIDRange> &  rangeList);
+   EXPORT void writeVBEnd(const TxnID& txnid, uint8_t dbrIdx,std::vector<BRM::LBIDRange> &  rangeList);
 
    /************************************************************************
     * Future implementations
