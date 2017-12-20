@@ -2960,9 +2960,9 @@ namespace WriteEngine
         totalRow = ridLists.size();
 
         TableMetaData* aTbaleMetaData = TableMetaData::makeTableMetaData(tableOid);
+        int dbrIdx=colStructList[0].fColDbRoot.getLocalDbrIndex();
         for (i = 0; i < totalColumn; i++) {
             valArray = NULL;
-        int dbrIdx=colStructList[i].fColDbRoot.getLocalDbrIndex();
             curColStruct = colStructList[i];
             curTupleList = colValueList[i];
             ColumnOp* colOp = m_colOp[op(curColStruct.fCompressionType)];
@@ -3140,8 +3140,8 @@ namespace WriteEngine
         }
 
         TableMetaData* aTbaleMetaData = TableMetaData::makeTableMetaData(tableOid);
+        int dbrIdx=colStructList[0].fColDbRoot.getLocalDbrIndex();
         for (i = 0; i < totalColumn; i++) {
-        int dbrIdx=colStructList[i].fColDbRoot.getLocalDbrIndex();
             if (totalRow2 > 0) {
                 RID * secondPart = rowIdArray + totalRow1;
                 //@Bug 2205 Check if all rows go to the new extent
@@ -3581,6 +3581,7 @@ namespace WriteEngine
         bool isMaster=colStructList[0].fColDbRoot.isMaster();
         oam::OamCache* oamcache = oam::OamCache::makeOamCache();
         int repSize = oamcache->getRepSize();
+        int dbrIdx=colStructList[0].fColDbRoot.getLocalDbrIndex();
         rc = processBeginVBCopy(txnid, colStructList, ridList, freeList, fboLists, rangeLists, rangeListTot);
         if (rc != NO_ERROR) {
             if (rangeListTot.size() > 0)
@@ -3602,7 +3603,6 @@ namespace WriteEngine
         for (i = 0; i < totalColumn; i++) {
             valArray = NULL;
             curColStruct = colStructList[i];
-        int dbrIdx=colStructList[i].fColDbRoot.getLocalDbrIndex();
             curTupleList = colValueList[i]; //same value for all rows
             ColumnOp* colOp = m_colOp[op(curColStruct.fCompressionType)];
             // convert column data type

@@ -280,9 +280,15 @@ int DbFileOp::writeDBFile( CommBlock& cb, const unsigned char* writeBuf, const u
             return NO_ERROR;
         }
     }
+	DBROOTS_struct  dbRoot;
 	if (BRMWrapper::getUseVb())
 	{
-		RETURN_ON_ERROR( writeVB( cb.file.pFile, cb.file.oid, lbid ) ); 
+        int fbo;
+        DBROOTS_struct  dbRoot;
+        uint32_t  partition;
+        uint16_t  segment;
+        RETURN_ON_ERROR(BRMWrapper::getInstance()->getFboOffset(lbid, dbRoot, partition, segment, fbo));
+		RETURN_ON_ERROR( writeVB( cb.file.pFile, cb.file.oid, lbid,dbRoot,fbo ) ); 
 	}
     ret = writeDBFile( cb.file.pFile, writeBuf, lbid, numOfBlock );
 	if (BRMWrapper::getUseVb())
@@ -292,9 +298,8 @@ int DbFileOp::writeDBFile( CommBlock& cb, const unsigned char* writeBuf, const u
 		range.start = lbid;
 		range.size = 1;
 		ranges.push_back(range);
-		BRMWrapper::getInstance()->writeVBEnd(getTransId(), ranges);
+		BRMWrapper::getInstance()->writeVBEnd(getTransId(),dbRoot.getLocalDbrIndex(), ranges);
 	}
-
     return ret;
 }
 
@@ -419,17 +424,16 @@ const int DbFileOp::writeSubBlockEntry( CommBlock& cb, DataBlock* block,
  *    NO_ERROR if success
  *    other number if something wrong
  ***********************************************************/
-const int DbFileOp::writeVB( ERYDBDataFile* pFile, const OID oid, const uint64_t lbid )
+const int DbFileOp::writeVB( ERYDBDataFile* pFile, const OID oid, const uint64_t lbid, DBROOTS_struct &dbRoot, int &fbo)
 {
     if( !BRMWrapper::getUseVb() )
         return NO_ERROR;
-
     int rc;
     TxnID transId = getTransId(); 
 
     if (transId !=((TxnID)INVALID_NUM))
     { 
-        rc= BRMWrapper::getInstance()->writeVB( pFile,(const VER_t)transId,oid, lbid, this );
+        rc= BRMWrapper::getInstance()->writeVB( pFile,(const VER_t)transId,oid, lbid, this,dbRoot,fbo );
 //@Bug 4671. The error is already logged by worker node.
 /*        if (rc != NO_ERROR) 
         { 

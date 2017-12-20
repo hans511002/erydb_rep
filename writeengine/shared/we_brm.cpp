@@ -1330,21 +1330,19 @@ cleanup:
     }
 
 
-    int BRMWrapper::writeVB(ERYDBDataFile* pFile, const VER_t transID, const OID oid, const uint64_t lbid, DbFileOp* pFileOp)
+    int BRMWrapper::writeVB(ERYDBDataFile* pFile, const VER_t transID, const OID oid, const uint64_t lbid, DbFileOp* pFileOp, DBROOTS_struct &dbRoot, int &fbo)
     {
-        int fbo;
         LBIDRange lbidRange;
         std::vector<uint32_t> fboList;
         std::vector<LBIDRange> rangeList;
-
         lbidRange.start = lbid;
         lbidRange.size = 1;
         rangeList.push_back(lbidRange);
-
-        DBROOTS_struct  dbRoot;
-        uint32_t  partition;
-        uint16_t  segment;
-        RETURN_ON_ERROR(getFboOffset(lbid, dbRoot, partition, segment, fbo));
+        //int fbo;
+        //DBROOTS_struct  dbRoot;
+        //uint32_t  partition;
+        //uint16_t  segment;
+        //RETURN_ON_ERROR(getFboOffset(lbid, dbRoot, partition, segment, fbo));
 
         fboList.push_back(fbo);
         VBRange_v freeList;
@@ -1406,6 +1404,7 @@ cleanup:
         //std::vector<VBRange> freeList;
         ERYDBDataFile* pTargetFile;
         int32_t vbOid;
+        uint8_t dbrIdx=dbRoot.getLocalDbrIndex();
 
         if (isDebug(DEBUG_3))
         {
@@ -1456,7 +1455,7 @@ cleanup:
             //if (rc != NO_ERROR)
             //	return rc;
 
-            rc = dbrm->beginVBCopy(transID, dbRoot,dbRoot.getLocalDbrIndex(), rangeList, freeList);
+            rc = dbrm->beginVBCopy(transID, dbRoot,dbrIdx, rangeList, freeList);
             if (rc != NO_ERROR)
             {
                 switch (rc)
@@ -1494,7 +1493,6 @@ cleanup:
         fileInfo.oid =dbRoot.getPmDbr();// freeList[0].vbOID;
         fileInfo.fPartition = 0;
         fileInfo.fSegment = 0;
-        uint8_t dbrIndex=dbRoot.getDbrIndex(fileInfo.oid);
         //    fileInfo.fDbRoot = (freeList[0].vbOID % rootCnt) + 1;
         fileInfo.fDbRoot = dbRoot;
         mutex::scoped_lock lk(vbFileLock);
@@ -1537,7 +1535,7 @@ cleanup:
                     goto cleanup;
                 for (; processedBlocks < (k + rangeListCount); processedBlocks++)
                 {
-                    rc = dbrm->writeVBEntry(transID, rangeList[processedBlocks].start,dbrIndex ,freeList[i].vbOID, freeList[i].vbFBO + (processedBlocks - rangeListCount));
+                    rc = dbrm->writeVBEntry(transID, rangeList[processedBlocks].start,dbrIdx ,freeList[i].vbOID, freeList[i].vbFBO + (processedBlocks - rangeListCount));
                     //cout << (uint64_t)rangeList[processedBlocks].start << endl;
                     if (rc != NO_ERROR)
                     {
@@ -1564,9 +1562,7 @@ cleanup:
         {
             pTargetFile->flush();
         }
-        if(dbrIndex==0){
-            writeVBEnd(transID, rangeList);
-        }
+        writeVBEnd(transID,dbrIdx, rangeList);
         return rc;
     }
     void BRMWrapper::writeVBEnd(const VER_t transID,uint8_t dbrIdx, std::vector<LBIDRange>& rangeList)

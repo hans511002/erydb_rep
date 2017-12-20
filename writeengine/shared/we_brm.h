@@ -332,7 +332,7 @@ public:
     /**
      * @brief Write specified LBID to version buffer
      */
-    EXPORT int writeVB( ERYDBDataFile* pFile,const BRM::VER_t transID,const OID oid,const uint64_t lbid,DbFileOp* pFileOp );
+    EXPORT int writeVB( ERYDBDataFile* pFile,const BRM::VER_t transID,const OID oid,const uint64_t lbid,DbFileOp* pFileOp , DBROOTS_struct &dbRoot, int &fbo);
     int        writeVB( ERYDBDataFile* pFile,const BRM::VER_t transID,const OID weOid,std::vector<uint32_t>& fboList,std::vector<BRM::LBIDRange>& rangeList,
                               DbFileOp* pFileOp,VBRange_v& freeList,const DBROOTS_struct& dbRoot,bool skipBeginVBCopy = false);
     void       writeVBEnd(const BRM::VER_t transID,uint8_t dbrIdx,std::vector<BRM::LBIDRange>& rangeList);

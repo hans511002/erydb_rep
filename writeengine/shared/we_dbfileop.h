@@ -127,7 +127,7 @@ public:
    /**
     * @brief Write to version buffer
     */
-    EXPORT const int     writeVB(          ERYDBDataFile* pFile,const OID oid,const uint64_t lbid );
+    EXPORT const int     writeVB(          ERYDBDataFile* pFile,const OID oid,const uint64_t lbid , DBROOTS_struct &dbRoot, int &fbo);
     EXPORT virtual int   readDbBlocks(     ERYDBDataFile* pFile,unsigned char* readBuf,uint64_t fbo,size_t n);
 
     EXPORT virtual int   restoreBlock(     ERYDBDataFile* pFile,const unsigned char* writeBuf,uint64_t fbo);
