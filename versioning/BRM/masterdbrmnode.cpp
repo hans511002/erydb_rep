@@ -990,7 +990,6 @@ void MasterDBRMNode::finalCleanup()
 void MasterDBRMNode::sendError(IOSocket *caller, uint8_t err) const throw()
 {
 	ByteStream msg;
-
 #ifdef BRM_VERBOSE
 	cerr << "DBRM Controller: returning " << (int) err << " to the caller" << endl;
 #endif
