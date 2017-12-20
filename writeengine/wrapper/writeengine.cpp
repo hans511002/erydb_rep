@@ -3003,8 +3003,7 @@ namespace WriteEngine
                 break;
             vector<LBIDRange>   rangeList;
             if (versioning) {
-                rc = processVersionBuffers(curCol.dataFile.pFile, txnid, curColStruct,
-                    curColStruct.colWidth, totalRow, ridLists, rangeList);
+                rc = processVersionBuffers(curCol.dataFile.pFile, txnid, curColStruct,curColStruct.colWidth, totalRow, ridLists, rangeList);
             }
 
             if (rc != NO_ERROR) {
