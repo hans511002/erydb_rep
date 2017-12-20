@@ -63,7 +63,7 @@ uint16_t & DBROOTS_struct::operator [](int i){
 uint16_t DBROOTS_struct::get(int i)const{
     return dbRoots[i];
 };
-uint16_t DBROOTS_struct::getPmDbr(uint16_t pmid)const{
+uint16_t DBROOTS_struct::getPmDbr(uint16_t pmid,int * dbrIdx)const{
     oam::OamCache* oamcache = oam::OamCache::makeOamCache();
     int dbrIndex = 0;
     while (dbrIndex < 4)
@@ -72,8 +72,10 @@ uint16_t DBROOTS_struct::getPmDbr(uint16_t pmid)const{
         dbrIndex++;
         if (dbr == 0)break; 
         if (!oamcache->existDbroot(dbr,pmid))continue;
+        if(dbrIdx)*dbrIdx=dbrIndex-1;
         return dbr;
     }
+    if(dbrIdx)*dbrIdx=-1;
     return 0;
 };
 std::vector<uint16_t> DBROOTS_struct::getPms()const{

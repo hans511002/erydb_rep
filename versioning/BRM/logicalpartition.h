@@ -66,20 +66,23 @@ namespace BRM
         };
         EXPORT   int remove(uint16_t dbr);
         EXPORT inline  int getLocalDbrIndex() const{
-            return getDbrIndex(getPmDbr());
+            int dbrIdx=-1;
+            int dbr=getPmDbr(0,&dbrIdx);
+            return dbrIdx;
         };
         EXPORT inline  int getDbrIndex(uint16_t dbr) const{
             if(dbr){
-                 int size = 0;
+                int size = 0;
                 while (size < MAX_DATA_REPLICATESIZE && dbRoots[size])
                 {
                     if(dbr==dbRoots[size] )
                         return size;
+                    size++;
                 }
             }
             return -1;
         };
-        EXPORT   uint16_t getPmDbr(uint16_t pmid=0)const;
+        EXPORT   uint16_t getPmDbr(uint16_t pmid=0,int * dbrIdx=0)const;
         EXPORT  std::vector<uint16_t> getPms() const;
         EXPORT  DBROOTS_struct(const DBROOTS_struct&);
         EXPORT  DBROOTS_struct& operator= (const DBROOTS_struct&);
