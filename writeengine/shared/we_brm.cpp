@@ -1569,12 +1569,12 @@ cleanup:
         }
         return rc;
     }
-    void BRMWrapper::writeVBEnd(const VER_t transID, std::vector<LBIDRange>& rangeList)
+    void BRMWrapper::writeVBEnd(const VER_t transID,uint8_t dbrIdx, std::vector<LBIDRange>& rangeList)
     {
         if (erydbdatafile::ERYDBPolicy::useHdfs())
             return;
-
-        dbrm->endVBCopy(transID, rangeList);
+        if(dbrIdx==0)
+            dbrm->endVBCopy(transID, rangeList);
     }
 
 } //end of namespace

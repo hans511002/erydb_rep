@@ -2747,11 +2747,10 @@ namespace WriteEngine
         return rc;
     }
 #endif
-    void WriteEngineWrapper::writeVBEnd(const TxnID& txnid, std::vector<BRM::LBIDRange> &  rangeList) {
+    void WriteEngineWrapper::writeVBEnd(const TxnID& txnid,uint8_t dbrIdx, std::vector<BRM::LBIDRange> &  rangeList) {
         if (erydbdatafile::ERYDBPolicy::useHdfs())
             return;
-
-        BRMWrapper::getInstance()->writeVBEnd(txnid, rangeList);
+        BRMWrapper::getInstance()->writeVBEnd(txnid,dbrIdx, rangeList);
     }
 
     int WriteEngineWrapper::updateColumnRec(const TxnID& txnid,
@@ -2963,20 +2962,14 @@ namespace WriteEngine
         TableMetaData* aTbaleMetaData = TableMetaData::makeTableMetaData(tableOid);
         for (i = 0; i < totalColumn; i++) {
             valArray = NULL;
+        int dbrIdx=colStructList[i].fColDbRoot.getLocalDbrIndex();
             curColStruct = colStructList[i];
             curTupleList = colValueList[i];
             ColumnOp* colOp = m_colOp[op(curColStruct.fCompressionType)];
-
             Convertor::convertColType(&curColStruct);
-
             // set params
             colOp->initColumn(curCol);
-
-            colOp->setColParam(curCol, 0, curColStruct.colWidth,
-                curColStruct.colDataType, curColStruct.colType, curColStruct.dataOid,
-                curColStruct.fCompressionType,
-                &curColStruct.fColDbRoot, curColStruct.fColPartition, curColStruct.fColSegment);
-
+            colOp->setColParam(curCol, 0, curColStruct.colWidth,curColStruct.colDataType, curColStruct.colType, curColStruct.dataOid,curColStruct.fCompressionType,&curColStruct.fColDbRoot, curColStruct.fColPartition, curColStruct.fColSegment);
             ColExtsInfo aColExtsInfo = aTbaleMetaData->getColExtsInfo(curColStruct.dataOid);
             ColExtsInfo::iterator it = aColExtsInfo.begin();
             while (it != aColExtsInfo.end()) {
@@ -2984,7 +2977,6 @@ namespace WriteEngine
                     break;
                 it++;
             }
-
             if (it == aColExtsInfo.end()) //add this one to the list
             {
                 ColExtInfo aExt;
@@ -3010,7 +3002,7 @@ namespace WriteEngine
                 if (curColStruct.fCompressionType == 0) {
                     curCol.dataFile.pFile->flush();
                 }
-                BRMWrapper::getInstance()->writeVBEnd(txnid, rangeList);
+                BRMWrapper::getInstance()->writeVBEnd(txnid,dbrIdx, rangeList);
                 break;
             }
 
@@ -3063,7 +3055,7 @@ namespace WriteEngine
                 bExcp = true;
             }
             if (bExcp) {
-                BRMWrapper::getInstance()->writeVBEnd(txnid, rangeList);
+                BRMWrapper::getInstance()->writeVBEnd(txnid,dbrIdx,  rangeList);
                 return ERR_PARSING;
             }
 #ifdef PROFILE
@@ -3085,7 +3077,7 @@ namespace WriteEngine
                 if (erydbdatafile::ERYDBPolicy::useHdfs())
                     cacheutils::purgePrimProcFdCache(files, Config::getLocalModuleID());
             }
-            BRMWrapper::getInstance()->writeVBEnd(txnid, rangeList);
+            BRMWrapper::getInstance()->writeVBEnd(txnid, dbrIdx, rangeList);
             if (valArray != NULL)
                 free(valArray);
 
@@ -3149,6 +3141,7 @@ namespace WriteEngine
 
         TableMetaData* aTbaleMetaData = TableMetaData::makeTableMetaData(tableOid);
         for (i = 0; i < totalColumn; i++) {
+        int dbrIdx=colStructList[i].fColDbRoot.getLocalDbrIndex();
             if (totalRow2 > 0) {
                 RID * secondPart = rowIdArray + totalRow1;
                 //@Bug 2205 Check if all rows go to the new extent
@@ -3199,7 +3192,7 @@ namespace WriteEngine
                                 curCol.dataFile.pFile->flush();
                             }
 
-                            BRMWrapper::getInstance()->writeVBEnd(txnid, rangeList);
+                            BRMWrapper::getInstance()->writeVBEnd(txnid,dbrIdx, rangeList);
                             break;
                         }
                     }
@@ -3258,7 +3251,7 @@ namespace WriteEngine
                         }
                         if (bExcp) {
                             if (versioning)
-                                BRMWrapper::getInstance()->writeVBEnd(txnid, rangeList);
+                                BRMWrapper::getInstance()->writeVBEnd(txnid,dbrIdx, rangeList);
                             return ERR_PARSING;
                         }
 #ifdef PROFILE
@@ -3281,7 +3274,7 @@ namespace WriteEngine
                     colOp->clearColumn(curCol);
 
                     if (versioning)
-                        BRMWrapper::getInstance()->writeVBEnd(txnid, rangeList);
+                        BRMWrapper::getInstance()->writeVBEnd(txnid, dbrIdx,rangeList);
 
                     if (valArray != NULL)
                         free(valArray);
@@ -3297,10 +3290,7 @@ namespace WriteEngine
 
                 // set params
                 colOp->initColumn(curCol);
-                colOp->setColParam(curCol, 0, newColStructList[i].colWidth,
-                    newColStructList[i].colDataType, newColStructList[i].colType, newColStructList[i].dataOid,
-                    newColStructList[i].fCompressionType, (DBROOTS_struct*)&newColStructList[i].fColDbRoot,
-                    newColStructList[i].fColPartition, newColStructList[i].fColSegment);
+                colOp->setColParam(curCol, 0, newColStructList[i].colWidth,newColStructList[i].colDataType, newColStructList[i].colType, newColStructList[i].dataOid,newColStructList[i].fCompressionType, (DBROOTS_struct*)&newColStructList[i].fColDbRoot,newColStructList[i].fColPartition, newColStructList[i].fColSegment);
 
                 ColExtsInfo aColExtsInfo = aTbaleMetaData->getColExtsInfo(newColStructList[i].dataOid);
                 ColExtsInfo::iterator it = aColExtsInfo.begin();
@@ -3337,7 +3327,7 @@ namespace WriteEngine
                         if (newColStructList[i].fCompressionType == 0) {
                             curCol.dataFile.pFile->flush();
                         }
-                        BRMWrapper::getInstance()->writeVBEnd(txnid, rangeList);
+                        BRMWrapper::getInstance()->writeVBEnd(txnid,dbrIdx, rangeList);
                         break;
                     }
                 }
@@ -3396,7 +3386,7 @@ namespace WriteEngine
                     }
                     if (bExcp) {
                         if (versioning)
-                            BRMWrapper::getInstance()->writeVBEnd(txnid, rangeList);
+                            BRMWrapper::getInstance()->writeVBEnd(txnid,dbrIdx, rangeList);
                         return ERR_PARSING;
                     }
 #ifdef PROFILE
@@ -3419,7 +3409,7 @@ namespace WriteEngine
 
                 colOp->clearColumn(curCol);
                 if (versioning)
-                    BRMWrapper::getInstance()->writeVBEnd(txnid, rangeList);
+                    BRMWrapper::getInstance()->writeVBEnd(txnid, dbrIdx,rangeList);
 
                 if (valArray != NULL)
                     free(valArray);
@@ -3431,14 +3421,9 @@ namespace WriteEngine
                 valArray = NULL;
 
                 ColumnOp* colOp = m_colOp[op(colStructList[i].fCompressionType)];
-
                 // set params
                 colOp->initColumn(curCol);
-                colOp->setColParam(curCol, 0, colStructList[i].colWidth,
-                    colStructList[i].colDataType, colStructList[i].colType, colStructList[i].dataOid,
-                    colStructList[i].fCompressionType, (DBROOTS_struct*)&colStructList[i].fColDbRoot,
-                    colStructList[i].fColPartition, colStructList[i].fColSegment);
-
+                colOp->setColParam(curCol, 0, colStructList[i].colWidth,colStructList[i].colDataType, colStructList[i].colType, colStructList[i].dataOid,colStructList[i].fCompressionType, (DBROOTS_struct*)&colStructList[i].fColDbRoot,colStructList[i].fColPartition, colStructList[i].fColSegment);
                 rc = colOp->openColumnFile(curCol, segFile, useTmpSuffix, IO_BUFF_SIZE); // @bug 5572 HDFS tmp file
                  //cout << " Opened file oid " << curCol.dataFile.pFile << endl;
                 if (rc != NO_ERROR)
@@ -3471,7 +3456,7 @@ namespace WriteEngine
                         if (colStructList[i].fCompressionType == 0) {
                             curCol.dataFile.pFile->flush();
                         }
-                        BRMWrapper::getInstance()->writeVBEnd(txnid, rangeList);
+                        BRMWrapper::getInstance()->writeVBEnd(txnid, dbrIdx,rangeList);
                         break;
                     }
                 }
@@ -3529,7 +3514,7 @@ namespace WriteEngine
                     }
                     if (bExcp) {
                         if (versioning)
-                            BRMWrapper::getInstance()->writeVBEnd(txnid, rangeList);
+                            BRMWrapper::getInstance()->writeVBEnd(txnid,dbrIdx, rangeList);
                         return ERR_PARSING;
                     }
 #ifdef PROFILE
@@ -3552,7 +3537,7 @@ namespace WriteEngine
                 colOp->clearColumn(curCol);
 
                 if (versioning)
-                    BRMWrapper::getInstance()->writeVBEnd(txnid, rangeList);
+                    BRMWrapper::getInstance()->writeVBEnd(txnid, dbrIdx,rangeList);
                 if (valArray != NULL)
                     free(valArray);
 
@@ -3596,11 +3581,10 @@ namespace WriteEngine
         bool isMaster=colStructList[0].fColDbRoot.isMaster();
         oam::OamCache* oamcache = oam::OamCache::makeOamCache();
         int repSize = oamcache->getRepSize();
-        int dbrIndex=colStructList[0].fColDbRoot.getLocalDbrIndex();
         rc = processBeginVBCopy(txnid, colStructList, ridList, freeList, fboLists, rangeLists, rangeListTot);
         if (rc != NO_ERROR) {
             if (rangeListTot.size() > 0)
-                BRMWrapper::getInstance()->writeVBEnd(txnid, rangeListTot);
+                BRMWrapper::getInstance()->writeVBEnd(txnid,dbrIdx, rangeListTot);
             switch (rc) {
                 case BRM::ERR_DEADLOCK: return ERR_BRM_DEAD_LOCK;
                 case BRM::ERR_VBBM_OVERFLOW: return ERR_BRM_VB_OVERFLOW;
@@ -3618,6 +3602,7 @@ namespace WriteEngine
         for (i = 0; i < totalColumn; i++) {
             valArray = NULL;
             curColStruct = colStructList[i];
+        int dbrIdx=colStructList[i].fColDbRoot.getLocalDbrIndex();
             curTupleList = colValueList[i]; //same value for all rows
             ColumnOp* colOp = m_colOp[op(curColStruct.fCompressionType)];
             // convert column data type
@@ -3708,7 +3693,7 @@ namespace WriteEngine
                     curCol.dataFile.pFile->flush();
                 }
                 if (rangeListTot.size() > 0)
-                    BRMWrapper::getInstance()->writeVBEnd(txnid, rangeListTot);
+                    BRMWrapper::getInstance()->writeVBEnd(txnid, dbrIdx,rangeListTot);
                 break;
             }
 
@@ -3766,7 +3751,7 @@ namespace WriteEngine
                 }
                 if (bExcp) {
                     if (rangeListTot.size() > 0)
-                        BRMWrapper::getInstance()->writeVBEnd(txnid, rangeListTot);
+                        BRMWrapper::getInstance()->writeVBEnd(txnid, dbrIdx, rangeListTot);
                     return ERR_PARSING;
                 }
 #ifdef PROFILE
@@ -3805,7 +3790,7 @@ namespace WriteEngine
         //			cacheutils::dropPrimProcFdCache();
         //timer.stop("Delete:purgePrimProcFdCache");
         if (rangeListTot.size() > 0)
-            BRMWrapper::getInstance()->writeVBEnd(txnid, rangeListTot);
+            BRMWrapper::getInstance()->writeVBEnd(txnid,dbrIdx, rangeListTot);
         //timer.stop("Delete:writecolrec");	
         //#ifdef PROFILE
         //timer.finish();
