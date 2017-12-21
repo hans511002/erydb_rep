@@ -36,6 +36,7 @@
 #include "threadsafequeue.h"
 #include "rwlock_local.h"
 #include "resourcemanager.h"
+using namespace messageqcpp;
 
 #if defined(_MSC_VER) && defined(xxxWECLIENTS_DLLEXPORT)
 #define EXPORT __declspec(dllexport)
@@ -65,8 +66,8 @@ public:
 	 * @note: saves a copy vs read(uint32_t, uint32_t).
 	 */
     EXPORT void read(uint32_t key, messageqcpp::SBS &);
-    EXPORT int read(uint32_t key, int size, string *errorMsg = 0);
-    EXPORT int read(uint32_t key, const BRM::DBROOTS_struct & dbRoot, string *errorMsg = 0,std::vector<SBS> * bsList=0);
+    EXPORT int read(uint32_t key, int size, string *errorMsg = 0,std::vector<SBS> * bsList=0);
+    EXPORT int read(uint32_t key, const BRM::DBROOTS_struct & dbRoot, string *errorMsg = 0);
 
 	/** @brief write function to write to specified PM
 	*/

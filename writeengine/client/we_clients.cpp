@@ -38,8 +38,7 @@ using namespace std;
 using namespace boost;
 
 #include "messagequeue.h"
-#include "bytestream.h"
-using namespace messageqcpp;
+
 
 #include "configcpp.h"
 using namespace config;
