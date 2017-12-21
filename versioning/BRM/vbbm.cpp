@@ -527,6 +527,12 @@ namespace BRM {
         std::vector<VBRange> &freeRg= freeRanges;
         int blocksLeftInFile, blocksGathered = 0, i;
         fileIndex = addVBFileIfNotExists(dbr);
+        {
+             ostringstream os;
+            os << "dbr="<<dbr<<" dbrIndex="<<(int)dbrIndex<<"  vbOID="<<vbOID<<"  files["<<fileIndex<<"].OID="<<files[fileIndex].OID 
+                <<"   files["<<fileIndex<<"].fileSize="<<files[fileIndex].fileSize<<"  files["<<fileIndex<<"].nextOffset="<<files[fileIndex].nextOffset<<"  ";
+            log(os.str(),logging::LOG_TYPE_INFO);
+        }
         assert(files[fileIndex].OID == dbr);
         if ((uint32_t)num > files[fileIndex].fileSize)
         {
@@ -1049,9 +1055,15 @@ namespace BRM {
             setCurrentFileSize();
             growVBBM(vbOID - vbbm->nFiles);
             for (int i = len; i < vbOID; i++) {
-                files[i].OID = vbOID;
+                files[i].OID = i+1;
                 files[i].fileSize = currentFileSize / BLOCK_SIZE;
                 files[i].nextOffset = 0;
+                {
+                     ostringstream os;
+                    os << "vbOID="<<vbOID<<" len="<<len<<"  currentFileSize="<<currentFileSize<<"  files["<<i<<"].OID="<<files[i].OID 
+                        <<"   files["<<i<<"].fileSize="<<files[i].fileSize<<"  ";
+                    log(os.str(),logging::LOG_TYPE_INFO);
+                }
             }
         }
         return vbOID - 1;
