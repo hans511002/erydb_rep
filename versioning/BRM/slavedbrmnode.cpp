@@ -369,7 +369,8 @@ namespace BRM {
                 log(os.str(),logging::LOG_TYPE_INFO);
             }
             if (oldVerID == transID){
-                VBBMEntry * vbe=vbbm.lookup(lbid,transID) ;//查找节点
+                oldVerID=vss.getHighestVerInVB(lbid, transID);
+                VBBMEntry * vbe=vbbm.lookup(lbid,oldVerID) ;//查找节点
                 assert(vbe!=0);
                 vbe->vbOids[dbrIdx]=vbOID;
                 vbe->vbFbo.set(dbrIdx,vbFBO);
