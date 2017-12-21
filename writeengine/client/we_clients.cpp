@@ -446,7 +446,7 @@ inline int WEClients::read(uint32_t key, const BRM::DBROOTS_struct & dbRoot, str
     std::vector<uint16_t> pms = oamcache->getDBrootPms(dbRoot);
     return read(key, pms.size(), errorMsg);
 };
-int WEClients::read(uint32_t key, int size, string *errorMsg) {
+int WEClients::read(uint32_t key, int size, string *errorMsg,std::vector<SBS> * bsList) {
     ByteStream::byte tmp8;
     uint16_t msgRecived = 0;
     boost::shared_ptr<messageqcpp::ByteStream> bsIn;
@@ -457,6 +457,9 @@ int WEClients::read(uint32_t key, int size, string *errorMsg) {
         if (msgRecived == size)
             break;
         read(key, bsIn);
+        if(bsList){
+            bsList->push_back(bsIn);
+        }
         if (bsIn->length() == 0) //read error
         {
             rc = 10;// NETWORK_ERROR;
@@ -518,7 +521,7 @@ int WEClients::write(const messageqcpp::ByteStream &msg, const BRM::DBROOTS_stru
     }
     return pms.size();
 }
-void WEClients::write_to_all(const messageqcpp::ByteStream &msg)
+int WEClients::write_to_all(const messageqcpp::ByteStream &msg)
 {
 	if (pmCount == 0)
 	{
@@ -537,6 +540,7 @@ void WEClients::write_to_all(const messageqcpp::ByteStream &msg)
 		}
 		itor++;
 	}
+	return fPmConnections.size();
 }
 
 void WEClients::StartClientListener(boost::shared_ptr<MessageQueueClient> cl, uint32_t connIndex)

@@ -277,10 +277,10 @@ cout << fTxnid.id << " Create table allocOIDs got the starting oid " << fStartin
 		bytestream << (uint32_t)txnID.id;
 		bytestream << (uint32_t)fStartingColOID;
 		bytestream << (uint32_t)createTableStmt.fTableWithAutoi;
-		DBROOTS_struct  dbRoots;
+		DBROOTS_struct  dbRoot;
 		BRM::OID_t sysOid = OID_SYSTABLE_TABLENAME;
 		//Find out where systable is
-		rc = fDbrm->getSysCatDBRoot(sysOid, dbRoots); 
+		rc = fDbrm->getSysCatDBRoot(sysOid, dbRoot); 
 		if (rc != 0)
 		{
 			result.result =(ResultCode) rc;
@@ -296,11 +296,11 @@ cout << fTxnid.id << " Create table allocOIDs got the starting oid " << fStartin
 		}
 	
 		//int pmNum = 1;
-		bytestream << dbRoots; 
+		bytestream << dbRoot; 
 		tableDef.serialize(bytestream);
 		boost::shared_ptr<messageqcpp::ByteStream> bsIn;
 		//OamCache::UintUintMap dbRootPMMap = oamcache->getDBRootToPMMap();
-		//pmNum = (*dbRootPMMap)[dbRoots[0]];
+		//pmNum = (*dbRootPMMap)[dbRoot[0]];
         // MCOL-66 The DBRM can't handle concurrent DDL					   
         boost::mutex::scoped_lock lk(dbrmMutex);
 		try
@@ -308,7 +308,7 @@ cout << fTxnid.id << " Create table allocOIDs got the starting oid " << fStartin
 #ifdef ERYDB_DDL_DEBUG
 cout << fTxnid.id << " create table sending We_SVR_WRITE_SYSTABLE to pm " << pmNum << endl;
 #endif	
-			int weSize=fWEClient->write(bytestream, dbRoots);
+			int weSize=fWEClient->write(bytestream, dbRoot);
             rc = fWEClient->read(uniqueId, weSize, &errorMsg);
 #ifdef ERYDB_DDL_DEBUG
             cout << fTxnid.id << "Create table We_SVR_WRITE_CREATETABLEFILES: " << errorMsg << endl;
@@ -395,7 +395,7 @@ cout << fTxnid.id << " Create table We_SVR_WRITE_CREATETABLEFILES: " << errorMsg
 				
 		sysOid = OID_SYSCOLUMN_SCHEMA;
 		//Find out where syscolumn is
-		rc = fDbrm->getSysCatDBRoot(sysOid, dbRoots); 
+		rc = fDbrm->getSysCatDBRoot(sysOid, dbRoot); 
 		if (rc != 0)
 		{
 			result.result =(ResultCode) rc;
@@ -409,15 +409,15 @@ cout << fTxnid.id << " Create table We_SVR_WRITE_CREATETABLEFILES: " << errorMsg
 			fSessionManager.rolledback(txnID);
 			return result;
 		}
-		bytestream << dbRoots; 
+		bytestream << dbRoot; 
 		tableDef.serialize(bytestream);
-		//pmNum = (*dbRootPMMap)[dbRoots[0]];
+		//pmNum = (*dbRootPMMap)[dbRoot[0]];
 		try
 		{
 #ifdef ERYDB_DDL_DEBUG
 cout << fTxnid.id << " create table sending WE_SVR_WRITE_CREATE_SYSCOLUMN to pm " << pmNum << endl;
 #endif	
-            int weSize = fWEClient->write(bytestream, dbRoots);
+            int weSize = fWEClient->write(bytestream, dbRoot);
             rc = fWEClient->read(uniqueId, weSize, &errorMsg);
 #ifdef ERYDB_DDL_DEBUG
             cout << fTxnid.id << "Create table We_SVR_WRITE_CREATETABLEFILES: " << errorMsg << endl;
@@ -489,11 +489,11 @@ cout << fTxnid.id << " Create table WE_SVR_WRITE_CREATE_SYSCOLUMN: " << errorMsg
 
 		//Calculate which dbroot the columns should start
         ExtentMap em;
-        em.getMinDataDBRoots(&dbRoots);
+        em.getMinDataDBRoots(&dbRoot);
         //DBRootConfigList dbRootList = oamcache->getDBRootNums();
 		//uint16_t useDBRootIndex = tableCount % dbRootList.size();
 		//Find out the dbroot# corresponding the useDBRootIndex from oam
-		//dbRoots = dbRootList[useDBRootIndex];
+		//dbRoot = dbRootList[useDBRootIndex];
 		
 		VERBOSE_INFO("Creating column files");
 		ColumnDef* colDefPtr;
@@ -540,7 +540,7 @@ cout << fTxnid.id << " Create table WE_SVR_WRITE_CREATE_SYSCOLUMN: " << errorMsg
 			bytestream << (uint8_t) false;
 
 			bytestream << (uint32_t) colDefPtr->fType->fLength;
-			bytestream << dbRoots;
+			bytestream << dbRoot;
 			bytestream << (uint32_t) colDefPtr->fType->fCompressiontype;
 			if ( (dataType == erydbSystemCatalog::CHAR && colDefPtr->fType->fLength > 8) ||
 				 (dataType == erydbSystemCatalog::VARCHAR && colDefPtr->fType->fLength > 7) ||
@@ -550,7 +550,7 @@ cout << fTxnid.id << " Create table WE_SVR_WRITE_CREATE_SYSCOLUMN: " << errorMsg
 				bytestream << (uint8_t) dataType;
 				bytestream << (uint8_t) true;
 				bytestream << (uint32_t) colDefPtr->fType->fLength;
-				bytestream <<  dbRoots;
+				bytestream <<  dbRoot;
 				bytestream << (uint32_t) colDefPtr->fType->fCompressiontype;
 			}
 			++iter;
@@ -588,13 +588,13 @@ cout << fTxnid.id << " Create table WE_SVR_WRITE_CREATE_SYSCOLUMN: " << errorMsg
 			return result;
 		}
 		
-		//pmNum = (*dbRootPMMap)[dbRoots[0]];
+		//pmNum = (*dbRootPMMap)[dbRoot[0]];
 		try
 		{
 #ifdef ERYDB_DDL_DEBUG
 cout << fTxnid.id << " create table sending WE_SVR_WRITE_CREATETABLEFILES to pm " << pmNum << endl;
 #endif	
-            int weSize = fWEClient->write(bytestream, dbRoots);
+            int weSize = fWEClient->write(bytestream, dbRoot);
             rc = fWEClient->read(uniqueId, weSize, &errorMsg);
 #ifdef ERYDB_DDL_DEBUG
             cout << "Create table We_SVR_WRITE_CREATETABLEFILES: " << errorMsg << endl;
@@ -633,7 +633,7 @@ cout << fTxnid.id << " create table sending WE_SVR_WRITE_CREATETABLEFILES to pm 
 				{
 					bytestream << (uint32_t)(fStartingColOID + i + 1);
 				}
-                int weSize = fWEClient->write(bytestream, dbRoots);
+                int weSize = fWEClient->write(bytestream, dbRoot);
                 rc = fWEClient->read(uniqueId, weSize);
 				//fWEClient->write(bytestream, pmNum);
 				//while (1)

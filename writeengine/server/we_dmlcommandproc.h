@@ -84,10 +84,10 @@ class WE_DMLCommandProc
 		EXPORT uint8_t rollbackBatchAutoOn(messageqcpp::ByteStream& bs, std::string & err);
 		EXPORT uint8_t rollbackBatchAutoOff(messageqcpp::ByteStream& bs, std::string & err);
 		EXPORT uint8_t processBatchInsertHwm(messageqcpp::ByteStream& bs, std::string & err);
-		EXPORT uint8_t processUpdate(messageqcpp::ByteStream& bs, std::string & err, ByteStream::quadbyte & PMId, uint64_t& blocksChanged);
+		EXPORT uint8_t processUpdate(messageqcpp::ByteStream& bs, std::string & err, DBROOTS_struct &dbRoot, uint64_t& blocksChanged);
 		EXPORT uint8_t processUpdate1(messageqcpp::ByteStream& bs, std::string & err);
 		EXPORT uint8_t processFlushFiles(messageqcpp::ByteStream& bs, std::string & err);
-		EXPORT uint8_t processDelete(messageqcpp::ByteStream& bs, std::string & err, ByteStream::quadbyte & PMId, uint64_t& blocksChanged);
+		EXPORT uint8_t processDelete(messageqcpp::ByteStream& bs, std::string & err, DBROOTS_struct &dbRoot, uint64_t& blocksChanged);
 		EXPORT uint8_t processRemoveMeta(messageqcpp::ByteStream& bs, std::string & err);
 		EXPORT uint8_t processBulkRollback(messageqcpp::ByteStream& bs, std::string & err);
 		EXPORT uint8_t processBulkRollbackCleanup(messageqcpp::ByteStream& bs, std::string & err);

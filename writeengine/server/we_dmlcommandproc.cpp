@@ -1712,16 +1712,14 @@ uint8_t WE_DMLCommandProc::rollbackBatchAutoOff(messageqcpp::ByteStream& bs, std
 	//Rollbacked all versioned blocks
 	return rc;
 }
-uint8_t WE_DMLCommandProc::processUpdate(messageqcpp::ByteStream& bs,
-										 std::string & err,
-										 ByteStream::quadbyte & PMId,
-										 uint64_t& blocksChanged)
+uint8_t WE_DMLCommandProc::processUpdate(messageqcpp::ByteStream& bs,std::string & err,DBROOTS_struct &dbRoot,uint64_t& blocksChanged)
 {
 	uint8_t rc = 0;
 	//cout << " In processUpdate" << endl;
 	uint32_t tmp32, sessionID;
 	TxnID txnId;
-	bs >> PMId;
+//	DBROOTS_struct dbRoot;
+	bs >> dbRoot;
 	bs >> tmp32;
 	txnId = tmp32;
 	fWEWrapper.setIsInsert(false);
@@ -1815,7 +1813,6 @@ uint8_t WE_DMLCommandProc::processUpdate(messageqcpp::ByteStream& bs,
 
 	rowGroups[txnId]->getRow(0, &row);
 	erydbSystemCatalog::RID rid = row.getRid();
-    DBROOTS_struct dbRoot;
 	uint16_t segment, blockNum;
 	uint32_t partition;
 	uint8_t extentNum;
@@ -2877,16 +2874,13 @@ uint8_t WE_DMLCommandProc::processFlushFiles(messageqcpp::ByteStream& bs, std::s
 	return rc;
 }
 
-uint8_t WE_DMLCommandProc::processDelete(messageqcpp::ByteStream& bs,
-										 std::string & err,
-										 ByteStream::quadbyte & PMId,
-										 uint64_t& blocksChanged)
+uint8_t WE_DMLCommandProc::processDelete(messageqcpp::ByteStream& bs,std::string & err,DBROOTS_struct &dbRoot,uint64_t& blocksChanged)
 {
 	uint8_t rc = 0;
 	//cout << " In processDelete" << endl;
 	uint32_t tmp32, sessionID;
 	TxnID txnId;
-	bs >> PMId;
+	bs >> dbRoot;
 	bs >> sessionID;
 	bs >> tmp32;
 	txnId = tmp32;
@@ -2920,7 +2914,6 @@ uint8_t WE_DMLCommandProc::processDelete(messageqcpp::ByteStream& bs,
 	WriteEngine::RIDList  rowIDList;
 	erydbSystemCatalog::RID rid;
 	uint32_t rowsThisRowgroup = rowGroups[txnId]->getRowCount();
-	DBROOTS_struct dbRoot;
 	uint16_t segment, blockNum;
 	uint32_t partition;
 	uint8_t extentNum;
@@ -3251,15 +3244,13 @@ uint8_t WE_DMLCommandProc::processPurgeFDCache(ByteStream& bs, std::string & err
 	return rc;
 }
 
-uint8_t WE_DMLCommandProc::processFixRows(messageqcpp::ByteStream& bs, 
-	                                       std::string & err, 
-	                                       ByteStream::quadbyte & PMId)
+uint8_t WE_DMLCommandProc::processFixRows(messageqcpp::ByteStream& bs, std::string & err, ByteStream::quadbyte & PMId)
 {
 	uint8_t rc = 0;
 	//cout << " In processFixRows" << endl;
 	uint32_t tmp32;
 	uint64_t sessionID;
-	DBROOTS_struct dbRoot;
+//	DBROOTS_struct dbRoot;
 	uint16_t segment;
 	uint32_t partition;
 	string schema, tableName;

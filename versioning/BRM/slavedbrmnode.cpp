@@ -343,7 +343,6 @@ namespace BRM {
 
     int SlaveDBRMNode::writeVBEntry(VER_t transID, LBID_t lbid,uint8_t dbrIdx, OID_t vbOID,uint32_t vbFBO) throw() {
         VER_t oldVerID;
-
         /*
             LBIDRange r;
             r.start = lbid;
@@ -411,7 +410,6 @@ namespace BRM {
             cerr << e.what() << endl;
             return -1;
         }
-
         return 0;
     }
 
@@ -539,7 +537,6 @@ namespace BRM {
         try {
             copylocks.lock(CopyLocks::WRITE);
             locked[2] = true;
-
             for (it = ranges.begin(); it != ranges.end(); ++it)
                 copylocks.releaseRange(*it);
 

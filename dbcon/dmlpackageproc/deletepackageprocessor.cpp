@@ -606,7 +606,7 @@ bool DeletePackageProcessor::processRowgroup(ByteStream & aRowGroup, DMLResult& 
 	ByteStream bytestream;
 	bytestream << (ByteStream::byte)WE_SVR_DELETE;
 	bytestream << uniqueId;
-	bytestream << (ByteStream::quadbyte) pmNum;
+	bytestream << dbRoot;
 	bytestream << uint32_t(cpackage.get_SessionID());
 	bytestream << (ByteStream::quadbyte) cpackage.get_TxnID();
 	bytestream << tablePtr->get_SchemaName();
@@ -696,6 +696,10 @@ bool DeletePackageProcessor::processRowgroup(ByteStream & aRowGroup, DMLResult& 
 					rc = (tmp8 != 0);
 					*bsIn >> errorMsg;
 					*bsIn >> tmp32;
+					
+					DBROOTS_struct _dbRoot;
+					*bsIn >> _dbRoot;
+
 					*bsIn >> blocksChanged;
 					result.stats.fBlocksChanged += blocksChanged;
 					result.stats.fErrorNo = tmp8;
@@ -705,12 +709,12 @@ bool DeletePackageProcessor::processRowgroup(ByteStream & aRowGroup, DMLResult& 
 					if (rc != 0) {
 						throw std::runtime_error(errorMsg); 
 					}
-					if ( tmp32 == (uint32_t)pmNum )
+					if ( tmp32 == (uint32_t)pmNum  && _dbRoot==dbRoot)
 					{
 						fWEClient->write(bytestream, (uint32_t)pmNum);
 						pmStateDel[pmNum] = false;
 						break;
-					}		
+					}
 				}
 			}
 			catch (runtime_error& ex) //write error
@@ -805,6 +809,8 @@ bool DeletePackageProcessor::receiveAll(DMLResult& result, const uint64_t unique
 					err = (tmp8 != 0);
 					*bsIn >> errorMsg;
 					*bsIn >> tmp32;
+					DBROOTS_struct _dbRoot;
+					*bsIn >> _dbRoot;
 					*bsIn >> blocksChanged;
 					//cout << "Received response from pm " << tmp32 << endl;
 					pmStateDel[tmp32] = true;

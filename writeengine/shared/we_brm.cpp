@@ -1570,7 +1570,7 @@ cleanup:
         if (erydbdatafile::ERYDBPolicy::useHdfs())
             return;
         if(dbrIdx==0)
-            dbrm->endVBCopy(transID, rangeList);
+        dbrm->endVBCopy(transID, rangeList);
     }
 
 } //end of namespace

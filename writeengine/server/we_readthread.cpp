@@ -84,10 +84,12 @@ void DmlReadThread::operator()()
     ByteStream::quadbyte PMId;
     ByteStream::byte rc = 0;
     std::string errMsg;
+    DBROOTS_struct dbRoot;
     //cout << "DmlReadThread created ..." << endl;
     // queryStats.blocksChanged for delete/update
     uint64_t blocksChanged = 0;
-	
+	oam::OamCache* oamcache = oam::OamCache::makeOamCache();
+	PMId=oamcache->getLocalPMId();
     while (ibs.length()>0)
     {
         try
@@ -157,7 +159,7 @@ void DmlReadThread::operator()()
                 }
             case WE_SVR_UPDATE:
                 {
-                    rc = fWeDMLprocessor->processUpdate(ibs, errMsg, PMId, blocksChanged);
+                    rc = fWeDMLprocessor->processUpdate(ibs, errMsg, dbRoot, blocksChanged);
                     break;
                 }
             case WE_SVR_FLUSH_FILES:
@@ -167,7 +169,7 @@ void DmlReadThread::operator()()
                 }
             case WE_SVR_DELETE:
                 {
-                    rc = fWeDMLprocessor->processDelete(ibs, errMsg, PMId, blocksChanged);
+                    rc = fWeDMLprocessor->processDelete(ibs, errMsg, dbRoot, blocksChanged);
                     break;
                 }
             case WE_SVR_BATCH_AUTOON_REMOVE_META:
@@ -386,9 +388,10 @@ void DmlReadThread::operator()()
         else if ((msgId == WE_SVR_BATCH_INSERT) || (msgId == WE_SVR_UPDATE) || (msgId == WE_SVR_DELETE))
         {
             obs << PMId;
+            if((msgId != WE_SVR_BATCH_INSERT))
+                obs << dbRoot;
         }
-        else if ((msgId == WE_SVR_DML_BULKROLLBACK) ||
-                 (msgId == WE_SVR_DML_BULKROLLBACK_CLEANUP))
+        else if ((msgId == WE_SVR_DML_BULKROLLBACK) || (msgId == WE_SVR_DML_BULKROLLBACK_CLEANUP))
         {
             obs << Config::getLocalModuleID();
         }

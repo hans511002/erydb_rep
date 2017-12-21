@@ -673,16 +673,15 @@ uint64_t UpdatePackageProcessor::fixUpRows(dmlpackage::erydbDMLPackage& cpackage
 }
 
 bool UpdatePackageProcessor::processRowgroup(ByteStream & aRowGroup, DMLResult& result, const uint64_t uniqueId, 
-			dmlpackage::erydbDMLPackage& cpackage, std::map<unsigned, bool>& pmState, DBROOTS_struct &dbroot,  bool isMeta)
+			dmlpackage::erydbDMLPackage& cpackage, std::map<unsigned, bool>& pmState, DBROOTS_struct &dbRoot,  bool isMeta)
 {
 	bool rc = false;
 	//cout << "Get dbroot " << dbroot << endl;
-	uint32_t pmNum = (*fDbRootPMMap)[dbroot[0]];
-	
+	uint32_t pmNum = (*fDbRootPMMap)[dbRoot[0]];
 	ByteStream bytestream;
 	bytestream << (uint8_t)WE_SVR_UPDATE;
 	bytestream << uniqueId;
-	bytestream << pmNum;
+	bytestream << dbRoot;
 	bytestream << (uint32_t)cpackage.get_TxnID();
 	bytestream += aRowGroup;
 	//cout << "sending rows to pm " << pmNum << " with msg length " << bytestream.length() << endl;
@@ -731,10 +730,10 @@ bool UpdatePackageProcessor::processRowgroup(ByteStream & aRowGroup, DMLResult& 
 	}
 	
 	if (pmState[pmNum])
-	{ 	
+	{
 		try {
 			//cout << "sending rows to pm " << pmNum << " with msg length " << bytestream.length() << endl;
-			fWEClient->write(bytestream, (uint32_t)pmNum);
+			fWEClient->write(bytestream, dbRoot);
 			pmState[pmNum] = false;
 		}
 		catch (runtime_error& ex) //write error
@@ -792,6 +791,8 @@ bool UpdatePackageProcessor::processRowgroup(ByteStream & aRowGroup, DMLResult& 
 						rc = (tmp8 != 0);
 					}
 					*bsIn >> tmp32;
+					DBROOTS_struct _dbRoot;
+					*bsIn >> _dbRoot;
 					//cout << "Received response from pm " << tmp32 << endl;
 					pmState[tmp32] = true;
 					*bsIn >> blocksChanged;
@@ -800,10 +801,10 @@ bool UpdatePackageProcessor::processRowgroup(ByteStream & aRowGroup, DMLResult& 
                     {
 						throw std::runtime_error(errorMsg); 
 					}
-					if (tmp32 == (uint32_t)pmNum)
+					if (tmp32 == (uint32_t)pmNum && _dbRoot==dbRoot)
 					{
 						//cout << "sending rows to pm " << pmNum << " with msg length " << bytestream.length() << endl;
-						fWEClient->write(bytestream, (uint32_t)pmNum);
+						fWEClient->write(bytestream, dbRoot);
 						pmState[pmNum] = false;
 						break;
 					}
@@ -914,6 +915,8 @@ bool UpdatePackageProcessor::receiveAll(DMLResult& result, const uint64_t unique
 						err = (tmp8 != 0);
 					}
 					*bsIn >> tmp32;
+					DBROOTS_struct _dbRoot;
+					*bsIn >> _dbRoot;
 					*bsIn >> blocksChanged;
 					//cout << "Received response from pm " << tmp32 << endl;
 					pmState[tmp32] = true;

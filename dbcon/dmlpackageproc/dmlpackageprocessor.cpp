@@ -283,41 +283,53 @@ int DMLPackageProcessor::rollBackTransaction(uint64_t uniqueId, BRM::TxnID txnID
 	bytestream << (uint32_t)txnID.id;
 	uint32_t msgRecived = 0;
 	try {
-		fWEClient->write_to_all(bytestream);
-		boost::shared_ptr<messageqcpp::ByteStream> bsIn;
-		bsIn.reset(new ByteStream());
-		ByteStream::byte tmp8;
-		while (1)
-		{
-			if (msgRecived == fWEClient->getPmCount())
-				break;
-			fWEClient->read(uniqueId, bsIn);
-			if ( bsIn->length() == 0 ) //read error
-			{
-				rc = NETWORK_ERROR;
-                errorMsg = "Network error reading WEClient";
-				fWEClient->removeQueue(uniqueId);
-				//cout << "erroring out remove queue id " << uniqueId << endl;
-				break;
-			}			
-			else {
-				*bsIn >> tmp8;
-				rc = tmp8;
-				if (rc != 0) {
-                    char szrc[20];
-					*bsIn >> errorMsg;
-                    errorMsg += " (WriteEngine returns error ";
-                    sprintf(szrc, "%d", rc);
-                    errorMsg += szrc;
-                    errorMsg += ")";
-					fWEClient->removeQueue(uniqueId);
-					cout << "erroring out remove queue id " << uniqueId << endl;
-					break;
-				}
-				else
-					msgRecived++;						
-			}
+        int weSize = fWEClient->write_to_all(bytestream);
+        rc = fWEClient->read(uniqueId, weSize, &errorMsg);
+        if (rc != 0) {
+            char szrc[20];
+			*bsIn >> errorMsg;
+            errorMsg += " (WriteEngine returns error ";
+            sprintf(szrc, "%d", rc);
+            errorMsg += szrc;
+            errorMsg += ")";
+			fWEClient->removeQueue(uniqueId);
+			cout << "erroring out remove queue id " << uniqueId << endl;
 		}
+		
+		//boost::shared_ptr<messageqcpp::ByteStream> bsIn;
+		//bsIn.reset(new ByteStream());
+		//ByteStream::byte tmp8;
+		//while (1)
+		//{
+		//	if (msgRecived == fWEClient->getPmCount())
+		//		break;
+		//	fWEClient->read(uniqueId, bsIn);
+		//	if ( bsIn->length() == 0 ) //read error
+		//	{
+		//		rc = NETWORK_ERROR;
+        //        errorMsg = "Network error reading WEClient";
+		//		fWEClient->removeQueue(uniqueId);
+		//		//cout << "erroring out remove queue id " << uniqueId << endl;
+		//		break;
+		//	}			
+		//	else {
+		//		*bsIn >> tmp8;
+		//		rc = tmp8;
+		//		if (rc != 0) {
+        //            char szrc[20];
+		//			*bsIn >> errorMsg;
+        //            errorMsg += " (WriteEngine returns error ";
+        //            sprintf(szrc, "%d", rc);
+        //            errorMsg += szrc;
+        //            errorMsg += ")";
+		//			fWEClient->removeQueue(uniqueId);
+		//			cout << "erroring out remove queue id " << uniqueId << endl;
+		//			break;
+		//		}
+		//		else
+		//			msgRecived++;						
+		//	}
+		//}
 	}
 	catch(std::exception& e)
 	{

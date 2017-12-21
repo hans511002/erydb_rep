@@ -869,30 +869,31 @@ void AlterTableProcessor::addColumn (uint32_t sessionID, execplan::erydbSystemCa
 				bs << (uint32_t) column_iterator->colType.colWidth;
 				bs << (ByteStream::byte) column_iterator->colType.compressionType;
 				//cout << "sending command fillcolumn " << endl;	 
-                uint32_t msgRecived = 0;
-                fWEClient->write_to_all(bs);
-                bsIn.reset(new ByteStream());
-                while (1)
-                {
-                    if (msgRecived == fPMCount)
-                        break;
-                    fWEClient->read(uniqueId, bsIn);
-                    if ( bsIn->length() == 0 ) //read error
-                    {
-                        rc = NETWORK_ERROR;
-                        break;
-                    }			
-                    else {
-                        *bsIn >> tmp8;
-                        *bsIn >> errorMsg;
-                        rc = tmp8;
-                        //cout << "Got error code from WES " << rc << endl;
-                        if (rc != 0) 				
-                            break;	
-                        else
-                            msgRecived++;						
-                    }
-                }				
+                //uint32_t msgRecived = 0;
+                int wsSize=fWEClient->write_to_all(bs);
+                rc = fWEClient->read(uniqueId, weSize, &errorMsg);
+                //bsIn.reset(new ByteStream());
+                //while (1)
+                //{
+                //    if (msgRecived == fPMCount)
+                //        break;
+                //    fWEClient->read(uniqueId, bsIn);
+                //    if ( bsIn->length() == 0 ) //read error
+                //    {
+                //        rc = NETWORK_ERROR;
+                //        break;
+                //    }			
+                //    else {
+                //        *bsIn >> tmp8;
+                //        *bsIn >> errorMsg;
+                //        rc = tmp8;
+                //        //cout << "Got error code from WES " << rc << endl;
+                //        if (rc != 0) 				
+                //            break;	
+                //        else
+                //            msgRecived++;						
+                //    }
+                //}				
                 if (rc != 0) //delete the newly created files before erroring out
                 {					
                     bs.restart();
@@ -904,33 +905,34 @@ void AlterTableProcessor::addColumn (uint32_t sessionID, execplan::erydbSystemCa
                         bs << (uint32_t) oidList[i];
                     }
                     
-                    uint32_t msgRecived = 0;
+                    //uint32_t msgRecived = 0;
                     try {
-                        fWEClient->write_to_all(bs);
-                        bsIn.reset(new ByteStream());
-                        ByteStream::byte tmp8;
-                        while (1)
-                        {
-                            if (msgRecived == fWEClient->getPmCount())
-                                break;
-                            fWEClient->read(uniqueId, bsIn);
-                            if ( bsIn->length() == 0 ) //read error
-                            {
-                                rc = NETWORK_ERROR;
-                                errorMsg = "Lost connection to Write Engine Server while dropping column files";
-                                break;
-                            }			
-                            else {
-                                *bsIn >> tmp8;
-                                rc = tmp8;
-                                if (rc != 0) {
-                                    *bsIn >> errorMsg;
-                                    break;
-                                }
-                                else
-                                    msgRecived++;						
-                            }
-                        }
+                        int wsSize=fWEClient->write_to_all(bs);
+                        rc = fWEClient->read(uniqueId, weSize, &errorMsg);
+                        //bsIn.reset(new ByteStream());
+                        //ByteStream::byte tmp8;
+                        //while (1)
+                        //{
+                        //    if (msgRecived == fWEClient->getPmCount())
+                        //        break;
+                        //    fWEClient->read(uniqueId, bsIn);
+                        //    if ( bsIn->length() == 0 ) //read error
+                        //    {
+                        //        rc = NETWORK_ERROR;
+                        //        errorMsg = "Lost connection to Write Engine Server while dropping column files";
+                        //        break;
+                        //    }			
+                        //    else {
+                        //        *bsIn >> tmp8;
+                        //        rc = tmp8;
+                        //        if (rc != 0) {
+                        //            *bsIn >> errorMsg;
+                        //            break;
+                        //        }
+                        //        else
+                        //            msgRecived++;						
+                        //    }
+                        //}
                     }
                     catch (runtime_error& ex) //write error
                     {		
@@ -1283,40 +1285,41 @@ cout << "Alter table drop column got unknown exception" << endl;
 		oidList.push_back(oid);
 	}
 	//Save the oids to a file
-	uint32_t msgRecived = 0;
+	//uint32_t msgRecived = 0;
 	bool fileDropped = true;
 	try {
 		createWriteDropLogFile( roPair.objnum, uniqueId, oidList );
-		//@Bug 4811. Need to send to all PMs
-		fWEClient->write_to_all(bytestream);
+		//@Bug 4811. Need to send to all PMs		
 #ifdef ERYDB_DDL_DEBUG
 cout << "Alter table drop column sending WE_SVR_UPDATE_SYSTABLE_AUTO to pm " << pmNum << endl;
 #endif	
-		bsIn.reset(new ByteStream());
-		ByteStream::byte tmp8;
-		while (1)
-		{
-			if (msgRecived == fWEClient->getPmCount())
-				break;
-			fWEClient->read(uniqueId, bsIn);
-			if ( bsIn->length() == 0 ) //read error
-			{
-				rc = NETWORK_ERROR;
-				errorMsg = "Lost connection to Write Engine Server while dropping column files";
-				break;
-			}			
-			else {
-				*bsIn >> tmp8;
-				rc = tmp8;
-				if (rc != 0) {
-					*bsIn >> errorMsg;
-					fileDropped = false;
-					break;
-				}
-				else
-					msgRecived++;						
-			}
-		}
+        int wsSize=fWEClient->write_to_all(bytestream);
+        rc = fWEClient->read(uniqueId, weSize, &errorMsg);
+		//bsIn.reset(new ByteStream());
+		//ByteStream::byte tmp8;
+		//while (1)
+		//{
+		//	if (msgRecived == fWEClient->getPmCount())
+		//		break;
+		//	fWEClient->read(uniqueId, bsIn);
+		//	if ( bsIn->length() == 0 ) //read error
+		//	{
+		//		rc = NETWORK_ERROR;
+		//		errorMsg = "Lost connection to Write Engine Server while dropping column files";
+		//		break;
+		//	}			
+		//	else {
+		//		*bsIn >> tmp8;
+		//		rc = tmp8;
+		//		if (rc != 0) {
+		//			*bsIn >> errorMsg;
+		//			fileDropped = false;
+		//			break;
+		//		}
+		//		else
+		//			msgRecived++;						
+		//	}
+		//}
 	}
 	catch (runtime_error& ex) //write error
 	{
