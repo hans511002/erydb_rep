@@ -363,11 +363,13 @@ namespace BRM {
             // larger version numbers imply more recent changes.  If we ever change that
             // assumption, we'll need to revise the vbRollback() fcns as well.
             oldVerID = vss.getCurrentVersion(lbid, NULL);
+#ifdef BRM_VERBOSE
              {
                  ostringstream os;
                 os << "lbid="<<lbid<<" dbrIdx="<<(int)dbrIdx<<"  transID="<<transID<<"  oldVerID="<<oldVerID<<"   vbOID="<<vbOID<<"   vbFBO="<<vbFBO<<"    ";
                 log(os.str(),logging::LOG_TYPE_INFO);
             }
+#endif
             if (oldVerID == transID){
                 oldVerID=vss.getHighestVerInVB(lbid, transID);
                 VBBMEntry * vbe=vbbm.lookup(lbid,oldVerID) ;//²éÕÒ½Úµã

@@ -527,12 +527,14 @@ namespace BRM {
         std::vector<VBRange> &freeRg= freeRanges;
         int blocksLeftInFile, blocksGathered = 0, i;
         fileIndex = addVBFileIfNotExists(dbr);
+#ifdef BRM_VERBOSE
         {
              ostringstream os;
             os << "dbr="<<dbr<<" dbrIndex="<<(int)dbrIndex<<"  vbOID="<<vbOID<<"  files["<<fileIndex<<"].OID="<<files[fileIndex].OID 
                 <<"   files["<<fileIndex<<"].fileSize="<<files[fileIndex].fileSize<<"  files["<<fileIndex<<"].nextOffset="<<files[fileIndex].nextOffset<<"  ";
             log(os.str(),logging::LOG_TYPE_INFO);
         }
+#endif
         assert(files[fileIndex].OID == dbr);
         if ((uint32_t)num > files[fileIndex].fileSize)
         {
