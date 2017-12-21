@@ -597,11 +597,11 @@ namespace dmlpackageprocessor
   }
   
 bool DeletePackageProcessor::processRowgroup(ByteStream & aRowGroup, DMLResult& result, const uint64_t uniqueId, 
-			dmlpackage::erydbDMLPackage& cpackage, std::map<unsigned, bool>& pmStateDel, DBROOTS_struct& dbroot, bool isMeta)
+			dmlpackage::erydbDMLPackage& cpackage, std::map<unsigned, bool>& pmStateDel, DBROOTS_struct& dbRoot, bool isMeta)
 {
 	bool rc = false;
 	//cout << "Get dbroot " << dbroot << endl;
-	int pmNum = (*fDbRootPMMap)[dbroot[0]];
+	int pmNum = (*fDbRootPMMap)[dbRoot[0]];
 	DMLTable* tablePtr =  cpackage.get_Table();
 	ByteStream bytestream;
 	bytestream << (ByteStream::byte)WE_SVR_DELETE;
