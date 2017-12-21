@@ -1323,9 +1323,11 @@ namespace WriteEngine
                 }
             }
 
-            if (lbids.size() > 0)
-                rc = BRMWrapper::getInstance()->markExtentsInvalid(lbids, colDataTypes);
-
+            if (lbids.size() > 0){
+                uint8_t dbrIdx=colStructList[0].fColDbRoot.getLocalDbrIndex();
+                if(dbrIdx==0)
+                    rc = BRMWrapper::getInstance()->markExtentsInvalid(lbids, colDataTypes);
+            }
             //----------------------------------------------------------------------
             // Write row(s) to database file(s)
             //----------------------------------------------------------------------
@@ -1441,13 +1443,10 @@ namespace WriteEngine
 #ifdef PROFILE
         timer.start("allocRowId");
 #endif
-
         newColStructList = colStructList;
         newDctnryStructList = dctnryStructList;
         std::vector<boost::shared_ptr<DBRootExtentTracker> >   dbRootExtentTrackers;
-        bool bUseStartExtent = true;
-        
-        
+        bool bUseStartExtent = true; 
         rc = colOp->allocRowId(txnid, bUseStartExtent,curCol, (uint64_t)totalRow, rowIdArray, hwm, newExtent, rowsLeft, newHwm, newFile, newColStructList, newDctnryStructList,dbRootExtentTrackers, false, false, 0);
 
         if ((rc == ERR_FILE_DISK_SPACE) && newExtent) {
@@ -1489,18 +1488,14 @@ namespace WriteEngine
             }
         }
 
-        TableMetaData* aTableMetaData = TableMetaData::makeTableMetaData(tableOid);
-            
-            
-            
+        TableMetaData* aTableMetaData = TableMetaData::makeTableMetaData(tableOid); 
         //..Expand initial abbreviated extent if any RID in 1st extent is > 256K
         // DMC-SHARED_NOTHING_NOTE: Is it safe to assume only part0 seg0 is abbreviated?
         if ((partitionNum == 0) && (segmentNum == 0) && ((totalRow - rowsLeft) > 0) && (rowIdArray[totalRow - rowsLeft - 1] >= (RID)INITIAL_EXTENT_ROWS_TO_DISK)) {
             for (unsigned k = 1; k < colStructList.size(); k++) {
                 Column expandCol;
                 colOp = m_colOp[op(colStructList[k].fCompressionType)];
-                colOp->setColParam(expandCol, 0,colStructList[k].colWidth,colStructList[k].colDataType,colStructList[k].colType,colStructList[k].dataOid,colStructList[k].fCompressionType,
-                    &dbRoot,partitionNum,segmentNum);
+                colOp->setColParam(expandCol, 0,colStructList[k].colWidth,colStructList[k].colDataType,colStructList[k].colType,colStructList[k].dataOid,colStructList[k].fCompressionType,&dbRoot,partitionNum,segmentNum);
                 rc = colOp->openColumnFile(expandCol, segFile, false); // @bug 5572 HDFS tmp file
                 if (rc == NO_ERROR) {
                     if (colOp->abbreviatedExtent(expandCol.dataFile.pFile, colStructList[k].colWidth)) {
@@ -1530,14 +1525,10 @@ namespace WriteEngine
             if (colStructList[i].tokenFlag) {
                 dctStr_iter = dictStrList[i].begin();
                 col_iter = colValueList[i].begin();
-                Dctnry* dctnry = m_dctnry[op(dctnryStructList[i].fCompressionType)];
-
+                Dctnry* dctnry = m_dctnry[op(dctnryStructList[i].fCompressionType)]; 
                 dctnryStructList[i].fColPartition = partitionNum;
                 dctnryStructList[i].fColSegment = segmentNum;
-                dctnryStructList[i].fColDbRoot = dbRoot;
-                
-                
-                
+                dctnryStructList[i].fColDbRoot = dbRoot; 
                 rc = dctnry->openDctnry(dctnryStructList[i].dctnryOid,dctnryStructList[i].fColDbRoot, dctnryStructList[i].fColPartition,dctnryStructList[i].fColSegment,false); // @bug 5572 HDFS tmp file
                 if (rc != NO_ERROR)
                     return rc;
@@ -1652,8 +1643,6 @@ namespace WriteEngine
                 }
             }
         }
-
-
         //Update column info structure @Bug 1862 set hwm
         //@Bug 2205 Check whether all rows go to the new extent
         RID lastRid = 0;
@@ -1777,15 +1766,11 @@ namespace WriteEngine
             if (successFlag) {
                 if (curFbo != lastFbo) {
                      RETURN_ON_ERROR(AddLBIDtoList(txnid,lbids,colDataTypes,newColStructList[i],curFbo));
-                   
-                    
-                    
-                    
                 }
             }
         }
         //cout << "lbids size = " << lbids.size()<< endl;
-        if (lbids.size() > 0)
+        if (lbids.size() > 0 && dbRoot.isMaster())
             rc = BRMWrapper::getInstance()->markExtentsInvalid(lbids, colDataTypes);
 
         if (rc == NO_ERROR) {
@@ -1947,9 +1932,7 @@ namespace WriteEngine
 
         oldHwm = hwm; //Save this info for rollback
         //need to pass real dbRoot, partition, and segment to setColParam
-        colOp->setColParam(curCol, 0, curColStruct.colWidth, curColStruct.colDataType,
-            curColStruct.colType, curColStruct.dataOid, curColStruct.fCompressionType,
-            &dbRoot, partitionNum, segmentNum);
+        colOp->setColParam(curCol, 0, curColStruct.colWidth, curColStruct.colDataType,curColStruct.colType, curColStruct.dataOid, curColStruct.fCompressionType,&dbRoot, partitionNum, segmentNum);
 
         string segFile;
         if (bUseStartExtent) {
@@ -1990,7 +1973,6 @@ namespace WriteEngine
                     info.dbRoot = newColStructList[i].fColDbRoot;
                     if (newFile)
                         fileInfo.push_back(info);
-
                     colExtentInfo.push_back(info);
                 }
 
@@ -2015,7 +1997,6 @@ namespace WriteEngine
                             dictExtentInfo.push_back(info);
                         }
                     }
-
                     if (dictExtentInfo.size() > 0) {
                         FileOp fileOp;
                         rc1 = BRMWrapper::getInstance()->deleteEmptyDictStoreExtents(dictExtentInfo);
@@ -2048,19 +2029,11 @@ namespace WriteEngine
             for (unsigned k = 1; k < colStructList.size(); k++) {
                 Column expandCol;
                 colOp = m_colOp[op(colStructList[k].fCompressionType)];
-                colOp->setColParam(expandCol, 0,
-                    colStructList[k].colWidth,
-                    colStructList[k].colDataType,
-                    colStructList[k].colType,
-                    colStructList[k].dataOid,
-                    colStructList[k].fCompressionType,
-                    &colStructList[k].fColDbRoot,
-                    colStructList[k].fColPartition,
-                    colStructList[k].fColSegment);
+                colOp->setColParam(expandCol, 0,colStructList[k].colWidth,colStructList[k].colDataType,colStructList[k].colType,colStructList[k].dataOid,
+                                colStructList[k].fCompressionType,&colStructList[k].fColDbRoot,colStructList[k].fColPartition,colStructList[k].fColSegment);
                 rc = colOp->openColumnFile(expandCol, segFile, true); // @bug 5572 HDFS tmp file
                 if (rc == NO_ERROR) {
-                    if (colOp->abbreviatedExtent(
-                        expandCol.dataFile.pFile, colStructList[k].colWidth)) {
+                    if (colOp->abbreviatedExtent(expandCol.dataFile.pFile, colStructList[k].colWidth)) {
                         rc = colOp->expandAbbrevExtent(expandCol);
                     }
                 }
@@ -2086,11 +2059,7 @@ namespace WriteEngine
                 ColExtsInfo aColExtsInfo = aTableMetaData->getColExtsInfo(dctnryStructList[i].dctnryOid);
                 ColExtsInfo::iterator it = aColExtsInfo.begin();
                 if (bUseStartExtent) {
-                    rc = dctnry->openDctnry(dctnryStructList[i].dctnryOid,
-                        dctnryStructList[i].fColDbRoot,
-                        dctnryStructList[i].fColPartition,
-                        dctnryStructList[i].fColSegment,
-                        true); // @bug 5572 HDFS tmp file
+                    rc = dctnry->openDctnry(dctnryStructList[i].dctnryOid,dctnryStructList[i].fColDbRoot,dctnryStructList[i].fColPartition,dctnryStructList[i].fColSegment,true); // @bug 5572 HDFS tmp file
                     if (rc != NO_ERROR)
                         return rc;
 
@@ -2148,11 +2117,7 @@ namespace WriteEngine
                 } // tokenize dictionary rows in 1st extent
 
                 if (newExtent) {
-                    rc = dctnry->openDctnry(newDctnryStructList[i].dctnryOid,
-                        newDctnryStructList[i].fColDbRoot,
-                        newDctnryStructList[i].fColPartition,
-                        newDctnryStructList[i].fColSegment,
-                        false); // @bug 5572 HDFS tmp file
+                    rc = dctnry->openDctnry(newDctnryStructList[i].dctnryOid,newDctnryStructList[i].fColDbRoot,newDctnryStructList[i].fColPartition,newDctnryStructList[i].fColSegment,false); // @bug 5572 HDFS tmp file
                     if (rc != NO_ERROR)
                         return rc;
 
@@ -2351,7 +2316,7 @@ namespace WriteEngine
         }
 
         //cout << "lbids size = " << lbids.size()<< endl;
-        if (lbids.size() > 0)
+        if (lbids.size() > 0 && dbRoot.isMaster())
             rc = BRMWrapper::getInstance()->markExtentsInvalid(lbids, colDataTypes);
 
         //--------------------------------------------------------------------------
@@ -2362,13 +2327,9 @@ namespace WriteEngine
 #endif
         if (rc == NO_ERROR) {
             if (newExtent) {
-                rc = writeColumnRec(txnid, colStructList, colOldValueList,
-                    rowIdArray, newColStructList, colNewValueList, tableOid,
-                    false); // @bug 5572 HDFS tmp file
+                rc = writeColumnRec(txnid, colStructList, colOldValueList,rowIdArray, newColStructList, colNewValueList, tableOid,false); // @bug 5572 HDFS tmp file
             } else {
-                rc = writeColumnRec(txnid, colStructList, colValueList,
-                    rowIdArray, newColStructList, colNewValueList, tableOid,
-                    true); // @bug 5572 HDFS tmp file
+                rc = writeColumnRec(txnid, colStructList, colValueList,rowIdArray, newColStructList, colNewValueList, tableOid,true); // @bug 5572 HDFS tmp file
             }
         }
 #ifdef PROFILE
