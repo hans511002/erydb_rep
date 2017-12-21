@@ -870,7 +870,7 @@ void AlterTableProcessor::addColumn (uint32_t sessionID, execplan::erydbSystemCa
 				bs << (ByteStream::byte) column_iterator->colType.compressionType;
 				//cout << "sending command fillcolumn " << endl;	 
                 //uint32_t msgRecived = 0;
-                int wsSize=fWEClient->write_to_all(bs);
+                int weSize=fWEClient->write_to_all(bs);
                 rc = fWEClient->read(uniqueId, weSize, &errorMsg);
                 //bsIn.reset(new ByteStream());
                 //while (1)
@@ -1293,7 +1293,7 @@ cout << "Alter table drop column got unknown exception" << endl;
 #ifdef ERYDB_DDL_DEBUG
 cout << "Alter table drop column sending WE_SVR_UPDATE_SYSTABLE_AUTO to pm " << pmNum << endl;
 #endif	
-        int wsSize=fWEClient->write_to_all(bytestream);
+        int weSize=fWEClient->write_to_all(bytestream);
         rc = fWEClient->read(uniqueId, weSize, &errorMsg);
 		//bsIn.reset(new ByteStream());
 		//ByteStream::byte tmp8;
