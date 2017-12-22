@@ -500,7 +500,7 @@ public:
 	 * @param dbroot (in) dbroot
 	 * @return 0 on success, non-0 on error (see brmtypes.h)
 	 */
-	EXPORT int getExtents_dbroot(int OID, std::vector<struct EMEntry>& entries,const uint16_t dbr) throw();
+	EXPORT int getExtents_dbroot(int OID, std::vector<struct EMEntry>& entries,const uint16_t dbr,bool all=false) throw();
 
 	/** @brief Gets the number of extents for the specified OID and DBRoot
 	 *

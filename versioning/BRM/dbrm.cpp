@@ -1405,7 +1405,7 @@ namespace BRM {
         return 0;
     }
 
-    int DBRM::getExtents_dbroot(int OID, std::vector<struct EMEntry>& entries,const uint16_t dbr) throw() {
+    int DBRM::getExtents_dbroot(int OID, std::vector<struct EMEntry>& entries,const uint16_t dbr,bool all) throw() {
 #ifdef BRM_INFO
         if (fDebug) {
             TRACER_WRITELATER("getExtents_dbroot");
@@ -1414,7 +1414,7 @@ namespace BRM {
         }
 #endif
         try {
-            em->getExtents_dbroot(OID, entries, dbr);
+            em->getExtents_dbroot(OID, entries, dbr,all);
         } catch (exception& e) {
             cerr << e.what() << endl;
             return -1;

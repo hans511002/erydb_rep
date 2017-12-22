@@ -4093,7 +4093,7 @@ void ExtentMap::getExtents(int OID, vector<struct EMEntry>& entries, bool sorted
 		sort<vector<struct EMEntry>::iterator>(entries.begin(), entries.end());
 }
 
-void ExtentMap::getExtents_dbroot(int OID, vector<struct EMEntry>& entries, const uint16_t dbr)
+void ExtentMap::getExtents_dbroot(int OID, vector<struct EMEntry>& entries, const uint16_t dbr,bool all)
 {
 #ifdef BRM_INFO
 	if (fDebug)
@@ -4103,7 +4103,6 @@ void ExtentMap::getExtents_dbroot(int OID, vector<struct EMEntry>& entries, cons
 		TRACER_WRITE;
 	}
 #endif
-
 #ifdef EM_AS_A_TABLE_POC__
 	if (OID == EM_AS_A_TABLE_POC_ID)
 	{
@@ -4126,24 +4125,23 @@ void ExtentMap::getExtents_dbroot(int OID, vector<struct EMEntry>& entries, cons
 		return;
 	}
 #endif
-
 	int i, emEntries;
-
 	entries.clear();
-
 	if (OID < 0) {
 		ostringstream oss;
 		oss << "ExtentMap::getExtents(): invalid OID requested: " << OID;
 		log(oss.str(), logging::LOG_TYPE_CRITICAL);
 		throw invalid_argument(oss.str());
 	}
-
 	grabEMEntryTable(READ);
 	emEntries = fEMShminfo->allocdSize/sizeof(struct EMEntry);
-
-	for (i = 0 ; i < emEntries; i++)
-		if ((fExtentMap[i].fileID == OID) && (fExtentMap[i].range.size != 0) && (fExtentMap[i].dbRoots[0] == dbr))
-            entries.push_back(fExtentMap[i]);
+	for (i = 0 ; i < emEntries; i++){
+	    if ((fExtentMap[i].fileID == OID) && (fExtentMap[i].range.size != 0)){
+	        uint16_t _dbr=fExtentMap[i].dbRoots[0];
+	        if(_dbr == dbr || ( all && fExtentMap[i].dbRoots.getDbrIndex(dbr) >= 0 )) 
+	            entries.push_back(fExtentMap[i]);
+	    }
+	}		 
 	releaseEMEntryTable(READ);
 }
 

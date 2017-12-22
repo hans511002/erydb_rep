@@ -616,8 +616,7 @@ public:
 	 * @param entries (out) A snapshot of the OID's Extent Map entries for the dbroot
 	 * @param dbroot (in) the specified dbroot
 	 */
-	EXPORT void getExtents_dbroot(int OID, std::vector<struct EMEntry>& entries,
-		const uint16_t dbroot);
+	EXPORT void getExtents_dbroot(int OID, std::vector<struct EMEntry>& entries,const uint16_t dbroot,bool all=false);
 
 	/** @brief Gets the number of extents for the specified OID and DBRoot
 	 *
