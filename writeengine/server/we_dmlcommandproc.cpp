@@ -3250,7 +3250,7 @@ uint8_t WE_DMLCommandProc::processFixRows(messageqcpp::ByteStream& bs, std::stri
 	//cout << " In processFixRows" << endl;
 	uint32_t tmp32;
 	uint64_t sessionID;
-//	DBROOTS_struct dbRoot;
+	DBROOTS_struct dbRoot;
 	uint16_t segment;
 	uint32_t partition;
 	string schema, tableName;
