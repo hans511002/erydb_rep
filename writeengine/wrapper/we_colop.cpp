@@ -612,7 +612,7 @@ int ColumnOp::fillColumn(const TxnID& txnid, Column& column, Column& refCol, voi
 	for (i=0; i < rootList.size(); i++)
 	{
 		std::vector<struct BRM::EMEntry> refEntries;
-		rc = BRMWrapper::getInstance()->getExtents_dbroot(refCol.dataFile.fid, refEntries, rootList[i]);
+		rc = BRMWrapper::getInstance()->getExtents_dbroot(refCol.dataFile.fid, refEntries, rootList[i],true);
 		std::vector<struct BRM::EMEntry>::const_iterator iter = refEntries.begin();
 		while ( iter != refEntries.end() )
 		{
@@ -1022,7 +1022,6 @@ int ColumnOp::fillColumn(const TxnID& txnid, Column& column, Column& refCol, voi
 			iter = refEntries.begin();
 		}
 	}
-	
     return rc;
 }
 

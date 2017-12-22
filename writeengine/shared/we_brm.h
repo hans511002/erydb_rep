@@ -160,7 +160,7 @@ public:
     /**
      * @brief Return the extents info for specified OID and dbroot
      */
-    int getExtents_dbroot( int oid,std::vector<struct BRM::EMEntry>& entries,const uint16_t dbr);
+    int getExtents_dbroot( int oid,std::vector<struct BRM::EMEntry>& entries,const uint16_t dbr,bool all=false);
 
     /**
      * @brief Return the read/write status of DBRM (helps detect if DBRM is up)
@@ -458,9 +458,9 @@ inline int BRMWrapper::getExtents( int oid,std::vector<struct BRM::EMEntry>& ent
     return rc;
 }
 
-inline int BRMWrapper::getExtents_dbroot( int oid,std::vector<struct BRM::EMEntry>& entries,const uint16_t dbr)
+inline int BRMWrapper::getExtents_dbroot( int oid,std::vector<struct BRM::EMEntry>& entries,const uint16_t dbr,bool all)
 {
-    int rc = dbrm->getExtents_dbroot(oid, entries, dbr);
+    int rc = dbrm->getExtents_dbroot(oid, entries, dbr,all);
     return rc;
 }
 
