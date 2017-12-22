@@ -57,8 +57,7 @@ using namespace messageqcpp;
 using namespace oam;
 namespace dmlpackageprocessor
 {
-  DMLPackageProcessor::DMLResult
-  DeletePackageProcessor::processPackage(dmlpackage::erydbDMLPackage& cpackage)
+  DMLPackageProcessor::DMLResult DeletePackageProcessor::processPackage(dmlpackage::erydbDMLPackage& cpackage)
   {
     SUMMARY_INFO("DeletePackageProcessor::processPackage");
 
@@ -651,7 +650,7 @@ bool DeletePackageProcessor::processRowgroup(ByteStream & aRowGroup, DMLResult& 
 	if (pmStateDel[pmNum])
 	{ 	
 		try {
-			fWEClient->write(bytestream, (uint32_t)pmNum);
+			fWEClient->write(bytestream, dbRoot);
 			//cout << "sent tp pm " << pmNum<<endl;
 			pmStateDel[pmNum] = false;
 		}
@@ -679,7 +678,7 @@ bool DeletePackageProcessor::processRowgroup(ByteStream & aRowGroup, DMLResult& 
 		}
 	}
 	else
-	{							
+	{
 		while (1)
 		{
 			bsIn.reset(new ByteStream());
@@ -711,7 +710,7 @@ bool DeletePackageProcessor::processRowgroup(ByteStream & aRowGroup, DMLResult& 
 					}
 					if ( tmp32 == (uint32_t)pmNum  && _dbRoot==dbRoot)
 					{
-						fWEClient->write(bytestream, (uint32_t)pmNum);
+						fWEClient->write(bytestream, dbRoot);
 						pmStateDel[pmNum] = false;
 						break;
 					}
