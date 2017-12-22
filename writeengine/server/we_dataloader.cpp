@@ -104,7 +104,7 @@ WEDataLoader::WEDataLoader(SplitterReadThread& Srt ):fRef(Srt),
 {
  	Config weConfig;
   	uint16_t localModuleId = weConfig.getLocalModuleID();
-  	fPmId = static_cast<char>(localModuleId); 
+  	fPmId = (localModuleId); 
 
   	srand ( time(NULL) );				// initialize random seed
   	int aObjId = rand() % 10000 + 1;		// generate a random number
@@ -626,7 +626,7 @@ void WEDataLoader::onCpimportSuccess()
 
 	cout <<"Sending BRMRPT" << endl;
 	obs << (ByteStream::byte)WE_CLT_SRV_BRMRPT;
-	obs << (ByteStream::byte)fPmId;     // PM id
+	obs << fPmId;     // PM id
 	// for testing
 	//std::string fRptFileName("ReportFile.txt");
 	BrmReportParser aBrmRptParser;
@@ -666,7 +666,7 @@ void WEDataLoader::onCpimportSuccess()
 
 	obs.reset();
 	obs << (ByteStream::byte)WE_CLT_SRV_CPIPASS;
-	obs << (ByteStream::byte)fPmId;     // PM id
+	obs << fPmId;     // PM id
 	mutex::scoped_lock aLock(fClntMsgMutex);
     updateTxBytes(obs.length());
 	try
@@ -714,7 +714,7 @@ void WEDataLoader::onCpimportFailure()
 	//Even if we failed, we have failure info in BRMRPT
 	ByteStream obs;
 	obs << (ByteStream::byte)WE_CLT_SRV_BRMRPT;
-	obs << (ByteStream::byte)fPmId;     // PM id
+	obs << fPmId;     // PM id
 	BrmReportParser aBrmRptParser;
 	bool aRet = aBrmRptParser.serialize(fBrmRptFileName, obs);
 	if(aRet)
@@ -763,7 +763,7 @@ void WEDataLoader::sendCpimportFailureNotice()
 {
 	ByteStream obs;
 	obs << (ByteStream::byte)WE_CLT_SRV_CPIFAIL;
-	obs << (ByteStream::byte)fPmId;     // PM id
+	obs << fPmId;     // PM id
 	mutex::scoped_lock aLock(fClntMsgMutex);
 	updateTxBytes(obs.length());
 	try
@@ -807,7 +807,7 @@ void WEDataLoader::onReceiveKeepAlive(ByteStream& Ibs)
     // 		so nothing wrong in responding with a KEEPALIVE.
 	ByteStream obs;
 	obs << (ByteStream::byte)WE_CLT_SRV_KEEPALIVE;
-	obs << (ByteStream::byte)fPmId;     // PM id
+	obs << fPmId;     // PM id
 	mutex::scoped_lock aLock(fClntMsgMutex);
     updateTxBytes(obs.length());
 	try
@@ -858,7 +858,7 @@ void WEDataLoader::onReceiveKeepAlive(ByteStream& Ibs)
 		{
 			ByteStream obs;
 			obs << (ByteStream::byte)WE_CLT_SRV_EOD;
-			obs << (ByteStream::byte)fPmId;     // PM id
+			obs << fPmId;     // PM id
 			mutex::scoped_lock aLock(fClntMsgMutex);
 		    updateTxBytes(obs.length());
 			try
@@ -946,7 +946,7 @@ void WEDataLoader::onReceiveData(ByteStream& Ibs)
 
 //	ByteStream obs;
 //	obs << (ByteStream::byte)WE_CLT_SRV_DATARQST;
-//	obs << (ByteStream::byte)fPmId;     // PM id
+//	obs << fPmId;     // PM id
 //  updateTxBytes(obs.length());
 //	fRef.fIos.write(obs);
 }
@@ -974,7 +974,7 @@ void WEDataLoader::onReceiveEod(ByteStream& Ibs)
 	}
 	ByteStream obs;
 	obs << (ByteStream::byte)WE_CLT_SRV_EOD;
-	obs << (ByteStream::byte)fPmId;     // PM id
+	obs << fPmId;     // PM id
 	mutex::scoped_lock aLock(fClntMsgMutex);
     updateTxBytes(obs.length());
 	try
@@ -1056,7 +1056,7 @@ void WEDataLoader::onReceiveMode(ByteStream& Ibs)
 	string aStrDbRootCnt = config::Config::makeConfig()->getConfig(
 	             	 	 	 	 	 "SystemModuleConfig", aName);
 	cout << "DbRootCnt = " << aStrDbRootCnt << endl;
-	ByteStream::byte aDbCnt = (ByteStream::byte)atoi(aStrDbRootCnt.c_str());
+	uint16_t aDbCnt = (uint16_t)atoi(aStrDbRootCnt.c_str());
 
 	if(fpSysLog)
 	{
@@ -1071,8 +1071,8 @@ void WEDataLoader::onReceiveMode(ByteStream& Ibs)
 	//Send No. of DBRoots to Client
 	ByteStream aObs;
 	aObs << (ByteStream::byte)WE_CLT_SRV_DBRCNT;
-	aObs << (ByteStream::byte)fPmId;
-	aObs << (ByteStream::byte)aDbCnt;
+	aObs << fPmId;
+	aObs << aDbCnt;
 	mutex::scoped_lock aLock(fClntMsgMutex);
     updateTxBytes(aObs.length());
 	try
@@ -1162,7 +1162,7 @@ void WEDataLoader::onReceiveCmdLineArgs(ByteStream& Ibs)
 	{
 		obs << (ByteStream::byte)WE_CLT_SRV_DATARQST;
 	}
-	obs << (ByteStream::byte) fPmId; // PM id
+	obs << fPmId; // PM id
 	mutex::scoped_lock aLock(fClntMsgMutex);
 	updateTxBytes(obs.length());
 	try
@@ -1295,7 +1295,7 @@ void WEDataLoader::onReceiveCleanup(ByteStream& Ibs)
 
 	ByteStream obs;
 	obs << (ByteStream::byte)WE_CLT_SRV_CLEANUP;
-	obs << (ByteStream::byte) fPmId; 	// PM id
+	obs << fPmId; 	// PM id
 	if(aRet == 0)
 		obs << (ByteStream::byte)1;		// cleanup success
 	else
@@ -1347,7 +1347,7 @@ void WEDataLoader::onReceiveRollback(ByteStream& Ibs)
 
 	ByteStream obs;
 	obs << (ByteStream::byte)WE_CLT_SRV_ROLLBACK;
-	obs << (ByteStream::byte) fPmId; // PM id
+	obs << fPmId; // PM id
 	if(aRet == 0)
 		obs << (ByteStream::byte)1;		// Rollback success
 	else
@@ -1390,7 +1390,7 @@ void WEDataLoader::onReceiveImportFileName(ByteStream& Ibs)
 		{// file exists
 			ByteStream obs;
 			obs << (ByteStream::byte)WE_CLT_SRV_IMPFILEERROR;
-			obs << (ByteStream::byte)fPmId;
+			obs << fPmId;
 			updateTxBytes(obs.length());
 			mutex::scoped_lock aLock(fClntMsgMutex);
 			try
@@ -1424,7 +1424,7 @@ void WEDataLoader::onReceiveImportFileName(ByteStream& Ibs)
 		{
 			ByteStream obs;
 			obs << (ByteStream::byte)WE_CLT_SRV_IMPFILEERROR;
-			obs << (ByteStream::byte)fPmId;     // PM id
+			obs << fPmId;     // PM id
 			mutex::scoped_lock aLock(fClntMsgMutex);
 			updateTxBytes(obs.length());
 			try
@@ -1504,7 +1504,7 @@ void WEDataLoader::onReceiveErrFileRqst(ByteStream& Ibs)
 
 	ByteStream obs;
 	obs << (ByteStream::byte)WE_CLT_SRV_ERRLOG;
-	obs << (ByteStream::byte) fPmId; // PM id
+	obs << fPmId; // PM id
 	obs << aErrFileName;
 	BrmReportParser aErrFileParser;
 	bool aRet = aErrFileParser.serialize(aErrFileName, obs);
@@ -1548,7 +1548,7 @@ void WEDataLoader::onReceiveBadFileRqst(ByteStream& Ibs)
 
 	ByteStream obs;
 	obs << (ByteStream::byte)WE_CLT_SRV_BADLOG;
-	obs << (ByteStream::byte) fPmId; // PM id
+	obs << fPmId; // PM id
 	obs << aBadFileName;
 	BrmReportParser aBadFileParser;
 	bool aRet = aBadFileParser.serializeBlocks(aBadFileName, obs);
@@ -1605,7 +1605,7 @@ void WEDataLoader::sendDataRequest()
 	mutex::scoped_lock aLock(fClntMsgMutex);
 	ByteStream obs;
 	obs << (ByteStream::byte)WE_CLT_SRV_DATARQST;
-	obs << (ByteStream::byte)fPmId;     // PM id
+	obs << fPmId;     // PM id
 	updateTxBytes(obs.length());
 	try
 	{

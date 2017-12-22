@@ -425,8 +425,7 @@ uint8_t WE_DMLCommandProc::processSingleInsert(messageqcpp::ByteStream& bs, std:
 			{
 				// Find DBRoot/segment file where we want to start adding rows
 				colType = systemCatalogPtr->colType(ridList[i].objnum);
-				boost::shared_ptr<DBRootExtentTracker> pDBRootExtentTracker (new DBRootExtentTracker(ridList[i].objnum,
-					colWidths, dbRootHWMInfoColVec, i, 0) );
+				boost::shared_ptr<DBRootExtentTracker> pDBRootExtentTracker (new DBRootExtentTracker(ridList[i].objnum,colWidths, dbRootHWMInfoColVec, i, 0) );
 				dbRootExtTrackerVec.push_back( pDBRootExtentTracker );
 				DBRootExtentInfo dbRootExtent;
 				std::string trkErrMsg;

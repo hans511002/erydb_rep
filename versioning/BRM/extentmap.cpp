@@ -3720,9 +3720,9 @@ void ExtentMap::getDbRootHWMInfo(int OID, uint16_t pmNumber, EmDbRootHWMInfo_v& 
 				(fExtentMap[i].HWM != 0))
 				emDbRoot.totalBlocks += (fExtentMap[i].HWM + 1);
 
-			if ( (fExtentMap[i].partitionNum >  emDbRoot.partitionNum) ||
+			if ( (fExtentMap[i].partitionNum >=  emDbRoot.partitionNum) ||
 				((fExtentMap[i].partitionNum == emDbRoot.partitionNum) &&
-			 	(fExtentMap[i].blockOffset   >  emDbRoot.fbo))         ||
+			 	(fExtentMap[i].blockOffset   >=  emDbRoot.fbo))         ||
 				((fExtentMap[i].partitionNum == emDbRoot.partitionNum) &&
 			 	(fExtentMap[i].blockOffset   == emDbRoot.fbo) &&
 			 	(fExtentMap[i].segmentNum    >= emDbRoot.segmentNum)) )

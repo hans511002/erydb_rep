@@ -134,7 +134,7 @@ private:
 	ofstream fJobFile;
     unsigned int fTxBytes;
     unsigned int fRxBytes;
-	char fPmId;
+	uint16_t fPmId;
 	int fObjId;					// Object Identifier for logging
 
 	// CpImport related Member variables

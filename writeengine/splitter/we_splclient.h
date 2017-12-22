@@ -130,7 +130,7 @@ public:
     int getRollbackRslt() const  {	return fRollbackRslt; }
     int getCleanupRslt() const  { return fCleanupRslt; }
     bool getSendFlag() const { 	return fSend; }
-    unsigned int getPmId() const  {	return fPmId; }
+    uint16_t getPmId() const  {	return fPmId; }
     unsigned int getDbRootCnt() const {	return fDbrCnt;  }
     unsigned int getDbRootVar()
     {
@@ -187,7 +187,7 @@ public:
     void setBrmRptRcvd(bool Rcvd) { fBrmRptRcvd = Rcvd; }
     void setRollbackRslt(int Rslt) { fRollbackRslt = Rslt; }
     void setCleanupRslt(int Rslt) {	fCleanupRslt = Rslt; }
-    void setPmId(unsigned int PmId) { fPmId = PmId; }
+    void setPmId(uint16_t PmId) { fPmId = PmId; }
     void setDbRootCnt(unsigned int DbrCnt) { fDbrCnt = DbrCnt; }
     void resetDbRootVar()
     {
@@ -231,7 +231,7 @@ public:
 private:
     bool fContinue;
     bool fConnected;
-    unsigned int fPmId;
+    uint16_t fPmId;
     unsigned int fDbrCnt;
     unsigned int fDbrVar;		// Var to keep track next PM to send.
     int fDataRqstCnt;			// Data request count
