@@ -621,9 +621,38 @@ void WEDataLoader::updateCmdLineWithPath(string& CmdLine)
 
 void WEDataLoader::onCpimportSuccess()
 {
-
 	ByteStream obs;
-
+	obs << (ByteStream::byte)WE_CLT_SRV_CPIPASS;
+	obs << fPmId;     // PM id
+	mutex::scoped_lock aLock(fClntMsgMutex);
+    updateTxBytes(obs.length());
+	try
+	{
+		fRef.fIos.write(obs);
+	}
+	catch(...)
+	{
+		cout <<"Broken Pipe .." << endl;
+		if(fpSysLog)
+		{
+			ostringstream oss;
+			oss << getObjId() <<" : Broken Pipe : socket write failed ";
+			logging::Message::Args errMsgArgs;
+			errMsgArgs.add(oss.str());
+			fpSysLog->logMsg(errMsgArgs, logging::LOG_TYPE_INFO, logging::M0000);
+		}
+	}
+	aLock.unlock();
+	cout <<"Sent CPIPASS info" << endl;
+	if(fpSysLog)
+	{
+		ostringstream oss;
+		oss << getObjId() <<" : onCpimportSuccess BrmReport Send";
+		logging::Message::Args errMsgArgs;
+		errMsgArgs.add(oss.str());
+		fpSysLog->logMsg(errMsgArgs, logging::LOG_TYPE_DEBUG, logging::M0000);
+	}
+    obs.reset();
 	cout <<"Sending BRMRPT" << endl;
 	obs << (ByteStream::byte)WE_CLT_SRV_BRMRPT;
 	obs << fPmId;     // PM id
@@ -663,41 +692,6 @@ void WEDataLoader::onCpimportSuccess()
 //	if(remove(fBrmRptFileName.c_str()) != 0)
 //		cout <<"Failed to delete BRMRpt File "<< fBrmRptFileName << endl;
 	//usleep(1000000);	//sleep 1 second.
-
-	obs.reset();
-	obs << (ByteStream::byte)WE_CLT_SRV_CPIPASS;
-	obs << fPmId;     // PM id
-	mutex::scoped_lock aLock(fClntMsgMutex);
-    updateTxBytes(obs.length());
-	try
-	{
-		fRef.fIos.write(obs);
-	}
-	catch(...)
-	{
-		cout <<"Broken Pipe .." << endl;
-		if(fpSysLog)
-		{
-			ostringstream oss;
-			oss << getObjId() <<" : Broken Pipe : socket write failed ";
-			logging::Message::Args errMsgArgs;
-			errMsgArgs.add(oss.str());
-			fpSysLog->logMsg(errMsgArgs, logging::LOG_TYPE_INFO, logging::M0000);
-		}
-
-	}
-	aLock.unlock();
-
-	cout <<"Sent CPIPASS info" << endl;
-	if(fpSysLog)
-	{
-		ostringstream oss;
-		oss << getObjId() <<" : onCpimportSuccess BrmReport Send";
-		logging::Message::Args errMsgArgs;
-		errMsgArgs.add(oss.str());
-		fpSysLog->logMsg(errMsgArgs, logging::LOG_TYPE_DEBUG, logging::M0000);
-	}
-
 }
 
 //-----------------------------------------------------------------------------
