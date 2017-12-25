@@ -22,9 +22,7 @@ yum install -y  net-snmp-agent-libs boost-system boost-date-time boost-filesyste
 ### 3、tar xf erydb-5.0-0.bin.tar.gz -C /usr/local
 ### 4、cd /usr/local/erydb && ./bin/postConofingure
 
-##
-localedef -f UTF-8 -i zh_CN zh_CN.UTF8 && localedef --list-archive 
-
+##src Compile 
 
 yum install epel-release -y gdb-gdbserver
 rpm -ivh http://pkgs.repoforge.org/rpmforge-release/rpmforge-release-0.5.3-1.el7.rf.x86_64.rpm
@@ -35,46 +33,46 @@ yum install -y aclocal autoconf automake  gdb-gdbserver rsync thrift.x86_64 thri
  
 ##################################cmake #debug Compile erydb#############
 #debug
-chmod +x -R *
-
-cd erymysql 
-sed -i -e "s|\r||" BUILD/autorun.sh
-BUILD/autorun.sh
-export CXXFLAGS="  -w  "
-export CFLAGS=" -w   "
-export LDFLAGS=" "
-sed -i -e "s|\r||g" configure
-sed -i -e "s|\r||g" include/probes_mysql.d*
-sed -i -e "s|\r||g" sql/share/errmsg-utf8.txt
-sed -i -e "s|\r||g" storage/tokudb/PerconaFT/third_party/xz-4.999.9beta/build-aux/config.guess
-
-find ./ -name CMakeFiles |xargs rm -rf 
-find ./ -name config.sub|xargs  sed -i -e "s|\r||g" 
-find ./ -name config.guess|xargs  sed -i -e "s|\r||g" 
-find ./ -name CMakeLists.txt |xargs  sed -i -e "s|\r||g" 
-find ./ -name missing |xargs  sed -i -e "s|\r||g" 
-find ./ -name config.rpath|xargs  sed -i -e "s|\r||g" 
+    chmod +x -R *
+    
+    cd erymysql 
+    sed -i -e "s|\r||" BUILD/autorun.sh
+    BUILD/autorun.sh
+    export CXXFLAGS="  -w  "
+    export CFLAGS=" -w   "
+    export LDFLAGS=" "
+    sed -i -e "s|\r||g" configure
+    sed -i -e "s|\r||g" include/probes_mysql.d*
+    sed -i -e "s|\r||g" sql/share/errmsg-utf8.txt
+    sed -i -e "s|\r||g" storage/tokudb/PerconaFT/third_party/xz-4.999.9beta/build-aux/config.guess
+    
+    find ./ -name CMakeFiles |xargs rm -rf 
+    find ./ -name config.sub|xargs  sed -i -e "s|\r||g" 
+    find ./ -name config.guess|xargs  sed -i -e "s|\r||g" 
+    find ./ -name CMakeLists.txt |xargs  sed -i -e "s|\r||g" 
+    find ./ -name missing |xargs  sed -i -e "s|\r||g" 
+    find ./ -name config.rpath|xargs  sed -i -e "s|\r||g" 
 
 
 #Debug Release RelWithDebInfo MinSizeRel
-find ./ -name CMakeFiles |xargs rm -rf 
-export CXXFLAGS="  -w  "
-export CFLAGS=" -w   "
-export LDFLAGS=" "
-./configure  --with-debug=1   -DDBUG_ON=1 
-./configure -DCMAKE_BUILD_TYPE=Release 
+    find ./ -name CMakeFiles |xargs rm -rf 
+    export CXXFLAGS="  -w  "
+    export CFLAGS=" -w   "
+    export LDFLAGS=" "
+    ./configure  --with-debug=1   -DDBUG_ON=1 
+    ./configure -DCMAKE_BUILD_TYPE=Release 
 
-make && make install 
+    make && make install 
 
 
-cd ../erydb-5.1.1
-export CXXFLAGS="  -w   -DBRM_VERBOSE -DERYDB_SM_DEBUG -DPROFILE"
-export CFLAGS=" -w    -DBRM_VERBOSE -DERYDB_SM_DEBUG -DPROFILE"
-export LDFLAGS=" "
-cmake . -DCMAKE_BUILD_TYPE=Debug  -DCMAKE_INSTALL_PREFIX=/usr/local/erydb 
-cmake . -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local/erydb 
-make && make install 
-##################################################end debug  #############
+    cd ../erydb-5.1.1
+    export CXXFLAGS="  -w   -DBRM_VERBOSE -DERYDB_SM_DEBUG -DPROFILE"
+    export CFLAGS=" -w    -DBRM_VERBOSE -DERYDB_SM_DEBUG -DPROFILE"
+    export LDFLAGS=" "
+    cmake . -DCMAKE_BUILD_TYPE=Debug  -DCMAKE_INSTALL_PREFIX=/usr/local/erydb 
+    cmake . -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local/erydb 
+    make && make install 
+    ##################################################end debug  #############
 
 
 
