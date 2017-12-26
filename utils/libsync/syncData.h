@@ -68,7 +68,7 @@ namespace SYNC {
     };
     struct SYNC_DATA_STATE
     {
-        SYNC_DATA_STATE();
+        SYNC_DATA_STATE(){};
         SYNC_DATA_STATE(SyncData &data) :extData(data),  state(SYNC_WAIT) {};
         SyncData extData;
         DateTime dt;

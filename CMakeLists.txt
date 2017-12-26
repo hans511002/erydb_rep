@@ -135,7 +135,7 @@ SET (ENGINE_TOOLSDIR   "${INSTALL_ENGINE}/tools")
 SET (ENGINE_COMMON_LIBS    lic messageqcpp loggingcpp configcpp erydbboot ${Boost_LIBRARIES} xml2 pthread rt)
 SET (ENGINE_OAM_LIBS        oamcpp alarmmanager)
 SET (ENGINE_BRM_LIBS        brm erydbdatafile cacheutils rwlock ${ENGINE_OAM_LIBS} ${ENGINE_COMMON_LIBS})
-SET (ENGINE_EXEC_LIBS       joblist execplan windowfunction joiner rowgroup funcexp udfsdk dataconvert common compress mysqlcl_erydb querystats querytele thrift threadpool ${ENGINE_BRM_LIBS})
+SET (ENGINE_EXEC_LIBS       sync joblist execplan windowfunction joiner rowgroup funcexp udfsdk dataconvert common compress mysqlcl_erydb querystats querytele thrift threadpool ${ENGINE_BRM_LIBS})
 SET (ENGINE_WRITE_LIBS      ddlpackageproc ddlpackage dmlpackageproc dmlpackage writeengine writeengineclient erydbdatafile cacheutils ${ENGINE_EXEC_LIBS})
 
 SET (ENGINE_COMMON_LDFLAGS  "")
