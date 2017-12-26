@@ -104,7 +104,7 @@ public:
     virtual ~SyncDataReadThread();
     virtual void operator()(); 
 private:
-    SYNC::SyncDataProcessor syncProc;
+    SYNC::SyncDataProcessor * syncProc;
 
     friend class ReadThreadFactory;
 };

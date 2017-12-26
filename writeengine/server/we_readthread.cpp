@@ -784,7 +784,7 @@ void GetFileSizeThread::operator()()
 
 SyncDataReadThread::SyncDataReadThread(const messageqcpp::IOSocket& ios, ByteStream& Ibs) : ReadThread(ios)
 {
-    //syncProc
+    syncProc=SYNC::SyncDataProcessor::makeSyncDataProcessor();
     fIbs = Ibs;
 };
 SyncDataReadThread::~SyncDataReadThread() {
@@ -799,7 +799,7 @@ void SyncDataReadThread::operator()(){
         {
             case WE_SYNC_SRV_KEEPALIVE:
             {
-                syncProc.onReceiveKeepAlive(fIos, fIbs);
+                syncProc->onReceiveKeepAlive(fIos, fIbs);
                 break;
             }
             case WE_SYNC_CLOSE_CONNECTION:
@@ -808,31 +808,14 @@ void SyncDataReadThread::operator()(){
                 return;
             }
             case WE_SYNC_REQ_DATA:
-            {
-                syncProc.msgProc(msgId,fIos, fIbs);
-                break;
-            }
             case WE_SYNC_RECIVE_DATA:
-            {
-                syncProc.onReceiveKeepAlive(fIos, fIbs);
-                break;
-            }
             case WE_SYNC_ROLLBACK:
-            {
-                syncProc.onReceiveKeepAlive(fIos, fIbs);
-                break;
-            }
             case WE_SYNC_SUCESS:
-            {
-                syncProc.onReceiveKeepAlive(fIos, fIbs);
-                break;
-            }
             case WE_SYNC_RES_STATE:
             {
-                syncProc.onReceiveKeepAlive(fIos, fIbs);
+                syncProc->msgProc(msgId,fIos, fIbs);
                 break;
-            } 
-            
+            }
             default:
                 break;
         }
