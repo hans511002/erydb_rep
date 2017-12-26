@@ -317,8 +317,6 @@ namespace BRM {
             case DELETE_DBROOT: do_deleteDBRoot(msg); break;
             case BULK_UPDATE_DBROOT: do_bulkUpdateDBRoot(msg); break;
             case SAVE_DBRM_STATE:do_saveDbrmState(msg); break;
-            case CREATE_COLUMN_REPLICATE_FILE:do_createColumnReplicateFile(msg); break;
-            case UPDATE_COLUMN_REPLICATE_FILE:do_updateReplicateFile(msg); break;
 
             default:
                 cerr << "WorkerComm: unknown command " << (int)cmd << endl;
