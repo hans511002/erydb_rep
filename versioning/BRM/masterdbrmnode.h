@@ -159,6 +159,7 @@ private:
 
 	void initMsgQueues(config::Config *config);
 	void msgProcessor();
+    int processCmd(uint8_t cmd, messageqcpp::IOSocket *sock);
 	void distribute(messageqcpp::ByteStream *msg);
 	void undo() throw();
 	void confirm();
@@ -176,7 +177,10 @@ private:
 	void doReload(messageqcpp::IOSocket *sock);
 	void doSetReadOnly(messageqcpp::IOSocket *sock, bool b);
 	void doGetReadOnly(messageqcpp::IOSocket *sock);
-	
+    void doSyncRepData(messageqcpp::IOSocket *sock);
+    void doGetSyncState(messageqcpp::IOSocket *sock);
+    void doGetMinRepData(messageqcpp::IOSocket *sock);
+    
 	/* SessionManager interface */
 	SessionManagerServer sm;
 	void doVerID(messageqcpp::ByteStream &msg, ThreadParams *p);

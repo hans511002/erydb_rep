@@ -781,6 +781,80 @@ void GetFileSizeThread::operator()()
     fIos.close();
 }
 
+
+SyncDataReadThread::SyncDataReadThread(const messageqcpp::IOSocket& ios, ByteStream& Ibs) : ReadThread(ios)
+{
+    //syncProc
+    fIbs = Ibs;
+};
+SyncDataReadThread::~SyncDataReadThread() {
+};
+void SyncDataReadThread::operator()(){
+    ByteStream::byte msgId;
+    while (fIbs.length()>0)
+    { 
+        //do work here...
+        fIbs >> msgId;
+        switch (msgId)
+        {
+            case WE_SYNC_SRV_KEEPALIVE:
+            {
+                syncProc.onReceiveKeepAlive(fIos, fIbs);
+                break;
+            }
+            case WE_SYNC_CLOSE_CONNECTION:
+            {
+                fIos.close();
+                return;
+            }
+            case WE_SYNC_REQ_DATA:
+            {
+                syncProc.msgProc(msgId,fIos, fIbs);
+                break;
+            }
+            case WE_SYNC_RECIVE_DATA:
+            {
+                syncProc.onReceiveKeepAlive(fIos, fIbs);
+                break;
+            }
+            case WE_SYNC_ROLLBACK:
+            {
+                syncProc.onReceiveKeepAlive(fIos, fIbs);
+                break;
+            }
+            case WE_SYNC_SUCESS:
+            {
+                syncProc.onReceiveKeepAlive(fIos, fIbs);
+                break;
+            }
+            case WE_SYNC_RES_STATE:
+            {
+                syncProc.onReceiveKeepAlive(fIos, fIbs);
+                break;
+            } 
+            
+            default:
+                break;
+        }
+        fIbs.restart();
+        try
+        {   //get next message
+            fIbs = fIos.read();
+        } catch (...)
+        {
+            fIbs.restart();     //setting length=0, get out of loop
+            cout << "Broken Pipe" << endl;
+            logging::LoggingID logid(19, 0, 0);
+            logging::Message::Args args;
+            logging::Message msg(1);
+            args.add("SplitterReadThread::operator: Broken Pipe ");
+            msg.format(args);
+            logging::Logger logger(logid.fSubsysID);
+            logger.logMessage(logging::LOG_TYPE_ERROR, msg, logid);
+        }
+    }
+    fIos.close();
+ };
 //-----------------------------------------------------------------------------
 
 void ReadThreadFactory::CreateReadThread(ThreadPool& Tp, IOSocket& Ios, BRM::DBRM& dbrm)
@@ -864,6 +938,17 @@ void ReadThreadFactory::CreateReadThread(ThreadPool& Tp, IOSocket& Ios, BRM::DBR
             Tp.invoke(getFileSizeThread);
         }
         break;
+    case    WE_SYNC_SRV_KEEPALIVE:
+    case    WE_SYNC_REQ_DATA:
+    case    WE_SYNC_RECIVE_DATA:
+    case    WE_SYNC_ROLLBACK:
+    case    WE_SYNC_SUCESS:
+    case    WE_SYNC_RES_STATE:
+    {
+        SyncDataReadThread syncThread(Ios, aBs);
+        Tp.invoke(syncThread);
+        break;
+    }
     default:
         {
             Ios.close();    // don't know who is this

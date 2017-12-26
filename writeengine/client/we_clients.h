@@ -156,7 +156,7 @@ private:
 	
 	boost::mutex ackLock;
 public:
-	enum {DDLPROC=0, SPLITTER, DMLPROC, BATCHINSERTPROC};
+	enum {DDLPROC=0, SPLITTER, DMLPROC, BATCHINSERTPROC,SYNCPROC};
 };
 
 }

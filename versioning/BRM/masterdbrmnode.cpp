@@ -361,8 +361,14 @@ void MasterDBRMNode::msgProcessor()
 				continue;
 			case SETREADONLY: doSetReadOnly(p->sock, true); continue;
 			case SETREADWRITE: doSetReadOnly(p->sock, false); continue;
-			case GETREADONLY: doGetReadOnly(p->sock); continue;
+            case GETREADONLY: doGetReadOnly(p->sock); continue;
 		}
+        int othProcess = processCmd(cmd, p->sock);
+        if (othProcess ==1) 
+            continue;
+         else if (othProcess == 2)  
+            break;
+        
 
 		/* Process SessionManager calls 需要同步到热备节点 TxnIDFile dbrm/SMTxnID */
 		switch (cmd) {
@@ -652,7 +658,31 @@ out:
 	THREAD_EXIT
 	return;
 }
+int MasterDBRMNode::processCmd(uint8_t cmd, messageqcpp::IOSocket *sock) {
+    
+    switch (cmd)
+    {
+        case SYNC_REP_DATA: doSyncRepData(sock); return 1;
+        case GET_SYNC_REP_STATE: doGetSyncState(sock);  return 1;
+        case GET_MIN_REP_DATA: doGetMinRepData(sock);  return 1;
+    }
+    return 0;
+}
+//启动同步命令,里面再分同步一块,多块，一个dbr 一个pm
+void MasterDBRMNode::doSyncRepData(messageqcpp::IOSocket *sock)
+{
 
+}
+//获取同步进度及状态
+void MasterDBRMNode::doGetSyncState(messageqcpp::IOSocket *sock)
+{
+
+}
+//获取少于副本值的数据块
+void MasterDBRMNode::doGetMinRepData(messageqcpp::IOSocket *sock)
+{
+
+}
 void MasterDBRMNode::distributeMsgNoCommit(ByteStream &msg, ThreadParams *p) {
     vector<ByteStream *> responses;
     vector<ByteStream *>::iterator it;
@@ -1056,6 +1086,7 @@ void MasterDBRMNode::doGetReadOnly(messageqcpp::IOSocket *sock)
 	}
 	catch (exception&) { }
 }
+
 
 void MasterDBRMNode::doReload(messageqcpp::IOSocket *sock)
 {

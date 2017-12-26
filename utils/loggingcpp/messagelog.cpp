@@ -85,7 +85,9 @@ const vector<string> SubsystemID = ba::list_of
 	("writeengineserver")//id = 32
 	("writeenginesplit")// id = 33
 	("cpimport.bin")    // id = 34
-	("ERYDBFile")         // id = 35
+    ("ERYDBFile")         // id = 35
+    ("sync_mgr")             // id = 36
+    ("sync_we")             // id = 37
 	;
 
 string timestr()

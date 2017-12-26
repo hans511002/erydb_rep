@@ -501,8 +501,10 @@ const uint8_t RELEASE_LBID_RANGES = 91;
 const uint8_t BULK_UPDATE_DBROOT = 100;
 /* dbrm save */
 const uint8_t SAVE_DBRM_STATE = 110;
-const uint8_t CREATE_COLUMN_REPLICATE_FILE = 111;
-const uint8_t UPDATE_COLUMN_REPLICATE_FILE = 112;
+/* sync */
+const uint8_t SYNC_REP_DATA = 111;
+const uint8_t GET_SYNC_REP_STATE = 112;
+const uint8_t GET_MIN_REP_DATA = 113;
 
 
 /* Error codes returned by the DBRM functions. */

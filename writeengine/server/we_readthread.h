@@ -35,6 +35,7 @@ using namespace threadpool;
 #include "we_dataloader.h"
 #include "we_getfilesizes.h"
 #include "dbrm.h"
+#include "syncData.h"
 
 namespace WriteEngine
 {
@@ -93,6 +94,18 @@ private:
 
 friend class ReadThreadFactory; 
 //friend class WEDataLoader;
+};
+
+class SyncDataReadThread : public ReadThread
+{
+public:
+    SyncDataReadThread(const messageqcpp::IOSocket& ios, ByteStream& Ibs);
+    virtual ~SyncDataReadThread();
+    virtual void operator()(); 
+private:
+    sync::SyncDataProcessor syncProc;
+
+    friend class ReadThreadFactory;
 };
 
 

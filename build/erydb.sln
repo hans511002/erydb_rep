@@ -87,7 +87,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "controllernode", "..\versio
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "workernode", "..\versioning\BRM\workernode.vcxproj", "{AB35CD02-BACD-4E11-8FBC-106DFD9AB1FC}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cpimport", "..\writeengine\bulk\cpimport.vcxproj", "{36549A0A-BF9F-4642-92E7-FAA10061BD34}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cpimport.bin", "..\writeengine\bulk\cpimport.vcxproj", "{36549A0A-BF9F-4642-92E7-FAA10061BD34}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cplogger", "..\tools\cplogger\cplogger.vcxproj", "{6B8C806F-46F7-412F-9FB1-78DFA505597E}"
 EndProject
@@ -109,7 +109,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PrimProc", "..\primitives\p
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "setConfig", "..\tools\setConfig\setConfig.vcxproj", "{13E96B71-0854-4EA5-A7ED-0950AE10C858}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "splitter", "..\writeengine\splitter\splitter.vcxproj", "{B160A65B-D07D-4CCD-A0FD-6A0800E9F595}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cpimport", "..\writeengine\splitter\splitter.vcxproj", "{B160A65B-D07D-4CCD-A0FD-6A0800E9F595}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "viewtablelock", "..\tools\viewtablelock\viewtablelock.vcxproj", "{DC26E3DB-B3E6-469E-869D-3FA5FC026C20}"
 EndProject
@@ -144,6 +144,8 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "reset_locks", "..\versioning\brmTool\reset_locks.vcxproj", "{DB67EB06-04F1-4615-9095-3E5F02DD7008}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "save_brm", "..\versioning\brmTool\save_brm.vcxproj", "{D1A9BAEF-7612-403A-ACEC-CD6DF09A3F8D}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libsync", "..\utils\libsync\libsync.vcxproj", "{97A35BEA-FAEF-4DB2-904F-0A04424227E1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -1281,6 +1283,22 @@ Global
 		{D1A9BAEF-7612-403A-ACEC-CD6DF09A3F8D}.Release|x64.Build.0 = Release|x64
 		{D1A9BAEF-7612-403A-ACEC-CD6DF09A3F8D}.Release|x86.ActiveCfg = Release|x86
 		{D1A9BAEF-7612-403A-ACEC-CD6DF09A3F8D}.Release|x86.Build.0 = Release|x86
+		{97A35BEA-FAEF-4DB2-904F-0A04424227E1}.Debug|ARM.ActiveCfg = Debug|x86
+		{97A35BEA-FAEF-4DB2-904F-0A04424227E1}.Debug|x64.ActiveCfg = Debug|x64
+		{97A35BEA-FAEF-4DB2-904F-0A04424227E1}.Debug|x64.Build.0 = Debug|x64
+		{97A35BEA-FAEF-4DB2-904F-0A04424227E1}.Debug|x86.ActiveCfg = Debug|x86
+		{97A35BEA-FAEF-4DB2-904F-0A04424227E1}.Debug|x86.Build.0 = Debug|x86
+		{97A35BEA-FAEF-4DB2-904F-0A04424227E1}.EnterpriseRelease|ARM.ActiveCfg = Release|x86
+		{97A35BEA-FAEF-4DB2-904F-0A04424227E1}.EnterpriseRelease|ARM.Build.0 = Release|x86
+		{97A35BEA-FAEF-4DB2-904F-0A04424227E1}.EnterpriseRelease|x64.ActiveCfg = Release|x64
+		{97A35BEA-FAEF-4DB2-904F-0A04424227E1}.EnterpriseRelease|x64.Build.0 = Release|x64
+		{97A35BEA-FAEF-4DB2-904F-0A04424227E1}.EnterpriseRelease|x86.ActiveCfg = Release|x86
+		{97A35BEA-FAEF-4DB2-904F-0A04424227E1}.EnterpriseRelease|x86.Build.0 = Release|x86
+		{97A35BEA-FAEF-4DB2-904F-0A04424227E1}.Release|ARM.ActiveCfg = Release|x86
+		{97A35BEA-FAEF-4DB2-904F-0A04424227E1}.Release|x64.ActiveCfg = Release|x64
+		{97A35BEA-FAEF-4DB2-904F-0A04424227E1}.Release|x64.Build.0 = Release|x64
+		{97A35BEA-FAEF-4DB2-904F-0A04424227E1}.Release|x86.ActiveCfg = Release|x86
+		{97A35BEA-FAEF-4DB2-904F-0A04424227E1}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
