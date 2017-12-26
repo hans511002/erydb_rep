@@ -26,7 +26,7 @@ using namespace messageqcpp;
 #define EXPORT
 #endif
 
-namespace sync {
+namespace SYNC {
 class WEClient
 {
 public:
@@ -45,6 +45,7 @@ private:
 	int fPrgmID;
     uint16_t fpmId;
 	bool fBusy;
+	bool isError;
 	volatile uint32_t closingConnection;
 	boost::mutex fOnErrMutex;   // to lock function scope to reset pmconnections under error condition
 };

@@ -36,6 +36,7 @@ using namespace threadpool;
 #include "we_getfilesizes.h"
 #include "dbrm.h"
 #include "syncData.h"
+#include "syncDataProcessor.h"
 
 namespace WriteEngine
 {
@@ -103,7 +104,7 @@ public:
     virtual ~SyncDataReadThread();
     virtual void operator()(); 
 private:
-    sync::SyncDataProcessor syncProc;
+    SYNC::SyncDataProcessor syncProc;
 
     friend class ReadThreadFactory;
 };

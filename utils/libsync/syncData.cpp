@@ -9,15 +9,35 @@ using namespace messageqcpp;
 
 #include "we_messages.h"
 #include "we_brmrprtparser.h"
-#include "we_cleartablelockcmd.h"
-#include "we_dataloader.h"
-#include "we_readthread.h"
 
 #include "installdir.h"
 #include "syncData.h"
+#include "syncDataProcessor.h"
 
-namespace sync
+namespace SYNC
 {
+    SyncManager * syncMgr=0;
+    boost::mutex syncMgrMutex;
+        
+    struct SyncManagerThread{
+        SyncManager * mgr;
+        SyncManagerThread(SyncManager *_mgr):mgr(_mgr){};
+        void operator()(){
+            mgr->run();
+        };
+    };
+    SyncManager * SyncManager::makeSyncManager() {
+        mutex::scoped_lock mgrLock(syncMgrMutex);
+        if (syncMgr)
+        {
+            mgrLock.unlock();
+            return syncMgr;
+        }
+        syncMgr = new SyncManager();
+        syncMgr->reader = new boost::thread(SyncManagerThread(syncMgr));
+        mgrLock.unlock();
+        return syncMgr;
+    };
     SyncBase::SyncBase() :running(true), syncThreadNums(1), reader(0)
     {
         oam::OamCache * oamCache = oam::OamCache::makeOamCache();
@@ -31,10 +51,10 @@ namespace sync
         ClientThread::iterator it = syncThreads.find(pmId);
         if (it != syncThreads.end())
         {
-            it->second->ws->Close();
-            it->second->th->join();
-            delete it->second->th;
-            delete it->second->we;
+            it->second.we->Close();
+            it->second.th->join();
+            delete it->second.th;
+            delete it->second.we;
             syncThreads.erase(pmId);
         }
         mgrLock.unlock();
@@ -71,12 +91,12 @@ namespace sync
     {};
     SYNC_DATA_STATE SyncManager::getSyncDataState(SyncData & syncData)
     {};
-    SYNC_DATA_STATEList SyncManager::getAllSyncDataState(int state = 0) {
+    SYNC_DATA_STATEList SyncManager::getAllSyncDataState(int state  ) {
     };
     SyncData * SyncManager::getNextSyncData()
     {};
     //master中使用,监听队列和子线程任务，发送同步数据命令 , 十分钟内无任务需要执行则退出
-    void SyncManager::operator()() {
+    void SyncManager::run() {
         while (this->running)
         {
 

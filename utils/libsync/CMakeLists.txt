@@ -4,7 +4,7 @@ include_directories( ${ENGINE_COMMON_INCLUDES} )
 
 ########### next target ###############
 
-set(sync_LIB_SRCS syncData.cpp  )
+set(sync_LIB_SRCS syncData.cpp syncDataProcessor.cpp  we_client.cpp )
 
 add_library(sync SHARED ${sync_LIB_SRCS})
 

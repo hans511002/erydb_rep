@@ -63,7 +63,7 @@ using namespace WriteEngine;
 #include "atomicops.h"
 
 
-namespace sync
+namespace SYNC
 {
  void  writeToLog(int l,const char* file, int line, const string& msg, LOG_TYPE logto = LOG_TYPE_INFO)
   {
@@ -86,7 +86,7 @@ namespace sync
 	}
   }
     
-  WEClient::WEClient(SyncBase * _syncMgr, int PrgmID, uint16_t pmId) :syncMgr(_syncMgr),fPrgmID(PrgmID),fpmId(pmId)
+  WEClient::WEClient(SyncBase * _syncMgr, int PrgmID, uint16_t pmId) :syncMgr(_syncMgr),fPrgmID(PrgmID),fpmId(pmId),isError(false)
   {
 	closingConnection = 0;
     Setup();
@@ -199,7 +199,7 @@ void WEClient::operator()() {
 			if ( sbs->length() != 0 )
 			{
 				//cout << "adding data to connIndex " << endl;
-                syncMgr->msgProc(*this,sbs);
+                syncMgr->msgProc(this,sbs);
 			}
 			else // got zero bytes on read, nothing more will come
 			{
@@ -223,14 +223,7 @@ void WEClient::operator()() {
 		goto Error;
 	}
 Error:
-	// error condition! push 0 length bs to messagequeuemap and
-	// eventually let jobstep error out.
-	mutex::scoped_lock lk(fMlock); 
-	sbs.reset(new ByteStream(0)); 
-    mqe->queue.clear();
-	(void)atomicops::atomicInc(&mqe->unackedWork[0]);
-    mqe->queue.push(sbs); 
-	lk.unlock(); 
+	 isError=true;
 	// reset the pmconnection map
 	{
 		mutex::scoped_lock onErrLock(fOnErrMutex);

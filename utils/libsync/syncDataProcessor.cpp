@@ -1,15 +1,41 @@
 #include "we_messages.h"
 #include "syncDataProcessor.h"
 
-namespace sync
+namespace SYNC
 {
+    SyncDataProcessor * syncProc=0;
+    struct SyncDataProcessorThread{
+        SyncDataProcessor * mgr;
+        SyncDataProcessorThread(SyncDataProcessor *_mgr):mgr(_mgr){};
+        void operator()(){
+            mgr->run();
+        };
+    };
+    SyncDataProcessor * SyncDataProcessor::makeSyncDataProcessor()
+    {
+        boost::mutex::scoped_lock mgrLock(syncMgrMutex);
+        if (syncProc)
+        {
+            mgrLock.unlock();
+            return syncProc;
+        }
+        syncProc = new SyncDataProcessor();
+        syncProc->reader = new boost::thread(SyncDataProcessorThread(syncProc));
+        mgrLock.unlock();
+        return syncProc;
+    };
+    void SyncDataProcessor::run(){
+        
+        };
+
+
     SyncDataProcessor::SyncDataProcessor() {
 
     };
     void SyncDataProcessor::onReceiveKeepAlive(const messageqcpp::IOSocket& ios,ByteStream& Ibs){
 
     };
-    void SyncDataProcessor::msgProc(ByteStream::byte msgId,const messageqcpp::IOSocket& ios, messageqcpp::ByteStream &ibs) {
+    void SyncDataProcessor::msgProc(ByteStream::byte msgId,messageqcpp::IOSocket& ios, messageqcpp::ByteStream &ibs) {
         switch (msgId)
         {
             case WriteEngine::WE_SYNC_SRV_KEEPALIVE:
@@ -57,9 +83,10 @@ namespace sync
 
     };
 
-    SyncDataThread(SyncDataProcessor * syncProc, messageqcpp::IOSocket *sock) {
+    SyncDataThread::SyncDataThread(SyncDataProcessor * syncProc,int PrgmID,uint16_t pmId):WEClient((SyncBase * )syncProc,PrgmID,pmId) {
     
     };
 
+    SyncDataThread::~SyncDataThread() {  };//~WEClient();
 
 };
