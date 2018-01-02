@@ -83,10 +83,12 @@
   <ItemGroup>
     <ClCompile Include="syncData.cpp" />
     <ClCompile Include="syncDataProcessor.cpp" />
+    <ClCompile Include="we_client.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="syncData.h" />
     <ClInclude Include="syncDataProcessor.h" />
+    <ClInclude Include="we_client.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
