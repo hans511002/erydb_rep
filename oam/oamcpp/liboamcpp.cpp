@@ -8315,16 +8315,21 @@ namespace oam
                     ibs >> returnRequestType;
                     if (returnRequestType == returnRequestType) {
                         processor.shutdown();
-                        try { //请求同步到备
-                            Config* sysConfig = Config::makeConfig(erydbConfigFile.c_str());
-                            if (sysConfig->getConfig("ProcStatusControlStandby", "IPAddr") != oam::UnassignedIpAddr)                                 {
-                                MessageQueueClient processor("ProcStatusControlStandby");
-                                ByteStream ibs;
-                                processor.write(obs);
-                                processor.shutdown();
+                        oam::OamCache* oamcache = oam::OamCache::makeOamCache();
+                        int pmCount = oamcache->getPMCount();
+                        if( pmCount > 1){
+                            try { //请求同步到备
+                                Config* sysConfig = Config::makeConfig(erydbConfigFile.c_str());
+                                if (sysConfig->getConfig("ProcStatusControlStandby", "IPAddr") != oam::UnassignedIpAddr)                                 {
+                                    MessageQueueClient processor("ProcStatusControlStandby");
+                                    ByteStream ibs;
+                                    processor.write(obs);
+                                    processor.shutdown();
+                                }
+                           
+                            } catch (...) {
+                                writeLog("sendStatusUpdate to ProcStatusControlStandby error" , LOG_TYPE_ERROR);
                             }
-                        } catch (...) {
-                            writeLog("sendStatusUpdate to ProcStatusControlStandby error" , LOG_TYPE_ERROR);
                         }
                         return;
                     }
