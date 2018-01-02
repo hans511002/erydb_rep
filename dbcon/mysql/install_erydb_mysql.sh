@@ -35,9 +35,9 @@ INSTALL PLUGIN erydb_columns SONAME 'is_erydb_columns.so';
 INSTALL PLUGIN erydb_extents SONAME 'is_erydb_extents.so';
 INSTALL PLUGIN erydb_files SONAME 'is_erydb_files.so';
 -- these are deprecated names
-DELETE FROM mysql.func WHERE name='caldisablepartition';
-DELETE FROM mysql.func WHERE name='caldroppartition';
-DELETE FROM mysql.func WHERE name='calenablepartition';
+DELETE FROM mysql.func WHERE name='erydisablepartition';
+DELETE FROM mysql.func WHERE name='erydroppartition';
+DELETE FROM mysql.func WHERE name='eryenablepartition';
 DELETE FROM mysql.func WHERE name='erydisablepartitions';
 DELETE FROM mysql.func WHERE name='eryenablepartitions';
 DELETE FROM mysql.func WHERE name='erydroppartitions';
