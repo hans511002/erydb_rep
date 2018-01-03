@@ -450,7 +450,7 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
-    //check for local ip address as pm1  È¥µôpm1ÏŞÖÆºó¿ÉÒÔÉ¾³ı´ËÅĞ¶Ï
+    //check for local ip address as pm1  å»æ‰pm1é™åˆ¶åå¯ä»¥åˆ é™¤æ­¤åˆ¤æ–­
     ModuleConfig moduleconfig;
     try {
         oam.getSystemConfig("pm1", moduleconfig);
@@ -1216,7 +1216,7 @@ int main(int argc, char *argv[]) {
         //clear any Equipped Module IP addresses that aren't in current ID range
         for (int j = 0; j < listSize; j++) {
             for (unsigned int k = 1; k < MAX_NIC + 1; k++) {
-                //<!--Ö÷»úID Íø¿Úid ÀàĞÍID-->
+                //<!--ä¸»æœºID ç½‘å£id ç±»å‹ID-->
                 string ModuleIPAddr = "ModuleIPAddr" + oam.itoa(j + 1) + "-" + oam.itoa(k) + "-" + oam.itoa(i + 1);
                 if (!(sysConfig->getConfig(ModuleSection, ModuleIPAddr).empty())) {
                     if (j + 1 < moduleID || j + 1 > moduleID + (moduleCount - 1)) {
@@ -1366,7 +1366,7 @@ int main(int argc, char *argv[]) {
                     string newModuleIPAddr;
                     while (true) {
                         newModuleHostName = moduleHostName;
-                        //¿Éµ÷ÓÃ½Å±¾¶¯Ì¬´´½¨ĞéÄâ»ú
+                        //å¯è°ƒç”¨è„šæœ¬åŠ¨æ€åˆ›å»ºè™šæ‹Ÿæœº
                         if (amazonInstall) {
                             if (moduleHostName == oam::UnassignedName &&
                                 newModuleName == "pm1" && nicID == 1) {
@@ -1989,7 +1989,7 @@ int main(int argc, char *argv[]) {
                             if (inUse)
                                 break;
                             else {	// if upgrade, dont allow a new DBRoot id to be entered
-                                if (reuseConfig == "y") {//²»ÔÊĞíĞÂÔö
+                                if (reuseConfig == "y") {//ä¸å…è®¸æ–°å¢
                                     DBRootConfigList::iterator pt = dbrootConfigList.begin();
                                     for (; pt != dbrootConfigList.end(); pt++) {
                                         if (*list == oam.itoa(*pt)) {
@@ -2235,7 +2235,9 @@ int main(int argc, char *argv[]) {
     //set the PM Ports based on Number of PM modules equipped, if any equipped
     int minPmPorts = 2;
     sysConfig->setConfig("PrimitiveServers", "Count", oam.itoa(pmNumber));
-
+    if(maxPMNicCount>1){
+        //sysConfig->setConfig("PrimitiveServers", "ServerThreads", oam.itoa(maxPMNicCount));
+    }
     int pmPorts = pmNumber * (maxPMNicCount * 2);
     if (pmPorts < minPmPorts)
         pmPorts = minPmPorts;
@@ -2264,6 +2266,9 @@ int main(int argc, char *argv[]) {
                     }
                     if (!IpAddr.empty() && IpAddr != oam::UnassignedIpAddr) {
                         sysConfig->setConfig(pmName, "IPAddr", IpAddr);
+                        if(maxPMNicCount>1){
+                            //sysConfig->setConfig(pmName, "ListenAddr", IpAddr);
+                        }
                         sysConfig->setConfig(pmName, "Port", "8620");
                         pmsID++;
                         if (pmsID > pmPorts)
