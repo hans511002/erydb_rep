@@ -1258,9 +1258,9 @@ uint8_t WE_DDLCommandProc::deleteSyscolumn(ByteStream& bs, std::string & err)
 	systemCatalogPtr = erydbSystemCatalog::makeerydbSystemCatalog(sessionID);
 	systemCatalogPtr->identity(erydbSystemCatalog::EC);
 	DBROOTS_struct  dbRoot;
-	BRM::OID_t sysOid = OID_SYSCOLUMN_SCHEMA;
+	//BRM::OID_t sysOid = OID_SYSCOLUMN_SCHEMA;
 	//Find out where syscolumn is
-	rc = fDbrm.getSysCatDBRoot(sysOid, dbRoot);
+	rc = fDbrm.getSysCatDBRoot(OID_SYSCOLUMN_SCHEMA, dbRoot);
 	fWEWrapper.setTransId(txnID);
 	fWEWrapper.startTransaction(txnID);
 	fWEWrapper.setIsInsert(false);
@@ -1385,9 +1385,9 @@ uint8_t WE_DDLCommandProc::deleteSyscolumnRow(ByteStream& bs, std::string & err)
 	systemCatalogPtr = erydbSystemCatalog::makeerydbSystemCatalog(sessionID);
 	systemCatalogPtr->identity(erydbSystemCatalog::EC);
 	DBROOTS_struct  dbRoot;
-	BRM::OID_t sysOid = OID_SYSCOLUMN_SCHEMA;
+	//BRM::OID_t sysOid = OID_SYSCOLUMN_SCHEMA;
 	//Find out where syscolumn is
-	rc = fDbrm.getSysCatDBRoot(sysOid, dbRoot);
+	rc = fDbrm.getSysCatDBRoot(OID_SYSCOLUMN_SCHEMA, dbRoot);
 	fWEWrapper.setTransId(txnID);
 	fWEWrapper.setIsInsert(false);
 	fWEWrapper.setBulkFlag(false);
@@ -1510,10 +1510,10 @@ uint8_t WE_DDLCommandProc::deleteSystable(ByteStream& bs, std::string & err)
 	systemCatalogPtr->identity(erydbSystemCatalog::EC);
 
 	DBROOTS_struct  dbRoot;
-	BRM::OID_t sysOid = OID_SYSTABLE_TABLENAME;
+	//BRM::OID_t sysOid = OID_SYSTABLE_TABLENAME;
 
 	//Find out where systcolumn is
-	rc = fDbrm.getSysCatDBRoot(sysOid, dbRoot);
+	rc = fDbrm.getSysCatDBRoot(OID_SYSTABLE_TABLENAME, dbRoot);
 	fWEWrapper.setTransId(txnID);
 	
 	fWEWrapper.startTransaction(txnID);
@@ -1642,9 +1642,9 @@ uint8_t WE_DDLCommandProc::deleteSystables(ByteStream& bs, std::string & err)
 	std::vector<WriteEngine::RIDList> ridLists;
 	DDLColumn column;
 	DBROOTS_struct  dbRoot;
-	BRM::OID_t sysOid = 1003;
+	//BRM::OID_t sysOid = 1003;
 	//Find out where systable is
-	rc = fDbrm.getSysCatDBRoot(sysOid, dbRoot);
+	rc = fDbrm.getSysCatDBRoot(OID_SYSTABLE_TABLENAME, dbRoot);
 	fWEWrapper.setTransId(txnID);
 	fWEWrapper.setIsInsert(false);
 	fWEWrapper.setBulkFlag(false);
@@ -1730,9 +1730,9 @@ uint8_t WE_DDLCommandProc::deleteSystables(ByteStream& bs, std::string & err)
 	//deleting from SYSCOLUMN
 	sysCatalogTableName.fSchema = ERYDB_SCHEMA;
 	sysCatalogTableName.fName  = SYSCOLUMN_TABLE;
-	sysOid = OID_SYSCOLUMN_SCHEMA;
+	//sysOid = OID_SYSCOLUMN_SCHEMA;
 	//Find out where syscolumn is
-	rc = fDbrm.getSysCatDBRoot(sysOid, dbRoot);
+	rc = fDbrm.getSysCatDBRoot(OID_SYSCOLUMN_SCHEMA, dbRoot);
 
 	try
 	{
