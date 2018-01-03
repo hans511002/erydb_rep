@@ -8315,11 +8315,11 @@ namespace oam
                     ibs >> returnRequestType;
                     if (returnRequestType == returnRequestType) {
                         processor.shutdown();
-                        oam::OamCache* oamcache = oam::OamCache::makeOamCache();
-                        int pmCount = oamcache->getPMCount();
+                        Config* sysConfig = Config::makeConfig(erydbConfigFile.c_str());
+                        string tmp=sysConfig->getConfig("SystemModuleConfig", "ModuleCount3");
+                        int pmCount =atoi(tmp.c_str());
                         if( pmCount > 1){
                             try { //请求同步到备
-                                Config* sysConfig = Config::makeConfig(erydbConfigFile.c_str());
                                 if (sysConfig->getConfig("ProcStatusControlStandby", "IPAddr") != oam::UnassignedIpAddr)                                 {
                                     MessageQueueClient processor("ProcStatusControlStandby");
                                     ByteStream ibs;
