@@ -35,6 +35,7 @@ using namespace joblist;
 using namespace ddlpackage;
 #include "we_messages.h"
 using namespace WriteEngine;  
+#include "liboamcpp.h"
 
 #include "oamcache.h"
 using namespace oam;
@@ -52,18 +53,29 @@ typedef boost::shared_ptr<std::map<string, int> > StringIntMap;
 
 void SystemCatalog::buildRep()
 {
+    oam:Oam oam;
     boost::scoped_ptr<DBRM> dbrm(new DBRM()); 
-    DDLPackageProcessor ddlProc(dbrm.get());
-    DBROOTS_struct dbRoot;
-    BRMWrapper::getInstance()->getSysDataDBRoots(&dbRoot);
+    SystemStatus systemstatus;
     uint64_t uniqueId = 0;
-    uniqueId = dbrm->getUnique64();
-    cout << "SysDataDBRoots=" << dbRoot << endl;
-    erydbSystemCatalog::TableName sysTable(ERYDB_SCHEMA,SYSTABLE_TABLE);
-    ddlProc.createFiles(sysTable, dbRoot, uniqueId, 13);
-    erydbSystemCatalog::TableName sysColTable(ERYDB_SCHEMA, SYSCOLUMN_TABLE);
-    ddlProc.createFiles(sysColTable, dbRoot, uniqueId,28 );
-    return ;
+    DBROOTS_struct dbRoot;
+    int waitCount=0;
+    while(1){
+        oam.getSystemStatus(systemstatus, true);
+        if(systemstatus.SystemOpState == oam::ACTIVE){
+            DDLPackageProcessor ddlProc(dbrm.get());
+            BRMWrapper::getInstance()->getSysDataDBRoots(&dbRoot);
+            uniqueId = dbrm->getUnique64();
+            cout << "SysDataDBRoots=" << dbRoot << endl;
+            erydbSystemCatalog::TableName sysTable(ERYDB_SCHEMA,SYSTABLE_TABLE);
+            ddlProc.createFiles(sysTable, dbRoot, uniqueId, 13);
+            erydbSystemCatalog::TableName sysColTable(ERYDB_SCHEMA, SYSCOLUMN_TABLE);
+            ddlProc.createFiles(sysColTable, dbRoot, uniqueId,28 );
+            return ;
+        }
+        waitCount++;
+        if(waitCount>120)break;
+        sleep(1000);
+    }
     WriteEngine::WEClients  fWEClient(WriteEngine::WEClients::DDLPROC);
     remove();
     cout << "Creating System Catalog..." << endl;
