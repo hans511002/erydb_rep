@@ -36,12 +36,24 @@ using namespace Common;
 
 namespace SYNC {
     using namespace BRM;
+    //同步数据摘要对象
     struct SyncData
     {
-        uint16_t srcDbr;
-        uint16_t destDbr;
+        //em
+        DBROOTS_struct dbRoot;
         int extentIndex;
-        uint64_t lbid;
+
+        //blocks
+
+
+
+        
+        unsigned long long lbid;
+        uint32_t fbo;
+        uint32_t oid;
+        int extentIndex;
+        int size;
+        bool locked;
         EXPORT void serialize(messageqcpp::ByteStream &bs) const;
         EXPORT void deserialize(messageqcpp::ByteStream &bs);
     };
@@ -108,6 +120,8 @@ namespace SYNC {
         void closeWEclient(uint16_t pmId);
         void close();
     };
+
+    //master内同步管理
     class SyncManager:public SyncBase
     {
     private:

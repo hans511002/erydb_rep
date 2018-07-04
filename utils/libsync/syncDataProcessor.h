@@ -11,6 +11,7 @@ namespace SYNC
     using namespace BRM;
     typedef std::queue<SyncData> SyncDataQueue;
 
+    // writeengineServer ÄÚ
     class SyncDataProcessor :public SyncBase
     {
         SyncDataQueue dataQueue;
