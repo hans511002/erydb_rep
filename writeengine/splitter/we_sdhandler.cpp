@@ -96,7 +96,7 @@ void WEPmList::addPriorityPm2List(int PmId) {
 
 int WEPmList::getNextPm() {
 	mutex::scoped_lock aLock(fListMutex);
-	int aPmId = 0;
+	uint16_t aPmId = 0;
 	if (!fPmList.empty()) {
 		aPmId = fPmList.front();
 		fPmList.pop_front();
@@ -326,7 +326,7 @@ void WESDHandler::sendEODMsg()
 //------------------------------------------------------------------------------
 void WESDHandler::checkForRespMsgs() {
 	ByteStream aBs;
-	ByteStream::byte aPmId;
+	uint16_t aPmId;
 	ByteStream::byte aMsgId;
 	//boost::shared_ptr<messageqcpp::ByteStream> aSbs;
 	messageqcpp::SBS aSbs;
@@ -1735,7 +1735,7 @@ void WESDHandler::onCleanupResult(int PmId, messageqcpp::SBS& Sbs) {
 //------------------------------------------------------------------------------
 
 void WESDHandler::onDBRootCount(int PmId, messageqcpp::SBS& Sbs) {
-	ByteStream::byte aDbrCnt = 0;
+	uint16_t aDbrCnt = 0;
 	(*Sbs) >> aDbrCnt;
 
 	if (getDebugLvl())
