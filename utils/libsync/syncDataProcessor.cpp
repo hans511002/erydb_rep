@@ -78,12 +78,12 @@ namespace SYNC
                 break;
         }
     };
-    void SyncDataProcessor::msgProc(WEClient * wc, messageqcpp::SBS &bs)
+    void SyncDataProcessor::msgProc(SyncClient * wc, messageqcpp::SBS &bs)
     {
 
     };
 
-    SyncDataThread::SyncDataThread(SyncDataProcessor * syncProc,int PrgmID,uint16_t pmId):WEClient((SyncBase * )syncProc,PrgmID,pmId) {
+    SyncDataThread::SyncDataThread(SyncDataProcessor * syncProc,int PrgmID,uint16_t pmId):SyncClient((SyncBase * )syncProc,PrgmID,pmId) {
     
     };
 

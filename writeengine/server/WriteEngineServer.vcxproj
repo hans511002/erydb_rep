@@ -43,6 +43,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+<Import Project="$(SolutionDir)\erydb.props" />
   <ImportGroup Label="ExtensionSettings" />
   <ImportGroup Label="Shared" />
   <ImportGroup Label="PropertySheets" />
@@ -139,6 +140,9 @@
     </ProjectReference>
     <ProjectReference Include="..\..\utils\erydbdatafile\erydbdatafile.vcxproj">
       <Project>{4c8231d7-7a87-4650-aa9c-d7650c1d03ee}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\utils\libsync\libsync.vcxproj">
+      <Project>{97a35bea-faef-4db2-904f-0a04424227e1}</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\utils\loggingcpp\libloggingcpp.vcxproj">
       <Project>{07230df5-10e9-469e-8075-c0978c0460ad}</Project>

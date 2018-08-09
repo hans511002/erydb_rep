@@ -45,6 +45,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <Import Project="$(SolutionDir)\erydb.props" />
   <ImportGroup Label="ExtensionSettings" />
   <ImportGroup Label="Shared" />
   <ImportGroup Label="PropertySheets" />
@@ -83,12 +84,14 @@
   <ItemGroup>
     <ClCompile Include="syncData.cpp" />
     <ClCompile Include="syncDataProcessor.cpp" />
-    <ClCompile Include="we_client.cpp" />
+    <ClCompile Include="SyncClient.cpp" />
+    <ClCompile Include="SyncManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="syncData.h" />
     <ClInclude Include="syncDataProcessor.h" />
-    <ClInclude Include="we_client.h" />
+    <ClInclude Include="SyncClient.h" />
+    <ClInclude Include="SyncManager.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

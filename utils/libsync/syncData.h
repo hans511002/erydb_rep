@@ -86,10 +86,10 @@ namespace SYNC {
         DateTime dt;
         SYNC_STATE state;
     };
-    class WEClient;
+    class SyncWesClient;
     struct WEClientThread
     {
-        WEClient* we;
+		SyncWesClient* we;
         boost::thread* th;
     };
     typedef std::vector<SyncData> SyncDataList;
@@ -116,36 +116,12 @@ namespace SYNC {
 
 
         SyncBase();
-        virtual void msgProc(WEClient *, messageqcpp::SBS &);
+        virtual void msgProc(SyncClient *, messageqcpp::SBS &);
         void closeWEclient(uint16_t pmId);
         void close();
     };
 
-    //master内同步管理
-    class SyncManager:public SyncBase
-    {
-    private:
-        SyncManager(): curIndex(-1), SyncBase(){
-            oam::OamCache * oamCache = oam::OamCache::makeOamCache();
-        };
-        SyncListQueue fDataQueue;
-        SyncStatMap syncStates; 
-        SyncDataList curSyncDataList;
-        int curIndex;
-
-    public:
-        static SyncManager * makeSyncManager();
-        void addSyncData(SyncDataList &syncData);
-        SYNC_DATA_STATE * setSyncDataState(SyncData &syncData, SYNC_STATE state);
-        SYNC_DATA_STATE getSyncDataState(SyncData & syncData);
-        SYNC_DATA_STATEList getAllSyncDataState(int state=0);
-        SyncData * getNextSyncData();
-        virtual void msgProc(WEClient *, messageqcpp::SBS &);
-
-        void run();
-        uint16_t connectedWEServers() const { return syncThreads.size(); }
-    };
-    extern SyncManager * syncMgr; 
+   
    
 };
 #endif

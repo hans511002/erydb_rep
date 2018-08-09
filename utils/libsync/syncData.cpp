@@ -51,7 +51,7 @@ namespace SYNC
         ClientThread::iterator it = syncThreads.find(pmId);
         if (it != syncThreads.end())
         {
-            it->second.we->Close();
+            it->second.we->close();
             it->second.th->join();
             delete it->second.th;
             delete it->second.we;
@@ -67,7 +67,7 @@ namespace SYNC
         ClientThread::iterator it;
         for (it = syncThreads.begin(); it != syncThreads.end(); it++)
         {
-            it->second.we->Close();
+            it->second.we->close();
             it->second.th->join();
             delete it->second.th;
             delete it->second.we;
@@ -76,33 +76,10 @@ namespace SYNC
         delete reader;
         mgrLock.unlock();
     };
-    void SyncBase::msgProc(WEClient * wc, messageqcpp::SBS &bs)
+    void SyncBase::msgProc(SyncClient * wc, messageqcpp::SBS &bs)
     {
 
     };
-    void SyncManager::msgProc(WEClient * wc, messageqcpp::SBS &bs)
-    {
-
-    };
-    
-    void SyncManager::addSyncData(SyncDataList &syncData)
-    {};
-    SYNC_DATA_STATE * SyncManager::setSyncDataState(SyncData &syncData, SYNC_STATE state)
-    {};
-    SYNC_DATA_STATE SyncManager::getSyncDataState(SyncData & syncData)
-    {};
-    SYNC_DATA_STATEList SyncManager::getAllSyncDataState(int state  ) {
-    };
-    SyncData * SyncManager::getNextSyncData()
-    {};
-    //master中使用,监听队列和子线程任务，发送同步数据命令 , 十分钟内无任务需要执行则退出
-    void SyncManager::run() {
-        while (this->running)
-        {
-
-        }
-    };
-
 
 
     void SyncData::serialize(messageqcpp::ByteStream &bs) const
